@@ -1,0 +1,10 @@
+.FileTable
+{
+}
+.FileTable td
+{
+    max-width: 260px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}

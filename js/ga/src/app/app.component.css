@@ -1,0 +1,72 @@
+.myTabs
+{
+    width: 200px; 
+    background-color:#f4f4f4;
+    border-radius: 5px 5px 0 0; 
+    height: 30px; margin-top:10px; 
+    border: 1px #bebebe solid;
+    position:relative;
+    color: #000000;
+    cursor: pointer;
+}
+.myTabsActive
+{
+    background-color:#ffffff; 
+    color: #508fd3;
+}
+
+.tubExitButton
+{
+    position: absolute; 
+    top: 6px; 
+    right:4px; 
+    color: #4d4d4d;
+}
+.tubExitButton:hover
+{
+    color: #777777;
+}
+
+.softwareIcon
+{
+    color: #ffffff; 
+    width:45px; 
+    height:45px;
+    text-align:center;
+    margin-right: 5px;
+    border-radius: 6px;
+    font-size:20px;
+    cursor: pointer;
+    transition: 0.3s;
+    line-height: 45px;
+}
+.softwareExplorer
+{
+    border:2px solid #5f3636; 
+    background-color: #c77373; 
+}
+.softwareExplorer:hover { background-color: #da7c7c; }
+.softwareTable
+{
+    border:2px solid #465a32; 
+    background-color: #93c261; 
+}
+.softwareTable:hover { background-color: #9fd465; }
+.softwareStatistics
+{
+    border:2px solid #5c365f; 
+    background-color: #af73c7; 
+}
+.softwareStatistics:hover { background-color: #d27cda; }
+.softwareTasks
+{
+    border:2px solid #364b5f; 
+    background-color: #739ac7; 
+}
+.softwareTasks:hover { background-color: #7cadda; }
+.softwareEvent
+{
+    border:2px solid #5c5f36; 
+    background-color: #c1c773; 
+}
+.softwareEvent:hover { background-color: #d8da7c; }

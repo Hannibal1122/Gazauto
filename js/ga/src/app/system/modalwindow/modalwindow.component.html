@@ -1,0 +1,104 @@
+<div #modal class = "modalwindow" style = "display:none;" [style.width.px] = "width">
+    <div class = "modal-title" [innerHTML] = "title"></div>
+    <div *ngIf = "Data.length > 0" class = "modal-body">
+        <table class = "modal-table">
+            <tbody>
+                <tr *ngFor = "let data of Data; let i = index;">
+                    <td [innerHTML] = "data[0]"></td>
+                    <td>
+                        <!-- ******************************************************************************** -->
+                        <select *ngIf = "data[2] === 'select'" [(ngModel)] = "data[1].selected" (change) = "data[3] ? data[3].onselect(data[1].selected) : null" style = "max-width: 300px;">
+                            <option value = "{{data[1].value ? data[1].value[j] : option}}" *ngFor = "let option of data[1].data; let j = index;">{{option}}</option>
+                        </select>
+                        <!-- ******************************************************************************** -->
+                        <select *ngIf = "data[2] === 'selectAndButton'" [(ngModel)] = "data[1].selected" (change) = "data[3] ? data[3].onselect(data[1].selected) : null" style = "max-width: 300px;">
+                            <option value = "{{data[1].value ? data[1].value[j] : option}}" *ngFor = "let option of data[1].data; let j = index;">{{option}}</option>
+                        </select>
+                        <button *ngIf = "data[2] === 'selectAndButton'" (click) = "data[4]()">Добавить</button>
+                        <!-- ******************************************************************************** -->
+                        <div *ngIf = "data[2] === 'choiceListSelect'" >
+                            <select size = "10" style = "float: left; width: 150px;" [(ngModel)] = "data[1].current1">
+                                <option value = "{{data[1].value ? data[1].value[j] : option}}" *ngFor = "let option of data[1].data; let j = index;">{{option}}</option>
+                            </select>
+                            <select size = "10" [(ngModel)] = "data[1].current2" style = "width: 150px;">
+                                <option value = "{{option.value}}" *ngFor = "let option of data[1].selected; let j = index;">{{option.name}}</option>
+                            </select><br>
+                            <button class = "btn btn-primary btn-sm" (click) = "addToSelectList(data)">добавить</button>
+                            <button class = "btn btn-primary btn-sm" (click) = "removeFromSelectList(data)">удалить</button>
+                        </div>
+                        <!-- ******************************************************************************** -->
+                        <input *ngIf = "data[2] === 'text'" type = "text" [value]="data[1]" [(ngModel)] = "data[1]">
+                        <!-- ******************************************************************************** -->
+                        <input *ngIf = "data[2] === 'password'" type = "text" [value]="data[1]" [(ngModel)] = "data[1]">
+                        <button *ngIf = "data[2] === 'password'" (click) = "generatePassword(i)">Создать</button>
+                        <!-- ******************************************************************************** -->
+                        <input *ngIf = "data[2] === 'checkbox'" type = "checkbox" [checked]="data[1]" [(ngModel)] = "data[1]">
+                        <!-- ******************************************************************************** -->
+                        <div *ngIf = "data[2] === 'html'" [innerHTML] = "data[1]"></div>
+                        <!-- ******************************************************************************** -->
+                        <textarea *ngIf = "data[2] === 'textarea'" style = "width: 100%;" [(ngModel)] = "data[1]">{{ data[1] }}</textarea>
+                        <!-- ******************************************************************************** -->
+                        <div *ngIf = "data[2] === 'listTable'" >
+                            <table class = "modal-table-list">
+                                <tbody>
+                                    <tr *ngFor = "let _data of data[1]; let j = index;">
+                                        <td>
+                                            <input class = "modalInput" type = "text" [(ngModel)] = "data[1][j].value">
+                                        </td>
+                                        <td>
+                                            <button class = "btn btn-primary btn-sm" (click) = "removeFromListTable(i, j)">удалить</button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <button class = "btn btn-primary btn-sm" style = "margin-top:5px;" (click) = "addToListTable(i)">добавить</button>
+                        </div>
+                        <!-- ******************************************************************************** -->
+                        <div *ngIf = "data[2] === 'datetime'">
+                            <datetimepicker (onChange) = "changeDate(data, $event)" [setValue] = "data[3]" [config] = "configDTP"></datetimepicker> 
+                        </div>
+                        <!-- ******************************************************************************** -->
+                        <div *ngIf = "data[2] === 'uploader'">
+                            <app-file-uploader [config] = "{ add: data[3], remove: data[4], maxLoadFile: data[5] }" (onChange) = "onChangeListFile($event, data)" (Load) = "onLoad($event)"></app-file-uploader>
+                        </div>
+                        <!-- ******************************************************************************** -->
+                        <div *ngIf = "data[2] === 'typeObject'">
+                            <button *ngFor = "let btn of typeObject" style = "color: #456486; cursor:pointer;" title = "{{btn.name}}" (click) = "data[3](btn.name)">
+                                <i class = "{{btn.class}}"></i>
+                            </button>
+                        </div>
+                        <!-- ******************************************************************************** -->
+                        <div *ngIf = "data[2] === 'rightObject'">
+                            <table class = "modal-table-right">
+                                <tbody>
+                                    <tr>
+                                        <td> Пользователи / Роли </td>
+                                        <td title = "Просмотр"> <i class="fas fa-eye"></i> </td>
+                                        <td title = "Копирование"> <i class="fas fa-copy"></i> </td>
+                                        <td title = "Наследование"> <i class="fas fa-link"></i> </td>
+                                        <td title = "Изменение"> <i class="fas fa-exchange-alt"></i> </td>
+                                        <td> </td>
+                                    </tr>
+                                    <tr *ngFor = "let login of data[3]; let j = index;">
+                                        <td>{{ login.login }}</td>
+                                        <td><input type = "checkbox" [(ngModel)] = "login.view"></td>
+                                        <td><input type = "checkbox" [(ngModel)] = "login.copy"></td>
+                                        <td><input type = "checkbox" [(ngModel)] = "login.link"></td>
+                                        <td><input type = "checkbox" [(ngModel)] = "login.change"></td>
+                                        <td style = "color:#920909; cursor:pointer;" (click) = "removeRights(data[3], j)"><i class="fas fa-trash-alt"></i></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <!-- ******************************************************************************** -->
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class = "modal-footer">
+        <div *ngIf = "error != ''" style = "color: rgb(202, 62, 62);">{{error}}</div>
+        <button *ngIf = "textButtonCancel != ''" class = "btn btn-default transition" (click) = "close(false)" style = "float:right; margin-left:10px; cursor: pointer;">{{textButtonCancel}}</button>
+        <button *ngIf = "textButtonOK != ''" class = "btn btn-primary transition" (click) = "close(true)" style = "cursor: pointer;" [disabled] = "load">{{textButtonOK}}</button>
+    </div>
+</div>

@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title></title>
+        <base href="/">
+
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+        
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <!-- <link rel="icon" type="image/x-icon" href="favicon.ico"> -->
+        <style>
+            body
+            {
+                font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+            }
+            /* ul
+            {
+                margin:0;
+                list-style: none;
+                padding-left: 15px;
+            }
+            span
+            {
+                cursor:pointer;
+            }
+            span:hover
+            {
+                text-decoration: underline;
+            } */
+        </style>
+        <script>
+            var TestData = 
+            [{
+                objectType: "folder",
+                name: "База знаний",
+                childrens: 
+                [{
+                    id: 0,
+                    objectType: "folder",
+                    name: "Папка",
+                    childrens: 
+                    [{
+                            id: 1,
+                            objectType: "value",
+                            type: "var",
+                            name: "Значение",
+                            /* value: 10, */
+                            childrens: [] 
+                        },
+                        {
+                            id: 2,
+                            objectType: "value",
+                            type: "array",
+                            name: "Список значений",
+                            /* value: ['1', '2', '3', '4'], */
+                            childrens: [] 
+                        },
+                        {
+                            id: 3,
+                            objectType: "value",
+                            type: "state",
+                            name: "Состояния",
+                            /* value: [{value:'1', weight: 0},{value:'2', weight: 1},{value:'3', weight: 2}], */
+                            childrens: [] 
+                        }]
+                }]
+            },{
+                objectType: "project",
+                name: "Проекты",
+                childrens: 
+                [{
+                    id: 0,
+                    objectType: "folder",
+                    name: "Проект 1",
+                    childrens: 
+                    [{
+                        id: 1,
+                        objectType: "table",
+                        name: "Таблица 1",
+                        childrens: [] 
+                    },
+                    {
+                        id: 2,
+                        objectType: "folder",
+                        name: "Раздел проекта",
+                        childrens: 
+                        [{
+                            id: 1,
+                            objectType: "table",
+                            name: "Таблица 2",
+                            childrens: [] 
+                        },
+                        {
+                            id: 3,
+                            objectType: "table",
+                            name: "Таблица 3",
+                            childrens: [] 
+                        },
+                        {
+                            id: 3,
+                            objectType: "event",
+                            name: "Событие 2",
+                            childrens: [] 
+                        }] 
+                    },
+                    {
+                        id: 3,
+                        objectType: "event",
+                        name: "Событие 1",
+                        childrens: [] 
+                    },
+                    {
+                        id: 3,
+                        objectType: "right",
+                        name: "Права",
+                        childrens: [] 
+                    }]
+                },{
+                    id: 2,
+                    objectType: "folder",
+                    name: "Проект 2",
+                    childrens: []
+                },{
+                    id: 2,
+                    objectType: "folder",
+                    name: "Проект 3",
+                    childrens: []
+                },{
+                    id: 2,
+                    objectType: "folder",
+                    name: "Проект 4",
+                    childrens: []
+                }]
+            }]
+            function trace(str)
+            {
+                console.log(str);
+            }
+        </script>
+    </head>
+    <body style = "background-color: #ffffff; margin:0px;">
+        <app-root></app-root>
+        <div id="BlockModalPanel"
+            style="width: 100%; height: 100%; position: fixed; top: 0px; left: 0px; background-color: rgba(0, 0, 0, 0.6); z-index: 100000; display: none; overflow: auto; padding-top:20px;">
+        </div>
+        
+        <script src="assets/md5.js" crossorigin="anonymous"></script>
+        <script src="assets/snap.svg-min.js" crossorigin="anonymous"></script>
+        <script defer src="https://use.fontawesome.com/releases/v5.0.9/js/all.js" integrity="sha384-8iPTk2s/jMVj81dnzb/iFR2sdA7u06vHJyyLlAd4snFpCl/SnyUjRrbdJsw1pGIl" crossorigin="anonymous"></script>
+        <script src="https://code.jquery.com/jquery-3.2.1.min.js" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+    </body>
+</html>

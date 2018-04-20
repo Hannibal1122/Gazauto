@@ -1,0 +1,35 @@
+<div>
+    Страницы:
+    <select *ngIf = "rowInPage != undefined" style = "margin-top: 5px;" (change) = "setPage()" #selectPageElem>
+        <option *ngFor = "let data of numberPages" value = "{{data}}">{{ data + 1 }}</option>
+    </select>
+</div>
+<div style = "overflow:auto;" [style.max-height] = "height ? (height + 'px') : ''">
+    <table class = "MyTable">
+        <tbody>
+            <tr>
+                <th *ngFor = "let data of header;">{{data}}</th>
+            </tr>
+            <tr>
+                <td *ngFor = "let data of filter; let i = index;">
+                    <input *ngIf = "data && data.enable && !data.value" 
+                        type = "text" 
+                        placeholder="{{data.title}}" 
+                        class = "FilterInput"
+                        (input) = "UpdateFilter(i, $event.target.value, 0, rowInPage)">
+                    <select *ngIf = "data && data.enable && data.value" (change) = "UpdateFilter(i, $event.target.value, 0, rowInPage)">
+                        <option *ngFor = "let val of data.value" value = "{{val}}">{{val}}</option>
+                    </select>
+                </td>
+            </tr>
+            <tr *ngFor = "let data of listTables;">
+                <td *ngFor = "let _data of data;" (click) = "_data.type == undefined && events.clickRow ? events.clickRow(data) : ''">
+                    <div *ngIf = "_data == undefined || _data.type == undefined">{{ _data }}</div>
+                    <div *ngIf = "_data != undefined && _data.type == 'button'">
+                        <button class = "btn btn-primary btn-sm" (click) = "_data.event(data)">{{ _data.name }}</button>
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>

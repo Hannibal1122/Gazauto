@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="ru">
+	<head>
+		<meta charset = "utf-8">
+        <meta http-equiv="content-type" content="text/html;UTF-8">
+        <meta http-equiv="content-language" content="ru">
+        <title></title>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+        <style>
+            body
+            {
+                font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+            }
+            ul
+            {
+                margin:0;
+                list-style: none;
+                padding-left: 15px;
+            }
+            span
+            {
+                cursor:pointer;
+            }
+            span:hover
+            {
+                text-decoration: underline;
+            }
+        </style>
+        <script>
+            function trace(str)
+            {
+                console.log(str);
+            }
+            function onWheel(e) 
+            {
+                var elem = document.getElementById("mainMenu");
+                var height = document.documentElement.clientHeight;
+                var height2 = elem.clientHeight - height;
+                e = e || window.event;
+                var delta = e.deltaY || e.detail || e.wheelDelta;
+                e.preventDefault ? e.preventDefault() : (e.returnValue = false);
+                var y = Number(elem.style.top.replace("px", ""));
+                delta = y - delta/2;
+                if(delta >= 0 ) elem.style.top = "0px";
+                else 
+                    if(delta <= -height2) elem.style.top = -height2 + "px";
+                    else elem.style.top = delta + "px";
+            }
+            function Init()
+            {
+                var elem = document.getElementById("leftMenu");
+                if (elem.addEventListener) 
+                {
+                    if ('onwheel' in document) elem.addEventListener("wheel", onWheel);
+                    else 
+                        if ('onmousewheel' in document)
+                            elem.addEventListener("mousewheel", onWheel);
+                        else elem.addEventListener("MozMousePixelScroll", onWheel);
+                } 
+                else elem.attachEvent("onmousewheel", onWheel);
+            }
+            function drawInfo(str)
+            {
+                var out = "";
+                switch(str)
+                {
+                    case "Таблица": out = "Таблица с полями(подобие Excel)"; break;
+                    case "Событие": out = "Можно добавлять глобальные события, так же события можно добавлять на поле"; break;
+                    case "Права": out = "На проект можно добавлять глобальные права, так же права можно добавлять на поле"; break;
+                    case "Состояния": out = "Создание глобальных состояний, которые можно применять к таблицам или полям"; break;
+                    case "Открыть проводник": out = "Открыть в проводнике. Подобие проводника windows, используется для просмотра структуры Проектов, Шаблонов, Базы и тд"; break;
+                    case "Скрыть/Открыть": out = "Можно скрыть раздел, для удобства"; break;
+                    case "Папка": out = "Древовидная структура, главный родительский элемент."; break;
+                    case "Значение": out = "Значение"; break;
+                    case "Список значений": out = "Список значений"; break;
+                    case "Проект": out = "Главный родительский элемент проекта"; break;
+                    case "Раздел": out = "Подраздел проекта"; break;
+                    case "Раздел шаблона": out = "Подраздел шаблона"; break;
+                    case "Шаблон": out = "Главный родительский элемент шаблона"; break;
+                    case "Пользователи": out = ""; break;
+                    case "Структуры": out = "Создаются автоматически и скрыты от пользователя(скелет шаблона/проекта). При создании проекта на основе шаблона можно выбрать только структуру или структуру с данными"; break;
+                    case "Проводник": out = "Подпрограмма для просмотра всей структуры Базы знаний, Проектов, Шаблонов"; break;
+                    case "Таблица1": out = "Редактор таблиц"; break;
+                    case "Статистика": out = "Подпрограмма для просмотра статистики"; break;
+                    case "События": out = "Подпрограмма для просмотра событий"; break;
+                    case "Справка": out = "Подпрограмма для сбора и просмотра всей информации по элементам"; break;
+                }
+                if(out != "") 
+                {
+                    document.getElementById("myInfo").innerHTML = out;
+                    document.getElementById("myInfo").style.display = "block";
+                }
+                else document.getElementById("myInfo").style.display = "none";
+            }
+        </script>
+    </head>
+    <body style = "background-color: #ffffff; margin:0px; color: white;" onload="Init()">
+        <div id = "myInfo" style = "font-weight: bold; display: none; position:fixed; color: rgb(102, 116, 133); z-index:1000; padding: 5px; border-radius:5px; border:3px solid #d7e7ff; right:20px; top:10px; width:200px; background-color:white; box-shadow: 0 0 10px rgba(0,0,0,0.5);">
+
+        </div>
+        <div id = "leftMenu" style = "width: 410px; background-color:#85a3c5; height:100%; position:fixed;">
+            <div style = "position:absolute;right:3px;width:4px;height:400px;background-color:#456486;"></div> 
+            <div id = "mainMenu" style = "width: calc(100% - 10px); background-color:#6085ac; position:absolute; top: 0px;">
+                <div style = "width: 100%; background-color:#6085ac;";>
+                    <div style = "height: 40px; background-color:#456486; padding: 6px; font-weight:bold; font-size:18px; position: relative;">
+                        <i class="fas fa-book"></i> База знаний
+                        <i class="fas fa-search" style = "position: absolute; right:60px; top: 11px; cursor:pointer;" ></i>
+                        <i class="fas fa-external-link-alt" style = "position: absolute; right:34px; top: 11px; cursor:pointer;" onmouseover = "drawInfo('Открыть проводник')"></i>
+                        <i class="fas fa-arrow-circle-up" style = "position: absolute; right:10px; top: 11px; cursor:pointer;" onmouseover = "drawInfo('Скрыть/Открыть')"></i>
+                    </div>
+                    <div style = "padding: 5px;">
+                        <i class="fas fa-folder-open"></i> <span onmouseover = "drawInfo('Папка')">Папка</span>
+                        <ul>
+                            <li><i class="fas fa-superscript"></i> <span onmouseover = "drawInfo('Значение')">Значение</span></li>
+                            <li><i class="fas fa-clipboard-list"></i> <span onmouseover = "drawInfo('Список')">Список значений</span></li>
+                            <li onmouseover = "drawInfo('Состояния')"><i class="fas fa-balance-scale" style = "color:#f1b0e8;"></i> <span>Состояния</span></li>
+                        </ul>
+                    </div>
+                </div>
+                <div style = "width: 100%; background-color:#6085ac;";>
+                    <div style = "height: 40px; background-color:#456486; padding: 6px; font-weight:bold; font-size:18px; position: relative;">
+                        Проекты
+                        <i class="fas fa-search" style = "position: absolute; right:60px; top: 11px; cursor:pointer;" ></i>
+                        <i class="fas fa-external-link-alt" style = "position: absolute; right:34px; top: 11px;"></i><i class="fas fa-arrow-circle-up" style = "position: absolute; right:10px; top: 11px;"></i>
+                    </div>
+                    <div style = "padding: 5px;">
+                        <i class="fas fa-folder-open"></i> <span onmouseover = "drawInfo('Проект')">Проект 1</span>
+                        <ul>
+                            <li><i class="fas fa-table" style = "color:#aeec6c;"></i> <span onmouseover = "drawInfo('Таблица')">Таблица 1</span></li>
+                            <li>
+                                <i class="fas fa-folder-open"></i> <span onmouseover = "drawInfo('Раздел')">Раздел проекта</span>
+                                <ul>
+                                    <li onmouseover = "drawInfo('Таблица')"><i class="fas fa-table" style = "color:#aeec6c;"></i> <span>Таблица 2</span></li>
+                                    <li onmouseover = "drawInfo('Таблица')"><i class="fas fa-table" style = "color:#aeec6c;"></i> <span>Таблица 3</span></li>
+                                    <li onmouseover = "drawInfo('Событие')"><i class="fas fa-bolt" style = "color:#ecec42;"></i> <span>Событие 2</span></li>
+                                </ul>
+                            </li>
+                            <li onmouseover = "drawInfo('Событие')"><i class="fas fa-bolt" style = "color:#ecec42;"></i> <span>Событие 1</span></li>
+                            <li onmouseover = "drawInfo('Права')"><i class="fas fa-address-card"></i> <span>Права</span></li>
+                            
+                        </ul>
+                        <i class="fas fa-folder"></i> Проект 2<br>
+                        <i class="fas fa-folder"></i> Проект 3<br>
+                        <i class="fas fa-folder"></i> Проект 4<br>
+                        <i class="fas fa-folder"></i> Проект 5<br>
+                        <i class="fas fa-folder"></i> Проект 6<br>
+                        <i class="fas fa-folder"></i> Проект 7<br>
+                        <i class="fas fa-folder"></i> Проект 8<br>
+                    </div>
+                </div>
+                <div style = "width: 100%; background-color:#6085ac;";>
+                    <div style = "height: 40px; background-color:#456486; padding: 6px; font-weight:bold; font-size:18px; position: relative;">
+                        Шаблоны
+                        <i class="fas fa-search" style = "position: absolute; right:60px; top: 11px; cursor:pointer;" ></i>
+                        <i class="fas fa-external-link-alt" style = "position: absolute; right:34px; top: 11px;"></i><i class="fas fa-arrow-circle-up" style = "position: absolute; right:10px; top: 11px;"></i>
+                    </div>
+                    <div style = "padding: 5px;">
+                        <i class="fas fa-folder-open"></i> <span onmouseover = "drawInfo('Шаблон')">Шаблон 1</span>
+                        <ul>
+                            <li onmouseover = "drawInfo('Таблица')"><i class="fas fa-table" style = "color:#aeec6c;"></i> <span>Таблица 1</span></li>
+                            <li>
+                                <i class="fas fa-folder-open"></i> <span onmouseover = "drawInfo('Раздел шаблона')">Раздел шаблона</span>
+                                <ul>
+                                    <li onmouseover = "drawInfo('Таблица')"><i class="fas fa-table" style = "color:#aeec6c;"></i> <span>Таблица 2</span></li>
+                                    <li onmouseover = "drawInfo('Событие')"><i class="fas fa-bolt" style = "color:#ecec42;"></i> <span>Событие 2</span></li>
+                                </ul>
+                            </li>
+                            <li onmouseover = "drawInfo('Событие')"><i class="fas fa-bolt" style = "color:#ecec42;"></i> <span>Событие 1</span></li>
+                            <li onmouseover = "drawInfo('Права')"><i class="fas fa-address-card"></i> <span>Права</span></li>
+                        </ul>
+                        <i class="fas fa-folder"></i> Шаблон 2<br>
+                        <i class="fas fa-folder"></i> Шаблон 3<br>
+
+                        <i class="fas fa-sitemap" style = "color: #f9b1b1;"></i> <span onmouseover = "drawInfo('Структуры')">Структуры(Видны при копировании)</span><br>
+                    </div>
+                </div>
+                <div style = "width: 100%; background-color:#6085ac;";>
+                    <div style = "height: 40px; background-color:#456486; padding: 6px; font-weight:bold; font-size:18px; position: relative;">
+                        Администрирование
+                        <i class="fas fa-search" style = "position: absolute; right:60px; top: 11px; cursor:pointer;" ></i>
+                        <i class="fas fa-external-link-alt" style = "position: absolute; right:34px; top: 11px;"></i><i class="fas fa-arrow-circle-up" style = "position: absolute; right:10px; top: 11px;"></i>
+                    </div>
+                    <div style = "padding: 5px;">
+                        <i class="fas fa-users"></i> <span onmouseover = "drawInfo('Пользователи')">Пользователи</span><br>
+                        <ul>
+                            <li><i class="fas fa-user"></i> <span>Admin</span></li>
+                            <li><i class="fas fa-user"></i> <span>User</span></li>
+                        </ul>
+                        <i class="fas fa-address-book"></i> Роли
+                    </div>
+                </div>
+                <div style = "width: 100%; background-color:#6085ac;";>
+                    <div style = "height: 40px; background-color:#456486; padding: 6px; font-weight:bold; font-size:18px; position: relative;">
+                        Файлы
+                        <i class="fas fa-search" style = "position: absolute; right:60px; top: 11px; cursor:pointer;" ></i>
+                        <i class="fas fa-external-link-alt" style = "position: absolute; right:34px; top: 11px;"></i><i class="fas fa-arrow-circle-up" style = "position: absolute; right:10px; top: 11px;"></i>
+                    </div>
+                    <div style = "padding: 5px;">
+                        <i class="fas fa-folder-open"></i> <span>Папка</span><br>
+                        <ul>
+                            <li><i class="fas fa-file"></i> <span>Файл</span></li>
+                        </ul>
+                        <i class="fas fa-folder"></i> Папка 2
+                    </div>
+                </div>
+                <div style = "width: 100%; background-color:#6085ac;";>
+                    <div style = "height: 40px; background-color:#456486; padding: 6px; font-weight:bold; font-size:18px; position: relative;">
+                        <i class="fas fa-envelope"></i> События
+                        <i class="fas fa-external-link-alt" style = "position: absolute; right:34px; top: 11px;"></i><i class="fas fa-arrow-circle-down" style = "position: absolute; right:10px; top: 11px;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div style = "width: calc(100% - 410px); height:40px; position: fixed; left: 410px; top: 0px; border-bottom: 1px #bebebe solid; display: flex; font-size: 14px;">
+            <div onmouseover = "drawInfo('Проводник')" style = "width: 200px; background-color:#ffffff; border-radius: 5px 5px 0 0; margin-left:10px; height: 30px; margin-top:10px; border: 1px #bebebe solid; border-bottom: none; position:relative;">
+                <div style = "padding: 3px 0px 0px 5px; color: #508fd3;" >Проводник</div>
+                <i class="fas fa-times-circle" style = "position: absolute; top: 6px; right:2px; color: #4d4d4d; "></i>
+            </div>
+            <div onmouseover = "drawInfo('Таблица1')" style = "width: 200px; background-color:#f4f4f4; border-radius: 5px 5px 0 0; margin-left:-1px; height: 30px; margin-top:10px; border: 1px #bebebe solid; position:relative;">
+                <div style = "padding: 3px 0px 0px 5px; color: #000000;">Таблица</div>
+                <i class="fas fa-times-circle" style = "position: absolute; top: 6px; right:2px; color: #4d4d4d;"></i>
+            </div>
+            <div onmouseover = "drawInfo('Статистика')" style = "width: 200px; background-color:#f4f4f4; border-radius: 5px 5px 0 0; margin-left:-1px; height: 30px; margin-top:10px; border: 1px #bebebe solid; position:relative;">
+                <div style = "padding: 3px 0px 0px 5px; color: #000000;">Статистика</div>
+                <i class="fas fa-times-circle" style = "position: absolute; top: 6px; right:2px; color: #4d4d4d;"></i>
+            </div>
+            <div onmouseover = "drawInfo('События')" style = "width: 200px; background-color:#f4f4f4; border-radius: 5px 5px 0 0; margin-left:-1px; height: 30px; margin-top:10px; border: 1px #bebebe solid; position:relative;">
+                <div style = "padding: 3px 0px 0px 5px; color: #000000;">События</div>
+                <i class="fas fa-times-circle" style = "position: absolute; top: 6px; right:2px; color: #4d4d4d;"></i>
+            </div>
+            <div onmouseover = "drawInfo('Справка')" style = "width: 200px; background-color:#f4f4f4; border-radius: 5px 5px 0 0; margin-left:-1px; height: 30px; margin-top:10px; border: 1px #bebebe solid; position:relative;">
+                <div style = "padding: 3px 0px 0px 5px; color: #000000;">Справка</div>
+                <i class="fas fa-times-circle" style = "position: absolute; top: 6px; right:2px; color: #4d4d4d;"></i>
+            </div>
+        </div>
+        <div style = "width: calc(100% - 410px); height:calc(100% - 50px); position: fixed; left: 410px; top: 50px; padding: 10px; color:#000000;">
+            <div style = "font-size:12px;">Все проекты</div>
+            <br>
+            <div style = "display: flex; color: #456486; flex-wrap: wrap;">
+                <div style = " margin: 10px;"><i class="fas fa-folder" style = "font-size: 65px;"></i><br>Проект 1</div>
+                <div style = " margin: 10px;"><i class="fas fa-folder" style = "font-size: 65px;"></i><br>Проект 2</div>
+                <div style = " margin: 10px;"><i class="fas fa-folder" style = "font-size: 65px;"></i><br>Проект 3</div>
+                <div style = " margin: 10px;"><i class="fas fa-folder" style = "font-size: 65px;"></i><br>Проект 4</div>
+                <div style = " margin: 10px;"><i class="fas fa-folder" style = "font-size: 65px;"></i><br>Проект 5</div>
+                <div style = " margin: 10px;"><i class="fas fa-folder" style = "font-size: 65px;"></i><br>Проект 6</div>
+                <div style = " margin: 10px;"><i class="fas fa-folder" style = "font-size: 65px;"></i><br>Проект 7</div>
+                <div style = " margin: 10px;"><i class="fas fa-folder" style = "font-size: 65px;"></i><br>Проект 8</div>
+            </div>
+        </div>
+        <script defer src="https://use.fontawesome.com/releases/v5.0.9/js/all.js" integrity="sha384-8iPTk2s/jMVj81dnzb/iFR2sdA7u06vHJyyLlAd4snFpCl/SnyUjRrbdJsw1pGIl" crossorigin="anonymous"></script>
+        <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+	</body>
+</html>

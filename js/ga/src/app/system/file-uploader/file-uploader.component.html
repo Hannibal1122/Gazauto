@@ -1,0 +1,14 @@
+<table class = "FileTable">
+    <tbody>
+        <tr *ngFor = "let data of listFile; let i = index">
+            <td title="{{data.name}}">{{data.name}}</td>
+            <td>
+                <button class = "btn btn-primary btn-sm" (click) = "removeFromListFile(i)">Удалить</button>
+            </td>
+        </tr>
+    </tbody>
+</table>
+<form #fileForm name="upload">
+    <input #fileInput type="file" name="filename" (change) = "Upload()" [disabled] = "listFile.length >= maxLoadFile && maxLoadFile != 0">
+   <!--  <input type="submit" value="Загрузить"> -->
+</form>

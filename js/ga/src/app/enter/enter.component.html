@@ -1,0 +1,22 @@
+<div class="container">
+    <div class="card card-container">
+        <img id="profile-img" class="profile-img-card" src="//ssl.gstatic.com/accounts/ui/avatar_2x.png" />
+        <p id="profile-name" class="profile-name-card"></p>
+        <div class="form-signin">
+            <span id="reauth-email" class="reauth-email"></span>
+            <input type="email" id="inputEmail" class="form-control" placeholder="логин" required autofocus [(ngModel)] = "login" (keydown)="downEnter($event)">
+            <input type="password" id="inputPassword" class="form-control" placeholder="пароль" required [(ngModel)] = "password" (keydown)="downEnter($event)">
+            <div id="remember" class="checkbox" style = "color: rgb(97, 97, 97);">
+                <label>
+                    <input type="checkbox" value="remember-me"> Чужой компьютер
+                </label>
+            </div>
+            <button class="btn btn-lg btn-primary btn-block btn-signin" (click) = "enter()">Войти</button>
+        </div>
+        <div style = "color:#c94949;">{{ error }}</div>
+        <a href="#" class="forgot-password">
+            Забыли пароль?
+        </a>
+        <div style = "margin-left: 200px; color: rgb(97, 97, 97);">CAD <div style = "font-size:10px; display:inline;font-weight:none;">{{ Version }}</div></div>
+    </div>
+</div>

@@ -1,0 +1,83 @@
+.modalwindow
+{
+    top: 20px; 
+    width: 500px; 
+    margin: auto;
+    background-color: #ffffff; 
+    border: 1px solid rgba(0, 0, 0, 0.2); 
+    box-shadow: 0 3px 9px rgba(0, 0, 0, 0.5); 
+    border-radius: 5px;
+    left: 50%;
+}
+.modal-title
+{
+    /* height: 55px;  */
+    padding: 15px; 
+    border-bottom: 1px solid #e5e5e5;
+}
+.modal-body
+{
+    padding: 20px;
+}
+.modal-footer
+{
+    height: 70px; 
+    padding: 20px; 
+    text-align:right; 
+    border-top: 1px solid #e5e5e5;
+}
+.modal-table
+{
+    width: 100%;
+    margin-bottom: 20px;
+}
+.modal-table tr:first-child
+{
+    padding: 8px;
+    border-top: none;
+}
+.modal-table td 
+{
+    padding: 8px;
+    
+}
+.modal-table tr
+{
+    border-top: 1px solid #ddd;
+}
+.modalInput
+{
+    border:none;
+    padding: 4px 4px;
+}
+.modal-table-list
+{
+    font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
+    font-size: 14px;
+    background: white;
+    border-collapse: collapse;
+}
+.modal-table-list td 
+{
+    color: #212529;
+    padding: 0px;
+    border: 1px solid #bce6ff;
+}
+.modal-table-list td:last-child
+{
+    border: none;
+}
+
+.modal-table-right
+{
+    font-family: "Lucida Sans Unicode", "Lucida Grande", Sans-Serif;
+    font-size: 12px;
+    background: white;
+    border-collapse: collapse;
+}
+.modal-table-right td 
+{
+    color: #212529;
+    padding: 6px;
+    border: 1px solid #bce6ff;
+}

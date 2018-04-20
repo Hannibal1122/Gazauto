@@ -1,0 +1,16 @@
+.elementExplorer
+{
+    width:80px;
+    overflow: hidden;
+    margin: 5px; 
+    cursor: pointer;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding: 5px;
+    border: 2px solid #ffffff;
+}
+.selectElementExplorer
+{
+    border: 2px solid #456486;
+    user-select: none;
+}
