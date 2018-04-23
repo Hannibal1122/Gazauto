@@ -26,9 +26,8 @@ export class ExplorerComponent implements OnInit
 
     inputs = {};
     allPath = [];
-    currentPath:any = { name: "Root", id: -1 };
+    parent = 0;
     level = 0;
-    folders = [];
     outFolders = [];
     selectObjectI = -1;
     selectRules = 
@@ -50,12 +49,7 @@ export class ExplorerComponent implements OnInit
         private createRight: CreateRightService,
     ) 
     { 
-        this.query.protectionPost(110, { param: [] }, (data) => 
-        { 
-            this.folders = this.translate(data);
-            trace(this.folders);
-            this.openFolder(-1);
-        });
+        this.openStructure(0, null);
     }
     ngOnInit() 
     { 
@@ -74,8 +68,8 @@ export class ExplorerComponent implements OnInit
                 {
                     trace(type)
                     this.modal.close(false);
-                    let id = this.currentPath.id == -1 ? 0 : this.currentPath.id;
-                    this.createObject(id, type, null, null);
+                    let id = this.parent;
+                    this.createObject(id, type, null);
                 }]
             ],
             ok: "",
@@ -83,7 +77,7 @@ export class ExplorerComponent implements OnInit
         };
         this.modal.open(Data);
     }
-    createObject(id, type, objectType, data)
+    createObject(id, type, data)
     {
         switch(type)
         {
@@ -96,7 +90,7 @@ export class ExplorerComponent implements OnInit
             case "Значение": break;
             case "Событие": break;
             case "Права": 
-                this.createRight.create(id, objectType, () => { this.update() });
+                this.createRight.create(id, () => { this.update() });
                 break;
             case "Пользователь":
                 this.createUser.create(() => { this.update() }, data);
@@ -128,75 +122,77 @@ export class ExplorerComponent implements OnInit
                 break;
         }
     }
+    clickTimeout = null;
+
     selectObject(i) // Выделить объект
     {
         this.selectObjectI = i;
         var id = this.outFolders[this.selectObjectI].id;
         var objectType = this.outFolders[this.selectObjectI].objectType;
-        this.query.protectionPost(202, { param: [ id, objectType ] }, (data) =>
+        var parent = this.outFolders[this.selectObjectI].parent;
+        
+        this.clearRules(false);
+        this.query.protectionPost(202, { param: [ id ] }, (data) =>
         {
             let right = this.createRight.decodeRights(data[0]);
-            trace(right)
-            /* this.selectRules.new = Boolean(right.copy); */
             this.selectRules.copy = Boolean(right.copy);
-            /* this.selectRules.paste = true; */
             this.selectRules.cut = Boolean(right.change);
             this.selectRules.rights = Boolean(right.change);
             this.selectRules.remove = Boolean(right.change);
-
-            /* new: true, 
-            copy: false, 
-            paste: false, 
-            cut: false, 
-            rights: false, 
-            remove: false */
         });
     }
     unSelectObject() // отпустить объект
     {
         this.selectObjectI = -1;
-        this.selectRules.copy = false;
-        this.selectRules.cut = false;
-        this.selectRules.rights = false;
-        this.selectRules.remove = false;
+        this.clearRules(true);
     }
-    openFolder(parent) // открыть папку
+    openFolder(id) // открыть папку
     {
-        if(parent == undefined) return;
-        this.currentPath = { name: "Root", id: -1 };
-        this.outFolders = [];
-        for(var i = 0; i < this.folders.length; i++)
-            if(this.folders[i].parent == parent) 
-                this.outFolders.push(this.folders[i]);
-            else if(this.folders[i].id == parent)
-                this.currentPath = this.folders[i];
-        this.updatePath(parent);
-        this.unSelectObject();
-    }
-    updatePath(parent) // Получение полного пути
-    {
-        this.allPath = [];
-        this.getNameByParent(parent);
-        this.allPath.push({ name: "Root", id: -1 });
-        this.allPath.reverse();
-    }
-    getNameByParent(parent) // Получение полного пути
-    {
-        for(var i = 0; i < this.folders.length; i++)
-            if(this.folders[i].id == parent)  
+        this.openStructure(id, () =>
+        {
+            this.unSelectObject();
+            this.query.protectionPost(202, { param: [ id ] }, (data) =>
             {
-                this.allPath.push({ name: this.folders[i].name, id: this.folders[i].id });
-                this.getNameByParent(this.folders[i].parent)
-                break;
-            }
+                trace(data)
+                this.clearRules(true);
+                let right = this.createRight.decodeRights(data[0]);
+                /* this.selectRules.paste = true; */
+                this.selectRules.new = Boolean(right.change);
+            });
+        });
+    }
+    openBackFolder()
+    {
+        this.query.protectionPost(111, { param: [ this.parent ] }, (data) =>
+        {
+            if(data.length > 0)
+            this.openFolder(data[0][0]);
+        });
+    }
+    openStructure(parent, func)
+    {
+        this.query.protectionPost(110, { param: [parent] }, (data) => 
+        { 
+            this.outFolders = data;
+            if(func) func();
+            this.parent = parent;
+        });
+    }
+    clearRules(_new)
+    {
+        this.selectRules = 
+        {
+            new: _new ? false : this.selectRules.new, 
+            copy: false, 
+            paste: false, 
+            cut: false, 
+            rights: false, 
+            remove: false
+        }
     }
     update()
     {
-        this.query.protectionPost(110, { param: [] }, (data) => 
-        { 
-            this.folders = this.translate(data);
-            this.openFolder(this.currentPath.id);
-        });
+        this.openFolder(this.parent);
     }
     translate(data) // Нужно для уменьшения объема сообщения от сервера
     {

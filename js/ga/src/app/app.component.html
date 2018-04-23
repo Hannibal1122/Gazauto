@@ -31,7 +31,7 @@
                 <div class = "softwareIcon softwareStatistics" title = "Обновить" (click) = "refresh()"> <i class = "fas fa-sync-alt"></i> </div>
             </div>
         </div>
-        <app-left-menu-element *ngFor = "let element of testData" [config] = "{ name: element.name }" [data] = "element.childrens"></app-left-menu-element>
+        <!-- <app-left-menu-element *ngFor = "let element of testData" [config] = "{ name: element.name }" [data] = "element.childrens"></app-left-menu-element> -->
     </div>
     <div style = "width: calc(100% - 410px); height:40px; position: fixed; left: 410px; top: 0px; border-bottom: 1px #bebebe solid; display: flex; font-size: 14px;">
         <div *ngFor = "let tab of tabs; let i = index;" 

@@ -1,10 +1,10 @@
-<button style = "color:#456486" title = "back" (click) = "openFolder(currentPath.parent)"><i class="fas fa-arrow-left"></i></button>
+<button style = "color:#456486" title = "back" (click) = "openBackFolder(parent)"><i class="fas fa-arrow-left"></i></button>
 <input type = "text" style = "border-radius:5px; padding: 5px; border: 1px solid #eeeeee;" placeholder="Поиск">
 <button [style.color] = "selectRules.new ? '#456486' : '#a6b9ce'" title = "new" (click) = "newObject()" [disabled] = "!selectRules.new"><i class="fas fa-file"></i></button>
 <button [style.color] = "selectRules.copy ? '#456486' : '#a6b9ce'" title = "copy" [disabled] = "!selectRules.copy"><i class="fas fa-copy"></i></button>
 <button [style.color] = "selectRules.paste ? '#456486' : '#a6b9ce'" title = "paste" [disabled] = "!selectRules.paste"><i class="fas fa-paste"></i></button>
 <button [style.color] = "selectRules.cut ? '#456486' : '#a6b9ce'" title = "cut" [disabled] = "!selectRules.cut"><i class="fas fa-cut"></i></button>
-<button [style.color] = "selectRules.rights ? '#456486' : '#a6b9ce'" title = "rights" (click) = "createObject(outFolders[selectObjectI].id, 'Права', outFolders[selectObjectI].objectType, null)" [disabled] = "!selectRules.rights"><i class="fas fa-address-card"></i></button>
+<button [style.color] = "selectRules.rights ? '#456486' : '#a6b9ce'" title = "rights" (click) = "createObject(outFolders[selectObjectI].id, 'Права', null)" [disabled] = "!selectRules.rights"><i class="fas fa-address-card"></i></button>
 <button [style.color] = "selectRules.remove ? '#456486' : '#a6b9ce'" title = "remove" (click) = "removeObject()" [disabled] = "!selectRules.remove"><i class="fas fa-trash"></i></button>
 <button [style.color] = "'#456486'" title = "refresh" (click) = "update()"><i class="fas fa-sync-alt"></i></button>
 
@@ -26,11 +26,11 @@
                 <i class="fas fa-table" style = "font-size: 65px; color: #aeec6c"></i>
             </div>
             <div *ngIf = "object.objectType == 'user'"
-                (dblclick) = "createObject(null, 'Пользователь', null, object)">
+                (dblclick) = "createObject(null, 'Пользователь', object)">
                 <i class="fas fa-user" style = "font-size: 65px; color: #456486"></i>
             </div>
             <div *ngIf = "object.objectType == 'role'"
-                (dblclick) = "createObject(null, 'Роль', null, object)">
+                (dblclick) = "createObject(null, 'Роль', object)">
                 <i class="fas fa-address-book" style = "font-size: 65px; color: #456486"></i>
             </div>
             {{ object.name }}

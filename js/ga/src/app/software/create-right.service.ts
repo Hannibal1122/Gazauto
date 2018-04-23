@@ -9,7 +9,7 @@ export class CreateRightService
     { 
     }
     modal;
-    create(id, type, update)
+    create(id, update)
     {
         this.loadRoleAndUser((users, roles) =>
         {
@@ -50,8 +50,9 @@ export class CreateRightService
                 ok: "Сохранить",
                 cancel: "Отмена"
             };
-            this.query.protectionPost(201, { param: [id, type] }, (data) =>
+            this.query.protectionPost(201, { param: [ id ] }, (data) =>
             {
+                trace(data)
                 for(var i = 0; i < data.length; i++)
                 {
                     let rights = this.decodeRights(data[i].rights);
@@ -68,7 +69,7 @@ export class CreateRightService
                         for(var i = 0; i < Data.data[2][3].length; i++)
                             Data.data[2][3][i].rights = this.encodeRights(Data.data[2][3][i].view, Data.data[2][3][i].copy, Data.data[2][3][i].link, Data.data[2][3][i].change);
                         trace(Data.data[2][3])
-                        var param = [id, type, JSON.stringify(Data.data[2][3])];
+                        var param = [id, JSON.stringify(Data.data[2][3])];
                         this.query.protectionPost(200, { param: param }, (data) =>
                         {
                             trace(data)

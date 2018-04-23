@@ -12,9 +12,10 @@
 	{
 		$key = unique_md5();
 		$name = "";
-		if($result = query("UPDATE signin SET checkkey = %s, login = %s WHERE id = %s", array($key, $login, $id)))
+		query("UPDATE signin SET checkkey = %s, login = %s WHERE id = %s", [$key, $login, $id]);
+		/* if($result = query("UPDATE signin SET checkkey = %s, login = %s WHERE id = %s", array($key, $login, $id)))
 			if($result = query("SELECT name FROM registration WHERE login = %s", array($login)))
-				while ($row = $result->fetch_array(MYSQLI_NUM)) $name = $row["name"];
+				while ($row = $result->fetch_array(MYSQLI_NUM)) $name = $row["name"]; */
 		echo json_encode(array($key, $login, $name));
 	}
 	else echo json_encode(array("cced31a3-ebea-4541-841f-271ad5deedb8"));  

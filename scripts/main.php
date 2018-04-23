@@ -1,4 +1,5 @@
 <?php
+    header('Access-Control-Allow-Origin: *');
 	include("config.php");
 	include("query.php");
     include("functions.php");
@@ -59,7 +60,7 @@
             while ($row = $result->fetch_array(MYSQLI_NUM)) $checkLogin = true;
         if(!$checkLogin) 
         { 
-            query("INSERT INTO registration VALUES(%s, %s, %i, %s, %s)", ["admin", "mwork92@gmail.com", "1", "@DATE@", "admin"]);
+            query("INSERT INTO registration VALUES(%s, %s, %s)", ["admin", "", "@DATE@"]);
             query("INSERT INTO password VALUES(%s, %s)", ["admin", "$2a$10$644bb3233e1ff251b4b4eumdZjoiZjWjFLyol.Ad7uUoNWlWCpz.u"]);
         }
         exit();
@@ -91,21 +92,14 @@
                 break;
             case 6: // автовход
                 $checkKey = "";
-                $rights = -1;
                 $login = $paramL;
                 if($result = query("SELECT checkkey FROM signin WHERE id = %s AND login = %s", [$paramI, $paramL]))
                     while ($row = $result->fetch_array(MYSQLI_NUM)) $checkKey = $row[0];
-                if ($checkKey != "" && $checkKey == $paramC) 
-                {
-                    if($result = query("SELECT rights FROM roles WHERE id IN (SELECT role FROM registration WHERE login = %s)", [$paramL]))
-                        while ($row = $result->fetch_array(MYSQLI_NUM)) $rights = (int)$row[0];
-                    echo json_encode([$rights]);
-                }
-                else echo json_encode([$rights]); 
+                if ($checkKey != "" && $checkKey == $paramC) echo json_encode([1]);
+                else echo json_encode([-1]); 
                 break;
             case 7: // Очищает логин и ключ при выходе пользователя с сайта
-                echo $paramC;
-                query("UPDATE signin SET checkkey = '', login = '' WHERE id = %s", [$paramC]);
+                query("UPDATE signin SET checkkey = '', login = '' WHERE id = %s", [$paramI]);
                 break;
   
             case 9: // Проверка правильности введенного логина
@@ -136,33 +130,27 @@
         {
             if($result = query("SELECT role FROM registration WHERE login = %s", [$paramL]))
                 while ($row = $result->fetch_array(MYSQLI_NUM)) $role = $row[0];
-            /* if($result = query("SELECT rights FROM roles WHERE id IN (SELECT role FROM registration WHERE login = %s)", [$paramL]))
-                while ($row = $result->fetch_array(MYSQLI_NUM)) $rights = (int)$row[0];
-            $out_rights = recodeRights($rights, 8); */
-            if($nQuery >= 40 && $nQuery < 50)
+            if($nQuery >= 40 && $nQuery < 100)
                 switch($nQuery)
                 {
-                    case 41: // Запрос списка пользователей
-                        request("SELECT login FROM registration", []);
-                        break;
-                    case 45:
-                        break;
+                    
                 }
             if($nQuery >= 100 && $nQuery < 150) // Работа со структурой
                 switch($nQuery)
                 {
-                    case 100: // Создать элемент структуры
+                    case 100: // Создать элемент структуры 
+                        if((getRights($param[3]) & 8) != 8) return; // Права на изменение
                         query("INSERT INTO structures (objectType, objectId, name, parent, priority, info) VALUES(%s, %i, %s, %i, %i, %s)", $param);
+                        if($login != "admin")
+                            query("INSERT INTO rights (objectId, type, login, rights) VALUES(%s, %i, %s, %s, %i) ", [ $mysqli->insert_id, "user", $login, 255 ]);
                         break;
-                    case 110: // Загрузка структуры
+                    case 110: // Загрузка структуры // Права на просмотр
                         $out = [];
-                        $outStraighten = [];
-                        if($login == "admin") $query = "SELECT id, objectType, objectId, name, parent, priority, info FROM structures ORDER by parent, priority";
-                        else $query = "SELECT id, objectType, objectId, name, parent, priority, info FROM structures WHERE 
+                        if($login == "admin") $query = "SELECT id, objectType, objectId, name, parent, priority, info FROM structures WHERE parent = %i ORDER by parent, priority";
+                        else $query = "SELECT id, objectType, objectId, name, parent, priority, info FROM structures WHERE parent = %i AND
                             id IN (SELECT objectId FROM rights WHERE (login = %s OR login = %s) AND rights & 1 
                                 AND objectId NOT IN (SELECT objectId FROM rights WHERE login = %s AND (rights & 1) = 0)) ORDER by parent, priority";
-                        //else $query = "SELECT id, objectType, objectId, name, parent, priority, info FROM structures WHERE id IN (SELECT objectId FROM rights WHERE (login = %s OR login = %s) AND rights & 1) ORDER by parent, priority";
-                        if($result = query($query, $login == "admin" ? [] : [$login, $role, $login]))
+                        if($result = query($query, $login == "admin" ? [ $param[0] ] : [ $param[0], $login, $role, $login ]))
                             while ($row = $result->fetch_array(MYSQLI_NUM)) 
                             {
                                 $elem = [];
@@ -170,18 +158,18 @@
                                 $elem["objectType"] = $row[1];
                                 $elem["objectId"] = $row[2];
                                 $elem["name"] = $row[3];
-                                $elem["childrens"] = [];
-                                if($row[4] == 0) $out[] = $elem;
-                                else searchParent($out, $row[4], $elem);
+                                $elem["parent"] = $row[4];
+                                $elem["priority"] = $row[5];
+                                $out[] = $elem;
                             }
-                        if($login == "admin") getUsersAndRoles($out);
-                        $c = count($out);
-                        for($i = 0; $i < $c; $i++)
-                            straighten($outStraighten, $out[$i], -1);
-                        
-                        echo json_encode($outStraighten);
+                        if($param[0] == 93) getUsersOrRoles($out, "users");
+                        if($param[0] == 94) getUsersOrRoles($out, "roles");
+                        echo json_encode($out);
                         break;
-                    case 111: // Загрузка структуры без выпрямления
+                    case 111: // Получение родителя
+                        request("SELECT parent FROM structures WHERE id = %i ORDER by parent, priority", $param);
+                        break;
+                    /* case 111: // Загрузка структуры без выпрямления
                         $out = [];
                         if($result = query("SELECT id, objectType, objectId, name, parent, priority, info FROM structures ORDER by parent, priority", []))
                             while ($row = $result->fetch_array(MYSQLI_NUM)) 
@@ -196,17 +184,23 @@
                                 else searchParent($out, $row[4], $elem);
                             }
                         echo json_encode($out);
-                        break;
-                    case 112: // Удаление элемента структуры
-                        getRemoveElementbyStructure($out, $param[0]);
-
-                        $out = (int)$param[0];
+                        break; */
+                    case 112: // Удаление элемента структуры // Права на изменение
+                        /* getRemoveElementbyStructure($out, $param[0]); */
+                        $out = [(int)$param[0]];
                         getRemoveElementbyStructure($out, (int)$param[0]);
-                        query("DELETE FROM structures WHERE id IN ($out)", []);
-                        echo "Удалены элементы: $out";
+                        $c = count($out);
+                        for($i = 0; $i < $c; $i++)
+                        {
+                            if((getRights($out[$i][0]) & 8) != 8) continue; // Права на изменение
+                            query("DELETE FROM structures WHERE id = %i", [ $out[$i][0] ]);
+                            query("DELETE FROM rights WHERE objectId = %i", [ $out[$i][0] ]);
+                        }
                         break;
                 }
-            if($nQuery >= 150 && $nQuery < 200) // Работа с Пользователями
+            if($nQuery >= 150 && $nQuery < 200) // Работа с Пользователями // Только admin
+            {
+                if($login != "admin" && $nQuery != 150 && $nQuery != 151) return;
                 switch($nQuery)
                 {
                     case 150: // Запрос списка пользователей
@@ -215,7 +209,7 @@
                     case 151: // Запрос списка ролей
                         request("SELECT role FROM roles", []);
                         break;
-                    case 152: // Добавление пользователя
+                    case 152: // Добавление пользователя 
                         require_once("registration.php");
                         break;
                     case 153: // Добавление роли
@@ -245,27 +239,30 @@
                         request("DELETE FROM roles WHERE role = %s", $param);
                         break;
                 }
-            if($nQuery >= 200 && $nQuery < 250) // Работа с правами
+            }
+            if($nQuery >= 200 && $nQuery < 250) // Работа с правами 
                 switch($nQuery)
                 {
                     case 200: // Добавить права
+                        if((getRights((int)$param[0]) & 8) != 8) return; // Права на изменение
                         $id = (int)$param[0];
-                        $objectType = $param[1];
-                        $rights = json_decode($param[2]);
+                        $rights = json_decode($param[1]);
                         $c = count($rights);
-                        query("DELETE FROM rights WHERE objectType = %s AND objectId = %i", [ $objectType, $id]);
+                        query("DELETE FROM rights WHERE objectId = %i", [ $id ]);
                         for($i = 0; $i < $c; $i++)
                         {
                             $login = $rights[$i] -> login;
                             $type = $rights[$i] -> type;
                             $_rights = (int)($rights[$i] -> rights);
-                            $_param = [ $objectType, $id, $type, $login, $_rights ];
-                            query("INSERT INTO rights (objectType, objectId, type, login, rights) VALUES(%s, %i, %s, %s, %i) ", $_param);
+                            $_param = [ $id, $type, $login, $_rights ];
+                            query("INSERT INTO rights (objectId, type, login, rights) VALUES(%i, %s, %s, %i) ", $_param);
                         }
                         break;
                     case 201: // Запросить права
+                        if((getRights((int)$param[0]) & 1) != 1) return; // Права на просмотр
+
                         $out = [];
-                        if($result = query("SELECT type, login, rights FROM rights WHERE objectId = %i AND objectType = %s", $param))
+                        if($result = query("SELECT type, login, rights FROM rights WHERE objectId = %i", $param))
                             while ($row = $result->fetch_array(MYSQLI_NUM)) 
                             {
                                 $elem = [];
@@ -277,18 +274,11 @@
                         echo json_encode($out);
                         break;
                     case 202: // Запросить права по логину
-                        $rights = 0;
-                        $use_login = false;
-                        if($result = query("SELECT type, rights FROM rights WHERE objectId = %i AND objectType = %s AND (login = %s OR login = %s)", [$param[0], $param[1], $login, $role]))
-                            while ($row = $result->fetch_array(MYSQLI_NUM)) 
-                            {
-                                if(!$use_login) $rights = (int)$row[1];
-                                if($row[0] == "user") $use_login = true;
-                            }
-                        echo json_encode([$rights]);
+                        echo json_encode([$paramL == "admin" ? 255 : getRights( $param[0] )]);
                         break;
                 }
         }
+        /* else query("UPDATE signin SET checkkey = '', login = '' WHERE id = %s", [$paramI]); // Если пользователь послал не тот id  */
     }
     $mysqli->close();
     
@@ -304,6 +294,20 @@
         }
         else if ($result == 0) echo json_encode(["Index", $mysqli->insert_id]);
         else echo json_encode(["Error", $mysqli->error]);
+    }
+    function getRights($objectId)
+    {
+        global $login, $role;
+        if($login == "admin") return 255;
+        $rights = 0;
+        $use_login = false;
+        if($result = query("SELECT type, rights FROM rights WHERE objectId = %i AND (login = %s OR login = %s)", [$objectId, $login, $role]))
+            while ($row = $result->fetch_array(MYSQLI_NUM)) 
+            {
+                if(!$use_login) $rights = (int)$row[1];
+                if($row[0] == "user") $use_login = true;
+            }
+        return $rights;
     }
     function searchParent(&$out, $parent, $elem) // Формирование древовидной структуры
     {
@@ -333,53 +337,35 @@
         if($result = query("SELECT id FROM structures WHERE parent = %i", [$parent]))
             while ($row = $result->fetch_array(MYSQLI_NUM)) 
             {
-                $out .= ",".(int)$row[0];
-                getRemoveElementbyStructure($out, $row[0]);
+                $out[] = (int)$row[0];
+                getRemoveElementbyStructure($out, (int)$row[0]);
             }
     }
-    function getUsersAndRoles(&$out)
+    function getUsersOrRoles(&$out, $type)
     {
-        $users = [];
-        $roles = [];
-        $i = 4;
-        if($result = query("SELECT login FROM registration", []))
-            while ($row = $result->fetch_array(MYSQLI_NUM)) 
-            {
-                $users[] = ["id" => "a$i", 
-                "objectType" => "user",
-                "objectId" => "",
-                "name" => $row[0],
-                "childrens" => []];
-                $i++;
-            }
-        if($result = query("SELECT role FROM roles", []))
-            while ($row = $result->fetch_array(MYSQLI_NUM)) 
-            {
-                $roles[] = ["id" => "a$i", 
-                "objectType" => "role",
-                "objectId" => "",
-                "name" => $row[0],
-                "childrens" => []];
-                $i++;
-            }
-        $elem = [];
-        $elem["id"] = "a1";
-        $elem["objectType"] = "folder";
-        $elem["objectId"] = "";
-        $elem["name"] = "Администрирование";
-        $elem["childrens"] = 
-        [
-            ["id" => "a2", 
-            "objectType" => "folder",
-            "objectId" => "",
-            "name" => "Пользователи",
-            "childrens" => $users],
-            ["id" => "a3", 
-            "objectType" => "folder",
-            "objectId" => "",
-            "name" => "Роли",
-            "childrens" => $roles]
-        ];
-        $out[] = $elem;
+        if($type == "users")
+        {
+            if($result = query("SELECT login FROM registration", []))
+                while ($row = $result->fetch_array(MYSQLI_NUM)) 
+                {
+                    $user = ["id" => 0, 
+                    "objectType" => "user",
+                    "objectId" => "",
+                    "name" => $row[0]];
+                    $out[] = $user;
+                }
+        }
+        if($type == "roles")
+        {
+            if($result = query("SELECT role FROM roles", []))
+                while ($row = $result->fetch_array(MYSQLI_NUM)) 
+                {
+                    $role = ["id" => 0, 
+                    "objectType" => "role",
+                    "objectId" => "",
+                    "name" => $row[0]];
+                    $out[] = $role;
+                }
+        }
     }
 ?>				

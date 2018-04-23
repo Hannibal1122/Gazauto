@@ -6,12 +6,15 @@ declare var trace:any;
 @Injectable()
 export class QueryService 
 {
-    constructor() { }
+    constructor() 
+    { 
+        /* $.ajaxSetup({ headers: {  'Access-Control-Allow-Origin': 'http://localhost:8081' } }); */
+    }
     post(n, data, func)
     {
         var dataQuery = {nquery: n};
         for(var key in data) dataQuery[key] = data[key];
-        $.post('http://localhost/gazprom/scripts/main.php', dataQuery, (data) =>
+        $.post('http://localhost:8081/gazprom/scripts/main.php', dataQuery, (data) =>
         {
             func(this.recode(data));
         });
@@ -23,7 +26,7 @@ export class QueryService
         dataQuery["paramI"] = localStorage.getItem("ID");
         dataQuery["paramL"] = localStorage.getItem("login");
         dataQuery["paramC"] = localStorage.getItem("checkKey");
-        $.post('http://localhost/gazprom/scripts/main.php', dataQuery, (data) =>
+        $.post('http://localhost:8081/gazprom/scripts/main.php', dataQuery, (data) =>
         {
             func(this.recode(data));
         });
@@ -41,7 +44,7 @@ export class QueryService
 		xhrData.append("paramI", localStorage.getItem("ID"));
 		xhrData.append("paramL", localStorage.getItem("login"));
 		xhrData.append("paramC", localStorage.getItem("checkKey"));
-		xhr.open("POST", "http://localhost/gazprom/scripts/main.php", true);
+		xhr.open("POST", "http://localhost:8081/gazprom/scripts/main.php", true);
 		xhr.setRequestHeader("Cache-Control", "no-cache");
 		xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
         xhr.setRequestHeader("X-File-Name", xhrData.name);

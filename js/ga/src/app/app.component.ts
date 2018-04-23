@@ -4,7 +4,7 @@ import { QueryService } from "./lib/query.service";
 import { FunctionsService } from "./lib/functions.service";
 
 declare var trace:any;
-declare var TestData:any;
+/* declare var TestData:any; */
 
 @Component({
     selector: 'app-root',
@@ -19,7 +19,7 @@ export class AppComponent implements OnInit
     firstEnterBool = false;
     enter = false;
     load = false;
-    testData = [];//TestData;
+    /* testData = [];//TestData; */
     tabs = [];
     Login = "";
     
@@ -53,7 +53,7 @@ export class AppComponent implements OnInit
     }
     refresh()
     {
-        this.query.protectionPost(111, { param: [] }, (data) => { this.testData = data; });
+        /* this.query.protectionPost(111, { param: [] }, (data) => { this.testData = data; }); */
     }
     openSoftware(type)
     {
@@ -81,9 +81,10 @@ export class AppComponent implements OnInit
         this.load = true;
         this.query.protectionPost(6, {}, (data) =>
         {
+            trace(data)
             if(data[0] == -1)
             {
-                this.query.post(7, { paramC: localStorage.getItem("checkKey") }, (data) => { });
+                this.query.post(7, { paramI: localStorage.getItem("ID") }, (data) => { });
                 localStorage.setItem("checkKey", "");
                 localStorage.setItem("login", "");
                 localStorage.setItem("name", "");
@@ -117,7 +118,7 @@ export class AppComponent implements OnInit
     }
     exitLogin()
     {
-        this.query.post(7, { paramC: localStorage.getItem("ID") }, (data) => 
+        this.query.post(7, { paramI: localStorage.getItem("ID") }, (data) => 
         { 
             location.reload();
         });
