@@ -1,0 +1,3 @@
+.dx-datagrid-rowsview .dx-data-row .dx-cell-modified .dx-highlight-outline::after {
+    border: 1px solid #000000;
+}

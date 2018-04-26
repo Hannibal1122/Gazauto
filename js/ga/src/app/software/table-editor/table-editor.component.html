@@ -1,0 +1,34 @@
+<div>
+    <div style = "height:30px; position:relative;">
+        <button [style.color] = "rules.save ? '#456486' : '#a6b9ce'" title = "save" [disabled] = "!rules.save"><i class="fas fa-save"></i></button>
+        <button [style.color] = "rules.head ? '#456486' : '#a6b9ce'" title = "head" (click) = "changeHeader()" [disabled] = "!rules.head"><i class="fas fa-heading"></i></button>
+        <button [style.color] = "rules.cut ? '#456486' : '#a6b9ce'" title = "cut" [disabled] = "!rules.cut"><i class="fas fa-cut"></i></button>
+        <button [style.color] = "rules.copy ? '#456486' : '#a6b9ce'" title = "copy" [disabled] = "!rules.copy"><i class="fas fa-copy"></i></button>
+        <button [style.color] = "rules.paste ? '#456486' : '#a6b9ce'" title = "paste" [disabled] = "!rules.paste"><i class="fas fa-paste"></i></button>
+        <button [style.color] = "rules.remove ? '#456486' : '#a6b9ce'" title = "remove" [disabled] = "!rules.remove"><i class="fas fa-trash"></i></button>
+        <button [style.color] = "'#456486'" title = "refresh" (click) = "update()"><i class="fas fa-sync-alt"></i></button>
+        <span *ngIf = "mode == 'Global'" style = "position:absolute; right:10px; color:#b5e498; font-size:20px;" title = "global"><i class="fas fa-cloud"></i></span>
+    </div>
+    <dx-data-grid 
+        id="gridContainer"
+        [dataSource]="dataTable"
+        [allowColumnReordering]="true"
+        keyExpr="ID"
+        (onCellPrepared)="onCellPrepared($event)"
+        (onRowInserting)="update('inserting', $event.data, $event)"
+        (onRowInserted)="update('insert', $event.data, $event)"
+        (onRowUpdated)="update('update', $event.data, $event)"
+        (onRowRemoved)="update('remove', $event.data, $event)">
+        
+        <dxo-paging [enabled]="false"></dxo-paging>
+        <dxo-editing mode="batch" 
+            [allowUpdating]="true"
+            [allowDeleting]="true"
+            [allowAdding]="true">
+        </dxo-editing>
+        
+        <!-- <dxi-column dataField = "ID" caption = "ID"></dxi-column> -->
+        <dxi-column *ngFor = "let head of dataHeader" dataField = "{{head.value}}" caption = "{{head.value}}"></dxi-column>
+    </dx-data-grid>
+</div>
+<modalwindow #modal></modalwindow>

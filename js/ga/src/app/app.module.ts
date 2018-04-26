@@ -8,6 +8,8 @@ import { DynamicComponent } from './lib/dynamic/dynamic.component';
 import { EnterComponent } from './enter/enter.component';
 import { ModalWindowModule } from "./system/modalwindow/modalwindow.module";
 import { LoadingComponent } from './system/loading/loading.component';
+import { TableEditorComponent } from './software/table-editor/table-editor.component';
+import { DxDataGridModule, DxButtonModule } from 'devextreme-angular';
 
 @NgModule({
     declarations: [ 
@@ -15,9 +17,11 @@ import { LoadingComponent } from './system/loading/loading.component';
         LeftMenuElementComponent, 
         ExplorerComponent, 
         DynamicComponent, 
-        EnterComponent, LoadingComponent
+        EnterComponent, LoadingComponent, TableEditorComponent
     ],
-    imports: [ BrowserModule, FormsModule, ModalWindowModule ],
+    imports: [ BrowserModule, FormsModule, ModalWindowModule,
+        DxDataGridModule,
+        DxButtonModule ],
     providers: [],
     bootstrap: [AppComponent]
 })

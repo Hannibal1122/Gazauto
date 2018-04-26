@@ -2,6 +2,7 @@ import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { ExplorerComponent } from './software/explorer/explorer.component';
 import { QueryService } from "./lib/query.service";
 import { FunctionsService } from "./lib/functions.service";
+import { TableEditorComponent } from './software/table-editor/table-editor.component';
 
 declare var trace:any;
 /* declare var TestData:any; */
@@ -35,7 +36,7 @@ export class AppComponent implements OnInit
         });
         this.firstEnter(this);
         this.refresh();
-        this.openSoftware("explorer");
+        this.openSoftware("table", { id: 66 });
     }
     openTab(i)
     {
@@ -55,7 +56,7 @@ export class AppComponent implements OnInit
     {
         /* this.query.protectionPost(111, { param: [] }, (data) => { this.testData = data; }); */
     }
-    openSoftware(type)
+    openSoftware(type, input?)
     {
         switch(type)
         {
@@ -66,11 +67,26 @@ export class AppComponent implements OnInit
                     type: "explorer",
                     software:{
                         component: ExplorerComponent,
-                        inputs: { }
+                        inputs: 
+                        { 
+                            openObject: (type, input) => { this.openSoftware(type, input); }
+                        }
+                    }
+                })
+                break;
+            case "table":
+                this.tabs.push(
+                {
+                    name: "Редактор таблицы",
+                    type: "table",
+                    software:{
+                        component: TableEditorComponent,
+                        inputs: input
                     }
                 })
                 break;
         }
+        this.currentSoftware = this.tabs.length - 1;
     }
     hideMenuSoftware()
     {
@@ -81,7 +97,6 @@ export class AppComponent implements OnInit
         this.load = true;
         this.query.protectionPost(6, {}, (data) =>
         {
-            trace(data)
             if(data[0] == -1)
             {
                 this.query.post(7, { paramI: localStorage.getItem("ID") }, (data) => { });
@@ -125,5 +140,10 @@ export class AppComponent implements OnInit
         localStorage.setItem("checkKey", "");
         localStorage.setItem("login", "");
         localStorage.setItem("name", "");
+    }
+    hideMenu = false;
+    hideLeftMenu()
+    {
+        this.hideMenu = !this.hideMenu;
     }
 }

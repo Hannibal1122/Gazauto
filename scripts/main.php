@@ -145,7 +145,7 @@
                             query("INSERT INTO rights (objectId, type, login, rights) VALUES(%s, %i, %s, %s, %i) ", [ $mysqli->insert_id, "user", $login, 255 ]);
                         break;
                     case 110: // Загрузка структуры // Права на просмотр
-                        $out = [];
+                        $out = ["folder" => [], "path" => []];
                         if($login == "admin") $query = "SELECT id, objectType, objectId, name, parent, priority, info FROM structures WHERE parent = %i ORDER by parent, priority";
                         else $query = "SELECT id, objectType, objectId, name, parent, priority, info FROM structures WHERE parent = %i AND
                             id IN (SELECT objectId FROM rights WHERE (login = %s OR login = %s) AND rights & 1 
@@ -160,10 +160,11 @@
                                 $elem["name"] = $row[3];
                                 $elem["parent"] = $row[4];
                                 $elem["priority"] = $row[5];
-                                $out[] = $elem;
+                                $out["folder"][] = $elem;
                             }
-                        if($param[0] == 93) getUsersOrRoles($out, "users");
-                        if($param[0] == 94) getUsersOrRoles($out, "roles");
+                        if($param[0] == 93) getUsersOrRoles($out["folder"], "users");
+                        if($param[0] == 94) getUsersOrRoles($out["folder"], "roles");
+                        getFullPath($out["path"], $param[0]);
                         echo json_encode($out);
                         break;
                     case 111: // Получение родителя
@@ -277,6 +278,63 @@
                         echo json_encode([$paramL == "admin" ? 255 : getRights( $param[0] )]);
                         break;
                 }
+            if($nQuery >= 250 && $nQuery < 300) // Работа с таблицой 
+                switch($nQuery)
+                {
+                    case 250: // Запрос таблицы
+                        $idTable = (int)$param[0];
+                        if((getRights($idTable) & 1) != 1) return; // Права на просмотр
+                        $head = [];
+                        if($result = query("SELECT i, name_column FROM fields WHERE tableId = %i AND type = 'head'", [$idTable]))
+                            while ($row = $result->fetch_array(MYSQLI_NUM)) 
+                                $head[] = $row;
+                        echo json_encode(["head" => $head]);
+                        /* request("SELECT * FROM fields WHERE tableId = %i", [$idTable]); */
+                        break;
+                    case 251: // Добавить/Удалить заголовок
+                        $idTable = (int)$param[0];
+                        if((getRights($idTable) & 8) != 8) return; // Права на изменение
+                        $data = json_decode($param[1]);
+                        query("DELETE FROM fields WHERE tableId = %i AND type = 'head'", [ $idTable ]);
+                        $c = count($data);
+                        for($i = 0; $i < $c; $i++)
+                            query("INSERT INTO fields (tableId, i, name_column, type) VALUES(%i, %i, %s, %s) ", [ $idTable, $data[$i] -> i, $data[$i] -> value, "head" ]);
+                        
+                        /* switch($param[1])
+                        {
+                            case "insert":
+                                query("INSERT INTO fields (tableId, i, name_column, type) VALUES(%i, %i, %s, %s) ", [ $idTable, $data[0] -> i, $data[0] -> value, "head" ]);
+                                break;
+                        } */
+                        print_r($data);
+                        break;
+                    case 252: // Обновить заголовок
+                        break;
+                    case 252: // Добавить ячейки в таблицу
+                        $idTable = (int)$param[0];
+                        if((getRights($idTable) & 8) != 8) return; // Права на изменение
+                        $data = json_decode($param[1]);
+                        /* foreach() */
+                        print_r($data);
+                        //query("INSERT INTO rights (objectId, type, login, rights) VALUES(%s, %i, %s, %s, %i) ", [ $mysqli->insert_id, "user", $login, 255 ]);
+                        
+                        /* $id = (int)$param[0];
+                        $rights = json_decode($param[1]);
+                        $c = count($rights);
+                        query("DELETE FROM rights WHERE objectId = %i", [ $id ]);
+                        for($i = 0; $i < $c; $i++)
+                        {
+                            $login = $rights[$i] -> login;
+                            $type = $rights[$i] -> type;
+                            $_rights = (int)($rights[$i] -> rights);
+                            $_param = [ $id, $type, $login, $_rights ];
+                            query("INSERT INTO rights (objectId, type, login, rights) VALUES(%i, %s, %s, %i) ", $_param);
+                        } */
+                        break;
+                    
+                    case 254: // Изменить имя поле у всех ячеек
+                        break;
+                }
         }
         /* else query("UPDATE signin SET checkkey = '', login = '' WHERE id = %s", [$paramI]); // Если пользователь послал не тот id  */
     }
@@ -309,7 +367,16 @@
             }
         return $rights;
     }
-    function searchParent(&$out, $parent, $elem) // Формирование древовидной структуры
+    function getFullPath(&$out, $parent)
+    {
+        if($result = query("SELECT name, parent FROM structures WHERE id = %i",[$parent]))
+            while ($row = $result->fetch_array(MYSQLI_NUM)) 
+            {
+                $out[] = ["id" => (int)$parent, "name" => $row[0]];
+                if($row[1] != 0) getFullPath($out, $row[1]);
+            }
+    }
+    /* function searchParent(&$out, $parent, $elem) // Формирование древовидной структуры
     {
         $c = count($out);
         for($i = 0; $i < $c; $i++)
@@ -318,8 +385,8 @@
             for($i = 0; $i < $c; $i++)
                 if(searchParent($out[$i]["childrens"], $parent, $elem)) return true;
         return false;
-    }
-    function straighten(&$out, $data, $parent) // из объекта получаем одномерный массив со всеми полями дерева
+    } */
+    /* function straighten(&$out, $data, $parent) // из объекта получаем одномерный массив со всеми полями дерева
     {
         $childrens = $data["childrens"];
         $j = count($out);
@@ -331,7 +398,7 @@
         if(count($childrens) != 0)
             for($j = 0; $j < count($childrens); $j++)
                 straighten($out, $childrens[$j], $data["id"]);
-    }
+    } */
     function getRemoveElementbyStructure(&$out, $parent) // По id собирает все элементы для удаления
     {
         if($result = query("SELECT id FROM structures WHERE parent = %i", [$parent]))

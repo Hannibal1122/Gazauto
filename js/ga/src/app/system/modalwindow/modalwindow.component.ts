@@ -50,14 +50,59 @@ export class ModalWindowComponent
         $(this.modal.nativeElement).animate({marginTop: "0px"}, 400);
         $("#BlockModalPanel").fadeIn(400);
     }
+    /******************************************************/
+    inputInListTable = "";
+    selectInListTable;
+    changeInListTable = false;
     addToListTable(i)
     {
-        this.Data[i][1].push({value: ""});
+        var j = this.searchInListTable(i, this.inputInListTable);
+        if(!this.changeInListTable)
+        if(j == this.Data[i][1].length) this.Data[i][1].push({ value: this.inputInListTable });
+        else
+        {
+            // изменяем
+        }
+        this.refreshFromListTable();
+        trace(this.Data[i][1])
     }
-    removeFromListTable(i, j)
+    removeFromListTable(i)
     {
+        var j = this.searchInListTable(i, this.selectInListTable);
         this.Data[i][1].splice(j, 1);
     }
+    upFromListTable(i)
+    {
+        var j = this.searchInListTable(i, this.selectInListTable);
+        if(j == 0) return;
+        this.Data[i][1][j] = this.Data[i][1][j - 1];
+        this.Data[i][1][j - 1] = { value: this.selectInListTable };
+    }
+    downFromListTable(i)
+    {
+        var j = this.searchInListTable(i, this.selectInListTable);
+        if(j == this.Data[i][1].length - 1) return;
+        this.Data[i][1][j] = this.Data[i][1][j + 1];
+        this.Data[i][1][j + 1] = { value: this.selectInListTable };
+    }
+    selectFromListTable()
+    {
+        this.inputInListTable = this.selectInListTable;
+        this.changeInListTable = true;
+    }
+    refreshFromListTable()
+    {
+        this.inputInListTable = "";
+        this.selectInListTable = "";
+        this.changeInListTable = false;
+    }
+    searchInListTable(i, text)
+    {
+        for(var j = 0; j < this.Data[i][1].length; j++)
+            if(this.Data[i][1][j].value == text) break;
+        return j;
+    }
+    /******************************************************/
     close(save)
     {
         var out;

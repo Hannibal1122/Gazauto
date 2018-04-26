@@ -1,3 +1,4 @@
+
 <button style = "color:#456486" title = "back" (click) = "openBackFolder(parent)"><i class="fas fa-arrow-left"></i></button>
 <input type = "text" style = "border-radius:5px; padding: 5px; border: 1px solid #eeeeee;" placeholder="Поиск">
 <button [style.color] = "selectRules.new ? '#456486' : '#a6b9ce'" title = "new" (click) = "newObject()" [disabled] = "!selectRules.new"><i class="fas fa-file"></i></button>
@@ -22,7 +23,8 @@
                 (dblclick) = "openFolder(object.id)">
                 <i class="fas fa-folder" style = "font-size: 65px;"></i>
             </div>
-            <div *ngIf = "object.objectType == 'table'">
+            <div *ngIf = "object.objectType == 'table'"
+                (dblclick) = "openObject(object.id, 'Таблица')">
                 <i class="fas fa-table" style = "font-size: 65px; color: #aeec6c"></i>
             </div>
             <div *ngIf = "object.objectType == 'user'"
@@ -37,4 +39,8 @@
         </div>
     </span>
 </div>
+<div style = "margin-bottom:5px; margin-top:25px; height:20px;background-color:#ececec; line-height:20px; padding-left:3px;">
+    <span *ngIf = "load" style = "color:#757575;font-size:12px;">Loading...</span>
+</div>
+
 <modalwindow #modal></modalwindow>

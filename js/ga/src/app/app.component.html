@@ -1,11 +1,20 @@
 <app-loading [load] = "load"></app-loading>
 <app-enter *ngIf = "!enter && !load"></app-enter>
 <div *ngIf = "enter && !load">
-    <div style = "width: 410px; background-color:#85a3c5; height:100%; position:fixed; overflow:auto;">
+    <div [style.left] = "hideMenu ? '0' : '410px'"
+        [title] = "hideMenu ? 'открыть' : 'скрыть'"
+        style = "position: fixed; cursor: pointer; font-size:20px; width:30px; height:30px; top:4px; text-align:center;background-color:rgba(150, 150, 150, 0.6); color:white;z-index: 1001;" 
+        (click) = "hideLeftMenu()">
+        <span *ngIf = "!hideMenu"><i class="fas fa-angle-left"></i></span>
+        <span *ngIf = "hideMenu"><i class="fas fa-angle-right"></i></span>
+    </div>
+    <div *ngIf = "!hideMenu" style = "width: 410px; background-color:#85a3c5; height:100%; position:fixed; overflow:auto; z-index: 1000;">
         <div style = "width: 100%; background-color:#6085ac; color: white;">
             <div style = "height: 30px; background-color:#2b343e; padding: 6px; font-weight:bold; font-size:14px; position: relative;">
-                {{ Login }}
-                <span style = "position: absolute; right:10px; top: 4px; cursor: pointer; font-size:18px;" (click) = "exitLogin()" title = "выйти">
+                <span style = "position: absolute; left:35px;">
+                    {{ Login }}
+                </span>
+                <span style = "position: absolute; left:10px; top: 4px; cursor: pointer; font-size:18px;" (click) = "exitLogin()" title = "выйти">
                     <i class="fas fa-sign-out-alt"></i>
                 </span>
             </div>
@@ -22,7 +31,7 @@
             </div>
             <div *ngIf = "!hideSoftware" style = "width:100%; height:60px; background-color: #6085ac; display: flex; flex-wrap: wrap; align-items: center; justify-content: center;">
                 <div class = "softwareIcon softwareExplorer" title = "Проводник" (click) = "openSoftware('explorer')"> <i class = "fas fa-sitemap"></i> </div>
-                <div class = "softwareIcon softwareTable" title = "Редактор таблиц"> <i class = "fas fa-table"></i> </div>
+                <div class = "softwareIcon softwareTable" title = "Редактор таблиц" (click) = "openSoftware('table')"> <i class = "fas fa-table"></i> </div>
                 <div class = "softwareIcon softwareStatistics" title = "Статистика"> <i class = "fas fa-chart-line"></i> </div>
                 <div class = "softwareIcon softwareTasks" title = "Задачник"> <i class = "fas fa-tasks"></i> </div>
                 <div class = "softwareIcon softwareEvent" title = "Редактор связей"> <i class = "fas fa-link"></i> </div>
@@ -33,16 +42,20 @@
         </div>
         <!-- <app-left-menu-element *ngFor = "let element of testData" [config] = "{ name: element.name }" [data] = "element.childrens"></app-left-menu-element> -->
     </div>
-    <div style = "width: calc(100% - 410px); height:40px; position: fixed; left: 410px; top: 0px; border-bottom: 1px #bebebe solid; display: flex; font-size: 14px;">
+    <div [style.width] = "hideMenu ? '100%' : 'calc(100% - 410px)'"
+        [style.left] = "hideMenu ? '0' : '410px'"
+        style = "height:40px; position: fixed; top: 0px; border-bottom: 1px #bebebe solid; display: flex; font-size: 14px; z-index: 1000; background-color: white;">
         <div *ngFor = "let tab of tabs; let i = index;" 
-            [style.margin-left] = "i == 0 ? '10px' : '-1px'"
+            [style.margin-left] = "i == 0 ? '35px' : '-1px'"
             [style.border-bottom] = "i == currentSoftware ? 'none' : ''"
             class = "myTabs" [class.myTabsActive] = "i == currentSoftware">
             <div (click) = "openTab(i)"style = "padding: 3px 0px 0px 5px;" >{{tab.name}}</div>
             <span (click) = "closeTab(i)"><i class="fas fa-times-circle tubExitButton"></i></span>
         </div>
     </div>
-    <div style = "width: calc(100% - 410px); height:calc(100% - 50px); position: fixed; left: 410px; top: 50px; padding: 10px; color:#000000;">
+    <div [style.width] = "hideMenu ? '100%' : 'calc(100% - 410px)'"
+        [style.left] = "hideMenu ? '0' : '410px'"
+        style = "height:calc(100% - 50px); position: absolute; top: 50px; padding: 10px; color:#000000;">
         <div *ngFor="let app of tabs; let i = index;">
             <div [style.display] = "i == currentSoftware ? 'block' : 'none'">
                 <vg-dynamic-view [componentData] = "app.software"></vg-dynamic-view>

@@ -24,12 +24,15 @@ export class ExplorerComponent implements OnInit
 {
     @ViewChild('modal') public modal: any;
 
-    inputs = {};
+    inputs = 
+    {
+        openObject: null
+    };
     allPath = [];
     parent = 0;
-    level = 0;
     outFolders = [];
     selectObjectI = -1;
+    load = false;
     selectRules = 
     {
         new: true, 
@@ -76,6 +79,15 @@ export class ExplorerComponent implements OnInit
             cancel: "Отмена"
         };
         this.modal.open(Data);
+    }
+    openObject(id, type)
+    {
+        switch(type)
+        {
+            case "Таблица": 
+                this.inputs.openObject("table", { id:id });
+                break;
+        }
     }
     createObject(id, type, data)
     {
@@ -131,9 +143,9 @@ export class ExplorerComponent implements OnInit
         var objectType = this.outFolders[this.selectObjectI].objectType;
         var parent = this.outFolders[this.selectObjectI].parent;
         
-        this.clearRules(false);
         this.query.protectionPost(202, { param: [ id ] }, (data) =>
         {
+            this.clearRules(false);
             let right = this.createRight.decodeRights(data[0]);
             this.selectRules.copy = Boolean(right.copy);
             this.selectRules.cut = Boolean(right.change);
@@ -153,7 +165,6 @@ export class ExplorerComponent implements OnInit
             this.unSelectObject();
             this.query.protectionPost(202, { param: [ id ] }, (data) =>
             {
-                trace(data)
                 this.clearRules(true);
                 let right = this.createRight.decodeRights(data[0]);
                 /* this.selectRules.paste = true; */
@@ -171,11 +182,16 @@ export class ExplorerComponent implements OnInit
     }
     openStructure(parent, func)
     {
+        this.load = true;
         this.query.protectionPost(110, { param: [parent] }, (data) => 
         { 
-            this.outFolders = data;
+            this.outFolders = data.folder;
+            this.allPath = data.path;
+            this.allPath.push({id: 0, name: "Root"});
+            this.allPath.reverse();
             if(func) func();
             this.parent = parent;
+            this.load = false;
         });
     }
     clearRules(_new)
