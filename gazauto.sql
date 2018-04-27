@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: 127.0.0.1
--- Время создания: Апр 26 2018 г., 17:41
+-- Время создания: Апр 27 2018 г., 16:47
 -- Версия сервера: 10.1.28-MariaDB
 -- Версия PHP: 7.1.10
 
@@ -44,8 +44,18 @@ CREATE TABLE `fields` (
 --
 
 INSERT INTO `fields` (`id`, `tableId`, `i`, `name_column`, `type`, `value`, `state`, `info`) VALUES
-(4, 66, 0, 'test', 'head', NULL, NULL, NULL),
-(5, 66, 1, 'adfgsdgf', 'head', NULL, NULL, NULL);
+(34, 66, 0, 'test', 'head', NULL, NULL, NULL),
+(35, 66, 1, 'adfgsdgf', 'head', NULL, NULL, NULL),
+(36, 66, 2, 'new', 'head', NULL, NULL, NULL),
+(43, 66, 1, 'test', 'value', '122', NULL, NULL),
+(45, 66, 3, 'test', 'value', '1', NULL, NULL),
+(46, 66, 2, 'test', 'value', 'qwe', NULL, NULL),
+(47, 66, 2, 'adfgsdgf', 'value', 'qwe22', NULL, NULL),
+(48, 66, 2, 'new', 'value', 'qwe', NULL, NULL),
+(49, 66, 3, 'new', 'value', 'qwe22', NULL, NULL),
+(50, 66, 3, 'adfgsdgf', 'value', 'qweqwe22', NULL, NULL),
+(51, 66, 1, 'adfgsdgf', 'value', 'qwe', NULL, NULL),
+(52, 66, 1, 'new', 'value', 'qw22', NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -151,7 +161,7 @@ CREATE TABLE `signin` (
 
 INSERT INTO `signin` (`id`, `login`, `checkkey`, `date`) VALUES
 ('G6uhkRxY834', 'test', 'b07f41e73c3f7f9bf11693998491efeb', '2018-04-25 15:52:27'),
-('GJ3COg64AOP', 'admin', '176d8c6582c7d758e1253ddd345ec60f', '2018-04-26 17:38:30');
+('GJ3COg64AOP', 'admin', '176d8c6582c7d758e1253ddd345ec60f', '2018-04-27 16:46:47');
 
 -- --------------------------------------------------------
 
@@ -241,7 +251,7 @@ ALTER TABLE `structures`
 -- AUTO_INCREMENT для таблицы `fields`
 --
 ALTER TABLE `fields`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=53;
 
 --
 -- AUTO_INCREMENT для таблицы `rights`

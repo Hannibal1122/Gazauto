@@ -13,11 +13,13 @@
         id="gridContainer"
         [dataSource]="dataTable"
         [allowColumnReordering]="true"
-        keyExpr="ID"
+        keyExpr="__ID__"
         (onCellPrepared)="onCellPrepared($event)"
         (onRowInserting)="update('inserting', $event.data, $event)"
         (onRowInserted)="update('insert', $event.data, $event)"
+        (onRowUpdating)="update('updating', $event.data, $event)"
         (onRowUpdated)="update('update', $event.data, $event)"
+        (onRowRemoving)="update('removing', $event.data, $event)"
         (onRowRemoved)="update('remove', $event.data, $event)">
         
         <dxo-paging [enabled]="false"></dxo-paging>

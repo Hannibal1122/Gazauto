@@ -14,6 +14,7 @@ export class TableEditorComponent implements OnInit
     @ViewChild('modal') public modal: any;
     
     inputs = { id: -1 };
+    firstData = {};
     dataHeader = [];
     dataTable = [];
     mode = "Local";
@@ -46,71 +47,94 @@ export class TableEditorComponent implements OnInit
             {
                 let out = [];
                 for(var i = 0; i < Data.data[0][1].length; i++)
-                    out.push({ value: Data.data[0][1][i].value, i: i});
+                    out.push({ value: Data.data[0][1][i].value, oldValue: Data.data[0][1][i].oldValue, i: i});
                 let changes = Data.data[0][3];
-                this.query.protectionPost(251, { param: [ this.inputs.id, JSON.stringify(out), JSON.stringify(out) ]}, (data) => 
+                this.query.protectionPost(251, { param: [ this.inputs.id, JSON.stringify(out) ]}, (data) => 
                 {
                     trace("inserting header")
-                    this.dataHeader = Data.data[0][1];
+                    for(var i = 0; i < Data.data[0][1].length; i++)
+                        this.dataHeader[i] = { value: Data.data[0][1][i].value, i: Data.data[0][1][i].i };
                     trace(data)
                 });
                 
             }
         });
     }
+    addCount = 0;
+    queueQuery = [];
     update(type, data, e)
     {
-        if(type == "inserting") data.ID = this.getID();
+        if(type == "inserting") data.__ID__ = String(this.getID());
         
-        var promise = new Promise((resolve, reject) => 
+        var promise;
+        e.cancel = promise;
+        promise = new Promise((resolve, reject) => 
         {
-            setTimeout(() =>
-            {
-                trace("point 1")
+            /* setTimeout(() =>
+            { */
                 switch(type)
                 {
                     case "inserting":
-                        /* this.query.protectionPost(251, { param: [ this.inputs.id, JSON.stringify(data) ]}, (data) => 
-                        {
-                            trace("inserting")
-                            trace(data)
-                        }); */
-                        /* if(this.dataHeader.length == 0) this.modal.open({ title: "Создайте сначала заголовок!", data: [], ok: "Ok", cancel: "" }); */
-                        resolve(true);
-                        e.component.cancelEditData();
+                        this.addCount++;
+                        this.addToQueueQuery(data, data.__ID__, "insert");
+                        /* resolve(true);
+                        e.component.cancelEditData(); */
+                        break;
+                    case "updating":
+                        this.addCount++;
+                        this.addToQueueQuery(e.newData, e.key, "update");
+                        break;
+                    case "removing":
+                        this.addCount++;
+                        this.addToQueueQuery(data, e.key, "remove");
                         break;
                     case "insert":
-                        break;
                     case "update":
-                        break;
                     case "remove":
+                        this.addCount--;
+                        trace(this.queueQuery)
+                        if(this.addCount == 0)
+                            this.query.protectionPost(252, { param: [ this.inputs.id, JSON.stringify(this.queueQuery) ]}, (data) => 
+                            {
+                                trace(data)
+                                this.queueQuery = [];
+                            });
                         break;
                 }
-            }, 20);
+            /* }, 20); */
             /* setTimeout(() => {
                 resolve();
             }, 3000); */
         
         });
-        trace("point 2")
-        e.cancel = promise;
-        trace("point 3")
-        trace(type)
-        trace(data)
-        trace(e)
+    }
+    addToQueueQuery(data, id, type)
+    {
+        for(var key in data)
+            if(key != "__ID__" && key != "__type__")
+            {
+                let i = this.queueQuery.length;
+                this.queueQuery[i] = {};
+                this.queueQuery[i][key] = data[key];    
+                this.queueQuery[i].__ID__ = id;
+                this.queueQuery[i].__type__ = type;
+                if(type == "update" && this.firstData[id][key] == undefined)
+                    this.queueQuery[i].__type__ = "insert"; 
+            }
     }
     getID()
     {
         this.dataTable.sort(this.compareNumeric);
+        trace(this.dataTable)
         for(var i = 0; i < this.dataTable.length; i++)
-            if(i + 1 != Number(this.dataTable[i].ID))
+            if(i + 1 != Number(this.dataTable[i].__ID__))
                 return i + 1;
         return i + 1;
     }
     compareNumeric(a, b) 
     {
-        let _a = Number(a.ID);
-        let _b = Number(b.ID);
+        let _a = Number(a.__ID__);
+        let _b = Number(b.__ID__);
         if (_a > _b) return 1;
         if (_a < _b) return -1;
     }
@@ -120,8 +144,11 @@ export class TableEditorComponent implements OnInit
         {
             let cellElement = e.cellElement;
             let deleteLink = cellElement.querySelector(".dx-link-delete");
-            deleteLink.classList.add("dx-icon-trash");
-            deleteLink.textContent = "";
+            if(deleteLink)
+            {
+                deleteLink.classList.add("dx-icon-trash");
+                deleteLink.textContent = "";
+            }
         }
     }
     ngOnInit() 
@@ -136,8 +163,17 @@ export class TableEditorComponent implements OnInit
         this.query.protectionPost(250, { param: [this.inputs.id]}, (data) => 
         {
             this.dataHeader = [];
+            this.dataTable = [];
+            this.firstData = data.data;
             for(var i = 0; i < data.head.length; i++)
                 this.dataHeader.push({ i: data.head[i][0], value: data.head[i][1] });
+            for(var key in data.data)
+            {
+                let i = this.dataTable.length;
+                this.dataTable[i] = data.data[key];
+                this.dataTable[i].__ID__ = key;
+            }
+            trace(this.dataTable)
             trace(data)
         });
     }

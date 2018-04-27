@@ -54,17 +54,21 @@ export class ModalWindowComponent
     inputInListTable = "";
     selectInListTable;
     changeInListTable = false;
+    inputInListTableOld = "";
     addToListTable(i)
     {
-        var j = this.searchInListTable(i, this.inputInListTable);
         if(!this.changeInListTable)
-        if(j == this.Data[i][1].length) this.Data[i][1].push({ value: this.inputInListTable });
+        {
+            let j = this.searchInListTable(i, this.inputInListTable);
+            if(j == this.Data[i][1].length) this.Data[i][1].push({ value: this.inputInListTable });
+        }
         else
         {
-            // изменяем
+            let j = this.searchInListTable(i, this.selectInListTable);
+            if(!this.Data[i][1][j].oldValue) this.Data[i][1][j].oldValue = this.Data[i][1][j].value;
+            this.Data[i][1][j].value = this.inputInListTable;
         }
         this.refreshFromListTable();
-        trace(this.Data[i][1])
     }
     removeFromListTable(i)
     {

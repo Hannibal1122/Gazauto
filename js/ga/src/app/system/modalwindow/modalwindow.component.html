@@ -60,7 +60,7 @@
                                 (click) = "refreshFromListTable()">
                                 <i class="fas fa-sync-alt"></i></button>
                             <br><input type = "text" style = "margin-top:4px;" [(ngModel)] = "inputInListTable">
-                            <button class = "btn btn-primary btn-sm" (click) = "addToListTable(i)">добавить</button>
+                            <button class = "btn btn-primary btn-sm" (click) = "addToListTable(i)">{{changeInListTable ? 'изменить' : 'добавить' }}</button>
                         </div>
                         <!-- ******************************************************************************** -->
                         <div *ngIf = "data[2] === 'datetime'">

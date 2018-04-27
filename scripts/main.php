@@ -285,10 +285,14 @@
                         $idTable = (int)$param[0];
                         if((getRights($idTable) & 1) != 1) return; // Права на просмотр
                         $head = [];
+                        $data = [];
                         if($result = query("SELECT i, name_column FROM fields WHERE tableId = %i AND type = 'head'", [$idTable]))
                             while ($row = $result->fetch_array(MYSQLI_NUM)) 
                                 $head[] = $row;
-                        echo json_encode(["head" => $head]);
+                        if($result = query("SELECT i, name_column, value FROM fields WHERE tableId = %i AND type = 'value'", [$idTable]))
+                            while ($row = $result->fetch_array(MYSQLI_NUM)) 
+                                $data[(int)$row[0]][$row[1]] = $row[2];
+                        echo json_encode(["head" => $head, "data" => $data]);
                         /* request("SELECT * FROM fields WHERE tableId = %i", [$idTable]); */
                         break;
                     case 251: // Добавить/Удалить заголовок
@@ -298,41 +302,43 @@
                         query("DELETE FROM fields WHERE tableId = %i AND type = 'head'", [ $idTable ]);
                         $c = count($data);
                         for($i = 0; $i < $c; $i++)
-                            query("INSERT INTO fields (tableId, i, name_column, type) VALUES(%i, %i, %s, %s) ", [ $idTable, $data[$i] -> i, $data[$i] -> value, "head" ]);
-                        
-                        /* switch($param[1])
                         {
-                            case "insert":
-                                query("INSERT INTO fields (tableId, i, name_column, type) VALUES(%i, %i, %s, %s) ", [ $idTable, $data[0] -> i, $data[0] -> value, "head" ]);
-                                break;
-                        } */
+                            if(isset($data -> oldValue))
+                                query("UPDATE fields SET name_column = %s WHERE name_column = %s AND tableId = %i", [ $data -> oldValue, $data[$i] -> value, $idTable ]);
+                            query("INSERT INTO fields (tableId, i, name_column, type) VALUES(%i, %i, %s, %s) ", [ $idTable, $data[$i] -> i, $data[$i] -> value, "head" ]);
+                        }
                         print_r($data);
-                        break;
-                    case 252: // Обновить заголовок
                         break;
                     case 252: // Добавить ячейки в таблицу
                         $idTable = (int)$param[0];
                         if((getRights($idTable) & 8) != 8) return; // Права на изменение
                         $data = json_decode($param[1]);
-                        /* foreach() */
-                        print_r($data);
-                        //query("INSERT INTO rights (objectId, type, login, rights) VALUES(%s, %i, %s, %s, %i) ", [ $mysqli->insert_id, "user", $login, 255 ]);
-                        
-                        /* $id = (int)$param[0];
-                        $rights = json_decode($param[1]);
-                        $c = count($rights);
-                        query("DELETE FROM rights WHERE objectId = %i", [ $id ]);
+                        $c = count($data);
                         for($i = 0; $i < $c; $i++)
                         {
-                            $login = $rights[$i] -> login;
-                            $type = $rights[$i] -> type;
-                            $_rights = (int)($rights[$i] -> rights);
-                            $_param = [ $id, $type, $login, $_rights ];
-                            query("INSERT INTO rights (objectId, type, login, rights) VALUES(%i, %s, %s, %i) ", $_param);
-                        } */
+                            $type = $data[$i] -> __type__;
+                            foreach ($data[$i] as $key => $_value)
+                                if($key != "__ID__" && $key != "__type__")
+                                {
+                                    $name_column = $key;
+                                    $value = $_value;
+                                    switch($type)
+                                    {
+                                        case "insert":
+                                            query("INSERT INTO fields (tableId, i, name_column, type, value) VALUES(%i, %i, %s, %s, %s) ", [ $idTable, $data[$i] -> __ID__, $name_column, "value", $value ]);
+                                            break;
+                                        case "update":
+                                            query("UPDATE fields SET value = %s WHERE tableId = %i AND i = %i AND name_column = %s AND type = %s", [ $value, $idTable, $data[$i] -> __ID__, $name_column, "value" ]);
+                                            break;
+                                        case "remove":
+                                            query("DELETE FROM fields WHERE tableId = %i AND i = %i AND name_column = %s AND type = %s AND value = %s", [ $idTable, $data[$i] -> __ID__, $name_column, "value", $value ]);
+                                            break;
+                                    }
+                                }
+                        }
+                        print_r($data);
                         break;
-                    
-                    case 254: // Изменить имя поле у всех ячеек
+                    case 253: // Изменить имя поле у всех ячеек
                         break;
                 }
         }
