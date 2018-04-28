@@ -25,14 +25,14 @@ export class TableEditorComponent implements OnInit
         cut: true, 
         copy: true, 
         paste: true,
-        remove: true,
         add: true,
+        remove: true,
     }
     constructor(private query:QueryService) { }
     changeHeader()
     {
         var header = [];
-        for(var i = 0; i < this.dataHeader.length; i++) header[i] = this.dataHeader[i];
+        for(var i = 0; i < this.dataHeader.length; i++) header[i] = { value: this.dataHeader[i].value };
         var Data:any = {
             title: "Редактор заголовка",  
             data: [
@@ -47,16 +47,22 @@ export class TableEditorComponent implements OnInit
             {
                 let out = [];
                 for(var i = 0; i < Data.data[0][1].length; i++)
+                {
+                    if(Data.data[0][1][i].oldValue)
+                        for(var j = 0; j < this.dataTable.length; j++)
+                        {
+                            this.dataTable[j][Data.data[0][1][i].value] = this.dataTable[j][Data.data[0][1][i].oldValue];
+                            delete this.dataTable[j][Data.data[0][1][i].oldValue];
+                        }
                     out.push({ value: Data.data[0][1][i].value, oldValue: Data.data[0][1][i].oldValue, i: i});
+                }
                 let changes = Data.data[0][3];
                 this.query.protectionPost(251, { param: [ this.inputs.id, JSON.stringify(out) ]}, (data) => 
                 {
-                    trace("inserting header")
+                    this.dataHeader = [];
                     for(var i = 0; i < Data.data[0][1].length; i++)
-                        this.dataHeader[i] = { value: Data.data[0][1][i].value, i: Data.data[0][1][i].i };
-                    trace(data)
+                        this.dataHeader[i] = { value: Data.data[0][1][i].value, i: i };
                 });
-                
             }
         });
     }

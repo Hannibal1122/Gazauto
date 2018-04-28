@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: 127.0.0.1
--- Время создания: Апр 27 2018 г., 16:47
+-- Время создания: Апр 28 2018 г., 16:13
 -- Версия сервера: 10.1.28-MariaDB
 -- Версия PHP: 7.1.10
 
@@ -44,18 +44,18 @@ CREATE TABLE `fields` (
 --
 
 INSERT INTO `fields` (`id`, `tableId`, `i`, `name_column`, `type`, `value`, `state`, `info`) VALUES
-(34, 66, 0, 'test', 'head', NULL, NULL, NULL),
-(35, 66, 1, 'adfgsdgf', 'head', NULL, NULL, NULL),
-(36, 66, 2, 'new', 'head', NULL, NULL, NULL),
-(43, 66, 1, 'test', 'value', '122', NULL, NULL),
-(45, 66, 3, 'test', 'value', '1', NULL, NULL),
-(46, 66, 2, 'test', 'value', 'qwe', NULL, NULL),
-(47, 66, 2, 'adfgsdgf', 'value', 'qwe22', NULL, NULL),
-(48, 66, 2, 'new', 'value', 'qwe', NULL, NULL),
-(49, 66, 3, 'new', 'value', 'qwe22', NULL, NULL),
-(50, 66, 3, 'adfgsdgf', 'value', 'qweqwe22', NULL, NULL),
-(51, 66, 1, 'adfgsdgf', 'value', 'qwe', NULL, NULL),
-(52, 66, 1, 'new', 'value', 'qw22', NULL, NULL);
+(43, 66, 1, 'Номер', 'value', '122', NULL, NULL),
+(45, 66, 3, 'Номер', 'value', '1', NULL, NULL),
+(46, 66, 2, 'Номер', 'value', 'qwe', NULL, NULL),
+(47, 66, 2, 'Модель', 'value', 'qwe22', NULL, NULL),
+(48, 66, 2, 'Название', 'value', 'qwe', NULL, NULL),
+(49, 66, 3, 'Название', 'value', 'qwe22', NULL, NULL),
+(50, 66, 3, 'Модель', 'value', 'qweqwe22', NULL, NULL),
+(51, 66, 1, 'Модель', 'value', 'qwe', NULL, NULL),
+(52, 66, 1, 'Название', 'value', 'qw22', NULL, NULL),
+(141, 66, 0, 'Модель', 'head', NULL, NULL, NULL),
+(142, 66, 1, 'Номер', 'head', NULL, NULL, NULL),
+(143, 66, 2, 'Название', 'head', NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -161,7 +161,7 @@ CREATE TABLE `signin` (
 
 INSERT INTO `signin` (`id`, `login`, `checkkey`, `date`) VALUES
 ('G6uhkRxY834', 'test', 'b07f41e73c3f7f9bf11693998491efeb', '2018-04-25 15:52:27'),
-('GJ3COg64AOP', 'admin', '176d8c6582c7d758e1253ddd345ec60f', '2018-04-27 16:46:47');
+('GJ3COg64AOP', 'admin', '176d8c6582c7d758e1253ddd345ec60f', '2018-04-28 16:11:47');
 
 -- --------------------------------------------------------
 
@@ -251,7 +251,7 @@ ALTER TABLE `structures`
 -- AUTO_INCREMENT для таблицы `fields`
 --
 ALTER TABLE `fields`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=53;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=144;
 
 --
 -- AUTO_INCREMENT для таблицы `rights`

@@ -303,8 +303,8 @@
                         $c = count($data);
                         for($i = 0; $i < $c; $i++)
                         {
-                            if(isset($data -> oldValue))
-                                query("UPDATE fields SET name_column = %s WHERE name_column = %s AND tableId = %i", [ $data -> oldValue, $data[$i] -> value, $idTable ]);
+                            if(isset($data[$i] -> oldValue))
+                                query("UPDATE fields SET name_column = %s WHERE name_column = %s AND tableId = %i", [ $data[$i] -> value, $data[$i] -> oldValue, $idTable ]);
                             query("INSERT INTO fields (tableId, i, name_column, type) VALUES(%i, %i, %s, %s) ", [ $idTable, $data[$i] -> i, $data[$i] -> value, "head" ]);
                         }
                         print_r($data);

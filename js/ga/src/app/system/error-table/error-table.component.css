@@ -1,8 +1,19 @@
-.FilterInput
+.errorTable
 {
-    border-radius: 5px;
-    width: 100%;
-    border: 1px solid #c5e4f8;
-    padding: 2px;
-    outline: none;
+    margin-top: 5px;
+    width:100%;
+}
+.errorTable th {
+    padding: 5px 10px;
+    color: #353535;
+    border-right: 2px solid; 
+    font-size: 0.9em;
+    }
+.errorTable td {
+    vertical-align: middle;
+    padding: 10px;
+    font-size: 14px;
+    border-top: 2px solid #56433D;
+    border-bottom: 2px solid #56433D;
+    border-right: 2px solid #56433D;
 }

@@ -6,10 +6,12 @@
         <button [style.color] = "rules.copy ? '#456486' : '#a6b9ce'" title = "copy" [disabled] = "!rules.copy"><i class="fas fa-copy"></i></button>
         <button [style.color] = "rules.paste ? '#456486' : '#a6b9ce'" title = "paste" [disabled] = "!rules.paste"><i class="fas fa-paste"></i></button>
         <button [style.color] = "rules.remove ? '#456486' : '#a6b9ce'" title = "remove" [disabled] = "!rules.remove"><i class="fas fa-trash"></i></button>
+        <button [style.color] = "rules.add ? '#456486' : '#a6b9ce'" title = "add" [disabled] = "!rules.add"><i class="fas fa-plus"></i></button>
         <button [style.color] = "'#456486'" title = "refresh" (click) = "update()"><i class="fas fa-sync-alt"></i></button>
         <span *ngIf = "mode == 'Global'" style = "position:absolute; right:10px; color:#b5e498; font-size:20px;" title = "global"><i class="fas fa-cloud"></i></span>
     </div>
-    <dx-data-grid 
+    <app-error-table [head] = "dataHeader" [data] = "dataTable"></app-error-table>
+    <!-- <dx-data-grid 
         id="gridContainer"
         [dataSource]="dataTable"
         [allowColumnReordering]="true"
@@ -29,8 +31,8 @@
             [allowAdding]="true">
         </dxo-editing>
         
-        <!-- <dxi-column dataField = "ID" caption = "ID"></dxi-column> -->
         <dxi-column *ngFor = "let head of dataHeader" dataField = "{{head.value}}" caption = "{{head.value}}"></dxi-column>
-    </dx-data-grid>
+        <dxo-search-panel [visible]="true" placeholder = "Поиск"></dxo-search-panel>
+    </dx-data-grid> -->
 </div>
 <modalwindow #modal></modalwindow>

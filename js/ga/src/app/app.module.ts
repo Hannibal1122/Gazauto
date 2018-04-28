@@ -10,6 +10,7 @@ import { ModalWindowModule } from "./system/modalwindow/modalwindow.module";
 import { LoadingComponent } from './system/loading/loading.component';
 import { TableEditorComponent } from './software/table-editor/table-editor.component';
 import { DxDataGridModule, DxButtonModule } from 'devextreme-angular';
+import { ErrorTableComponent } from './system/error-table/error-table.component'
 
 @NgModule({
     declarations: [ 
@@ -17,7 +18,7 @@ import { DxDataGridModule, DxButtonModule } from 'devextreme-angular';
         LeftMenuElementComponent, 
         ExplorerComponent, 
         DynamicComponent, 
-        EnterComponent, LoadingComponent, TableEditorComponent
+        EnterComponent, LoadingComponent, TableEditorComponent, ErrorTableComponent
     ],
     imports: [ BrowserModule, FormsModule, ModalWindowModule,
         DxDataGridModule,
