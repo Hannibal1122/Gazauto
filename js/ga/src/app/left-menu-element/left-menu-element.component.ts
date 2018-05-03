@@ -81,7 +81,7 @@ export class LeftMenuElementComponent implements OnInit
     visibleSearch()
     {
         this.searchVisible = !this.searchVisible;
-        if(this.searchVisible) setTimeout(() => { this.inputSearch.nativeElement.focus(); }, 100);
+        if(this.searchVisible) setTimeout(() => { this.inputSearch.nativeElement.focus(); }, 20);
     }
     OnChangeSearch()
     {

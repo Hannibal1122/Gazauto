@@ -1,12 +1,19 @@
-<table class = "errorTable">
-    <tbody>
-        <tr>
-            <th></th>
-            <th *ngFor = "let head of header;">{{ head.value }}</th>
-        </tr>
-        <tr *ngFor = "let row of listTables; let i = index;">
-            <td>{{ i }}</td>
-            <td *ngFor = "let cell of row">{{cell}}</td>
-        </tr>
-    </tbody>
-</table>
+<div #mainContainer style = "position:relative;">
+    <table class = "errorTable">
+        <tbody (click) = "editField($event)">
+            <tr>
+                <th></th>
+                <th *ngFor = "let head of header;">{{ head.value }}</th>
+            </tr>
+            <tr *ngFor = "let row of listTables; let i = index;">
+                <td>{{ i }}</td>
+                <td *ngFor = "let cell of row; let j = index;" id = "{{i + '_' + j}}">{{cell}}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div #mainEditElement style = "position:absolute;" [ngStyle] = "configInput" [hidden] = "!inputProperty.visible">
+        <input #mainInputElement type = "text" class = "mainInputStyle" (blur) = "acceptEditField()" [(ngModel)] = "inputProperty.value">
+        <!-- <div class = "buttonAcceptEditing" title = "сохранить изменения"><i class="fas fa-check"></i></div> -->
+    </div>
+</div>

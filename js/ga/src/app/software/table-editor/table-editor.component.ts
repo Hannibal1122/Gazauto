@@ -29,7 +29,7 @@ export class TableEditorComponent implements OnInit
         remove: true,
     }
     constructor(private query:QueryService) { }
-    changeHeader()
+    changeHeader() // изменить заголовок таблицы
     {
         var header = [];
         for(var i = 0; i < this.dataHeader.length; i++) header[i] = { value: this.dataHeader[i].value };
