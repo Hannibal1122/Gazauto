@@ -1,13 +1,15 @@
-<div #mainContainer style = "position:relative;">
+<div #mainContainer style = "position:relative; overflow:auto;" [style.height] = "height">
     <table class = "errorTable">
         <tbody (click) = "editField($event)">
             <tr>
                 <th></th>
                 <th *ngFor = "let head of header;">{{ head.value }}</th>
+                <th></th>
             </tr>
             <tr *ngFor = "let row of listTables; let i = index;">
-                <td>{{ i }}</td>
-                <td *ngFor = "let cell of row; let j = index;" id = "{{i + '_' + j}}">{{cell}}</td>
+                <td>{{ i + 1 }}</td>
+                <td *ngFor = "let void of header; let j = index;" id = "{{i + '_' + j}}">{{ row[j] != undefined ? row[j] : "" }}</td>
+                <td><button (click) = "removeRow(i)"><i class="fas fa-trash"></i></button></td>
             </tr>
         </tbody>
     </table>

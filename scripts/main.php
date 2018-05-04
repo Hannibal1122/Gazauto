@@ -284,15 +284,18 @@
                     case 250: // Запрос таблицы
                         $idTable = (int)$param[0];
                         if((getRights($idTable) & 1) != 1) return; // Права на просмотр
+                        $nameTable = "";
                         $head = [];
                         $data = [];
+                        if($result = query("SELECT name FROM structures WHERE id = %i", [$idTable]))
+                            while ($row = $result->fetch_array(MYSQLI_NUM)) $nameTable = $row;
                         if($result = query("SELECT i, name_column FROM fields WHERE tableId = %i AND type = 'head'", [$idTable]))
                             while ($row = $result->fetch_array(MYSQLI_NUM)) 
                                 $head[] = $row;
                         if($result = query("SELECT i, name_column, value FROM fields WHERE tableId = %i AND type = 'value'", [$idTable]))
                             while ($row = $result->fetch_array(MYSQLI_NUM)) 
                                 $data[(int)$row[0]][$row[1]] = $row[2];
-                        echo json_encode(["head" => $head, "data" => $data]);
+                        echo json_encode(["head" => $head, "data" => $data, "name" => $nameTable]);
                         /* request("SELECT * FROM fields WHERE tableId = %i", [$idTable]); */
                         break;
                     case 251: // Добавить/Удалить заголовок
@@ -303,13 +306,17 @@
                         $c = count($data);
                         for($i = 0; $i < $c; $i++)
                         {
-                            if(isset($data[$i] -> oldValue))
+                            if(isset($data[$i] -> oldValue)) // Изменить имя поле у всех ячеек
                                 query("UPDATE fields SET name_column = %s WHERE name_column = %s AND tableId = %i", [ $data[$i] -> value, $data[$i] -> oldValue, $idTable ]);
                             query("INSERT INTO fields (tableId, i, name_column, type) VALUES(%i, %i, %s, %s) ", [ $idTable, $data[$i] -> i, $data[$i] -> value, "head" ]);
                         }
+                        $c = count($param[2]); // удаление ячеек
+                        for($i = 0; $i < $c; $i++)
+                            query("DELETE FROM fields WHERE tableId = %i AND name_column = %s AND type = 'value'", [ $idTable, $param[2][$i] ]);
+                        
                         print_r($data);
                         break;
-                    case 252: // Добавить ячейки в таблицу
+                    case 252: // Добавить/Удалить/Изменить ячейки в таблице
                         $idTable = (int)$param[0];
                         if((getRights($idTable) & 8) != 8) return; // Права на изменение
                         $data = json_decode($param[1]);
@@ -338,7 +345,10 @@
                         }
                         print_r($data);
                         break;
-                    case 253: // Изменить имя поле у всех ячеек
+                    case 253: // Изменить имя таблицы
+                        $idTable = (int)$param[0];
+                        if((getRights($idTable) & 8) != 8) return; // Права на изменение
+                        query("UPDATE structures SET name = %s WHERE id = %i", [ $param[1], $param[0] ]);
                         break;
                 }
         }

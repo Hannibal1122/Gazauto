@@ -12,12 +12,14 @@ declare var $:any;
 export class TableEditorComponent implements OnInit 
 {
     @ViewChild('modal') public modal: any;
+    @ViewChild('editTable') public editTable: any;
     
     inputs = { id: -1 };
     firstData = {};
     dataHeader = [];
     dataTable = [];
     mode = "Local";
+    nameTable = "";
     rules = 
     {
         save: true,
@@ -26,9 +28,34 @@ export class TableEditorComponent implements OnInit
         copy: true, 
         paste: true,
         add: true,
-        remove: true,
     }
     constructor(private query:QueryService) { }
+    ngOnInit() 
+    {
+        this.loadTable();
+    }
+    loadTable()
+    {
+        this.query.protectionPost(250, { param: [this.inputs.id]}, (data) => 
+        {
+            this.nameTable = data.name;
+            this.dataHeader = [];
+            this.dataTable = [];
+            this.firstData = data.data;
+            for(var i = 0; i < data.head.length; i++)
+                this.dataHeader.push({ i: data.head[i][0], value: data.head[i][1] });
+            for(var key in data.data)
+            {
+                let i = this.dataTable.length;
+                this.dataTable[i] = data.data[key];
+                this.dataTable[i].__ID__ = key;
+            }
+        });
+    }
+    changeNameTable()
+    {
+        this.query.protectionPost(253, { param: [this.inputs.id, this.nameTable]}, (data) => { });
+    }
     changeHeader() // изменить заголовок таблицы
     {
         var header = [];
@@ -57,85 +84,72 @@ export class TableEditorComponent implements OnInit
                     out.push({ value: Data.data[0][1][i].value, oldValue: Data.data[0][1][i].oldValue, i: i});
                 }
                 let changes = Data.data[0][3];
-                this.query.protectionPost(251, { param: [ this.inputs.id, JSON.stringify(out) ]}, (data) => 
+                this.query.protectionPost(251, { param: [ this.inputs.id, JSON.stringify(out), changes ]}, (data) => 
                 {
                     this.dataHeader = [];
                     for(var i = 0; i < Data.data[0][1].length; i++)
                         this.dataHeader[i] = { value: Data.data[0][1][i].value, i: i };
+
+                    this.editTable.head = this.dataHeader; // update edit table
+                    this.editTable.data = this.dataTable; // update edit table
                 });
             }
         });
     }
-    addCount = 0;
-    queueQuery = [];
-    update(type, data, e)
+    addRow()
     {
-        if(type == "inserting") data.__ID__ = String(this.getID());
-        
-        var promise;
-        e.cancel = promise;
-        promise = new Promise((resolve, reject) => 
+        if(this.dataHeader.length == 0) 
         {
-            /* setTimeout(() =>
-            { */
-                switch(type)
-                {
-                    case "inserting":
-                        this.addCount++;
-                        this.addToQueueQuery(data, data.__ID__, "insert");
-                        /* resolve(true);
-                        e.component.cancelEditData(); */
-                        break;
-                    case "updating":
-                        this.addCount++;
-                        this.addToQueueQuery(e.newData, e.key, "update");
-                        break;
-                    case "removing":
-                        this.addCount++;
-                        this.addToQueueQuery(data, e.key, "remove");
-                        break;
-                    case "insert":
-                    case "update":
-                    case "remove":
-                        this.addCount--;
-                        trace(this.queueQuery)
-                        if(this.addCount == 0)
-                            this.query.protectionPost(252, { param: [ this.inputs.id, JSON.stringify(this.queueQuery) ]}, (data) => 
-                            {
-                                trace(data)
-                                this.queueQuery = [];
-                            });
-                        break;
-                }
-            /* }, 20); */
-            /* setTimeout(() => {
-                resolve();
-            }, 3000); */
-        
-        });
-    }
-    addToQueueQuery(data, id, type)
-    {
-        for(var key in data)
-            if(key != "__ID__" && key != "__type__")
+            this.modal.open({ title: "Нужно добавить заголовок!", data: [], ok: "Ок", cancel: ""});
+            return;
+        }
+        let idRow = String(this.getID());
+        let out = [];
+        let i = this.dataTable.length;
+        this.dataTable[i] = {__ID__: idRow};
+        for(var j = 0; j < this.dataHeader.length; j++)
+        {
+            out[j] = 
             {
-                let i = this.queueQuery.length;
-                this.queueQuery[i] = {};
-                this.queueQuery[i][key] = data[key];    
-                this.queueQuery[i].__ID__ = id;
-                this.queueQuery[i].__type__ = type;
-                if(type == "update" && this.firstData[id][key] == undefined)
-                    this.queueQuery[i].__type__ = "insert"; 
+                __ID__: idRow, 
+                __type__: "insert"
             }
+            out[j][this.dataHeader[j].value] = "";
+            this.dataTable[i][this.dataHeader[j].value] = "";
+        }
+        this.editTable.data = this.dataTable; // update edit table
+        this.update({out: out});
+    }
+    update(data)
+    {
+        let out = data.out;
+        if(data.type == "remove")
+        {
+            out = [];
+            for(var j = 0; j < this.dataHeader.length; j++)
+            {
+                out[j] = 
+                {
+                    __ID__: this.dataTable[data.idRow].__ID__, 
+                    __type__: "remove"
+                }
+                out[j][this.dataHeader[j].value] = this.dataTable[data.idRow][this.dataHeader[j].value];
+            }
+            this.dataTable.splice(data.idRow, 1);
+            this.editTable.data = this.dataTable; // update edit table
+        }
+        this.query.protectionPost(252, { param: [ this.inputs.id,  JSON.stringify(out) ]}, (data) => 
+        {
+            /* trace(data) */
+        });
     }
     getID()
     {
-        this.dataTable.sort(this.compareNumeric);
-        trace(this.dataTable)
-        for(var i = 0; i < this.dataTable.length; i++)
-            if(i + 1 != Number(this.dataTable[i].__ID__))
-                return i + 1;
-        return i + 1;
+        if(this.dataTable.length == 0) return 1;
+        let max = Number(this.dataTable[0].__ID__);
+        for(var i = 1; i < this.dataTable.length; i++)
+            if(max < Number(this.dataTable[i].__ID__)) max = Number(this.dataTable[i].__ID__);
+        return max + 1;
     }
     compareNumeric(a, b) 
     {
@@ -143,55 +157,5 @@ export class TableEditorComponent implements OnInit
         let _b = Number(b.__ID__);
         if (_a > _b) return 1;
         if (_a < _b) return -1;
-    }
-    onCellPrepared(e) 
-    {
-        if (e.rowType === "data" && e.column.command === "edit") 
-        {
-            let cellElement = e.cellElement;
-            let deleteLink = cellElement.querySelector(".dx-link-delete");
-            if(deleteLink)
-            {
-                deleteLink.classList.add("dx-icon-trash");
-                deleteLink.textContent = "";
-            }
-        }
-    }
-    ngOnInit() 
-    {
-        this.resize();
-        this.functionResize = () => { this.resize(); };
-        window.addEventListener("resize", this.functionResize, false);
-        this.loadTable();
-    }
-    loadTable()
-    {
-        this.query.protectionPost(250, { param: [this.inputs.id]}, (data) => 
-        {
-            this.dataHeader = [];
-            this.dataTable = [];
-            this.firstData = data.data;
-            for(var i = 0; i < data.head.length; i++)
-                this.dataHeader.push({ i: data.head[i][0], value: data.head[i][1] });
-            for(var key in data.data)
-            {
-                let i = this.dataTable.length;
-                this.dataTable[i] = data.data[key];
-                this.dataTable[i].__ID__ = key;
-            }
-            trace(this.dataTable)
-            trace(data)
-        });
-    }
-
-    height = 0;
-    functionResize;
-    resize()
-    {
-        this.height = document.documentElement.clientHeight - 100;
-    }
-    ngOnDestroy() 
-    {
-        window.removeEventListener("resize", this.functionResize, false);
     }
 }

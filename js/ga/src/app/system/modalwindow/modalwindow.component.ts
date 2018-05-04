@@ -49,6 +49,7 @@ export class ModalWindowComponent
         $(this.modal.nativeElement).fadeIn(0);
         $(this.modal.nativeElement).animate({marginTop: "0px"}, 400);
         $("#BlockModalPanel").fadeIn(400);
+        this.refreshFromListTable();
     }
     /******************************************************/
     inputInListTable = "";
@@ -73,6 +74,7 @@ export class ModalWindowComponent
     removeFromListTable(i)
     {
         var j = this.searchInListTable(i, this.selectInListTable);
+        this.Data[i][3].push(this.Data[i][1][j].value)
         this.Data[i][1].splice(j, 1);
     }
     upFromListTable(i)
