@@ -28,6 +28,7 @@ export class ModalWindowComponent
         { name: "Событие", class: "fas fa-bolt"}, 
         { name: "Пользователь", class: "fas fa-user"}, 
         { name: "Роль", class: "fas fa-address-book"}, 
+        { name: "Справка", class: "fas fa-info"}, 
     ]
     constructor(private lib:FunctionsService)
     {

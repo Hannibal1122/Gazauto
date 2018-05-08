@@ -72,7 +72,7 @@
                         </div>
                         <!-- ******************************************************************************** -->
                         <div *ngIf = "data[2] === 'typeObject'">
-                            <button *ngFor = "let btn of typeObject" style = "color: #456486; cursor:pointer;" title = "{{btn.name}}" (click) = "data[3](btn.name)">
+                            <button *ngFor = "let btn of typeObject" style = "color: #456486; cursor:pointer; width: 30px; margin-right:2px;" title = "{{btn.name}}" (click) = "data[3](btn.name)">
                                 <i class = "{{btn.class}}"></i>
                             </button>
                         </div>

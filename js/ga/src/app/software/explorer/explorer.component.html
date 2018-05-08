@@ -1,16 +1,16 @@
 
 <button style = "color:#456486" title = "back" (click) = "openBackFolder(parent)"><i class="fas fa-arrow-left"></i></button>
 <input type = "text" style = "border-radius:5px; padding: 5px; border: 1px solid #eeeeee;" placeholder="Поиск">
-<button [style.color] = "selectRules.new ? '#456486' : '#a6b9ce'" title = "new" (click) = "newObject()" [disabled] = "!selectRules.new"><i class="fas fa-file"></i></button>
-<button [style.color] = "selectRules.copy ? '#456486' : '#a6b9ce'" title = "copy" [disabled] = "!selectRules.copy"><i class="fas fa-copy"></i></button>
-<button [style.color] = "selectRules.paste ? '#456486' : '#a6b9ce'" title = "paste" [disabled] = "!selectRules.paste"><i class="fas fa-paste"></i></button>
-<button [style.color] = "selectRules.cut ? '#456486' : '#a6b9ce'" title = "cut" [disabled] = "!selectRules.cut"><i class="fas fa-cut"></i></button>
-<button [style.color] = "selectRules.rights ? '#456486' : '#a6b9ce'" title = "rights" (click) = "createObject(outFolders[selectObjectI].id, 'Права', null)" [disabled] = "!selectRules.rights"><i class="fas fa-address-card"></i></button>
-<button [style.color] = "selectRules.remove ? '#456486' : '#a6b9ce'" title = "remove" (click) = "removeObject()" [disabled] = "!selectRules.remove"><i class="fas fa-trash"></i></button>
-<button [style.color] = "'#456486'" title = "refresh" (click) = "update()"><i class="fas fa-sync-alt"></i></button>
+<button [style.color] = "selectRules.new ? '#456486' : '#a6b9ce'" title = "Добавить элемент" (click) = "newObject()" [disabled] = "!selectRules.new"><i class="fas fa-file"></i></button>
+<button [style.color] = "selectRules.copy ? '#456486' : '#a6b9ce'" title = "Копировать" (click) = "copyObject('copy')" [disabled] = "!selectRules.copy"><i class="fas fa-copy"></i></button>
+<button [style.color] = "selectRules.paste ? '#456486' : '#a6b9ce'" title = "Вставить" (click) = "_pasteObject()" [disabled] = "!selectRules.paste"><i class="fas fa-paste"></i></button>
+<button [style.color] = "selectRules.cut ? '#456486' : '#a6b9ce'" title = "Вырезать" (click) = "copyObject('cut')" [disabled] = "!selectRules.cut"><i class="fas fa-cut"></i></button>
+<button [style.color] = "selectRules.rights ? '#456486' : '#a6b9ce'" title = "Добавить права" (click) = "createObject(outFolders[selectObjectI].id, 'Права', null)" [disabled] = "!selectRules.rights"><i class="fas fa-address-card"></i></button>
+<button [style.color] = "selectRules.remove ? '#456486' : '#a6b9ce'" title = "Удалить" (click) = "removeObject()" [disabled] = "!selectRules.remove"><i class="fas fa-trash"></i></button>
+<button [style.color] = "'#456486'" title = "Обновить" (click) = "refresh(true)"><i class="fas fa-sync-alt"></i></button>
 
 <div style = "font-size:12px; color:#8f8f8f">
-    <span *ngFor = "let path of allPath" (click) = "openFolder(path.id)" style = "cursor:pointer;">{{ path.name }}/</span>
+    <span *ngFor = "let path of allPath" (click) = "openObject({objectType: 'folder', id: path.id})" style = "cursor:pointer;">{{ path.name }}/</span>
 </div>
 <br>
 <div style = "display: flex; color: #456486; flex-wrap: wrap; font-size:12px;">
@@ -18,27 +18,34 @@
         <div class = "elementExplorer" 
             (click) = "selectObject(i)"
             [class.selectElementExplorer] = "i == selectObjectI"
+            [class.selectCopyElementExplorer] = "i != selectObjectI && object.id == selectObjectCopy.id"
+            [class.selectCopyElementExplorerOpacity] = "i != selectObjectI && object.id == selectObjectCopy.id && selectObjectCopy.type == 'cut'"
             title = "{{ object.name }}" style = "text-align:center;">
             <div *ngIf = "object.objectType == 'folder'" 
-                (dblclick) = "openFolder(object.id)">
+                (dblclick) = "openObject(object)">
                 <i class="fas fa-folder" style = "font-size: 65px;"></i>
             </div>
             <div *ngIf = "object.objectType == 'table'"
-                (dblclick) = "openObject(object.id, 'Таблица')">
+                (dblclick) = "openObject(object)">
                 <i class="fas fa-table" style = "font-size: 65px; color: #aeec6c"></i>
             </div>
             <div *ngIf = "object.objectType == 'user'"
-                (dblclick) = "createObject(null, 'Пользователь', object)">
+                (dblclick) = "openObject(object)">
                 <i class="fas fa-user" style = "font-size: 65px; color: #456486"></i>
             </div>
             <div *ngIf = "object.objectType == 'role'"
-                (dblclick) = "createObject(null, 'Роль', object)">
+                (dblclick) = "openObject(object)">
                 <i class="fas fa-address-book" style = "font-size: 65px; color: #456486"></i>
+            </div>
+            <div *ngIf = "object.objectType == 'value'"
+                (dblclick) = "openObject(object)">
+                <i class="fas fa-superscript" style = "font-size: 65px; color: #734586"></i>
             </div>
             {{ object.name }}
         </div>
     </span>
 </div>
+<span *ngIf = "outFolders.length == 0" style = "color:#b8b8b8; font-size:24px; font-weight:bold"> Папка пуста</span>
 <div style = "margin-bottom:5px; margin-top:25px; height:20px;background-color:#ececec; line-height:20px; padding-left:3px;">
     <span *ngIf = "load" style = "color:#757575;font-size:12px;">Loading...</span>
 </div>

@@ -46,36 +46,40 @@ export class CreateRightService
                         } // Добавить в список пользователя
                     ], 
                     ["Права", -1, "rightObject", []], 
+                    ["Приоритет", 0, "text"], 
                     ],
                 ok: "Сохранить",
                 cancel: "Отмена"
             };
-            this.query.protectionPost(201, { param: [ id ] }, (data) =>
+            this.query.protectionPost(115, { param: [ id ] }, (priority) =>
             {
-                trace(data)
-                for(var i = 0; i < data.length; i++)
+                Data.data[3][1] = priority[0][0];
+                this.query.protectionPost(201, { param: [ id ] }, (data) =>
                 {
-                    let rights = this.decodeRights(data[i].rights);
-                    data[i].view = rights.view;
-                    data[i].copy = rights.copy;
-                    data[i].link = rights.link;
-                    data[i].change = rights.change;
-                }
-                Data.data[2][3] = data;
-                this.modal.open(Data, (save)=>
-                {
-                    if(save)
+                    trace(data)
+                    for(var i = 0; i < data.length; i++)
                     {
-                        for(var i = 0; i < Data.data[2][3].length; i++)
-                            Data.data[2][3][i].rights = this.encodeRights(Data.data[2][3][i].view, Data.data[2][3][i].copy, Data.data[2][3][i].link, Data.data[2][3][i].change);
-                        trace(Data.data[2][3])
-                        var param = [id, JSON.stringify(Data.data[2][3])];
-                        this.query.protectionPost(200, { param: param }, (data) =>
-                        {
-                            trace(data)
-                            update();
-                        });
+                        let rights = this.decodeRights(data[i].rights);
+                        data[i].view = rights.view;
+                        data[i].copy = rights.copy;
+                        data[i].link = rights.link;
+                        data[i].change = rights.change;
                     }
+                    Data.data[2][3] = data;
+                    this.modal.open(Data, (save)=>
+                    {
+                        if(save)
+                        {
+                            for(var i = 0; i < Data.data[2][3].length; i++)
+                                Data.data[2][3][i].rights = this.encodeRights(Data.data[2][3][i].view, Data.data[2][3][i].copy, Data.data[2][3][i].link, Data.data[2][3][i].change);
+                            trace(Data.data[2][3])
+                            var param = [id, JSON.stringify(Data.data[2][3])];
+                            this.query.protectionPost(200, { param: param }, () =>
+                            {
+                                this.query.protectionPost(116, { param: [ Data.data[3][1], id ] }, (data) => { trace(data); update(); });
+                            });
+                        }
+                    });
                 });
             });
         });

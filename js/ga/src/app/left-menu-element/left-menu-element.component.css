@@ -5,3 +5,11 @@
     width: 5px;
     height: 16px;
 }
+.elementMenu
+{
+    cursor: pointer;
+}
+.elementMenu:hover
+{
+    text-decoration: underline;
+}

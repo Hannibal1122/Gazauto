@@ -1,15 +1,15 @@
 <app-loading [load] = "load"></app-loading>
 <app-enter *ngIf = "!enter && !load"></app-enter>
 <div *ngIf = "enter && !load">
-    <div [style.left] = "hideMenu ? '0' : '410px'"
+    <div [style.left] = "hideMenu ? '0px' : '410px'"
         [title] = "hideMenu ? 'открыть' : 'скрыть'"
-        style = "position: fixed; cursor: pointer; font-size:20px; width:30px; height:30px; top:4px; text-align:center;background-color:rgba(150, 150, 150, 0.6); color:white;z-index: 1001;" 
+        style = "position: fixed; transition: 0.3s; cursor: pointer; font-size:20px; width:30px; height:30px; top:4px; text-align:center;background-color:rgba(150, 150, 150, 0.6); color:white;z-index: 1001;" 
         (click) = "hideLeftMenu()">
         <span *ngIf = "!hideMenu"><i class="fas fa-angle-left"></i></span>
         <span *ngIf = "hideMenu"><i class="fas fa-angle-right"></i></span>
     </div>
-    <div *ngIf = "!hideMenu" style = "width: 410px; background-color:#85a3c5; height:100%; position:fixed; overflow:auto; z-index: 1000;">
-        <div style = "width: 100%; background-color:#6085ac; color: white;">
+    <div [style.width] = "hideMenu ? '0px' : '410px'" style = "background-color:#85a3c5; height:100%; position:fixed; overflow:auto; z-index: 1000; transition: 0.3s;">
+        <div style = "width: 410px; background-color:#6085ac; color: white;">
             <div style = "height: 30px; background-color:#2b343e; padding: 6px; font-weight:bold; font-size:14px; position: relative;">
                 <span style = "position: absolute; left:35px;">
                     {{ Login }}
@@ -19,7 +19,7 @@
                 </span>
             </div>
         </div>
-        <div style = "width: 100%; background-color:#6085ac; color: white;">
+        <div style = "width: 410px; background-color:#6085ac; color: white;">
             <div style = "height: 40px; background-color:#456486; padding: 6px; font-weight:bold; font-size:18px; position: relative;">
                 Приложения
                 <span *ngIf = "!hideSoftware" style = "position: absolute; right:10px; top: 8px; cursor: pointer;" (click) = "hideMenuSoftware()">
@@ -40,11 +40,11 @@
                 <div class = "softwareIcon softwareStatistics" title = "Обновить" (click) = "refresh()"> <i class = "fas fa-sync-alt"></i> </div>
             </div>
         </div>
-        <!-- <app-left-menu-element *ngFor = "let element of testData" [config] = "{ name: element.name }" [data] = "element.childrens"></app-left-menu-element> -->
+        <app-left-menu-element *ngFor = "let element of leftMenuData" [config] = "element" [data] = "element.childrens" [openObject] = "openObjectForLeftMenu"></app-left-menu-element>
     </div>
     <div [style.width] = "hideMenu ? '100%' : 'calc(100% - 410px)'"
         [style.left] = "hideMenu ? '0' : '410px'"
-        style = "height:40px; position: fixed; top: 0px; border-bottom: 1px #bebebe solid; display: flex; font-size: 14px; z-index: 1000; background-color: white;">
+        style = "height:40px; position: fixed; transition: 0.3s; top: 0px; border-bottom: 1px #bebebe solid; display: flex; font-size: 14px; z-index: 1000; background-color: white;">
         <div *ngFor = "let tab of tabs; let i = index;" 
             [style.margin-left] = "i == 0 ? '35px' : '-1px'"
             [style.border-bottom] = "i == currentSoftware ? 'none' : ''"
@@ -55,7 +55,7 @@
     </div>
     <div [style.width] = "hideMenu ? '100%' : 'calc(100% - 410px)'"
         [style.left] = "hideMenu ? '0' : '410px'"
-        style = "height:calc(100% - 50px); position: absolute; top: 50px; padding: 10px; color:#000000;">
+        style = "height:calc(100% - 50px); transition: 0.3s; position: absolute; top: 50px; padding: 10px; color:#000000;">
         <div *ngFor="let app of tabs; let i = index;">
             <div [style.display] = "i == currentSoftware ? 'block' : 'none'">
                 <vg-dynamic-view [componentData] = "app.software"></vg-dynamic-view>

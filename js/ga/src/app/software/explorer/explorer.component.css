@@ -14,3 +14,12 @@
     border: 2px solid #456486;
     user-select: none;
 }
+.selectCopyElementExplorer
+{
+    border: 2px dashed #456486;
+    user-select: none;
+}
+.selectCopyElementExplorerOpacity
+{
+    opacity: 0.7;
+}

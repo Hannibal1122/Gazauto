@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: 127.0.0.1
--- Время создания: Апр 28 2018 г., 16:13
+-- Время создания: Май 08 2018 г., 15:39
 -- Версия сервера: 10.1.28-MariaDB
 -- Версия PHP: 7.1.10
 
@@ -36,7 +36,7 @@ CREATE TABLE `fields` (
   `type` varchar(12) NOT NULL,
   `value` varchar(128) DEFAULT NULL,
   `state` varchar(128) DEFAULT NULL,
-  `info` varchar(256) DEFAULT NULL
+  `info` varchar(512) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
@@ -44,18 +44,129 @@ CREATE TABLE `fields` (
 --
 
 INSERT INTO `fields` (`id`, `tableId`, `i`, `name_column`, `type`, `value`, `state`, `info`) VALUES
-(43, 66, 1, 'Номер', 'value', '122', NULL, NULL),
-(45, 66, 3, 'Номер', 'value', '1', NULL, NULL),
-(46, 66, 2, 'Номер', 'value', 'qwe', NULL, NULL),
-(47, 66, 2, 'Модель', 'value', 'qwe22', NULL, NULL),
-(48, 66, 2, 'Название', 'value', 'qwe', NULL, NULL),
-(49, 66, 3, 'Название', 'value', 'qwe22', NULL, NULL),
-(50, 66, 3, 'Модель', 'value', 'qweqwe22', NULL, NULL),
-(51, 66, 1, 'Модель', 'value', 'qwe', NULL, NULL),
-(52, 66, 1, 'Название', 'value', 'qw22', NULL, NULL),
-(141, 66, 0, 'Модель', 'head', NULL, NULL, NULL),
-(142, 66, 1, 'Номер', 'head', NULL, NULL, NULL),
-(143, 66, 2, 'Название', 'head', NULL, NULL, NULL);
+(37, 66, 5, 'Номер', 'value', 'sdfgфывафывафывафыва', NULL, NULL),
+(38, 66, 5, 'Название', 'value', 'sfdg', NULL, NULL),
+(39, 66, 5, 'Модель', 'value', 'sdfgфывафыва', NULL, NULL),
+(87, 66, 5, 'Тест 1', 'value', 'ыфвафывафыавфываф', NULL, NULL),
+(88, 66, 5, 'Тест 2', 'value', 'фывафывафывафыв', NULL, NULL),
+(89, 66, 5, 'Тест 3', 'value', 'фывафыва', NULL, NULL),
+(90, 66, 5, 'Тест 4', 'value', 'фывафывафыва', NULL, NULL),
+(232, 66, 6, 'Номер', 'value', '', NULL, NULL),
+(233, 66, 6, 'Название', 'value', '1', NULL, NULL),
+(234, 66, 6, 'Модель', 'value', '', NULL, NULL),
+(235, 66, 6, 'Тест 1', 'value', '', NULL, NULL),
+(236, 66, 6, 'Тест 2', 'value', '', NULL, NULL),
+(237, 66, 6, 'Тест 3', 'value', '', NULL, NULL),
+(238, 66, 6, 'Тест 4', 'value', '', NULL, NULL),
+(239, 66, 6, 'Тест 5', 'value', '', NULL, NULL),
+(240, 66, 7, 'Номер', 'value', '', NULL, NULL),
+(241, 66, 7, 'Название', 'value', '1', NULL, NULL),
+(242, 66, 7, 'Модель', 'value', '', NULL, NULL),
+(243, 66, 7, 'Тест 1', 'value', '', NULL, NULL),
+(244, 66, 7, 'Тест 2', 'value', 'фыва', NULL, NULL),
+(245, 66, 7, 'Тест 3', 'value', '', NULL, NULL),
+(246, 66, 7, 'Тест 4', 'value', '', NULL, NULL),
+(247, 66, 7, 'Тест 5', 'value', '', NULL, NULL),
+(248, 66, 8, 'Номер', 'value', '', NULL, NULL),
+(249, 66, 8, 'Название', 'value', '1', NULL, NULL),
+(250, 66, 8, 'Модель', 'value', 'фыва', NULL, NULL),
+(251, 66, 8, 'Тест 1', 'value', 'фыва', NULL, NULL),
+(252, 66, 8, 'Тест 2', 'value', '', NULL, NULL),
+(253, 66, 8, 'Тест 3', 'value', '', NULL, NULL),
+(254, 66, 8, 'Тест 4', 'value', 'фыва', NULL, NULL),
+(255, 66, 8, 'Тест 5', 'value', '', NULL, NULL),
+(256, 66, 9, 'Номер', 'value', '', NULL, NULL),
+(257, 66, 9, 'Название', 'value', '1', NULL, NULL),
+(258, 66, 9, 'Модель', 'value', '', NULL, NULL),
+(259, 66, 9, 'Тест 1', 'value', '', NULL, NULL),
+(260, 66, 9, 'Тест 2', 'value', '', NULL, NULL),
+(261, 66, 9, 'Тест 3', 'value', '', NULL, NULL),
+(262, 66, 9, 'Тест 4', 'value', '', NULL, NULL),
+(263, 66, 9, 'Тест 5', 'value', '', NULL, NULL),
+(264, 66, 10, 'Номер', 'value', '', NULL, NULL),
+(265, 66, 10, 'Название', 'value', '1', NULL, NULL),
+(266, 66, 10, 'Модель', 'value', '', NULL, NULL),
+(267, 66, 10, 'Тест 1', 'value', '', NULL, NULL),
+(268, 66, 10, 'Тест 2', 'value', 'афыва', NULL, NULL),
+(269, 66, 10, 'Тест 3', 'value', 'фыва', NULL, NULL),
+(270, 66, 10, 'Тест 4', 'value', 'фыва', NULL, NULL),
+(271, 66, 10, 'Тест 5', 'value', '', NULL, NULL),
+(272, 66, 11, 'Номер', 'value', '', NULL, NULL),
+(273, 66, 11, 'Название', 'value', 'й', NULL, NULL),
+(274, 66, 11, 'Модель', 'value', '', NULL, NULL),
+(275, 66, 11, 'Тест 1', 'value', 'йфыа', NULL, NULL),
+(276, 66, 11, 'Тест 2', 'value', '', NULL, NULL),
+(277, 66, 11, 'Тест 3', 'value', 'фыва', NULL, NULL),
+(278, 66, 11, 'Тест 4', 'value', 'фыва', NULL, NULL),
+(279, 66, 11, 'Тест 5', 'value', '', NULL, NULL),
+(280, 66, 12, 'Номер', 'value', '', NULL, NULL),
+(281, 66, 12, 'Название', 'value', '', NULL, NULL),
+(282, 66, 12, 'Модель', 'value', 'фыва', NULL, NULL),
+(283, 66, 12, 'Тест 1', 'value', '', NULL, NULL),
+(284, 66, 12, 'Тест 2', 'value', '', NULL, NULL),
+(285, 66, 12, 'Тест 3', 'value', 'фыав', NULL, NULL),
+(286, 66, 12, 'Тест 4', 'value', 'фыва', NULL, NULL),
+(287, 66, 12, 'Тест 5', 'value', '', NULL, NULL),
+(288, 66, 13, 'Номер', 'value', '', NULL, NULL),
+(289, 66, 13, 'Название', 'value', '', NULL, NULL),
+(290, 66, 13, 'Модель', 'value', 'йцу', NULL, NULL),
+(291, 66, 13, 'Тест 1', 'value', '', NULL, NULL),
+(292, 66, 13, 'Тест 2', 'value', 'фыва', NULL, NULL),
+(293, 66, 13, 'Тест 3', 'value', '', NULL, NULL),
+(294, 66, 13, 'Тест 4', 'value', '', NULL, NULL),
+(295, 66, 13, 'Тест 5', 'value', '', NULL, NULL),
+(296, 66, 14, 'Номер', 'value', '', NULL, NULL),
+(297, 66, 14, 'Название', 'value', 'уцй', NULL, NULL),
+(298, 66, 14, 'Модель', 'value', '', NULL, NULL),
+(299, 66, 14, 'Тест 1', 'value', '', NULL, NULL),
+(300, 66, 14, 'Тест 2', 'value', '', NULL, NULL),
+(301, 66, 14, 'Тест 3', 'value', '', NULL, NULL),
+(302, 66, 14, 'Тест 4', 'value', '', NULL, NULL),
+(303, 66, 14, 'Тест 5', 'value', '', NULL, NULL),
+(376, 66, 0, 'Номер', 'head', NULL, NULL, NULL),
+(377, 66, 1, 'Название', 'head', NULL, NULL, NULL),
+(378, 66, 2, 'Модель', 'head', NULL, NULL, NULL),
+(379, 66, 3, 'Тест 2', 'head', NULL, NULL, NULL),
+(380, 66, 4, 'Тест 1', 'head', NULL, NULL, NULL),
+(381, 66, 5, 'Тест 3', 'head', NULL, NULL, NULL),
+(382, 66, 6, 'Тест 4', 'head', NULL, NULL, NULL),
+(383, 66, 7, 'Тест 5', 'head', NULL, NULL, NULL),
+(384, 66, 15, 'Номер', 'value', '', NULL, NULL),
+(385, 66, 15, 'Название', 'value', '', NULL, NULL),
+(386, 66, 15, 'Модель', 'value', '', NULL, NULL),
+(387, 66, 15, 'Тест 2', 'value', '', NULL, NULL),
+(388, 66, 15, 'Тест 1', 'value', '', NULL, NULL),
+(389, 66, 15, 'Тест 3', 'value', '', NULL, NULL),
+(390, 66, 15, 'Тест 4', 'value', '', NULL, NULL),
+(391, 66, 15, 'Тест 5', 'value', '', NULL, NULL),
+(392, 66, 16, 'Номер', 'value', '', NULL, NULL),
+(393, 66, 16, 'Название', 'value', '', NULL, NULL),
+(394, 66, 16, 'Модель', 'value', '', NULL, NULL),
+(395, 66, 16, 'Тест 2', 'value', '', NULL, NULL),
+(396, 66, 16, 'Тест 1', 'value', '', NULL, NULL),
+(397, 66, 16, 'Тест 3', 'value', '', NULL, NULL),
+(398, 66, 16, 'Тест 4', 'value', '', NULL, NULL),
+(399, 66, 16, 'Тест 5', 'value', '', NULL, NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Структура таблицы `my_values`
+--
+
+CREATE TABLE `my_values` (
+  `id` int(11) NOT NULL,
+  `type` varchar(12) NOT NULL,
+  `value` varchar(128) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Дамп данных таблицы `my_values`
+--
+
+INSERT INTO `my_values` (`id`, `type`, `value`) VALUES
+(2, 'array', '[{\"value\":\"ывап\"},{\"value\":\"ыва\"}]'),
+(3, 'value', 'фыафыва');
 
 -- --------------------------------------------------------
 
@@ -119,9 +230,8 @@ INSERT INTO `rights` (`id`, `objectId`, `type`, `login`, `rights`) VALUES
 (29, 66, 'user', 'test', 1),
 (70, 32, 'role', 'Инженер', 9),
 (71, 32, 'user', 'test', 1),
-(87, 92, 'user', 'test', 1),
 (88, 93, 'user', 'test', 1),
-(92, 91, 'user', 'test', 9);
+(93, 96, 'role', 'Инженер', 1);
 
 -- --------------------------------------------------------
 
@@ -161,7 +271,8 @@ CREATE TABLE `signin` (
 
 INSERT INTO `signin` (`id`, `login`, `checkkey`, `date`) VALUES
 ('G6uhkRxY834', 'test', 'b07f41e73c3f7f9bf11693998491efeb', '2018-04-25 15:52:27'),
-('GJ3COg64AOP', 'admin', '176d8c6582c7d758e1253ddd345ec60f', '2018-04-28 16:11:47');
+('GJ3COg64AOP', 'admin', '176d8c6582c7d758e1253ddd345ec60f', '2018-05-08 15:31:54'),
+('G1ke048Pjp4', 'test', 'c1b4b4743ccb6a3a91aa0c4251654d93', '2018-05-08 15:31:55');
 
 -- --------------------------------------------------------
 
@@ -184,18 +295,18 @@ CREATE TABLE `structures` (
 --
 
 INSERT INTO `structures` (`id`, `objectType`, `objectId`, `name`, `parent`, `priority`, `info`) VALUES
+(1, 'folder', 0, 'Администрирование', 0, 3, ''),
+(2, 'folder', 0, 'Пользователи', 1, 0, ''),
+(3, 'folder', 0, 'Роли', 1, 0, ''),
 (30, 'folder', 0, 'База знаний', 0, 0, ''),
-(32, 'folder', 0, 'Проекты', 0, 0, ''),
-(33, 'folder', 0, 'Шаблоны', 0, 0, ''),
-(66, 'table', 0, 'Новая таблица', 30, 0, ''),
-(67, 'table', 0, 'Новая таблица', 30, 0, ''),
-(68, 'folder', 0, 'Новая папка', 30, 0, ''),
-(70, 'table', 0, 'Новая таблица 1', 68, 0, ''),
-(71, 'table', 0, 'Новая таблица 2', 68, 0, ''),
-(91, 'folder', 0, 'Папка для test', 30, 0, ''),
-(92, 'folder', 0, 'Администрирование', 0, 0, ''),
-(93, 'folder', 0, 'Пользователи', 92, 0, ''),
-(94, 'folder', 0, 'Роли', 92, 0, '');
+(32, 'folder', 0, 'Проекты', 0, 1, ''),
+(33, 'folder', 0, 'Шаблоны', 0, 2, ''),
+(66, 'table', 0, 'Основная таблица', 30, 0, ''),
+(96, 'value', 2, 'Тест', 30, 0, ''),
+(97, 'value', 3, 'еуые', 30, 0, ''),
+(98, 'folder', 0, 'Новая папка', 30, 0, ''),
+(99, 'table', 0, 'Новая таблица', 98, 0, ''),
+(100, 'folder', 0, 'Файлы', 0, 5, '');
 
 --
 -- Индексы сохранённых таблиц
@@ -205,6 +316,12 @@ INSERT INTO `structures` (`id`, `objectType`, `objectId`, `name`, `parent`, `pri
 -- Индексы таблицы `fields`
 --
 ALTER TABLE `fields`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Индексы таблицы `my_values`
+--
+ALTER TABLE `my_values`
   ADD PRIMARY KEY (`id`);
 
 --
@@ -251,19 +368,25 @@ ALTER TABLE `structures`
 -- AUTO_INCREMENT для таблицы `fields`
 --
 ALTER TABLE `fields`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=144;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=403;
+
+--
+-- AUTO_INCREMENT для таблицы `my_values`
+--
+ALTER TABLE `my_values`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT для таблицы `rights`
 --
 ALTER TABLE `rights`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=93;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=94;
 
 --
 -- AUTO_INCREMENT для таблицы `structures`
 --
 ALTER TABLE `structures`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=95;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=101;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

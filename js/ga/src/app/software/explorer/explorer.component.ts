@@ -5,6 +5,8 @@ import { CreateUserService } from "../create-user.service";
 import { CreateRoleService } from "../create-role.service";
 import { CreateFolderService } from "../create-folder.service";
 import { CreateRightService } from "../create-right.service";
+import { CreateValueService } from "../create-value.service";
+import { PasteObjectService } from "../paste-object.service";
 
 declare var trace:any;
 @Component({
@@ -18,6 +20,8 @@ declare var trace:any;
         CreateRoleService,
         CreateFolderService,
         CreateRightService,
+        CreateValueService,
+        PasteObjectService
     ]
 })
 export class ExplorerComponent implements OnInit 
@@ -26,13 +30,15 @@ export class ExplorerComponent implements OnInit
 
     inputs = 
     {
-        openObject: null
+        openSoftware: null,
+        data: null
     };
     allPath = [];
     parent = 0;
     outFolders = [];
     selectObjectI = -1;
     load = false;
+    selectObjectCopy = { id: -1, type: "" };
     selectRules = 
     {
         new: true, 
@@ -50,17 +56,20 @@ export class ExplorerComponent implements OnInit
         private createRole: CreateRoleService,
         private createFolder: CreateFolderService,
         private createRight: CreateRightService,
-    ) 
-    { 
-        this.openStructure(0, null);
-    }
+        private createValue: CreateValueService,
+        private pasteObject: PasteObjectService,
+    ) {}
     ngOnInit() 
     { 
+        if(this.inputs.data.id) this.openFolder(this.inputs.data.id);
+        else this.openFolder(0);
         this.createTable.modal = this.modal;
         this.createUser.modal = this.modal;
         this.createRole.modal = this.modal;
         this.createFolder.modal = this.modal;
         this.createRight.modal = this.modal;
+        this.createValue.modal = this.modal;
+        this.pasteObject.modal = this.modal;
     }
     newObject() // Создание объекта
     {
@@ -80,12 +89,24 @@ export class ExplorerComponent implements OnInit
         };
         this.modal.open(Data);
     }
-    openObject(id, type)
+    openObject(object)
     {
-        switch(type)
+        switch(object.objectType)
         {
-            case "Таблица": 
-                this.inputs.openObject("table", { id:id });
+            case "folder": 
+                this.openFolder(object.id);
+                break;
+            case "table":
+                this.inputs.openSoftware("table", { id:object.id });
+                break;
+            case "user":
+                this.createObject(null, 'Пользователь', object);
+                break;
+            case "role":
+                this.createObject(null, 'Роль', object)
+                break;
+            case "value":
+                this.createObject(null, 'Значение', object)
                 break;
         }
     }
@@ -94,23 +115,35 @@ export class ExplorerComponent implements OnInit
         switch(type)
         {
             case "Папка": 
-                this.createFolder.create(id, () => { this.update() });
+                this.createFolder.create(id, () => { this.refresh() });
                 break;
             case "Таблица": 
-                this.createTable.create(id, () => { this.update() });
+                this.createTable.create(id, () => { this.refresh() });
                 break;
-            case "Значение": break;
+            case "Значение":
+                this.createValue.create(id, () => { this.refresh() }, data);
+                break;
             case "Событие": break;
             case "Права": 
-                this.createRight.create(id, () => { this.update() });
+                this.createRight.create(id, () => { this.refresh() });
                 break;
             case "Пользователь":
-                this.createUser.create(() => { this.update() }, data);
+                this.createUser.create(() => { this.refresh() }, data);
                 break;
             case "Роль": 
-                this.createRole.create(() => { this.update() }, data);
+                this.createRole.create(() => { this.refresh() }, data);
                 break;
         }
+    }
+    copyObject(copyOrCut)
+    {
+        localStorage.setItem("copyExplorer", JSON.stringify(this.outFolders[this.selectObjectI]));
+        localStorage.setItem("lastOperationExplorer", copyOrCut);
+        this.refresh();
+    }
+    _pasteObject()
+    {
+        this.pasteObject.paste(() => { this.refresh() })
     }
     removeObject() // Удалить объект
     {
@@ -121,16 +154,19 @@ export class ExplorerComponent implements OnInit
         switch(objectType)
         {
             case "folder":
-                this.createFolder.remove(id, () => { this.update() });
+                this.createFolder.remove(id, () => { this.refresh() });
                 break;
             case "table":
-                this.createTable.remove(id, () => { this.update() });
+                this.createTable.remove(id, () => { this.refresh() });
                 break;
             case "user":
-                this.createUser.remove(name, () => { this.update() });
+                this.createUser.remove(name, () => { this.refresh() });
                 break;
             case "role": 
-                this.createRole.remove(name, () => { this.update() });
+                this.createRole.remove(name, () => { this.refresh() });
+                break;
+            case "value": 
+                this.createValue.remove(id, () => { this.refresh() });
                 break;
         }
     }
@@ -142,7 +178,6 @@ export class ExplorerComponent implements OnInit
         var id = this.outFolders[this.selectObjectI].id;
         var objectType = this.outFolders[this.selectObjectI].objectType;
         var parent = this.outFolders[this.selectObjectI].parent;
-        
         this.query.protectionPost(202, { param: [ id ] }, (data) =>
         {
             this.clearRules(false);
@@ -151,10 +186,12 @@ export class ExplorerComponent implements OnInit
             this.selectRules.cut = Boolean(right.change);
             this.selectRules.rights = Boolean(right.change);
             this.selectRules.remove = Boolean(right.change);
+            this.selectRules.paste = Boolean(right.change) && this.selectObjectCopy.id != -1;
         });
     }
     unSelectObject() // отпустить объект
     {
+        this.selectObjectCopy = { id: -1, type: "" };
         this.selectObjectI = -1;
         this.clearRules(true);
     }
@@ -165,9 +202,15 @@ export class ExplorerComponent implements OnInit
             this.unSelectObject();
             this.query.protectionPost(202, { param: [ id ] }, (data) =>
             {
+                if(localStorage.getItem("copyExplorer") != null)
+                {
+                    this.selectObjectCopy.id = JSON.parse(localStorage.getItem("copyExplorer")).id;
+                    this.selectObjectCopy.type = localStorage.getItem("lastOperationExplorer");
+                }
+
                 this.clearRules(true);
                 let right = this.createRight.decodeRights(data[0]);
-                /* this.selectRules.paste = true; */
+                this.selectRules.paste = Boolean(right.change) && this.selectObjectCopy.id != -1;
                 this.selectRules.new = Boolean(right.change);
             });
         });
@@ -206,8 +249,9 @@ export class ExplorerComponent implements OnInit
             remove: false
         }
     }
-    update()
+    refresh(clearCopy?)
     {
+        if(clearCopy) localStorage.removeItem("copyExplorer");
         this.openFolder(this.parent);
     }
     translate(data) // Нужно для уменьшения объема сообщения от сервера

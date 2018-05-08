@@ -21,6 +21,7 @@ export class AppComponent implements OnInit
     enter = false;
     load = false;
     /* testData = [];//TestData; */
+    leftMenuData = [];
     tabs = [];
     Login = "";
     
@@ -36,7 +37,8 @@ export class AppComponent implements OnInit
         });
         this.firstEnter(this);
         this.refresh();
-        this.openSoftware("table", { id: 66 });
+        this.openSoftware("explorer", { });
+        /* this.openSoftware("table", { id: 66 }); */
     }
     openTab(i)
     {
@@ -54,8 +56,17 @@ export class AppComponent implements OnInit
     }
     refresh()
     {
-        /* this.query.protectionPost(111, { param: [] }, (data) => { this.testData = data; }); */
+        this.query.protectionPost(113, { param: [] }, (data) => 
+        { 
+            trace(data)
+            this.leftMenuData = data; 
+        });
     }
+    openObjectForLeftMenu = (() => 
+    { 
+        return (type, input) => { this.openSoftware(type, input); }
+    })();
+
     openSoftware(type, input?)
     {
         switch(type)
@@ -69,7 +80,8 @@ export class AppComponent implements OnInit
                         component: ExplorerComponent,
                         inputs: 
                         { 
-                            openObject: (type, input) => { this.openSoftware(type, input); }
+                            openSoftware: (type, input) => { this.openSoftware(type, input); },
+                            data: input
                         }
                     }
                 })

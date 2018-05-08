@@ -14,6 +14,7 @@ export class ErrorTableComponent implements OnInit
     @Output() onChange = new EventEmitter<any>();
     header = [];
     firstHeader = {};
+    mainData;
     listTables = [];
     firstData = [];
 
@@ -36,13 +37,14 @@ export class ErrorTableComponent implements OnInit
                 this.header[value[key].i] = value[key];
             }
         }
-        trace(this.header)
-        trace(this.firstHeader)
+        /* trace(this.header)
+        trace(this.firstHeader) */
     }
     @Input() set data(value)
     {
         if(value)
         {
+            this.mainData = value;
             this.firstData = [];
             this.listTables = [];
             for(var i = 0; i < value.length; i++)
@@ -51,11 +53,11 @@ export class ErrorTableComponent implements OnInit
                 for(var key in value[i])
                     if(this.firstHeader[key] != undefined)
                         this.listTables[i][this.firstHeader[key]] = value[i][key];
-                this.firstData[i] = value[i].__ID__;
+                this.firstData[i] = value[i].__ID__; // id строки в бд
             }
         }
-        trace(this.listTables)
-        trace(this.firstData)
+        /* trace(this.listTables)
+        trace(this.firstData) */
     }
     configInput = 
     {
@@ -80,13 +82,13 @@ export class ErrorTableComponent implements OnInit
         let a = element.attr("id") ? element.attr("id").split("_") : [];
         if(a.length == 2)
         {
-
             i = Number(a[0]);
             j = Number(a[1]);
 
             let mainOffset = $(this.mainContainer.nativeElement).offset();
             let scrollTop = this.mainContainer.nativeElement.scrollTop;
             let offset = element.offset();
+
             this.configInput.top = (offset.top - mainOffset.top + scrollTop) + "px";
             this.configInput.left = (offset.left - mainOffset.left) + "px";
             this.configInput.width = (e.target.clientWidth + 1) + "px";
@@ -109,6 +111,7 @@ export class ErrorTableComponent implements OnInit
             let j = this.inputProperty.j;
             let out = [{ __ID__: this.firstData[i], __type__: this.inputProperty.oldValue == undefined ? "insert" : "update" }];
             out[0][this.header[j].value] = this.inputProperty.value;
+            this.mainData[i][this.header[j].value] = this.inputProperty.value; // Изменить данные в главном массиве
             this.onChange.emit({
                 out: out
             });

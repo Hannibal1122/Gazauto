@@ -141,8 +141,10 @@
                     case 100: // Создать элемент структуры 
                         if((getRights($param[3]) & 8) != 8) return; // Права на изменение
                         query("INSERT INTO structures (objectType, objectId, name, parent, priority, info) VALUES(%s, %i, %s, %i, %i, %s)", $param);
+                        $idElement = $mysqli->insert_id;
                         if($login != "admin")
-                            query("INSERT INTO rights (objectId, type, login, rights) VALUES(%s, %i, %s, %s, %i) ", [ $mysqli->insert_id, "user", $login, 255 ]);
+                            query("INSERT INTO rights (objectId, type, login, rights) VALUES(%s, %i, %s, %s, %i) ", [ $idElement , "user", $login, 255 ]);
+                        echo json_encode(["Index", $idElement]);
                         break;
                     case 110: // Загрузка структуры // Права на просмотр
                         $out = ["folder" => [], "path" => []];
@@ -162,15 +164,29 @@
                                 $elem["priority"] = $row[5];
                                 $out["folder"][] = $elem;
                             }
-                        if($param[0] == 93) getUsersOrRoles($out["folder"], "users");
-                        if($param[0] == 94) getUsersOrRoles($out["folder"], "roles");
+                        if($param[0] == 2) getUsersOrRoles($out["folder"], "users");
+                        if($param[0] == 3) getUsersOrRoles($out["folder"], "roles");
                         getFullPath($out["path"], $param[0]);
                         echo json_encode($out);
                         break;
                     case 111: // Получение родителя
                         request("SELECT parent FROM structures WHERE id = %i ORDER by parent, priority", $param);
                         break;
-                    /* case 111: // Загрузка структуры без выпрямления
+                    
+                    case 112: // Удаление элемента структуры // Права на изменение
+                        /* getRemoveElementbyStructure($out, $param[0]); */
+                        $out = [(int)$param[0]];
+                        getRemoveElementbyStructure($out, (int)$param[0]);
+                        $c = count($out);
+                        for($i = 0; $i < $c; $i++)
+                        {
+                            if((getRights($out[$i]) & 8) != 8) continue; // Права на изменение
+                            query("DELETE FROM structures WHERE id = %i", [ $out[$i] ]);
+                            query("DELETE FROM rights WHERE objectId = %i", [ $out[$i] ]);
+                        }
+                        echo json_encode($out);
+                        break;
+                    case 113: // Загрузка структуры без выпрямления
                         $out = [];
                         if($result = query("SELECT id, objectType, objectId, name, parent, priority, info FROM structures ORDER by parent, priority", []))
                             while ($row = $result->fetch_array(MYSQLI_NUM)) 
@@ -181,22 +197,24 @@
                                 $elem["objectId"] = $row[2];
                                 $elem["name"] = $row[3];
                                 $elem["childrens"] = [];
-                                if($row[4] == 0) $out[] = $elem;
-                                else searchParent($out, $row[4], $elem);
+                                if((getRights($row[0]) & 1) == 1)
+                                    if($row[4] == 0) $out[] = $elem;
+                                    else searchParent($out, $row[4], $elem);
                             }
                         echo json_encode($out);
-                        break; */
-                    case 112: // Удаление элемента структуры // Права на изменение
-                        /* getRemoveElementbyStructure($out, $param[0]); */
-                        $out = [(int)$param[0]];
-                        getRemoveElementbyStructure($out, (int)$param[0]);
-                        $c = count($out);
-                        for($i = 0; $i < $c; $i++)
-                        {
-                            if((getRights($out[$i][0]) & 8) != 8) continue; // Права на изменение
-                            query("DELETE FROM structures WHERE id = %i", [ $out[$i][0] ]);
-                            query("DELETE FROM rights WHERE objectId = %i", [ $out[$i][0] ]);
-                        }
+                        break;
+                    case 114: // Копирование элемента
+                        // id в структуре
+                        // куда
+                        // как
+                        break;
+                    case 115: // Запрос приоритета
+                        if((getRights($param[0]) & 1) != 1) continue; // Права на просмотр
+                        request("SELECT priority FROM structures WHERE id = %i", $param);
+                        break;
+                    case 116: // Изменение приоритета
+                        if((getRights($param[1]) & 8) != 8) continue; // Права на просмотр
+                        query("UPDATE structures SET priority = %i WHERE id = %i", $param);
                         break;
                 }
             if($nQuery >= 150 && $nQuery < 200) // Работа с Пользователями // Только admin
@@ -350,6 +368,46 @@
                         if((getRights($idTable) & 8) != 8) return; // Права на изменение
                         query("UPDATE structures SET name = %s WHERE id = %i", [ $param[1], $param[0] ]);
                         break;
+                    case 254: // Удаление таблицы
+                        $idTable = (int)$param[0];
+                        if((getRights($idTable) & 8) != 8) return; // Права на изменение
+                        query("DELETE FROM fields WHERE tableId = %i", [ $idTable ]);
+                        break;
+                }
+            if($nQuery >= 300 && $nQuery < 350) // Работа со значениями 
+                switch($nQuery)
+                {
+                    case 300: // Добавить значение
+                        $idElement = (int)$param[0]; // id из структуры
+                        if((getRights($idElement) & 8) != 8) return; // Права на изменение
+                        query("INSERT INTO my_values (type, value) VALUES(%s, %s)", [ $param[1], $param[2] ]);
+                        $idValue = $mysqli->insert_id;
+                        query("UPDATE structures SET objectId = %i WHERE id = %i", [$idValue, $idElement]);
+                        
+                        /* request("SELECT * FROM fields WHERE tableId = %i", [$idTable]); */
+                        break;
+                    case 301: // Изменить значение 
+                    case 302: // Удалить значение
+                        $idElement = (int)$param[0];
+                        if((getRights($idElement) & 8) != 8) return; // Права на изменение
+                        $idValue = -1;
+                        if($result = query("SELECT objectId FROM structures WHERE id = %i", [ $idElement ]))
+                            while ($row = $result->fetch_array(MYSQLI_NUM)) $idValue = (int)$row[0];
+                        if($nQuery == 301) query("UPDATE my_values SET value = %s WHERE id = %i", [$param[1], $idValue]);
+                        else 
+                        {
+                            query("DELETE FROM my_values WHERE id = %i", [ $idValue ]);
+                            query("DELETE FROM structures WHERE id = %i", [ $idElement ]);
+                        }
+                        break;
+                    case 303: // Загрузить значение
+                        $idElement = (int)$param[0];
+                        if((getRights($idElement) & 1) != 1) return; // Права на просмотр
+                        $idValue = -1;
+                        if($result = query("SELECT objectId FROM structures WHERE id = %i", [ $idElement ]))
+                            while ($row = $result->fetch_array(MYSQLI_NUM)) $idValue = (int)$row[0];
+                        request("SELECT id, type, value FROM my_values WHERE id = %i", [ $idValue ]);
+                        break;
                 }
         }
         /* else query("UPDATE signin SET checkkey = '', login = '' WHERE id = %s", [$paramI]); // Если пользователь послал не тот id  */
@@ -392,7 +450,7 @@
                 if($row[1] != 0) getFullPath($out, $row[1]);
             }
     }
-    /* function searchParent(&$out, $parent, $elem) // Формирование древовидной структуры
+    function searchParent(&$out, $parent, $elem) // Формирование древовидной структуры
     {
         $c = count($out);
         for($i = 0; $i < $c; $i++)
@@ -401,7 +459,7 @@
             for($i = 0; $i < $c; $i++)
                 if(searchParent($out[$i]["childrens"], $parent, $elem)) return true;
         return false;
-    } */
+    }
     /* function straighten(&$out, $data, $parent) // из объекта получаем одномерный массив со всеми полями дерева
     {
         $childrens = $data["childrens"];

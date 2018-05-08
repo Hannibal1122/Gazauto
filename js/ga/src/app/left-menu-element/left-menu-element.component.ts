@@ -11,9 +11,11 @@ export class LeftMenuElementComponent implements OnInit
     @ViewChild("inputSearch") public inputSearch:ElementRef;
     @Input() set config(config)
     {
+        trace(config)
         if(config)
         {
             if(config.name) this._config.name = config.name;
+            if(config.id) this._config.id = config.id;
             if(config.buttons) this._config.buttons = config.buttons;
             if(config.filter) this._config.filter = config.filter;
         }
@@ -23,8 +25,15 @@ export class LeftMenuElementComponent implements OnInit
         for(var i = 0; i < data.length; i++)
             this.straighten(this.outData, data[i], 0, -1);
     }
+    @Input() set openObject(func)
+    {
+        if(func)
+            this._openObject = func;
+    }
+    _openObject = null;
     _config = 
     {
+        id: null,
         name: "",
         buttons: ["search", "open", "hide"],
         filter: []
@@ -45,6 +54,18 @@ export class LeftMenuElementComponent implements OnInit
 
             self.oldSearchVisible = self.searchVisible;
         }); */
+    }
+    openElement(data)
+    {
+        switch(data.objectType)
+        {
+            case "folder":
+                this._openObject("explorer", { id: data.id });
+                break;
+            case "table":
+                this._openObject("table", { id: data.id });
+                break;
+        }
     }
     straighten(out, data, level, parent) // из объекта получаем одномерный массив со всеми полями дерева
     {

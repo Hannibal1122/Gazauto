@@ -22,11 +22,11 @@ export class TableEditorComponent implements OnInit
     nameTable = "";
     rules = 
     {
-        save: true,
+        save: false,
         head: true, 
-        cut: true, 
-        copy: true, 
-        paste: true,
+        cut: false, 
+        copy: false, 
+        paste: false,
         add: true,
     }
     constructor(private query:QueryService) { }
