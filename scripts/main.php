@@ -204,9 +204,44 @@
                         echo json_encode($out);
                         break;
                     case 114: // Копирование элемента
-                        // id в структуре
-                        // куда
-                        // как
+                        $idElement = (int)$param[0]; // id Элемента 
+                        $idParent = (int)$param[1]; // id папки в которую копируем
+                        $type = $param[2]; // тип операции
+                        if((getRights($idParent) & 8) != 8) continue; // Права на изменение
+                        switch($type)
+                        {
+                            case "copy": 
+                                if((getRights($idElement) & 2) != 2) continue; // Права на копирование
+                                $elem = [];
+                                if($result = query("SELECT objectType, objectId, name, parent, priority, info FROM structures WHERE id = %i", [$idElement]))
+                                    $elem = $result->fetch_array(MYSQLI_NUM);
+                                $elem[3] = $idParent;// parent
+                                query("INSERT INTO structures (objectType, objectId, name, parent, priority, info) VALUES(%s, %i, %s, %i, %i, %s)", $elem);
+                                $idNewElement = $mysqli->insert_id;
+                                if($login != "admin")
+                                    query("INSERT INTO rights (objectId, type, login, rights) VALUES(%s, %i, %s, %s, %i) ", [ $idNewElement, "user", $login, 255 ]);
+                                if($elem[0] == "value")
+                                {
+                                    $value = [];
+                                    if($result = query("SELECT type, value FROM my_values WHERE id = %i", [ (int)$elem[1] ]))
+                                        $value = $result->fetch_array(MYSQLI_NUM);
+                                    query("INSERT INTO my_values (type, value) VALUES(%s, %s)", [ $value[0], $value[1] ]);
+                                    $idValue = $mysqli->insert_id;
+                                    query("UPDATE structures SET objectId = %i WHERE id = %i", [$idValue, $idNewElement]);
+                                }
+                                break; // Копировать
+                            case "cut": 
+                                if((getRights($idElement) & 8) != 8) continue; // Права на изменение
+                                query("UPDATE structures SET parent = %i WHERE id = %i", [$idParent, $idElement]);
+                                break; // Вырезать(изменение)
+                            case "struct": 
+                                if((getRights($idElement) & 2) != 2) continue; // Права на копирование
+                                break; // Копировать
+                            case "inherit": 
+                                if((getRights($idElement) & 4) != 4) continue; // Права на наследование
+                                break; // Наследование
+                        }
+                        print_r($param);
                         break;
                     case 115: // Запрос приоритета
                         if((getRights($param[0]) & 1) != 1) continue; // Права на просмотр

@@ -1,6 +1,6 @@
 <?php
 	$hostname = "localhost"; 
 	$username = "root";     
-	$password = "";
+	$password = "25mad92";
 	$dbName = "gazauto";
 ?>

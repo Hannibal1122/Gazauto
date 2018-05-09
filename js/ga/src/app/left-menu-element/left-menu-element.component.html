@@ -1,6 +1,6 @@
 <div style = "width: 410px; background-color:#6085ac; color: white;">
     <div style = "height: 40px; background-color:#456486; padding: 6px; font-weight:bold; font-size:18px; position: relative;">
-        <i class="fas fa-book"></i> {{ _config.name }}
+        <!-- <i class="fas fa-book"></i> --> {{ _config.name }}
         <span style = "position: absolute; right:62px; top: 8px; cursor:pointer;" (click) = "visibleSearch()">
             <i class="fas fa-search"></i>
         </span>
@@ -24,8 +24,8 @@
             placeholder = "Поиск">
     </div>
     <div *ngIf = "!hide" style = "padding: 5px;">
-        <div *ngFor = "let data of outData; let i = index;" [hidden] = "data.hide || data.searchHide">
-            <div [style.marginLeft.px] = "15 * data.level">
+        <div *ngFor = "let data of outData; let i = index;" [hidden] = "(search == '' && data.hide) || (search != '' && data.searchHide)">
+            <div [style.marginLeft.px] = "search == '' ? (15 * data.level) : 0">
                 <div class = "elementMenu" (dblclick) = "openElement(data)">
 
                     <span *ngIf = "data.objectType == 'folder' && !data.open" style = "cursor: pointer;" (click) = "openCollapse(i, data.level)">

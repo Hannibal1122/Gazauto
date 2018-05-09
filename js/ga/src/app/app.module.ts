@@ -9,7 +9,6 @@ import { EnterComponent } from './enter/enter.component';
 import { ModalWindowModule } from "./system/modalwindow/modalwindow.module";
 import { LoadingComponent } from './system/loading/loading.component';
 import { TableEditorComponent } from './software/table-editor/table-editor.component';
-import { DxDataGridModule, DxButtonModule } from 'devextreme-angular';
 import { ErrorTableComponent } from './system/error-table/error-table.component'
 
 @NgModule({
@@ -20,9 +19,7 @@ import { ErrorTableComponent } from './system/error-table/error-table.component'
         DynamicComponent, 
         EnterComponent, LoadingComponent, TableEditorComponent, ErrorTableComponent
     ],
-    imports: [ BrowserModule, FormsModule, ModalWindowModule,
-        DxDataGridModule,
-        DxButtonModule ],
+    imports: [ BrowserModule, FormsModule, ModalWindowModule ],
     providers: [],
     bootstrap: [AppComponent]
 })

@@ -61,7 +61,19 @@ export class ExplorerComponent implements OnInit
     ) {}
     ngOnInit() 
     { 
-        if(this.inputs.data.id) this.openFolder(this.inputs.data.id);
+        if(this.inputs.data && this.inputs.data.id) 
+        {
+            this.openFolder(this.inputs.data.id, this.inputs.data.element ? () => 
+            {
+                let i = 0;
+                for(; i < this.outFolders.length; i++)
+                    if(this.inputs.data.element == this.outFolders[i].id)
+                    {
+                        this.openObject(this.outFolders[i]);
+                        break;
+                    }
+            } : null);
+        }
         else this.openFolder(0);
         this.createTable.modal = this.modal;
         this.createUser.modal = this.modal;
@@ -143,7 +155,7 @@ export class ExplorerComponent implements OnInit
     }
     _pasteObject()
     {
-        this.pasteObject.paste(() => { this.refresh() })
+        this.pasteObject.paste(this.parent, () => { this.refresh() })
     }
     removeObject() // Удалить объект
     {
@@ -195,7 +207,7 @@ export class ExplorerComponent implements OnInit
         this.selectObjectI = -1;
         this.clearRules(true);
     }
-    openFolder(id) // открыть папку
+    openFolder(id, func?) // открыть папку
     {
         this.openStructure(id, () =>
         {
@@ -212,6 +224,7 @@ export class ExplorerComponent implements OnInit
                 let right = this.createRight.decodeRights(data[0]);
                 this.selectRules.paste = Boolean(right.change) && this.selectObjectCopy.id != -1;
                 this.selectRules.new = Boolean(right.change);
+                if(func) func();
             });
         });
     }

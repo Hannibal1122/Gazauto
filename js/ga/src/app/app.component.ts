@@ -58,7 +58,6 @@ export class AppComponent implements OnInit
     {
         this.query.protectionPost(113, { param: [] }, (data) => 
         { 
-            trace(data)
             this.leftMenuData = data; 
         });
     }

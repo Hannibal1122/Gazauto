@@ -6,6 +6,7 @@ declare var trace:any;
 @Injectable()
 export class QueryService 
 {
+    url = 'http://localhost/gazprom/scripts/main.php';//:8081
     constructor() 
     { 
         /* $.ajaxSetup({ headers: {  'Access-Control-Allow-Origin': 'http://localhost:8081' } }); */
@@ -14,7 +15,7 @@ export class QueryService
     {
         var dataQuery = {nquery: n};
         for(var key in data) dataQuery[key] = data[key];
-        $.post('http://localhost:8081/gazprom/scripts/main.php', dataQuery, (data) =>
+        $.post(this.url, dataQuery, (data) =>
         {
             func(this.recode(data));
         });
@@ -26,7 +27,7 @@ export class QueryService
         dataQuery["paramI"] = localStorage.getItem("ID");
         dataQuery["paramL"] = localStorage.getItem("login");
         dataQuery["paramC"] = localStorage.getItem("checkKey");
-        $.post('http://localhost:8081/gazprom/scripts/main.php', dataQuery, (data) =>
+        $.post(this.url, dataQuery, (data) =>
         {
             func(this.recode(data));
         });

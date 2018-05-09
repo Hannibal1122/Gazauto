@@ -61,5 +61,8 @@
                 <vg-dynamic-view [componentData] = "app.software"></vg-dynamic-view>
             </div> 
         </div>
+        <div *ngIf = "tabs.length == 0">
+            <span style="color:#b8b8b8; font-size:22px; font-weight:bold">Выберите объект из левого меню</span>
+        </div>
     </div>
 <div>

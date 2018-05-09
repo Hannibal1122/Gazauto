@@ -1,17 +1,19 @@
 import { Component, OnInit, Input, ViewChild, ElementRef } from '@angular/core';
+import { QueryService } from "../lib/query.service";
+
 declare var trace:any;
 
 @Component({
     selector: 'app-left-menu-element',
     templateUrl: './left-menu-element.component.html',
-    styleUrls: ['./left-menu-element.component.css']
+    styleUrls: ['./left-menu-element.component.css'],
+    providers: [ QueryService ]
 })
 export class LeftMenuElementComponent implements OnInit 
 {
     @ViewChild("inputSearch") public inputSearch:ElementRef;
     @Input() set config(config)
     {
-        trace(config)
         if(config)
         {
             if(config.name) this._config.name = config.name;
@@ -24,6 +26,8 @@ export class LeftMenuElementComponent implements OnInit
     {
         for(var i = 0; i < data.length; i++)
             this.straighten(this.outData, data[i], 0, -1);
+        if(this.outData.length == 0)
+            this.hide = true;
     }
     @Input() set openObject(func)
     {
@@ -42,9 +46,9 @@ export class LeftMenuElementComponent implements OnInit
     hide = false;
     searchVisible = false;
     oldSearchVisible = false;
-    search;
+    search = '';
 
-    constructor() { }
+    constructor(private query: QueryService) { }
     ngOnInit() 
     { 
         /* var self = this;
@@ -65,13 +69,19 @@ export class LeftMenuElementComponent implements OnInit
             case "table":
                 this._openObject("table", { id: data.id });
                 break;
+            case "value":
+                this.query.protectionPost(111, { param: [ data.id ]}, (idParent) =>
+                {
+                    this._openObject("explorer", { id: idParent[0][0], element: data.id });
+                });
+                trace(data)
+                break;
         }
     }
     straighten(out, data, level, parent) // из объекта получаем одномерный массив со всеми полями дерева
     {
         let childrens = data.childrens;
         let j = out.length;
-        //out[j] = {id: data.id, name: data.name, objectType: data.objectType, type: data.type, level: level, hide: !(level <= 1), open: level == 0, parent: parent, searchHide: false};
         out[j] = {id: data.id, name: data.name, objectType: data.objectType, type: data.type, level: level, hide: !(level <= 0), open: false, parent: parent, searchHide: false};
         level++;
         if(childrens.length == 0) out[j].end = true;
@@ -106,40 +116,13 @@ export class LeftMenuElementComponent implements OnInit
     }
     OnChangeSearch()
     {
-        /* var search = this.search.toLowerCase();
+        var search = this.search.toLowerCase();
         for(var i = 0; i < this.outData.length; i++)
             if(this.outData[i].id != -1)
             {
-                if(this.outData[i].name.toLowerCase().indexOf(search) != -1)
+                if(this.outData[i].objectType != "folder" && this.outData[i].name.toLowerCase().indexOf(search) != -1)
                     this.outData[i].searchHide = false;
                 else this.outData[i].searchHide = true;
             }
-        var mainSearch = {0: {}};
-        for(var i = 0; i < this.outData.length; i++)
-        {
-            if(this.outData[i].parent != -1)
-            {
-                if(mainSearch[this.outData[i].parent] == null) mainSearch[this.outData[i].parent] = {};
-                mainSearch[this.outData[i].parent][i] = this.outData[i].searchHide;
-                this.getUpLevelSearch(mainSearch, this.outData[this.getParentI(this.outData[i].parent)].parent, this.outData[i].parent);
-            }
-        }
-        for(var key in mainSearch)
-            if(this.outData[key] != undefined)
-            {
-                var _value = true;
-                for(var _key in mainSearch[key]) _value = _value && mainSearch[key][_key];
-                this.outData[key].searchHide = _value;
-            } */
-    }
-    getUpLevelSearch(mainSearch, parent, i)
-    {
-        /* if(parent != -1)
-        {
-            var _value = true;
-            for(var key in mainSearch[i]) _value = _value && mainSearch[i][key];
-            mainSearch[parent][i] = _value;
-            this.getUpLevelSearch(mainSearch, this.outData[this.getParentI(parent)].parent, parent);
-        } */
     }
 }

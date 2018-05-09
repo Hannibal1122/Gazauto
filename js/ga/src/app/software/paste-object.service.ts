@@ -32,10 +32,10 @@ export class PasteObjectService {
     { 
     }
     modal;
-    paste(update)
+    paste(parent, update) // сюда id parent
     {
         let copyExplorer = JSON.parse(localStorage.getItem("copyExplorer"));
-        localStorage.removeItem("copyExplorer");
+        let type = localStorage.getItem("lastOperationExplorer");
         let selectValue = [];
         switch(copyExplorer.objectType)
         {
@@ -46,16 +46,32 @@ export class PasteObjectService {
                 selectValue = ["Копировать", "Наследовать"];
                 break;
             case "value":
+                selectValue = ["Копировать"];
                 break;
         }
         this.Data.data[0][1].data = selectValue;
-        trace(this.modal)
-        if(selectValue.length > 0)
+        this.Data.data[0][1].selected = "Копировать";
+        if(selectValue.length > 1 && type != "cut")
             this.modal.open(this.Data, (save) =>
             {
-                update();
+                if(save) this.copyOrPaste(copyExplorer.id, parent, type, () => { update(); });
             })
-        else update();
+        else this.copyOrPaste(copyExplorer.id, parent, type, () => { update(); });
     }
-
+    copyOrPaste(id, parent, type, func)
+    {
+        if(type != "cut")
+            switch(this.Data.data[0][1].selected)
+            {
+                case "Копировать": type = "copy"; break;
+                case "Копировать структуру": type = "struct"; break;
+                case "Наследовать": type = "inherit"; break;
+            }
+        this.query.protectionPost(114, { param: [ id, parent, type ] }, (data) =>
+        {
+            trace(data)
+            if(func) func();
+            localStorage.removeItem("copyExplorer");
+        });
+    }
 }
