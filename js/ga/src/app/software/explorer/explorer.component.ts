@@ -27,10 +27,9 @@ declare var trace:any;
 export class ExplorerComponent implements OnInit 
 {
     @ViewChild('modal') public modal: any;
-
+    onChange = null;
     inputs = 
     {
-        openSoftware: null,
         data: null
     };
     allPath = [];
@@ -109,7 +108,7 @@ export class ExplorerComponent implements OnInit
                 this.openFolder(object.id);
                 break;
             case "table":
-                this.inputs.openSoftware("table", { id:object.id });
+                this.onChange({ type: "open", value: { name: "table", id: object.id }});
                 break;
             case "user":
                 this.createObject(null, 'Пользователь', object);

@@ -11,6 +11,8 @@ export class ErrorTableComponent implements OnInit
     @ViewChild("mainContainer") mainContainer:ElementRef;
     @ViewChild("mainEditElement") mainEditElement:ElementRef;
     @ViewChild("mainInputElement") mainInputElement:ElementRef;
+    @ViewChild("mainOverElement") mainOverElement:ElementRef;
+    
     @Output() onChange = new EventEmitter<any>();
     header = [];
     firstHeader = {};
@@ -24,6 +26,7 @@ export class ErrorTableComponent implements OnInit
         this.resize();
         this.functionResize = () => { this.resize(); };
         window.addEventListener("resize", this.functionResize, false);
+        /* window.addEventListener("mousemove", this.mouseMove, false); */
     }
     @Input() set head(value)
     {
@@ -44,6 +47,7 @@ export class ErrorTableComponent implements OnInit
     {
         if(value)
         {
+            /* trace(value) */
             this.mainData = value;
             this.firstData = [];
             this.listTables = [];
@@ -64,40 +68,24 @@ export class ErrorTableComponent implements OnInit
         width: "100px",
         height: "10px",
         top: "0px",
-        left: "0px"
+        left: "0px",
+        i: -1, 
+        j: -1
     }
     inputProperty = 
     {
         oldValue: "",
         value: "",
-        visible: false,
-        i: -1, 
-        j: -1
+        visible: false
     }
     editField(e) // нажали на ячейку для редактирования
     {
-        let i = -1;
-        let j = -1;
-        let element = $(e.target);
-        let a = element.attr("id") ? element.attr("id").split("_") : [];
-        if(a.length == 2)
+        if(this.getPositionInTable(e.target, this.configInput))
         {
-            i = Number(a[0]);
-            j = Number(a[1]);
-
-            let mainOffset = $(this.mainContainer.nativeElement).offset();
-            let scrollTop = this.mainContainer.nativeElement.scrollTop;
-            let offset = element.offset();
-
-            this.configInput.top = (offset.top - mainOffset.top + scrollTop) + "px";
-            this.configInput.left = (offset.left - mainOffset.left) + "px";
-            this.configInput.width = (e.target.clientWidth + 1) + "px";
-            this.configInput.height = (e.target.clientHeight + 1) + "px";
-
-            this.inputProperty.oldValue = this.inputProperty.value = this.listTables[i][j];
+            let i = this.configInput.i;
+            let j = this.configInput.j;
+            this.inputProperty.oldValue = this.inputProperty.value = this.listTables[i][j].value ? this.listTables[i][j].value : this.listTables[i][j];
             this.inputProperty.visible = true;
-            this.inputProperty.i = i;
-            this.inputProperty.j = j;
             setTimeout(() => { this.mainInputElement.nativeElement.focus(); }, 20);
         }
     }
@@ -107,8 +95,8 @@ export class ErrorTableComponent implements OnInit
         this.inputProperty.visible = false;
         if(this.inputProperty.oldValue != this.inputProperty.value)
         {
-            let i = this.inputProperty.i;
-            let j = this.inputProperty.j;
+            let i = this.configInput.i;
+            let j = this.configInput.j;
             let out = [{ __ID__: this.firstData[i], __type__: this.inputProperty.oldValue == undefined ? "insert" : "update" }];
             out[0][this.header[j].value] = this.inputProperty.value;
             this.mainData[i][this.header[j].value] = this.inputProperty.value; // Изменить данные в главном массиве
@@ -125,6 +113,38 @@ export class ErrorTableComponent implements OnInit
             idRow: i
         });
     }
+    configOverElement = 
+    {
+        width: "100px",
+        height: "10px",
+        top: "-1000px",
+        left: "0px",
+        border: "2px solid #45ac4e"
+    }
+    getPositionInTable(element, out)
+    {
+        let i = -1;
+        let j = -1;
+        let a = element.getAttribute("id") ? element.getAttribute("id").split("_") : [];
+        if(a.length == 2)
+        {
+            i = Number(a[0]);
+            j = Number(a[1]);
+
+            let mainOffset = $(this.mainContainer.nativeElement).offset();
+            let scrollTop = this.mainContainer.nativeElement.scrollTop;
+            let offset = $(element).offset();
+            out.top = (offset.top - mainOffset.top + scrollTop) + "px";
+            out.left = (offset.left - mainOffset.left) + "px";
+            out.width = (element.clientWidth + 1) + "px";
+            out.height = (element.clientHeight + 1) + "px";
+            out.i = i;
+            out.j = j;
+            return true;
+        }
+        /* trace(element) */
+        return false;
+    }
     //////////////////////////////////
     height = "";
     functionResize;
@@ -135,5 +155,7 @@ export class ErrorTableComponent implements OnInit
     ngOnDestroy() 
     {
         window.removeEventListener("resize", this.functionResize, false);
+        /* window.removeEventListener("mousemove", this.mouseMove, false); */
     }
+    dragoverHandler(e) { e.preventDefault(); } // для того чтобы подсвечивалось cursor
 }

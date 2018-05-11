@@ -7,7 +7,7 @@
         <button [style.color] = "rules.copy ? '#456486' : '#a6b9ce'" title = "copy" [disabled] = "!rules.copy"><i class="fas fa-copy"></i></button>
         <button [style.color] = "rules.paste ? '#456486' : '#a6b9ce'" title = "paste" [disabled] = "!rules.paste"><i class="fas fa-paste"></i></button>
         <button [style.color] = "rules.add ? '#456486' : '#a6b9ce'" title = "add" (click) = "addRow()" [disabled] = "!rules.add"><i class="fas fa-plus"></i></button>
-        <button [style.color] = "'#456486'" title = "refresh"><i class="fas fa-sync-alt"></i></button>
+        <button [style.color] = "'#456486'" (click) = "loadTable()" title = "refresh"><i class="fas fa-sync-alt"></i></button>
         <span *ngIf = "mode == 'Global'" style = "position:absolute; right:10px; color:#b5e498; font-size:20px;" title = "global"><i class="fas fa-cloud"></i></span>
     </div>
     <app-error-table #editTable [head] = "dataHeader" [data] = "dataTable" (onChange) = "update($event)"></app-error-table>

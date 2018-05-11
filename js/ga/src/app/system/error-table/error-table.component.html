@@ -1,5 +1,5 @@
 <div #mainContainer style = "position:relative; overflow:auto;" [style.height] = "height">
-    <table class = "errorTable">
+    <table class = "errorTable" (dragover)="dragoverHandler($event);">  <!--  -->
         <tbody (click) = "editField($event)">
             <tr>
                 <th></th>
@@ -8,7 +8,15 @@
             </tr>
             <tr *ngFor = "let row of listTables; let i = index;">
                 <td>{{ i + 1 }}</td>
-                <td *ngFor = "let void of header; let j = index;" id = "{{i + '_' + j}}">{{ row[j] != undefined ? row[j] : "" }}</td>
+                <td *ngFor = "let void of header; let j = index;" id = "{{i + '_' + j}}">
+                    {{ row[j] != undefined ? (row[j].type != undefined ? row[j].value : row[j]) : "" }}
+                    <span *ngIf = "row[j] != undefined && row[j].type == 'value'" class = "linkClass">
+                        <i class = "fa fa-link"></i>
+                    </span>
+                    <span *ngIf = "row[j] != undefined && row[j].type == 'table'" class = "linkClass">
+                        <i class = "fa fa-table"></i>
+                    </span>
+                </td>
                 <td><button (click) = "removeRow(i)"><i class="fas fa-trash"></i></button></td>
             </tr>
         </tbody>
@@ -17,5 +25,7 @@
     <div #mainEditElement style = "position:absolute;" [ngStyle] = "configInput" [hidden] = "!inputProperty.visible">
         <input #mainInputElement type = "text" class = "mainInputStyle" (blur) = "acceptEditField()" [(ngModel)] = "inputProperty.value">
         <!-- <div class = "buttonAcceptEditing" title = "сохранить изменения"><i class="fas fa-check"></i></div> -->
+    </div>
+    <div #mainOverElement style = "position:absolute;" [ngStyle] = "configOverElement">
     </div>
 </div>

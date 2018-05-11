@@ -1,7 +1,8 @@
-import { Component, OnInit, Input, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, Input, Output, ViewChild, ElementRef, EventEmitter } from '@angular/core';
 import { QueryService } from "../lib/query.service";
 
 declare var trace:any;
+declare var $:any;
 
 @Component({
     selector: 'app-left-menu-element',
@@ -12,6 +13,7 @@ declare var trace:any;
 export class LeftMenuElementComponent implements OnInit 
 {
     @ViewChild("inputSearch") public inputSearch:ElementRef;
+    @Output() onChange = new EventEmitter<any>();
     @Input() set config(config)
     {
         if(config)
@@ -29,12 +31,6 @@ export class LeftMenuElementComponent implements OnInit
         if(this.outData.length == 0)
             this.hide = true;
     }
-    @Input() set openObject(func)
-    {
-        if(func)
-            this._openObject = func;
-    }
-    _openObject = null;
     _config = 
     {
         id: null,
@@ -64,15 +60,16 @@ export class LeftMenuElementComponent implements OnInit
         switch(data.objectType)
         {
             case "folder":
-                this._openObject("explorer", { id: data.id });
+                this.onChange.emit({ type: "open", value: { name: "explorer", id: data.id }});
                 break;
             case "table":
-                this._openObject("table", { id: data.id });
+                this.onChange.emit({ type: "open", value: { name: "table", id: data.id }});
                 break;
             case "value":
                 this.query.protectionPost(111, { param: [ data.id ]}, (idParent) =>
                 {
-                    this._openObject("explorer", { id: idParent[0][0], element: data.id });
+                    this.onChange.emit({ type: "open", value: { name: "explorer", id: idParent[0][0], element: data.id }});
+                    /* this._openObject("explorer", { id: idParent[0][0], element: data.id }); */
                 });
                 trace(data)
                 break;
@@ -99,6 +96,8 @@ export class LeftMenuElementComponent implements OnInit
             else 
                 if(!open) this.outData[_i].hide = !open; // если закрываем
                 else this.outData[_i].hide = !this.outData[this.getParentI(this.outData[_i].parent)].open; // если открываем
+        this.onChange.emit({ type: "height" });
+        /* if(this._changeHeightForLeftMenu) this._changeHeightForLeftMenu(); */
     }
     getParentI(id)
     {
@@ -108,11 +107,14 @@ export class LeftMenuElementComponent implements OnInit
     hideAllMenu()
     {
         this.hide = !this.hide;
+        this.onChange.emit({ type: "height" });
     }
     visibleSearch()
     {
         this.searchVisible = !this.searchVisible;
         if(this.searchVisible) setTimeout(() => { this.inputSearch.nativeElement.focus(); }, 20);
+        else this.search = "";
+        this.onChange.emit({ type: "height" });
     }
     OnChangeSearch()
     {
@@ -124,5 +126,18 @@ export class LeftMenuElementComponent implements OnInit
                     this.outData[i].searchHide = false;
                 else this.outData[i].searchHide = true;
             }
+        this.onChange.emit({ type: "height" });
+    }
+    dragEvents(data, e)
+    {
+        /* e.target.style.cursor = "move" */
+        /* var img = document.createElement("img");
+        img.src = 'http://cdn.habtium.com/furni/items/big/1.gif';
+        e.dataTransfer.setDragImage(img, 10, 10); */
+        
+        localStorage.setItem("dragElement", JSON.stringify(data));
+        /* trace("dragStart")
+        trace(e)
+        trace(data) */
     }
 }

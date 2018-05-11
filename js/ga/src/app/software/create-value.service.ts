@@ -23,10 +23,10 @@ export class CreateValueService
                             this.modal.Data[2] = ["Значение", "", "text"];
                             break;
                         case "array":
-                            this.modal.Data[2] = ["Список", [], "listTable"];
+                            this.modal.Data[2] = ["Список", [], "listTable", []];
                             break;
                         case "state":
-                            this.modal.Data[2] = ["Список", [], "listTable"];
+                            this.modal.Data[2] = ["Список", [], "listTable", []];
                             break;
                     }
                 }}], 
@@ -44,11 +44,11 @@ export class CreateValueService
                     case "value": this.modal.Data[0][1] = "Значение"; break;
                     case "array": 
                         this.modal.Data[0][1] = "Список"; 
-                        this.modal.Data[2] = ["Список", [], "listTable"];
+                        this.modal.Data[2] = ["Список", [], "listTable", []];
                         break;
                     case "state": 
                         this.modal.Data[0][1] = "Состояние"; 
-                        this.modal.Data[2] = ["Список", [], "listTable"];
+                        this.modal.Data[2] = ["Список", [], "listTable", []];
                         break;
                 }
                 this.modal.Data[2][1] = data[0][1] != "value" ? JSON.parse(data[0][2]) : data[0][2];

@@ -13,7 +13,8 @@ export class TableEditorComponent implements OnInit
 {
     @ViewChild('modal') public modal: any;
     @ViewChild('editTable') public editTable: any;
-    
+    onChange = null;
+
     inputs = { id: -1 };
     firstData = {};
     dataHeader = [];
@@ -38,6 +39,7 @@ export class TableEditorComponent implements OnInit
     {
         this.query.protectionPost(250, { param: [this.inputs.id]}, (data) => 
         {
+            trace(data)
             this.nameTable = data.name;
             this.dataHeader = [];
             this.dataTable = [];
@@ -120,6 +122,27 @@ export class TableEditorComponent implements OnInit
         this.editTable.data = this.dataTable; // update edit table
         this.update({out: out});
     }
+    appendFromLeftMenu = (() =>
+    {
+        return (i, j, data) =>
+        {
+            let nameColumn = "";
+            let type = "update";
+            for(var _i = 0; _i < this.dataHeader.length; _i++)
+                if(this.dataHeader[_i].i == j) { nameColumn = this.dataHeader[_i].value; break; }
+            if(this.dataTable[i][nameColumn] == undefined) type = "insert";
+            this.query.protectionPost(255, { param: [ this.inputs.id, data.id, this.dataTable[i].__ID__, nameColumn, type ] }, (data) =>
+            {
+                /* trace(i + " " + j) */
+                trace(data)
+                this.dataTable[i][nameColumn] = data;
+                this.editTable.data = this.dataTable; // update edit table
+            /* trace(this.dataHeader)
+                trace(this.dataTable)
+                trace(this.dataTable[i].__ID__) */
+            });
+        }
+    })();
     update(data)
     {
         let out = data.out;
@@ -128,13 +151,15 @@ export class TableEditorComponent implements OnInit
             out = [];
             for(var j = 0; j < this.dataHeader.length; j++)
             {
+                let value = this.dataTable[data.idRow][this.dataHeader[j].value];
                 out[j] = 
                 {
                     __ID__: this.dataTable[data.idRow].__ID__, 
                     __type__: "remove"
                 }
-                out[j][this.dataHeader[j].value] = this.dataTable[data.idRow][this.dataHeader[j].value];
+                out[j][this.dataHeader[j].value] = value.type ? JSON.stringify(value) : value;
             }
+            trace(out)
             this.dataTable.splice(data.idRow, 1);
             this.editTable.data = this.dataTable; // update edit table
         }
