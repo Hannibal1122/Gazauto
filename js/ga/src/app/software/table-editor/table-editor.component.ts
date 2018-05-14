@@ -131,16 +131,74 @@ export class TableEditorComponent implements OnInit
             for(var _i = 0; _i < this.dataHeader.length; _i++)
                 if(this.dataHeader[_i].i == j) { nameColumn = this.dataHeader[_i].value; break; }
             if(this.dataTable[i][nameColumn] == undefined) type = "insert";
-            this.query.protectionPost(255, { param: [ this.inputs.id, data.id, this.dataTable[i].__ID__, nameColumn, type ] }, (data) =>
+
+            switch(data.objectType)
             {
-                /* trace(i + " " + j) */
-                trace(data)
-                this.dataTable[i][nameColumn] = data;
-                this.editTable.data = this.dataTable; // update edit table
-            /* trace(this.dataHeader)
-                trace(this.dataTable)
-                trace(this.dataTable[i].__ID__) */
-            });
+                case "value":
+                    this.query.protectionPost(303, { param: [data.id] }, (value) =>
+                    {
+                        let values = [];
+                        let valuesI = [];
+                        let Data:any = [
+                            ["Тип:", {selected: "по значению", data: ["по значению", "по ссылке"]}, "select", { onselect: (selected) =>
+                            {
+                                if(selected == "по значению" && values.length != 0)
+                                    this.modal.Data[1] = ["Значение:", {selected: 0, data: values, value: valuesI }, "select"];
+                                else this.modal.Data.splice(1, 1);
+                            }}]
+                        ];
+                        if(value[0][1] == "array")
+                        {   
+                            let i = 0;
+                            values = JSON.parse(value[0][2]);
+                            for(; i < values.length; i++) valuesI[i] = i; 
+                            Data[1] = ["Значение:", {selected: 0, data: values, value: valuesI }, "select"];
+                        }
+                        this.modal.open({ 
+                            title: "Как добавить элемент в таблицу", 
+                            data: Data, 
+                            ok: "Добавить", cancel: "Отмена"
+                        }, (save) =>
+                        {
+                            if(save)
+                            {
+                                if(this.modal.Data[0][1].selected == "по значению")
+                                    this.query.protectionPost(256, { param: [ 
+                                        this.inputs.id, 
+                                        data.id, 
+                                        this.dataTable[i].__ID__, 
+                                        nameColumn, 
+                                        type, 
+                                        this.modal.Data[1] ? this.modal.Data[1][1].selected : null ] }, 
+                                        (data) =>
+                                        {
+                                            trace(data)
+                                            this.dataTable[i][nameColumn] = data;
+                                            this.editTable.data = this.dataTable; // update edit table
+                                        });
+                                if(this.modal.Data[0][1].selected == "по ссылке")
+                                {
+                                    this.query.protectionPost(255, { param: [ this.inputs.id, data.id, this.dataTable[i].__ID__, nameColumn, type ] }, (data) =>
+                                    {
+                                        trace(data)
+                                        this.dataTable[i][nameColumn] = data;
+                                        this.editTable.data = this.dataTable; // update edit table
+                                    });
+                                }
+                            }
+                        });
+                    });
+                    break;
+                case "table": 
+                    this.query.protectionPost(255, { param: [ this.inputs.id, data.id, this.dataTable[i].__ID__, nameColumn, type ] }, (data) =>
+                    {
+                        trace(data)
+                        this.dataTable[i][nameColumn] = data;
+                        this.editTable.data = this.dataTable; // update edit table
+                    });
+                    break;
+            }
+            trace(data)
         }
     })();
     update(data)
@@ -157,9 +215,8 @@ export class TableEditorComponent implements OnInit
                     __ID__: this.dataTable[data.idRow].__ID__, 
                     __type__: "remove"
                 }
-                out[j][this.dataHeader[j].value] = value.type ? JSON.stringify(value) : value;
+                out[j][this.dataHeader[j].value] = "";
             }
-            trace(out)
             this.dataTable.splice(data.idRow, 1);
             this.editTable.data = this.dataTable; // update edit table
         }

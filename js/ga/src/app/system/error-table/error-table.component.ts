@@ -9,9 +9,8 @@ declare var $:any;
 export class ErrorTableComponent implements OnInit 
 {
     @ViewChild("mainContainer") mainContainer:ElementRef;
-    @ViewChild("mainEditElement") mainEditElement:ElementRef;
-    @ViewChild("mainInputElement") mainInputElement:ElementRef;
-    @ViewChild("mainOverElement") mainOverElement:ElementRef;
+    /* @ViewChild("mainEditElement") mainEditElement:ElementRef;
+    @ViewChild("mainInputElement") mainInputElement:ElementRef; */
     
     @Output() onChange = new EventEmitter<any>();
     header = [];
@@ -19,14 +18,24 @@ export class ErrorTableComponent implements OnInit
     mainData;
     listTables = [];
     firstData = [];
+    mainEditElement:any = null;
+    mainInputElement:any = null;
 
     constructor() { }
     ngOnInit() 
     {
         this.resize();
         this.functionResize = () => { this.resize(); };
+        /* this.clickOutInput = (e) => 
+        { 
+            if(!this.editField(e))
+        }; */
         window.addEventListener("resize", this.functionResize, false);
+        /* window.addEventListener("click", this.clickOutInput, false); */
         /* window.addEventListener("mousemove", this.mouseMove, false); */
+
+        this.mainEditElement = document.getElementById("mainEditElement");
+        this.mainInputElement = document.getElementById("mainInputElement");
     }
     @Input() set head(value)
     {
@@ -76,7 +85,9 @@ export class ErrorTableComponent implements OnInit
     {
         oldValue: "",
         value: "",
-        visible: false
+        visible: false,
+        values: [],
+        type: ""
     }
     editField(e) // нажали на ячейку для редактирования
     {
@@ -84,42 +95,65 @@ export class ErrorTableComponent implements OnInit
         {
             let i = this.configInput.i;
             let j = this.configInput.j;
-            this.inputProperty.oldValue = this.inputProperty.value = this.listTables[i][j].value ? this.listTables[i][j].value : this.listTables[i][j];
             this.inputProperty.visible = true;
-            setTimeout(() => { this.mainInputElement.nativeElement.focus(); }, 20);
+            this.inputProperty.type = this.listTables[i][j].type;
+            if(this.listTables[i][j].values) 
+            {
+                let _i = 0;
+                this.inputProperty.values = this.listTables[i][j].values;
+                this.inputProperty.oldValue = this.inputProperty.value = this.inputProperty.values[Number(this.listTables[i][j].value)];
+            }
+            else 
+            {
+                this.inputProperty.oldValue = this.inputProperty.value = this.listTables[i][j] ? this.listTables[i][j].value : undefined;
+                this.inputProperty.values = [];
+            }
+            setTimeout(() => { this.mainInputElement.focus(); }, 20);
+            return true;
         }
+        return false;
     }
-    acceptEditField() // пропал фокус с выделенной ячейки
+    acceptEditField(e) // пропал фокус с выделенной ячейки
     {
+        if(e.relatedTarget)
+            if(e.relatedTarget.getAttribute("id") == "mainInputElement") return;
+            else if(e.relatedTarget.getAttribute("id") == "mainSelectElement") return;
+                else if(e.relatedTarget.getAttribute("id") == "mainButtonElement") return;
         /* trace(this.inputProperty) */
         this.inputProperty.visible = false;
         if(this.inputProperty.oldValue != this.inputProperty.value)
         {
             let i = this.configInput.i;
             let j = this.configInput.j;
+            let type = "value";
             let out = [{ __ID__: this.firstData[i], __type__: this.inputProperty.oldValue == undefined ? "insert" : "update" }];
-            out[0][this.header[j].value] = this.inputProperty.value;
-            this.mainData[i][this.header[j].value] = this.inputProperty.value; // Изменить данные в главном массиве
-            this.onChange.emit({
-                out: out
-            });
-            this.listTables[i][j] = this.inputProperty.value;
+            
+            let valuesLength = this.inputProperty.values.length;
+            let _i = 0;
+            if(valuesLength > 0)
+            {
+                for(; _i < valuesLength; _i++)
+                    if(this.inputProperty.values[_i] == this.inputProperty.value) break;
+                if(_i != valuesLength) type = "list";
+            }
+            if(type == "value")
+            {
+                out[0][this.header[j].value] = this.inputProperty.value;
+                this.listTables[i][j] = { value: this.inputProperty.value };
+                this.mainData[i][this.header[j].value] = { value: this.inputProperty.value }; // Изменить данные в главном массиве
+            }
+            if(type == "list")
+            {
+                out[0][this.header[j].value] = { value:_i, id:this.listTables[i][j].id, type:"value" };
+                this.listTables[i][j].value = _i;
+                this.mainData[i][this.header[j].value].value = _i; // Изменить данные в главном массиве
+            }
+            this.onChange.emit({ out: out });
         }
     }
     removeRow(i)
     {
-        this.onChange.emit({
-            type: "remove",
-            idRow: i
-        });
-    }
-    configOverElement = 
-    {
-        width: "100px",
-        height: "10px",
-        top: "-1000px",
-        left: "0px",
-        border: "2px solid #45ac4e"
+        this.onChange.emit({ type: "remove", idRow: i });
     }
     getPositionInTable(element, out)
     {
@@ -148,6 +182,7 @@ export class ErrorTableComponent implements OnInit
     //////////////////////////////////
     height = "";
     functionResize;
+    /* clickOutInput; */
     resize()
     {
         this.height = document.documentElement.clientHeight - 100 + "px";
@@ -155,6 +190,7 @@ export class ErrorTableComponent implements OnInit
     ngOnDestroy() 
     {
         window.removeEventListener("resize", this.functionResize, false);
+        /* window.removeEventListener("click", this.clickOutInput, false); */
         /* window.removeEventListener("mousemove", this.mouseMove, false); */
     }
     dragoverHandler(e) { e.preventDefault(); } // для того чтобы подсвечивалось cursor

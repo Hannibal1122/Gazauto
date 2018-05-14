@@ -8,8 +8,9 @@
             </tr>
             <tr *ngFor = "let row of listTables; let i = index;">
                 <td>{{ i + 1 }}</td>
-                <td *ngFor = "let void of header; let j = index;" id = "{{i + '_' + j}}">
-                    {{ row[j] != undefined ? (row[j].type != undefined ? row[j].value : row[j]) : "" }}
+                <td *ngFor = "let void of header; let j = index;" id = "{{i + '_' + j}}" [style.background] = "row[j] == undefined ? '#fafafa' : none">
+                    {{ row[j] != undefined && !row[j].values ? row[j].value : "" }}
+                    {{ row[j] != undefined && row[j].values ? row[j].values[row[j].value] : "" }}
                     <span *ngIf = "row[j] != undefined && row[j].type == 'value'" class = "linkClass">
                         <i class = "fa fa-link"></i>
                     </span>
@@ -22,10 +23,16 @@
         </tbody>
     </table>
 
-    <div #mainEditElement style = "position:absolute;" [ngStyle] = "configInput" [hidden] = "!inputProperty.visible">
-        <input #mainInputElement type = "text" class = "mainInputStyle" (blur) = "acceptEditField()" [(ngModel)] = "inputProperty.value">
+    <div id = "mainEditElement" style = "position:absolute;" [ngStyle] = "configInput" [hidden] = "!inputProperty.visible">
+        <input id = "mainInputElement" type = "text" class = "mainInputStyle" (blur) = "acceptEditField($event)" [(ngModel)] = "inputProperty.value">
+        <button id = "mainButtonElement" *ngIf = "inputProperty.type == 'table'" 
+            style = "position:absolute; right:0px; top: 0px; color:red; cursor:pointer; border:none; background:none; outline: none;"
+            (click) = "inputProperty.value = ''; acceptEditField($event)">
+            <i class = "fa fa-times-circle"></i>
+        </button>
+        <select *ngIf = "inputProperty.values.length > 0" id = "mainSelectElement" (blur) = "acceptEditField($event)" style = "position:absolute; top: 100%; height: 24px; width:100%;" [(ngModel)] = "inputProperty.value">
+            <option *ngFor = "let option of inputProperty.values">{{ option }}</option>
+        </select>
         <!-- <div class = "buttonAcceptEditing" title = "сохранить изменения"><i class="fas fa-check"></i></div> -->
-    </div>
-    <div #mainOverElement style = "position:absolute;" [ngStyle] = "configOverElement">
     </div>
 </div>

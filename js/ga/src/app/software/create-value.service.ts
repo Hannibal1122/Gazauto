@@ -39,19 +39,27 @@ export class CreateValueService
         {
             this.query.protectionPost(303, { param: [ data.id ] }, (data) => 
             {
+                let list = [];
+                let i = 0;
                 switch(data[0][1])
                 {
-                    case "value": this.modal.Data[0][1] = "Значение"; break;
+                    case "value": 
+                        this.modal.Data[0][1] = "Значение"; 
+                        this.modal.Data[2][1] = data[0][2];
+                        break;
                     case "array": 
+                        list = JSON.parse(data[0][2]);
+                        for(; i < list.length; i++) list[i] = { value: list[i] };
                         this.modal.Data[0][1] = "Список"; 
-                        this.modal.Data[2] = ["Список", [], "listTable", []];
+                        this.modal.Data[2] = ["Список", list, "listTable", []];
                         break;
                     case "state": 
+                        list = JSON.parse(data[0][2]);
+                        for(; i < list.length; i++) list[i] = { value: list[i] };
                         this.modal.Data[0][1] = "Состояние"; 
-                        this.modal.Data[2] = ["Список", [], "listTable", []];
+                        this.modal.Data[2] = ["Список", list, "listTable", []];
                         break;
                 }
-                this.modal.Data[2][1] = data[0][1] != "value" ? JSON.parse(data[0][2]) : data[0][2];
             });
         }
         this.modal.open(Data, (save)=>
@@ -60,7 +68,12 @@ export class CreateValueService
             {
                 let out = this.modal.Data[2][1];
                 let type = data ? this.modal.Data[0][1] : this.modal.Data[0][1].selected;
-                if(type != "value" && type != "Значение") out = JSON.stringify(out);
+                if(type == "array" || type == "Список") 
+                {
+                    let i = 0;
+                    for(; i < out.length; i++) out[i] = out[i].value;
+                    out = JSON.stringify(out);
+                }
                 if(data)
                     this.query.protectionPost(301, { param: [ data.id, out ] }, (data) => 
                     {
