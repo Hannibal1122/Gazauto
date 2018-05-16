@@ -35,26 +35,28 @@ export class CreateValueService
             ok: data ? "Изменить" : "Добавить",
             cancel: "Отмена"
         };
+        var valueType = "";
         if(data)
         {
             this.query.protectionPost(303, { param: [ data.id ] }, (data) => 
             {
                 let list = [];
                 let i = 0;
-                switch(data[0][1])
+                valueType = data[1];
+                switch(data[1])
                 {
                     case "value": 
                         this.modal.Data[0][1] = "Значение"; 
-                        this.modal.Data[2][1] = data[0][2];
+                        this.modal.Data[2][1] = data[2];
                         break;
                     case "array": 
-                        list = JSON.parse(data[0][2]);
+                        list = data[2];
                         for(; i < list.length; i++) list[i] = { value: list[i] };
                         this.modal.Data[0][1] = "Список"; 
                         this.modal.Data[2] = ["Список", list, "listTable", []];
                         break;
                     case "state": 
-                        list = JSON.parse(data[0][2]);
+                        list = data[2];
                         for(; i < list.length; i++) list[i] = { value: list[i] };
                         this.modal.Data[0][1] = "Состояние"; 
                         this.modal.Data[2] = ["Список", list, "listTable", []];
@@ -67,15 +69,14 @@ export class CreateValueService
             if(save)
             {
                 let out = this.modal.Data[2][1];
-                let type = data ? this.modal.Data[0][1] : this.modal.Data[0][1].selected;
-                if(type == "array" || type == "Список") 
+                let type = data ? valueType : this.modal.Data[0][1].selected;
+                if(type == "array") // "Список" - это для загруженных 
                 {
                     let i = 0;
                     for(; i < out.length; i++) out[i] = out[i].value;
-                    out = JSON.stringify(out);
                 }
                 if(data)
-                    this.query.protectionPost(301, { param: [ data.id, out ] }, (data) => 
+                    this.query.protectionPost(301, { param: [ data.id, type, out ] }, (data) => 
                     {
                         update();
                     });

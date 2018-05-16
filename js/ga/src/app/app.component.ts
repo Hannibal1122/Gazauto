@@ -40,12 +40,12 @@ export class AppComponent implements OnInit
         { 
             this.enter = true; 
             this.Login = localStorage.getItem("login");
+            this.refresh();
+            /* this.openSoftware("explorer", { }); */
+            this.openSoftware("table", { id: 66 });
+            this.openSoftware("table", { id: 102 });
         });
         this.firstEnter(this);
-        this.refresh();
-        //this.openSoftware("explorer", { });
-        this.openSoftware("table", { id: 66 });
-
         ////////////////////////////////////////////////////////////////////
         var onWheel = (e) => 
         {

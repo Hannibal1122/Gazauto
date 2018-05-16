@@ -3,13 +3,15 @@
         <input type = "text" style = "height:30px; border: 2px solid #eeeeee; padding-left:5px;" [(ngModel)] = "nameTable" (change) = "changeNameTable()">
         <button [style.color] = "rules.save ? '#456486' : '#a6b9ce'" title = "save" [disabled] = "!rules.save"><i class="fas fa-save"></i></button>
         <button [style.color] = "rules.head ? '#456486' : '#a6b9ce'" title = "head" (click) = "changeHeader()" [disabled] = "!rules.head"><i class="fas fa-heading"></i></button>
-        <button [style.color] = "rules.cut ? '#456486' : '#a6b9ce'" title = "cut" [disabled] = "!rules.cut"><i class="fas fa-cut"></i></button>
-        <button [style.color] = "rules.copy ? '#456486' : '#a6b9ce'" title = "copy" [disabled] = "!rules.copy"><i class="fas fa-copy"></i></button>
-        <button [style.color] = "rules.paste ? '#456486' : '#a6b9ce'" title = "paste" [disabled] = "!rules.paste"><i class="fas fa-paste"></i></button>
+        <button id = "tableCutButton" [style.color] = "rules.cut ? '#456486' : '#a6b9ce'" title = "cut" (click) = "copyField('cut')" [disabled] = "!rules.cut"><i class="fas fa-cut"></i></button>
+        <button id = "tableCopyButton" [style.color] = "rules.copy ? '#456486' : '#a6b9ce'" title = "copy" (click) = "copyField('copy')" [disabled] = "!rules.copy"><i class="fas fa-copy"></i></button>
+        <button id = "tablePasteButton" [style.color] = "rules.paste ? '#456486' : '#a6b9ce'" title = "paste" (click) = "pasteField()" [disabled] = "!rules.paste"><i class="fas fa-paste"></i></button>
         <button [style.color] = "rules.add ? '#456486' : '#a6b9ce'" title = "add" (click) = "addRow()" [disabled] = "!rules.add"><i class="fas fa-plus"></i></button>
         <button [style.color] = "'#456486'" (click) = "loadTable()" title = "refresh"><i class="fas fa-sync-alt"></i></button>
         <span *ngIf = "mode == 'Global'" style = "position:absolute; right:10px; color:#b5e498; font-size:20px;" title = "global"><i class="fas fa-cloud"></i></span>
     </div>
+    <div *ngIf = "error" style = "color:#af7e7e; font-size:24px; font-weight:bold">Таблица не доступна!</div>
+    <div *ngIf = "!error && dataHeader.length == 0" style = "color:#b8b8b8; font-size:24px; font-weight:bold">Таблица пуста</div>
     <app-error-table #editTable [head] = "dataHeader" [data] = "dataTable" (onChange) = "update($event)"></app-error-table>
 </div>
 <modalwindow #modal></modalwindow>

@@ -21,6 +21,7 @@ export class TableEditorComponent implements OnInit
     dataTable = [];
     mode = "Local";
     nameTable = "";
+    error = false;
     rules = 
     {
         save: false,
@@ -39,7 +40,13 @@ export class TableEditorComponent implements OnInit
     {
         this.query.protectionPost(250, { param: [this.inputs.id]}, (data) => 
         {
-            trace(data)
+            if(data.head == undefined) 
+            {
+                this.error = true;
+                return;
+            }
+            this.error = false;
+            this.rules.head = this.rules.add = this.editTable.change = data.change;
             this.nameTable = data.name;
             this.dataHeader = [];
             this.dataTable = [];
@@ -98,31 +105,7 @@ export class TableEditorComponent implements OnInit
             }
         });
     }
-    addRow()
-    {
-        if(this.dataHeader.length == 0) 
-        {
-            this.modal.open({ title: "Нужно добавить заголовок!", data: [], ok: "Ок", cancel: ""});
-            return;
-        }
-        let idRow = String(this.getID());
-        let out = [];
-        let i = this.dataTable.length;
-        this.dataTable[i] = {__ID__: idRow};
-        for(var j = 0; j < this.dataHeader.length; j++)
-        {
-            out[j] = 
-            {
-                __ID__: idRow, 
-                __type__: "insert"
-            }
-            out[j][this.dataHeader[j].value] = "";
-            this.dataTable[i][this.dataHeader[j].value] = "";
-        }
-        this.editTable.data = this.dataTable; // update edit table
-        this.update({out: out});
-    }
-    appendFromLeftMenu = (() =>
+    appendFromLeftMenu = (() => // Добавление из леаого меню
     {
         return (i, j, data) =>
         {
@@ -131,7 +114,7 @@ export class TableEditorComponent implements OnInit
             for(var _i = 0; _i < this.dataHeader.length; _i++)
                 if(this.dataHeader[_i].i == j) { nameColumn = this.dataHeader[_i].value; break; }
             if(this.dataTable[i][nameColumn] == undefined) type = "insert";
-
+            let ID = type == "insert" ? this.dataTable[i].__ID__ : this.dataTable[i][nameColumn].id;
             switch(data.objectType)
             {
                 case "value":
@@ -147,10 +130,10 @@ export class TableEditorComponent implements OnInit
                                 else this.modal.Data.splice(1, 1);
                             }}]
                         ];
-                        if(value[0][1] == "array")
+                        if(value[1] == "array")
                         {   
                             let i = 0;
-                            values = JSON.parse(value[0][2]);
+                            values = value[2];
                             for(; i < values.length; i++) valuesI[i] = i; 
                             Data[1] = ["Значение:", {selected: 0, data: values, value: valuesI }, "select"];
                         }
@@ -163,12 +146,7 @@ export class TableEditorComponent implements OnInit
                             if(save)
                             {
                                 if(this.modal.Data[0][1].selected == "по значению")
-                                    this.query.protectionPost(256, { param: [ 
-                                        this.inputs.id, 
-                                        data.id, 
-                                        this.dataTable[i].__ID__, 
-                                        nameColumn, 
-                                        type, 
+                                    this.query.protectionPost(256, { param: [ this.inputs.id, data.id, ID, nameColumn, type, 
                                         this.modal.Data[1] ? this.modal.Data[1][1].selected : null ] }, 
                                         (data) =>
                                         {
@@ -178,7 +156,7 @@ export class TableEditorComponent implements OnInit
                                         });
                                 if(this.modal.Data[0][1].selected == "по ссылке")
                                 {
-                                    this.query.protectionPost(255, { param: [ this.inputs.id, data.id, this.dataTable[i].__ID__, nameColumn, type ] }, (data) =>
+                                    this.query.protectionPost(255, { param: [ this.inputs.id, data.id, ID, nameColumn, type ] }, (data) =>
                                     {
                                         trace(data)
                                         this.dataTable[i][nameColumn] = data;
@@ -190,7 +168,7 @@ export class TableEditorComponent implements OnInit
                     });
                     break;
                 case "table": 
-                    this.query.protectionPost(255, { param: [ this.inputs.id, data.id, this.dataTable[i].__ID__, nameColumn, type ] }, (data) =>
+                    this.query.protectionPost(255, { param: [ this.inputs.id, data.id, ID, nameColumn, type ] }, (data) =>
                     {
                         trace(data)
                         this.dataTable[i][nameColumn] = data;
@@ -201,29 +179,78 @@ export class TableEditorComponent implements OnInit
             trace(data)
         }
     })();
-    update(data)
+    addRow()
     {
-        let out = data.out;
-        if(data.type == "remove")
+        if(this.dataHeader.length == 0) 
         {
-            out = [];
-            for(var j = 0; j < this.dataHeader.length; j++)
-            {
-                let value = this.dataTable[data.idRow][this.dataHeader[j].value];
-                out[j] = 
-                {
-                    __ID__: this.dataTable[data.idRow].__ID__, 
-                    __type__: "remove"
-                }
-                out[j][this.dataHeader[j].value] = "";
-            }
-            this.dataTable.splice(data.idRow, 1);
-            this.editTable.data = this.dataTable; // update edit table
+            this.modal.open({ title: "Нужно добавить заголовок!", data: [], ok: "Ок", cancel: ""});
+            return;
         }
-        this.query.protectionPost(252, { param: [ this.inputs.id,  JSON.stringify(out) ]}, (data) => 
+        let idRow = String(this.getID());
+        this.update({ type: "row", idRow: idRow });
+    }
+    update(property)
+    {
+        switch(property.type)
         {
-            /* trace(data) */
+            case "row":
+                this.query.protectionPost(257, { param: [ this.inputs.id, property.idRow ]}, (data) => 
+                {
+                    this.dataTable.push(data);
+                    this.editTable.data = this.dataTable; // update edit table */
+                });
+                break;
+            case "field":
+                this.query.protectionPost(252, { param: [ this.inputs.id,  JSON.stringify(property.out) ]}, (data) => 
+                {
+                    if(property.out.__type__ == "insert")
+                        this.dataTable[property.i][property.nameColumn] = data;
+                    else 
+                        if(typeof data.value === "object")
+                        {
+                            this.dataTable[property.i][property.nameColumn].listValue = data.value.listValue;
+                            this.dataTable[property.i][property.nameColumn].value = data.value.value;
+                        }
+                        else this.dataTable[property.i][property.nameColumn] = data;
+                    this.editTable.data = this.dataTable; // update edit table */
+                });
+                break;
+            case "remove":
+                this.query.protectionPost(258, { param: [ this.inputs.id, this.dataTable[property.i].__ID__ ]}, (data) => 
+                {
+                    this.dataTable.splice(property.i, 1);
+                    this.editTable.data = this.dataTable; // update edit table */
+                });
+                break;
+            case "operation":
+                this.rules.copy = property.rules.copy;
+                this.rules.cut = property.rules.cut;
+                this.rules.paste = property.rules.paste;
+                break;
+            case "explorer":
+                trace(property.linkId)
+                break;
+        }
+    }
+    copyField(copyOrCut)
+    {
+        let i = this.editTable.configInput.i;
+        let j = this.editTable.configInput.j;
+        localStorage.setItem("copyTable", this.editTable.listTables[i][j].id);
+        localStorage.setItem("lastOperationTable", copyOrCut);
+
+        this.rules.copy = this.rules.cut = this.rules.paste = false;
+    }
+    pasteField(copyOrCut)
+    {
+        let i = this.editTable.configInput.i;
+        let j = this.editTable.configInput.j;
+        this.query.protectionPost(259, { param: [this.editTable.listTables[i][j].id, localStorage.getItem("copyTable"), localStorage.getItem("lastOperationTable")] }, (data) =>
+        {
+            this.editTable.listTables[i][j] = data;
         });
+        localStorage.removeItem("copyTable");
+        this.rules.copy = this.rules.cut = this.rules.paste = false;
     }
     getID()
     {

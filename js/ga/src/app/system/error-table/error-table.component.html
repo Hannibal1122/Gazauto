@@ -1,6 +1,6 @@
 <div #mainContainer style = "position:relative; overflow:auto;" [style.height] = "height">
     <table class = "errorTable" (dragover)="dragoverHandler($event);">  <!--  -->
-        <tbody (click) = "editField($event)">
+        <tbody (click) = "change ? editField($event) : null">
             <tr>
                 <th></th>
                 <th *ngFor = "let head of header;">{{ head.value }}</th>
@@ -9,28 +9,31 @@
             <tr *ngFor = "let row of listTables; let i = index;">
                 <td>{{ i + 1 }}</td>
                 <td *ngFor = "let void of header; let j = index;" id = "{{i + '_' + j}}" [style.background] = "row[j] == undefined ? '#fafafa' : none">
-                    {{ row[j] != undefined && !row[j].values ? row[j].value : "" }}
-                    {{ row[j] != undefined && row[j].values ? row[j].values[row[j].value] : "" }}
-                    <span *ngIf = "row[j] != undefined && row[j].type == 'value'" class = "linkClass">
+                    {{ row[j] != undefined && !row[j].listValue ? row[j].value : "" }}
+                    {{ row[j] != undefined && row[j].listValue ? row[j].listValue : "" }}
+                    <span *ngIf = "row[j] != undefined && row[j].type == 'value'" class = "linkClass linkValueClass" (dblclick) = "openToExplorer(row[j].linkId)">
                         <i class = "fa fa-link"></i>
                     </span>
-                    <span *ngIf = "row[j] != undefined && row[j].type == 'table'" class = "linkClass">
+                    <span *ngIf = "row[j] != undefined && row[j].type == 'table'" class = "linkClass linkValueClass" (dblclick) = "openToExplorer(row[j].linkId)">
                         <i class = "fa fa-table"></i>
                     </span>
+                    <span *ngIf = "row[j] != undefined && row[j].type == 'cell'" class = "linkClass linkCellClass" [class.linkErrorClass] = "row[j].value == null" (dblclick) = "openToExplorer(row[j].linkId)">
+                        <i class = "fa fa-link"></i>
+                    </span>
                 </td>
-                <td><button (click) = "removeRow(i)"><i class="fas fa-trash"></i></button></td>
+                <td><button *ngIf = "change" (click) = "removeRow(i)"><i class="fas fa-trash"></i></button></td>
             </tr>
         </tbody>
     </table>
 
-    <div id = "mainEditElement" style = "position:absolute;" [ngStyle] = "configInput" [hidden] = "!inputProperty.visible">
-        <input id = "mainInputElement" type = "text" class = "mainInputStyle" (blur) = "acceptEditField($event)" [(ngModel)] = "inputProperty.value">
-        <button id = "mainButtonElement" *ngIf = "inputProperty.type == 'table'" 
+    <div #mainEditElement style = "position:absolute;" [ngStyle] = "configInput" [hidden] = "!inputProperty.visible">
+        <input #mainInputElement type = "text" class = "mainInputStyle" (blur) = "acceptEditField($event)" [(ngModel)] = "inputProperty.value">
+        <button #mainButtonElement [hidden] = "inputProperty.type != 'table'" 
             style = "position:absolute; right:0px; top: 0px; color:red; cursor:pointer; border:none; background:none; outline: none;"
             (click) = "inputProperty.value = ''; acceptEditField($event)">
             <i class = "fa fa-times-circle"></i>
         </button>
-        <select *ngIf = "inputProperty.values.length > 0" id = "mainSelectElement" (blur) = "acceptEditField($event)" style = "position:absolute; top: 100%; height: 24px; width:100%;" [(ngModel)] = "inputProperty.value">
+        <select #mainSelectElement [hidden] = "inputProperty.values.length == 0" (blur) = "acceptEditField($event)" style = "position:absolute; top: 100%; height: 24px; width:100%;" [(ngModel)] = "inputProperty.value">
             <option *ngFor = "let option of inputProperty.values">{{ option }}</option>
         </select>
         <!-- <div class = "buttonAcceptEditing" title = "сохранить изменения"><i class="fas fa-check"></i></div> -->
