@@ -41,9 +41,9 @@ export class AppComponent implements OnInit
             this.enter = true; 
             this.Login = localStorage.getItem("login");
             this.refresh();
-            /* this.openSoftware("explorer", { }); */
-            this.openSoftware("table", { id: 66 });
-            this.openSoftware("table", { id: 102 });
+            this.openSoftware("explorer", { });
+            /* this.openSoftware("table", { id: 66 });
+            this.openSoftware("table", { id: 102 }); */
         });
         this.firstEnter(this);
         ////////////////////////////////////////////////////////////////////
@@ -72,13 +72,13 @@ export class AppComponent implements OnInit
         document.addEventListener("dragenter", (e:any) => 
         {
             let id = e.target.getAttribute("id");
-            if(id && id.split("_").length == 2)
+            if(id && id.split("_").length == 2 && e.target.tagName != "TH")
                 e.target.style.background = "#aeec6c";//2px dotted 
         });
         document.addEventListener("dragleave", (e:any) => 
         {
             let id = e.target.getAttribute("id");
-            if(id && id.split("_").length == 2) e.target.style.background = "none";
+            if(id && id.split("_").length == 2 && e.target.tagName != "TH") e.target.style.background = "none";
         });
         document.addEventListener("drop", (e:any) => 
         {
@@ -86,10 +86,10 @@ export class AppComponent implements OnInit
             id = id ? id.split("_") : [];
             if(id.length == 2) 
             {
-                e.target.style.background = "none";
+                if(e.target.tagName != "TH") e.target.style.background = "none";
                 let data = JSON.parse(localStorage.getItem("dragElement"));
                 localStorage.removeItem("dragElement");
-                this.tabs[this.currentSoftware].software.appendFromLeftMenu(Number(id[0]), Number(id[1]), data);
+                this.tabs[this.currentSoftware].software.appendFromLeftMenu(Number(id[0]), Number(id[1]), data, e.target.tagName == "TH" ? id[1] : null);
             }
         });
         ////////////////////////////////////////////////////////////////////

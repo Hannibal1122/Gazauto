@@ -48,7 +48,11 @@
                     <i *ngIf = "data.objectType == 'table'" class="fas fa-table" style = "color:#aeec6c;"></i>
                     <i *ngIf = "data.objectType == 'event'" class="fas fa-bolt" style = "color:#ecec42;"></i>
                     <i *ngIf = "data.objectType == 'right'" class="fas fa-address-card"></i>
-
+                    <!-- <i *ngIf = "data.objectType == 'file'" class="fas fas fa-file-alt" style = "color:#aeec6c"></i>
+ -->
+                    <i *ngIf = "data.fileType == 'img'" class="fas fa-file-image" style = "color: #aeec6c"></i>
+                    <i *ngIf = "data.fileType == 'xls'" class="fas fa-file-excel" style = "color: #aeec6c"></i>
+                    <i *ngIf = "data.fileType == 'doc'" class="fas fa-file-word" style = "color: #aeec6c"></i>
                     {{data.name}}
                 </div>
             </div>

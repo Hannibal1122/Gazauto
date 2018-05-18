@@ -7,8 +7,9 @@
 <button [style.color] = "selectRules.cut ? '#456486' : '#a6b9ce'" title = "Вырезать" (click) = "copyObject('cut')" [disabled] = "!selectRules.cut"><i class="fas fa-cut"></i></button>
 <button [style.color] = "selectRules.rights ? '#456486' : '#a6b9ce'" title = "Добавить права" (click) = "createObject(outFolders[selectObjectI].id, 'Права', null)" [disabled] = "!selectRules.rights"><i class="fas fa-address-card"></i></button>
 <button [style.color] = "selectRules.remove ? '#456486' : '#a6b9ce'" title = "Удалить" (click) = "removeObject()" [disabled] = "!selectRules.remove"><i class="fas fa-trash"></i></button>
+<button [style.color] = "selectRules.download ? '#456486' : '#a6b9ce'" title = "Скачать" (click) = "downloadObject()" [disabled] = "!selectRules.download"><i class="fas fa-download"></i></button>
 <button [style.color] = "'#456486'" title = "Обновить" (click) = "refresh(true)"><i class="fas fa-sync-alt"></i></button>
-
+<a href = "http://localhost:8081/gazprom/files/116/evil-plan-baby.jpg" download="test">test</a>
 <div style = "font-size:12px; color:#8f8f8f">
     <span *ngFor = "let path of allPath" (click) = "openObject({objectType: 'folder', id: path.id})" style = "cursor:pointer;">{{ path.name }}/</span>
 </div>
@@ -40,6 +41,11 @@
             <div *ngIf = "object.objectType == 'value'"
                 (dblclick) = "openObject(object)">
                 <i class="fas fa-superscript" style = "font-size: 65px; color: #734586"></i>
+            </div>
+            <div *ngIf = "object.objectType == 'file'">
+                <i *ngIf = "object.fileType == 'img'" class="fas fa-file-image" style = "font-size: 65px; color: #458655"></i>
+                <i *ngIf = "object.fileType == 'xls'" class="fas fa-file-excel" style = "font-size: 65px; color: #458655"></i>
+                <i *ngIf = "object.fileType == 'doc'" class="fas fa-file-word" style = "font-size: 65px; color: #458655"></i>
             </div>
             {{ object.name }}
         </div>

@@ -7,6 +7,7 @@ import { CreateFolderService } from "../create-folder.service";
 import { CreateRightService } from "../create-right.service";
 import { CreateValueService } from "../create-value.service";
 import { PasteObjectService } from "../paste-object.service";
+import { CreateFileService } from "../create-file.service";
 
 declare var trace:any;
 @Component({
@@ -21,7 +22,8 @@ declare var trace:any;
         CreateFolderService,
         CreateRightService,
         CreateValueService,
-        PasteObjectService
+        PasteObjectService,
+        CreateFileService
     ]
 })
 export class ExplorerComponent implements OnInit 
@@ -45,7 +47,8 @@ export class ExplorerComponent implements OnInit
         paste: false, 
         cut: false, 
         rights: false, 
-        remove: false
+        remove: false,
+        download: false
     }
     constructor(
         private injector: Injector, 
@@ -57,6 +60,7 @@ export class ExplorerComponent implements OnInit
         private createRight: CreateRightService,
         private createValue: CreateValueService,
         private pasteObject: PasteObjectService,
+        private createFile: CreateFileService,
     ) {}
     ngOnInit() 
     { 
@@ -81,6 +85,7 @@ export class ExplorerComponent implements OnInit
         this.createRight.modal = this.modal;
         this.createValue.modal = this.modal;
         this.pasteObject.modal = this.modal;
+        this.createFile.modal = this.modal;
     }
     newObject() // Создание объекта
     {
@@ -89,7 +94,7 @@ export class ExplorerComponent implements OnInit
             data: [
                 ["", -1, "typeObject", (type) => 
                 {
-                    trace(type)
+                    /* trace(type) */
                     this.modal.close(false);
                     let id = this.parent;
                     this.createObject(id, type, null);
@@ -144,6 +149,9 @@ export class ExplorerComponent implements OnInit
             case "Роль": 
                 this.createRole.create(() => { this.refresh() }, data);
                 break;
+            case "Файл": 
+                this.createFile.create(id, () => { this.refresh() });
+                break;
         }
     }
     copyObject(copyOrCut)
@@ -179,6 +187,9 @@ export class ExplorerComponent implements OnInit
             case "value": 
                 this.createValue.remove(id, () => { this.refresh() });
                 break;
+            case "file": 
+                this.createFile.remove(id, () => { this.refresh() });
+                break;
         }
     }
     clickTimeout = null;
@@ -198,6 +209,7 @@ export class ExplorerComponent implements OnInit
             this.selectRules.rights = Boolean(right.change);
             this.selectRules.remove = Boolean(right.change);
             this.selectRules.paste = Boolean(right.change) && this.selectObjectCopy.id != -1;
+            if(objectType == "file") this.selectRules.download = true;
         });
     }
     unSelectObject() // отпустить объект
@@ -258,7 +270,8 @@ export class ExplorerComponent implements OnInit
             paste: false, 
             cut: false, 
             rights: false, 
-            remove: false
+            remove: false,
+            download: false
         }
     }
     refresh(clearCopy?)
@@ -266,17 +279,17 @@ export class ExplorerComponent implements OnInit
         if(clearCopy) localStorage.removeItem("copyExplorer");
         this.openFolder(this.parent);
     }
-    translate(data) // Нужно для уменьшения объема сообщения от сервера
+    downloadObject()
     {
-        let out = [];
-        for(var i = 0; i < data.length; i++)
+        var elem = this.outFolders[this.selectObjectI];
+        if(elem.objectType == "file")
         {
-            out[i] = {};
-            out[i]["id"] = data[i]["id"];
-            out[i]["name"] = data[i]["n"];
-            out[i]["objectType"] = data[i]["ot"];
-            out[i]["parent"] = data[i]["p"];
+            var link = document.createElement("a");
+            trace(link);
+            link.target = "blank";
+            link.download = elem.name;
+            link.href = 'http://localhost:8081/gazprom/files/' + elem.id + "/" + elem.name;
+            link.click();
         }
-        return out;
     }
 }

@@ -113,7 +113,7 @@
             $type = substr($name, $end + 1);
             if (in_array($type, $types))
             {
-                $name = substr($name, 0, $end).date("_m_d_y_H_i_s").substr($name, $end);
+                /* $name = substr($name, 0, $end).date("_m_d_y_H_i_s").substr($name, $end); */
                 move_uploaded_file($_FILES["filename"]["tmp_name"], "../tmp/".$name);
                 return json_encode(["OK", $_FILES["filename"]["name"], $name]);
             } 

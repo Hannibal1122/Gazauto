@@ -162,6 +162,28 @@
                                 $elem["name"] = $row[3];
                                 $elem["parent"] = $row[4];
                                 $elem["priority"] = $row[5];
+                                if($row[1] == "file")
+                                {
+                                    $end = strripos($row[3], "."); 
+                                    $type = substr($row[3], $end + 1);
+                                    switch($type)
+                                    {
+                                        case 'gif':
+                                        case 'jpeg':
+                                        case 'png':
+                                        case 'jpg':
+                                            $elem["fileType"] = "img";
+                                            break;
+                                        case 'xls':
+                                        case 'xlsx':
+                                            $elem["fileType"] = "xls";
+                                            break;
+                                        case 'doc':
+                                        case 'docx':
+                                            $elem["fileType"] = "doc";
+                                            break;
+                                    }
+                                }
                                 $out["folder"][] = $elem;
                             }
                         if($param[0] == 2) getUsersOrRoles($out["folder"], "users");
@@ -220,14 +242,20 @@
                                 $idNewElement = $mysqli->insert_id;
                                 if($login != "admin")
                                     query("INSERT INTO rights (objectId, type, login, rights) VALUES(%s, %i, %s, %s, %i) ", [ $idNewElement, "user", $login, 255 ]);
-                                if($elem[0] == "value")
+                                switch($elem[0])
                                 {
-                                    $value = [];
-                                    if($result = query("SELECT type, value FROM my_values WHERE id = %i", [ (int)$elem[1] ]))
-                                        $value = $result->fetch_array(MYSQLI_NUM);
-                                    query("INSERT INTO my_values (type, value) VALUES(%s, %s)", [ $value[0], $value[1] ]);
-                                    $idValue = $mysqli->insert_id;
-                                    query("UPDATE structures SET objectId = %i WHERE id = %i", [$idValue, $idNewElement]);
+                                    case "value":
+                                        $value = [];
+                                        if($result = query("SELECT type, value FROM my_values WHERE id = %i", [ (int)$elem[1] ]))
+                                            $value = $result->fetch_array(MYSQLI_NUM);
+                                        query("INSERT INTO my_values (type, value) VALUES(%s, %s)", [ $value[0], $value[1] ]);
+                                        $idValue = $mysqli->insert_id;
+                                        query("UPDATE structures SET objectId = %i WHERE id = %i", [$idValue, $idNewElement]);
+                                        break;
+                                    case "file":
+                                        if (!file_exists("../files/$idNewElement")) mkdir("../files/$idNewElement", 0700);
+                                        copy("../files/$idElement/".$elem[2], "../files/$idNewElement/".$elem[2]);
+                                        break;
                                 }
                                 break; // Копировать
                             case "cut": 
@@ -250,6 +278,25 @@
                     case 116: // Изменение приоритета
                         if((getRights($param[1]) & 8) != 8) continue; // Права на просмотр
                         query("UPDATE structures SET priority = %i WHERE id = %i", $param);
+                        break;
+                    case 117: // Загрузка файлов на сервер
+                        echo loadFile(10, ['gif','jpeg','png','jpg','xls','xlsx','doc','docx']);
+                        break;
+                    case 118: // Удаление файлов из временной папки
+                        unlink("../tmp/".$param[0]); 
+                        break;
+                    case 119: // Загрузка файла с клиента
+                        $idElement = (int)$param[0];
+                        $file = $param[1];
+                        if((getRights($idElement) & 8) != 8) return; // Права на изменение
+                        if (!file_exists("../files/$idElement")) mkdir("../files/$idElement", 0700);
+                        rename("../tmp/$file", "../files/$idElement/$file"); 
+                        break;
+                    case 120: // Удаление файла
+                        $idElement = (int)$param[0];
+                        if((getRights($idElement) & 8) != 8) return; // Права на изменение
+                        unlink("../files/$idElement/".scandir("../files/$idElement")[2]); 
+                        rmdir("../files/$idElement"); 
                         break;
                 }
             if($nQuery >= 150 && $nQuery < 200) // Работа с Пользователями // Только admin
@@ -370,7 +417,7 @@
                                             break;
                                         case "cell":
                                             $field["type"] = "cell";
-                                            $field["value"] = getCellLink($field["linkId"]);
+                                            $field["value"] = getCellLink($field["linkId"], true);
                                             break;
                                     }
                                 }
@@ -525,6 +572,7 @@
                         $idCellTo = (int)$param[0];
                         $idCellFrom = (int)$param[1];
                         $operation = $param[2];
+                        $typePate = $param[3];
                         if($idCellTo == $idCellFrom) return; // нельзя скопировать в ту же ячейку
                         if($result = query("SELECT tableId FROM fields WHERE id = %i", [$idCellTo])) $idTableTo = (int)($result->fetch_array(MYSQLI_NUM)[0]);
                         if($result = query("SELECT tableId FROM fields WHERE id = %i", [$idCellFrom])) $idTableFrom = (int)($result->fetch_array(MYSQLI_NUM)[0]);
@@ -533,8 +581,9 @@
                         if($operation == "cut" && (getRights($idTableFrom) & 8) != 8) return; // Права на изменение
                         if($operation == "copy") 
                         {
-                            query("UPDATE fields SET value = %s, linkId = %i, linkType = %s, type = 'link' WHERE id = %i", [ "", $idCellFrom, "cell", $idCellTo]);
-                            echo json_encode([ "id" => $idCellTo, "value" => getCellLink($idCellFrom), "type" => "cell" ]);
+                            if($typePate == "cell") query("UPDATE fields SET value = %s, linkId = %i, linkType = %s, type = 'link' WHERE id = %i", [ "", $idCellFrom, "cell", $idCellTo]);
+                            else query("UPDATE fields SET value = %s, linkId = NULL, linkType = NULL, type = 'value' WHERE id = %i", [ getCellLink($idCellFrom, true), $idCellTo]);
+                            echo json_encode([ "id" => $idCellTo, "value" => getCellLink($idCellFrom, true), "type" => $typePate == "cell" ? $typePate : null ]);
                         }
                         if($operation == "cut") 
                         {
@@ -732,12 +781,16 @@
                 }
         }
     }
-    function getCellLink($linkId)
+    $countCycle = 0; // необходимо обнулять для правильной работы
+    function getCellLink($linkId, $first)
     {
+        if($first) $countCycle = 0;
+        global $countCycle;
+        if(++$countCycle > 50) return Null; // ограничение на зацикливание
         if($result = query("SELECT value, type, linkId, linkType, id FROM fields WHERE id = %i", [ (int)$linkId ]))
         {
             $row = $result->fetch_array(MYSQLI_NUM);
-            if($row[3] == "cell") return getCellLink($row[2]);
+            if($row[3] == "cell") return getCellLink($row[2], false);
             else
             {
                 if($row[1] == "value") return $row[0];

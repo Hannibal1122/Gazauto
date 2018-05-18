@@ -3,7 +3,7 @@
         <tbody (click) = "change ? editField($event) : null">
             <tr>
                 <th></th>
-                <th *ngFor = "let head of header;">{{ head.value }}</th>
+                <th *ngFor = "let head of header; let i = index;" id = "{{'TH_' + i}}">{{ head.value }}</th>
                 <th></th>
             </tr>
             <tr *ngFor = "let row of listTables; let i = index;">

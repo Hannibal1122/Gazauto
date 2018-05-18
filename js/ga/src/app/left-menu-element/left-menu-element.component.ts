@@ -28,8 +28,32 @@ export class LeftMenuElementComponent implements OnInit
     {
         for(var i = 0; i < data.length; i++)
             this.straighten(this.outData, data[i], 0, -1);
-        if(this.outData.length == 0)
-            this.hide = true;
+        for(i = 0; i < this.outData.length; i++)
+        {
+            if(this.outData[i].objectType == "file")
+            {
+                let name = this.outData[i].name;
+                let type = name.substr(name.lastIndexOf(".") + 1);
+                switch(type)
+                {
+                    case 'gif':
+                    case 'jpeg':
+                    case 'png':
+                    case 'jpg':
+                        this.outData[i].fileType = "img";
+                        break;
+                    case 'xls':
+                    case 'xlsx':
+                        this.outData[i].fileType = "xls";
+                        break;
+                    case 'doc':
+                    case 'docx':
+                        this.outData[i].fileType = "doc";
+                        break;
+                }
+            }
+        }
+        if(this.outData.length == 0) this.hide = true;
     }
     _config = 
     {

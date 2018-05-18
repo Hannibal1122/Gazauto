@@ -46,7 +46,7 @@ export class QueryService
 		xhrData.append("paramI", localStorage.getItem("ID"));
 		xhrData.append("paramL", localStorage.getItem("login"));
 		xhrData.append("paramC", localStorage.getItem("checkKey"));
-		xhr.open("POST", "http://localhost:8081/gazprom/scripts/main.php", true);
+		xhr.open("POST", this.url, true);
 		xhr.setRequestHeader("Cache-Control", "no-cache");
 		xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
         xhr.setRequestHeader("X-File-Name", xhrData.name);

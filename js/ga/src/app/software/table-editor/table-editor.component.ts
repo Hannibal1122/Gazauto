@@ -22,6 +22,7 @@ export class TableEditorComponent implements OnInit
     mode = "Local";
     nameTable = "";
     error = false;
+    load = false;
     rules = 
     {
         save: false,
@@ -38,8 +39,10 @@ export class TableEditorComponent implements OnInit
     }
     loadTable()
     {
+        this.load = true;
         this.query.protectionPost(250, { param: [this.inputs.id]}, (data) => 
         {
+            trace(data)
             if(data.head == undefined) 
             {
                 this.error = true;
@@ -59,11 +62,13 @@ export class TableEditorComponent implements OnInit
                 this.dataTable[i] = data.data[key];
                 this.dataTable[i].__ID__ = key;
             }
+            this.load = false;
         });
     }
     changeNameTable()
     {
-        this.query.protectionPost(253, { param: [this.inputs.id, this.nameTable]}, (data) => { });
+        this.load = true;
+        this.query.protectionPost(253, { param: [this.inputs.id, this.nameTable]}, (data) => { this.load = false; });
     }
     changeHeader() // изменить заголовок таблицы
     {
@@ -93,6 +98,7 @@ export class TableEditorComponent implements OnInit
                     out.push({ value: Data.data[0][1][i].value, oldValue: Data.data[0][1][i].oldValue, i: i});
                 }
                 let changes = Data.data[0][3];
+                this.load = true;
                 this.query.protectionPost(251, { param: [ this.inputs.id, JSON.stringify(out), changes ]}, (data) => 
                 {
                     this.dataHeader = [];
@@ -101,20 +107,32 @@ export class TableEditorComponent implements OnInit
 
                     this.editTable.head = this.dataHeader; // update edit table
                     this.editTable.data = this.dataTable; // update edit table
+                    this.load = false;
                 });
             }
         });
     }
     appendFromLeftMenu = (() => // Добавление из леаого меню
     {
-        return (i, j, data) =>
+        return (i, j, data, _nameColumn) =>
         {
             let nameColumn = "";
             let type = "update";
-            for(var _i = 0; _i < this.dataHeader.length; _i++)
-                if(this.dataHeader[_i].i == j) { nameColumn = this.dataHeader[_i].value; break; }
-            if(this.dataTable[i][nameColumn] == undefined) type = "insert";
-            let ID = type == "insert" ? this.dataTable[i].__ID__ : this.dataTable[i][nameColumn].id;
+            if(_nameColumn) nameColumn = this.dataHeader[Number(_nameColumn)].value;
+            else
+                for(var _i = 0; _i < this.dataHeader.length; _i++)
+                    if(this.dataHeader[_i].i == j) { nameColumn = this.dataHeader[_i].value; break; }
+            
+            let beginI = i;
+            let endI = i;
+            let k = beginI;
+            let length = 1;
+            if(_nameColumn)
+            {
+                beginI = 0;
+                endI = this.dataTable.length - 1;
+                length = this.dataTable.length;
+            }
             switch(data.objectType)
             {
                 case "value":
@@ -146,34 +164,53 @@ export class TableEditorComponent implements OnInit
                             if(save)
                             {
                                 if(this.modal.Data[0][1].selected == "по значению")
-                                    this.query.protectionPost(256, { param: [ this.inputs.id, data.id, ID, nameColumn, type, 
-                                        this.modal.Data[1] ? this.modal.Data[1][1].selected : null ] }, 
-                                        (data) =>
-                                        {
-                                            trace(data)
-                                            this.dataTable[i][nameColumn] = data;
-                                            this.editTable.data = this.dataTable; // update edit table
-                                        });
-                                if(this.modal.Data[0][1].selected == "по ссылке")
-                                {
-                                    this.query.protectionPost(255, { param: [ this.inputs.id, data.id, ID, nameColumn, type ] }, (data) =>
+                                    for(k = beginI; k <= endI; k++)
                                     {
-                                        trace(data)
-                                        this.dataTable[i][nameColumn] = data;
-                                        this.editTable.data = this.dataTable; // update edit table
-                                    });
-                                }
+                                        if(this.dataTable[k][nameColumn] == undefined) type = "insert";
+                                        let ID = type == "insert" ? this.dataTable[k].__ID__ : this.dataTable[k][nameColumn].id;
+                                        ((i) =>{
+                                            this.query.protectionPost(256, { param: [ this.inputs.id, data.id, ID, nameColumn, type, 
+                                                this.modal.Data[1] ? this.modal.Data[1][1].selected : null ] }, 
+                                                (data) =>
+                                                {
+                                                    trace(data)
+                                                    this.dataTable[i][nameColumn] = data;
+                                                    if(--length == 0) this.editTable.data = this.dataTable; // update edit table
+                                                });
+                                        })(k);
+                                     }
+                                if(this.modal.Data[0][1].selected == "по ссылке")
+                                    for(k = beginI; k <= endI; k++)
+                                    {
+                                        if(this.dataTable[k][nameColumn] == undefined) type = "insert";
+                                        let ID = type == "insert" ? this.dataTable[k].__ID__ : this.dataTable[k][nameColumn].id;
+                                        ((i) =>{
+                                            this.query.protectionPost(255, { param: [ this.inputs.id, data.id, ID, nameColumn, type ] }, (data) =>
+                                            {
+                                                trace(data)
+                                                this.dataTable[i][nameColumn] = data;
+                                                if(--length == 0) this.editTable.data = this.dataTable; // update edit table
+                                            });
+                                        })(k);
+                                    }
                             }
                         });
                     });
                     break;
                 case "table": 
-                    this.query.protectionPost(255, { param: [ this.inputs.id, data.id, ID, nameColumn, type ] }, (data) =>
+                    for(k = beginI; k <= endI; k++)
                     {
-                        trace(data)
-                        this.dataTable[i][nameColumn] = data;
-                        this.editTable.data = this.dataTable; // update edit table
-                    });
+                        if(this.dataTable[k][nameColumn] == undefined) type = "insert";
+                        let ID = type == "insert" ? this.dataTable[k].__ID__ : this.dataTable[k][nameColumn].id;
+                        ((i) =>{
+                            this.query.protectionPost(255, { param: [ this.inputs.id, data.id, ID, nameColumn, type ] }, (data) =>
+                            {
+                                trace(data)
+                                this.dataTable[i][nameColumn] = data;
+                                if(--length == 0) this.editTable.data = this.dataTable; // update edit table
+                            });
+                        })(k);
+                    }
                     break;
             }
             trace(data)
@@ -194,13 +231,16 @@ export class TableEditorComponent implements OnInit
         switch(property.type)
         {
             case "row":
+                this.load = true;
                 this.query.protectionPost(257, { param: [ this.inputs.id, property.idRow ]}, (data) => 
                 {
                     this.dataTable.push(data);
                     this.editTable.data = this.dataTable; // update edit table */
+                    this.load = false;
                 });
                 break;
             case "field":
+                this.load = true;
                 this.query.protectionPost(252, { param: [ this.inputs.id,  JSON.stringify(property.out) ]}, (data) => 
                 {
                     if(property.out.__type__ == "insert")
@@ -213,13 +253,16 @@ export class TableEditorComponent implements OnInit
                         }
                         else this.dataTable[property.i][property.nameColumn] = data;
                     this.editTable.data = this.dataTable; // update edit table */
+                    this.load = false;
                 });
                 break;
             case "remove":
+                this.load = true;
                 this.query.protectionPost(258, { param: [ this.inputs.id, this.dataTable[property.i].__ID__ ]}, (data) => 
                 {
                     this.dataTable.splice(property.i, 1);
                     this.editTable.data = this.dataTable; // update edit table */
+                    this.load = false;
                 });
                 break;
             case "operation":
@@ -241,16 +284,37 @@ export class TableEditorComponent implements OnInit
 
         this.rules.copy = this.rules.cut = this.rules.paste = false;
     }
-    pasteField(copyOrCut)
+    pasteField()
     {
         let i = this.editTable.configInput.i;
         let j = this.editTable.configInput.j;
-        this.query.protectionPost(259, { param: [this.editTable.listTables[i][j].id, localStorage.getItem("copyTable"), localStorage.getItem("lastOperationTable")] }, (data) =>
+        let queryFunction = (typePaste) =>
         {
-            this.editTable.listTables[i][j] = data;
-        });
-        localStorage.removeItem("copyTable");
-        this.rules.copy = this.rules.cut = this.rules.paste = false;
+            this.load = true;
+            this.query.protectionPost(259, { param: [this.editTable.listTables[i][j].id, localStorage.getItem("copyTable"), localStorage.getItem("lastOperationTable"), typePaste] }, (data) =>
+            {
+                this.editTable.listTables[i][j] = data;
+                this.load = false;            
+            });   
+            localStorage.removeItem("copyTable");
+            localStorage.removeItem("copyTableValue");
+            this.rules.copy = this.rules.cut = this.rules.paste = false;
+        }
+        if(localStorage.getItem("lastOperationTable") == 'copy')
+            this.modal.open({ 
+                title: "Как добавить элемент в таблицу", 
+                data: [["Тип:", {selected: "по значению", data: ["по значению", "по ссылке"]}, "select"]], 
+                ok: "Добавить", cancel: "Отмена"
+            }, (save) =>
+            {
+                if(save)
+                {
+                    let typePaste = "cell";
+                    if(this.modal.Data[0][1].selected == "по значению") typePaste = "value";
+                    queryFunction(typePaste);
+                }
+            });
+        else queryFunction("");
     }
     getID()
     {
