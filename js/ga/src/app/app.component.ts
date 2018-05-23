@@ -41,9 +41,9 @@ export class AppComponent implements OnInit
             this.enter = true; 
             this.Login = localStorage.getItem("login");
             this.refresh();
-            this.openSoftware("explorer", { });
-            /* this.openSoftware("table", { id: 66 });
-            this.openSoftware("table", { id: 102 }); */
+            /* this.openSoftware("explorer", { }); */
+            this.openSoftware("table", { id: 66 });
+            /* this.openSoftware("table", { id: 102 }); */
         });
         this.firstEnter(this);
         ////////////////////////////////////////////////////////////////////
@@ -152,6 +152,22 @@ export class AppComponent implements OnInit
         {
             case "open":
                 this.openSoftware(e.value.name, e.value);
+                break;
+            case "openFromTable":
+                this.query.protectionPost(111, { param: [ e.value.name, e.value.id ]}, (idParent) =>
+                {
+                    switch(e.value.name)
+                    {
+                        case "table":
+                        case "file":
+                        case "value":
+                            this.openSoftware("explorer", { id: idParent[0][0], searchElement: e.value.name == "value" ? idParent[0][1] : e.value.id });
+                            break;
+                        case "cell":
+                            this.openSoftware("table", { id: idParent[0][0], searchCellId: e.value.id });
+                            break;
+                    }
+                });
                 break;
         }
     }

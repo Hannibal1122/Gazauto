@@ -1,15 +1,16 @@
 
-<button style = "color:#456486" title = "back" (click) = "openBackFolder(parent)"><i class="fas fa-arrow-left"></i></button>
+<button class = "explorerButton" title = "Назад" (click) = "openBackFolder(parent)"><i class="fas fa-arrow-left"></i></button>
 <input type = "text" style = "border-radius:5px; padding: 5px; border: 1px solid #eeeeee;" placeholder="Поиск">
-<button [style.color] = "selectRules.new ? '#456486' : '#a6b9ce'" title = "Добавить элемент" (click) = "newObject()" [disabled] = "!selectRules.new"><i class="fas fa-file"></i></button>
-<button [style.color] = "selectRules.copy ? '#456486' : '#a6b9ce'" title = "Копировать" (click) = "copyObject('copy')" [disabled] = "!selectRules.copy"><i class="fas fa-copy"></i></button>
-<button [style.color] = "selectRules.paste ? '#456486' : '#a6b9ce'" title = "Вставить" (click) = "_pasteObject()" [disabled] = "!selectRules.paste"><i class="fas fa-paste"></i></button>
-<button [style.color] = "selectRules.cut ? '#456486' : '#a6b9ce'" title = "Вырезать" (click) = "copyObject('cut')" [disabled] = "!selectRules.cut"><i class="fas fa-cut"></i></button>
-<button [style.color] = "selectRules.rights ? '#456486' : '#a6b9ce'" title = "Добавить права" (click) = "createObject(outFolders[selectObjectI].id, 'Права', null)" [disabled] = "!selectRules.rights"><i class="fas fa-address-card"></i></button>
-<button [style.color] = "selectRules.remove ? '#456486' : '#a6b9ce'" title = "Удалить" (click) = "removeObject()" [disabled] = "!selectRules.remove"><i class="fas fa-trash"></i></button>
-<button [style.color] = "selectRules.download ? '#456486' : '#a6b9ce'" title = "Скачать" (click) = "downloadObject()" [disabled] = "!selectRules.download"><i class="fas fa-download"></i></button>
-<button [style.color] = "'#456486'" title = "Обновить" (click) = "refresh(true)"><i class="fas fa-sync-alt"></i></button>
-<a href = "http://localhost:8081/gazprom/files/116/evil-plan-baby.jpg" download="test">test</a>
+<button class = "explorerButton" title = "Добавить элемент" (click) = "newObject()" [disabled] = "!selectRules.new"><i class="fas fa-file"></i></button>
+<button class = "explorerButton" title = "Копировать" (click) = "copyObject('copy')" [disabled] = "!selectRules.copy"><i class="fas fa-copy"></i></button>
+<button class = "explorerButton" title = "Вставить" (click) = "_pasteObject()" [disabled] = "!selectRules.paste"><i class="fas fa-paste"></i></button>
+<button class = "explorerButton" title = "Вырезать" (click) = "copyObject('cut')" [disabled] = "!selectRules.cut"><i class="fas fa-cut"></i></button>
+<button class = "explorerButton" title = "Добавить права" (click) = "createObject(outFolders[selectObjectI].id, 'Права', null)" [disabled] = "!selectRules.rights"><i class="fas fa-address-card"></i></button>
+<button class = "explorerButton" title = "Справка" (click) = "addInfo()" [disabled] = "!selectRules.info"><i class="fas fa-info"></i></button>
+<button class = "explorerButton" title = "Удалить" (click) = "removeObject()" [disabled] = "!selectRules.remove"><i class="fas fa-trash"></i></button>
+<button class = "explorerButton" title = "Скачать" (click) = "downloadObject()" [disabled] = "!selectRules.download"><i class="fas fa-download"></i></button>
+<button class = "explorerButton" title = "Обновить" (click) = "refresh(true)"><i class="fas fa-sync-alt"></i></button>
+<!-- <a href = "http://localhost:8081/gazprom/scripts/main.php" download="test">test</a> -->
 <div style = "font-size:12px; color:#8f8f8f">
     <span *ngFor = "let path of allPath" (click) = "openObject({objectType: 'folder', id: path.id})" style = "cursor:pointer;">{{ path.name }}/</span>
 </div>
@@ -19,6 +20,7 @@
         <div class = "elementExplorer" 
             (click) = "selectObject(i)"
             [class.selectElementExplorer] = "i == selectObjectI"
+            [class.selectSearchElementExplorer] = "i != selectObjectI && i == searchObjectI"
             [class.selectCopyElementExplorer] = "i != selectObjectI && object.id == selectObjectCopy.id"
             [class.selectCopyElementExplorerOpacity] = "i != selectObjectI && object.id == selectObjectCopy.id && selectObjectCopy.type == 'cut'"
             title = "{{ object.name }}" style = "text-align:center;">

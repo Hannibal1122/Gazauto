@@ -15,7 +15,7 @@ export class TableEditorComponent implements OnInit
     @ViewChild('editTable') public editTable: any;
     onChange = null;
 
-    inputs = { id: -1 };
+    inputs = { id: -1, searchCellId: -1 };
     firstData = {};
     dataHeader = [];
     dataTable = [];
@@ -23,6 +23,8 @@ export class TableEditorComponent implements OnInit
     nameTable = "";
     error = false;
     load = false;
+    lastUpdateTime = "";
+    needUpdate = false;
     rules = 
     {
         save: false,
@@ -62,8 +64,37 @@ export class TableEditorComponent implements OnInit
                 this.dataTable[i] = data.data[key];
                 this.dataTable[i].__ID__ = key;
             }
-            this.load = false;
+            if(this.inputs.searchCellId) this.searchCell(this.inputs.searchCellId);
+            this.query.protectionPost(350, { param: [this.inputs.id] }, (data) => 
+            { 
+                this.lastUpdateTime = data[0][0]; 
+                this.getLastUpdateTime();
+                this.load = false;
+            });
         });
+    }
+    lastUpdateTimer = null;
+    getLastUpdateTime()
+    {
+        clearTimeout(this.lastUpdateTimer);
+        this.lastUpdateTimer = setTimeout(() =>
+        {
+            this.query.protectionPost(351, { param: [this.inputs.id, this.lastUpdateTime] }, (data) => 
+            { 
+                
+                if(data[0] && !this.editTable.inputProperty.visible) 
+                {
+                    this.loadTable();
+                    this.needUpdate = false;
+                }
+                else this.needUpdate = data[0];
+                this.getLastUpdateTime();
+            });
+        }, 2000);
+    }
+    ngOnDestroy() 
+    {
+        clearTimeout(this.lastUpdateTimer);
     }
     changeNameTable()
     {
@@ -197,6 +228,7 @@ export class TableEditorComponent implements OnInit
                         });
                     });
                     break;
+                case "file": 
                 case "table": 
                     for(k = beginI; k <= endI; k++)
                     {
@@ -271,7 +303,13 @@ export class TableEditorComponent implements OnInit
                 this.rules.paste = property.rules.paste;
                 break;
             case "explorer":
-                trace(property.linkId)
+                if(property.data.type == "cell")
+                    this.query.protectionPost(111, { param: [ "cell", property.data.linkId ]}, (idParent) => 
+                    {
+                        if(this.inputs.id == idParent[0][0]) this.searchCell(property.data.linkId);
+                        else this.onChange({ type: "openFromTable", value: { name: "cell", id: property.data.linkId }});
+                    });
+                else this.onChange({ type: "openFromTable", value: { name: property.data.type, id: property.data.linkId }});
                 break;
         }
     }
@@ -330,5 +368,24 @@ export class TableEditorComponent implements OnInit
         let _b = Number(b.__ID__);
         if (_a > _b) return 1;
         if (_a < _b) return -1;
+    }
+    searchCellId = -1; // Для отображения ячейки в таблице
+    searchTimeout = null
+    searchCell(id)
+    {
+        clearInterval(this.searchTimeout);
+        this.searchCellId = Number(id);
+        let searchCellId = this.searchCellId;
+        let searchCellCount = 0;
+        this.searchTimeout = setInterval(() => 
+        {
+            if(searchCellCount % 2 == 0) this.searchCellId = -1;
+            else this.searchCellId = searchCellId; 
+            if(searchCellCount++ > 10) 
+            {
+                clearInterval(this.searchTimeout);
+                this.searchCellId = -1;
+            }
+        }, 500);
     }
 }

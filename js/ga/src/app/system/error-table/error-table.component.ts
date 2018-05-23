@@ -74,6 +74,11 @@ export class ErrorTableComponent implements OnInit
             }
         }
     }
+    searchCellId = -1; 
+    @Input() set searchCell(id) // Выделяет объект красной границей 10 секунд
+    {
+        if(id) this.searchCellId = id;
+    }
     configInput = 
     {
         width: "100px",
@@ -172,9 +177,9 @@ export class ErrorTableComponent implements OnInit
     {
         this.onChange.emit({ type: "remove", i: i });
     }
-    openToExplorer(linkId)
+    openToExplorer(data)
     {
-        this.onChange.emit({ type: "explorer", linkId: linkId });
+        this.onChange.emit({ type: "explorer", data: data });
     }
     getPositionInTable(element, out)
     {

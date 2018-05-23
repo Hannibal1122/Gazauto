@@ -10,9 +10,10 @@
         <button [style.color] = "'#456486'" (click) = "loadTable()" title = "refresh"><i class="fas fa-sync-alt"></i></button>
         <span *ngIf = "mode == 'Global'" style = "position:absolute; right:10px; color:#b5e498; font-size:20px;" title = "global"><i class="fas fa-cloud"></i></span>
         <span *ngIf = "load" style = "color:#757575;font-size:12px;">Loading...</span>
+        {{ needUpdate ? 'Требуется синхронизация' : '' }}
     </div>
     <div *ngIf = "error" style = "color:#af7e7e; font-size:24px; font-weight:bold">Таблица не доступна!</div>
     <div *ngIf = "!error && dataHeader.length == 0" style = "color:#b8b8b8; font-size:24px; font-weight:bold">Таблица пуста</div>
-    <app-error-table #editTable [head] = "dataHeader" [data] = "dataTable" (onChange) = "update($event)"></app-error-table>
+    <app-error-table #editTable [head] = "dataHeader" [data] = "dataTable" (onChange) = "update($event)" [searchCell] = "searchCellId"></app-error-table>
 </div>
 <modalwindow #modal></modalwindow>

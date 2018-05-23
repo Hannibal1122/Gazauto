@@ -9,6 +9,7 @@ import { CreateValueService } from "../create-value.service";
 import { PasteObjectService } from "../paste-object.service";
 import { CreateFileService } from "../create-file.service";
 
+declare var $:any;
 declare var trace:any;
 @Component({
     selector: 'app-explorer',
@@ -48,7 +49,8 @@ export class ExplorerComponent implements OnInit
         cut: false, 
         rights: false, 
         remove: false,
-        download: false
+        download: false,
+        info: false
     }
     constructor(
         private injector: Injector, 
@@ -64,18 +66,21 @@ export class ExplorerComponent implements OnInit
     ) {}
     ngOnInit() 
     { 
+        /* trace(this.inputs.data) */
         if(this.inputs.data && this.inputs.data.id) 
         {
-            this.openFolder(this.inputs.data.id, this.inputs.data.element ? () => 
+            this.openFolder(this.inputs.data.id, () => 
             {
+                let id = -1;
+                if(this.inputs.data.element) id = this.inputs.data.element;
+                if(this.inputs.data.searchElement) id = this.inputs.data.searchElement;
                 let i = 0;
                 for(; i < this.outFolders.length; i++)
-                    if(this.inputs.data.element == this.outFolders[i].id)
-                    {
-                        this.openObject(this.outFolders[i]);
-                        break;
-                    }
-            } : null);
+                    if(id == this.outFolders[i].id) break;
+               
+                if(this.inputs.data.element) this.openObject(this.outFolders[i]);
+                if(this.inputs.data.searchElement) this.addSearchObject(i);
+            });
         }
         else this.openFolder(0);
         this.createTable.modal = this.modal;
@@ -192,8 +197,26 @@ export class ExplorerComponent implements OnInit
                 break;
         }
     }
+    searchObjectI = -1;
+    searchTimeout = null
+    addSearchObject(i) // Выделяет объект зеленой границей
+    {
+        clearInterval(this.searchTimeout);
+        this.searchObjectI = i;
+        let searchObjectI = this.searchObjectI;
+        let searchObjectCount = 0;
+        this.searchTimeout = setInterval(() => 
+        { 
+            if(searchObjectCount % 2 == 0) this.searchObjectI = -1;
+            else this.searchObjectI = searchObjectI; 
+            if(searchObjectCount++ > 10) 
+            {
+                clearInterval(this.searchTimeout);
+                this.searchObjectI = -1;
+            }
+        }, 500);
+    }
     clickTimeout = null;
-
     selectObject(i) // Выделить объект
     {
         this.selectObjectI = i;
@@ -241,7 +264,7 @@ export class ExplorerComponent implements OnInit
     }
     openBackFolder()
     {
-        this.query.protectionPost(111, { param: [ this.parent ] }, (data) =>
+        this.query.protectionPost(111, { param: [ "folder", this.parent ] }, (data) =>
         {
             if(data.length > 0)
             this.openFolder(data[0][0]);
@@ -271,7 +294,8 @@ export class ExplorerComponent implements OnInit
             cut: false, 
             rights: false, 
             remove: false,
-            download: false
+            download: false,
+            info: false
         }
     }
     refresh(clearCopy?)
@@ -282,14 +306,11 @@ export class ExplorerComponent implements OnInit
     downloadObject()
     {
         var elem = this.outFolders[this.selectObjectI];
-        if(elem.objectType == "file")
-        {
-            var link = document.createElement("a");
-            trace(link);
-            link.target = "blank";
-            link.download = elem.name;
-            link.href = 'http://localhost:8081/gazprom/files/' + elem.id + "/" + elem.name;
-            link.click();
-        }
+        var iframe = document.createElement("iframe");
+        iframe.style.display = "none";
+        iframe.setAttribute("src", this.query.protectionGet(121, elem.id));
+        document.body.appendChild(iframe);
+        iframe.onload = () => { document.body.removeChild(iframe); } // надо удалять!!!
+        document.body.appendChild(iframe);
     }
 }

@@ -33,6 +33,10 @@ export class QueryService
             func(this.recode(data));
         });
     }
+    protectionGet(n, data)
+    {
+        return this.url + "?nquery=" + n + "&paramI=" + localStorage.getItem("ID") + "&paramL=" + localStorage.getItem("login")  + "&paramC=" + localStorage.getItem("checkKey")  + "&param=" + data; 
+    }
     uploadFile(n, data, func)
     {
         var xhr:any = new XMLHttpRequest();

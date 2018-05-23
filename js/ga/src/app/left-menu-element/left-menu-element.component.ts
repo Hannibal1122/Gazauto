@@ -81,6 +81,7 @@ export class LeftMenuElementComponent implements OnInit
     }
     openElement(data)
     {
+        trace(data)
         switch(data.objectType)
         {
             case "folder":
@@ -90,12 +91,17 @@ export class LeftMenuElementComponent implements OnInit
                 this.onChange.emit({ type: "open", value: { name: "table", id: data.id }});
                 break;
             case "value":
-                this.query.protectionPost(111, { param: [ data.id ]}, (idParent) =>
+                this.query.protectionPost(111, { param: [ "folder", data.id ]}, // folder потому что id тут из структуры  
+                (idParent) => 
                 {
                     this.onChange.emit({ type: "open", value: { name: "explorer", id: idParent[0][0], element: data.id }});
-                    /* this._openObject("explorer", { id: idParent[0][0], element: data.id }); */
                 });
-                trace(data)
+                break;
+            case "file":
+                this.query.protectionPost(111, { param: [ data.objectType, data.id ]}, (idParent) =>
+                {
+                    this.onChange.emit({ type: "open", value: { name: "explorer", id: idParent[0][0] }});
+                });
                 break;
         }
     }

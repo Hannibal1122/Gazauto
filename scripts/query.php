@@ -1,4 +1,10 @@
 <?php
+    /* function query($sql, $record_values)
+    {
+        global $login;
+        mainQuery("INSERT INTO main_log (type, value, date, login) VALUES(%s, %s, %s, %s)", [ strlen($sql), count($record_values), "@DATE@", $login ]);
+        return mainQuery($sql, $record_values);
+    } */
     function query($sql, $record_values)
     {
         global $mysqli, $current_time, $nQuery;

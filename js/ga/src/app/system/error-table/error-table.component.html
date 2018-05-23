@@ -8,20 +8,23 @@
             </tr>
             <tr *ngFor = "let row of listTables; let i = index;">
                 <td>{{ i + 1 }}</td>
-                <td *ngFor = "let void of header; let j = index;" id = "{{i + '_' + j}}" [style.background] = "row[j] == undefined ? '#fafafa' : none">
+                <td *ngFor = "let void of header; let j = index;" id = "{{i + '_' + j}}" [style.background] = "row[j] == undefined ? '#fafafa' : (row[j].id == searchCellId ? '#e7f5c6' : none)">
                     {{ row[j] != undefined && !row[j].listValue ? row[j].value : "" }}
                     {{ row[j] != undefined && row[j].listValue ? row[j].listValue : "" }}
-                    <span *ngIf = "row[j] != undefined && row[j].type == 'value'" class = "linkClass linkValueClass" (dblclick) = "openToExplorer(row[j].linkId)">
+                    <span *ngIf = "row[j] != undefined && row[j].type == 'value'" class = "linkClass linkValueClass" (dblclick) = "openToExplorer(row[j])">
                         <i class = "fa fa-link"></i>
                     </span>
-                    <span *ngIf = "row[j] != undefined && row[j].type == 'table'" class = "linkClass linkValueClass" (dblclick) = "openToExplorer(row[j].linkId)">
+                    <span *ngIf = "row[j] != undefined && row[j].type == 'table'" class = "linkClass linkValueClass" (dblclick) = "openToExplorer(row[j])">
                         <i class = "fa fa-table"></i>
                     </span>
-                    <span *ngIf = "row[j] != undefined && row[j].type == 'cell'" class = "linkClass linkCellClass" [class.linkErrorClass] = "row[j].value == null" (dblclick) = "openToExplorer(row[j].linkId)">
+                    <span *ngIf = "row[j] != undefined && row[j].type == 'cell'" class = "linkClass linkCellClass" [class.linkErrorClass] = "row[j].value == null" (dblclick) = "openToExplorer(row[j])">
                         <i class = "fa fa-link"></i>
                     </span>
+                    <span *ngIf = "row[j] != undefined && row[j].type == 'file'" class = "linkClass linkValueClass" (dblclick) = "openToExplorer(row[j])">
+                        <i class = "fa fa-file"></i>
+                    </span>
                 </td>
-                <td><button *ngIf = "change" (click) = "removeRow(i)"><i class="fas fa-trash"></i></button></td>
+                <td><button *ngIf = "change" (click) = "removeRow(i)" style = "color:#456486;"><i class="fas fa-trash"></i></button></td>
             </tr>
         </tbody>
     </table>

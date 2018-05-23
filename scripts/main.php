@@ -1,6 +1,6 @@
 <?php
     header('Access-Control-Allow-Origin: *');
-	include("config.php");
+    include("config.php");
 	include("query.php");
     include("functions.php");
     $excelNumber = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"];
@@ -9,6 +9,7 @@
 	$a = null;
     $Result = "";
     $paramL = $paramC = $paramI = null;
+    
 	if (array_key_exists('nquery', $_GET) || array_key_exists('nquery', $_POST))
 	{
 		if (array_key_exists('nquery', $_GET))
@@ -70,10 +71,10 @@
         switch($nQuery)
         {
             case 0: // Запрос версии
-                include("./version/versions.php");
+                /* include("./version/versions.php"); */
                 $project = [];	
-                $project['main'] = getVersion(		$_main["name"], 		$_main["data"]);
-                $project['php'] = getVersion(		$_php["name"], 			$_php["data"]);
+                $project['main'] = "0.7.15";/* getVersion(		$_main["name"], 		$_main["data"]); */
+                $project['php'] = "0.9.0";/* getVersion(		$_php["name"], 			$_php["data"]); */
                 echo json_encode($project);
                 break;
             case 1: // Возвращает информацию о текущем пользователе
@@ -87,6 +88,7 @@
                 break;
             case 4: // вход
                 require_once("enter.php");
+                addLog("user", "enter", "");
                 break;
             case 5: // выход
                 break;
@@ -115,7 +117,6 @@
                         }
                 echo checkL($array, $login);
                 break;
-            
         }
     if($nQuery >= 40) // Требуется логин
     {
@@ -143,16 +144,22 @@
                         query("INSERT INTO structures (objectType, objectId, name, parent, priority, info) VALUES(%s, %i, %s, %i, %i, %s)", $param);
                         $idElement = $mysqli->insert_id;
                         if($login != "admin")
-                            query("INSERT INTO rights (objectId, type, login, rights) VALUES(%s, %i, %s, %s, %i) ", [ $idElement , "user", $login, 255 ]);
+                        {
+                            $right = [ $idElement , "user", $login, 255 ];
+                            query("INSERT INTO rights (objectId, type, login, rights) VALUES(%s, %i, %s, %s, %i) ", $right);
+                            addLog("right", "add", json_encode($right));
+                        }
                         echo json_encode(["Index", $idElement]);
+                        addLog("structure", "add", $idElement);
                         break;
                     case 110: // Загрузка структуры // Права на просмотр
                         $out = ["folder" => [], "path" => []];
+                        $idParent = (int)$param[0];
                         if($login == "admin") $query = "SELECT id, objectType, objectId, name, parent, priority, info FROM structures WHERE parent = %i ORDER by parent, priority";
                         else $query = "SELECT id, objectType, objectId, name, parent, priority, info FROM structures WHERE parent = %i AND
                             id IN (SELECT objectId FROM rights WHERE (login = %s OR login = %s) AND rights & 1 
                                 AND objectId NOT IN (SELECT objectId FROM rights WHERE login = %s AND (rights & 1) = 0)) ORDER by parent, priority";
-                        if($result = query($query, $login == "admin" ? [ $param[0] ] : [ $param[0], $login, $role, $login ]))
+                        if($result = query($query, $login == "admin" ? [ $idParent ] : [ $idParent, $login, $role, $login ]))
                             while ($row = $result->fetch_array(MYSQLI_NUM)) 
                             {
                                 $elem = [];
@@ -190,11 +197,26 @@
                         if($param[0] == 3) getUsersOrRoles($out["folder"], "roles");
                         getFullPath($out["path"], $param[0]);
                         echo json_encode($out);
+                        addLog("structure", "open", $idParent);
                         break;
                     case 111: // Получение родителя
-                        request("SELECT parent FROM structures WHERE id = %i ORDER by parent, priority", $param);
+                        $typeElement = $param[0];
+                        $idElement = (int)$param[1];
+                        switch($typeElement)
+                        {
+                            case "folder":
+                            case "table":
+                            case "file":
+                                request("SELECT parent FROM structures WHERE id = %i", [$idElement]);
+                                break;
+                            case "value":
+                                request("SELECT parent, id FROM structures WHERE objectType = 'value' AND objectId = %i ", [$idElement]);
+                                break;
+                            case "cell":
+                                request("SELECT tableId FROM fields WHERE id = %i ", [$idElement]);
+                                break;
+                        }
                         break;
-                    
                     case 112: // Удаление элемента структуры // Права на изменение
                         /* getRemoveElementbyStructure($out, $param[0]); */
                         $out = [(int)$param[0]];
@@ -205,6 +227,7 @@
                             if((getRights($out[$i]) & 8) != 8) continue; // Права на изменение
                             query("DELETE FROM structures WHERE id = %i", [ $out[$i] ]);
                             query("DELETE FROM rights WHERE objectId = %i", [ $out[$i] ]);
+                            addLog("structure", "remove", $out[$i]);
                         }
                         echo json_encode($out);
                         break;
@@ -298,6 +321,16 @@
                         unlink("../files/$idElement/".scandir("../files/$idElement")[2]); 
                         rmdir("../files/$idElement"); 
                         break;
+                    case 121: // Запрос файла с правами
+                        $idElement = (int)$param;
+                        if((getRights($idElement) & 8) != 8) return; // Права на изменение
+                        $name = "";
+                        if($result = query("SELECT name FROM structures WHERE id = %i", [ $idElement ])) 
+                            $name = $result->fetch_array(MYSQLI_NUM)[0];
+                        $filePathForDownload = "../files/$idElement/$name";
+                        require_once("getFile.php");
+                        addLog("file", "download", $idElement);
+                        break;
                 }
             if($nQuery >= 150 && $nQuery < 200) // Работа с Пользователями // Только admin
             {
@@ -312,12 +345,14 @@
                         break;
                     case 152: // Добавление пользователя 
                         require_once("registration.php");
+                        addLog("user", "add", json_encode([$param[0], $param[1]]));
                         break;
                     case 153: // Добавление роли
                         request("INSERT INTO roles (role) VALUES(%s)", $param);
                         break;
                     case 154: // Изменение пользователя
                         request("UPDATE registration SET role = %s WHERE login = %s", [$param[1], $param[0]]);
+                        addLog("user", "update", json_encode([$param[0], $param[1]]));
                         if($param[2] != "")
                         {
                             $sult = unique_md5();
@@ -335,6 +370,7 @@
                         if($param[0] == "admin") break;
                         request("DELETE FROM registration WHERE login = %s", $param);
                         request("DELETE FROM password WHERE login = %s", $param);
+                        addLog("user", "remove", json_encode($param));
                         break;
                     case 157: // Удаление роли
                         request("DELETE FROM roles WHERE role = %s", $param);
@@ -357,6 +393,7 @@
                             $_rights = (int)($rights[$i]->rights);
                             $_param = [ $id, $type, $login, $_rights ];
                             query("INSERT INTO rights (objectId, type, login, rights) VALUES(%i, %s, %s, %i) ", $_param);
+                            addLog("right", "add", json_encode($_param));
                         }
                         break;
                     case 201: // Запросить права
@@ -410,8 +447,9 @@
                                                 else $field["value"] = $valueData[0];
                                             }
                                             break;
+                                        case "file":
                                         case "table":
-                                            $field["type"] = "table";
+                                            $field["type"] = $row[5];
                                             if($value = query("SELECT name FROM structures WHERE id = %i", [ $field["linkId"] ]))
                                                 $field["value"] = $value->fetch_array(MYSQLI_NUM)[0];
                                             break;
@@ -424,6 +462,7 @@
                                 $data[(int)$row[0]][$row[1]] = $field;
                             }
                         echo json_encode(["head" => $head, "data" => $data, "name" => $nameTable, "change" => (getRights($idTable) & 8) == 8]);
+                        addLog("table", "open", $idTable);
                         /* request("SELECT * FROM fields WHERE tableId = %i", [$idTable]); */
                         break;
                     case 251: // Добавить/Удалить заголовок
@@ -441,8 +480,8 @@
                         $c = count($param[2]); // удаление ячеек
                         for($i = 0; $i < $c; $i++)
                             query("DELETE FROM fields WHERE tableId = %i AND name_column = %s AND type != 'head'", [ $idTable, $param[2][$i] ]);
-                        
                         print_r($data);
+                        addLog("table", "update", $idTable);
                         break;
                     case 252: // Добавить/Удалить/Изменить ячейки в таблице
                         $idTable = (int)$param[0];
@@ -475,16 +514,19 @@
                                 break;
                         }
                         echo json_encode([ "id" => $idFields, "value" => $value ]);
+                        addLog("table", "update", $idTable);
                         break;
                     case 253: // Изменить имя таблицы
                         $idTable = (int)$param[0];
                         if((getRights($idTable) & 8) != 8) return; // Права на изменение
                         query("UPDATE structures SET name = %s WHERE id = %i", [ $param[1], $param[0] ]);
+                        addLog("table", "update", $idTable);
                         break;
                     case 254: // Удаление таблицы
                         $idTable = (int)$param[0];
                         if((getRights($idTable) & 8) != 8) return; // Права на изменение
                         query("DELETE FROM fields WHERE tableId = %i", [ $idTable ]);
+                        addLog("table", "remove", $idTable);
                         break;
                     case 255: // Добавление элемента из левого меню в таблицу по ссылке
                         $idTable = (int)$param[0];
@@ -505,7 +547,7 @@
                                 if($valueData[2] == "array") $fieldList = getListValueByKey((int)$row[2], $fieldValue);
                             }
                             else $fieldValue = $row[0];
-                            $linkId = $linkType == "table" ? $idObject : (int)$valueData[0];
+                            $linkId = $linkType != "value" ? $idObject : (int)$valueData[0];
                             
                             if($typeOperation == "insert")
                             {
@@ -518,6 +560,7 @@
                                     0, $linkId, $linkType, $idTable, $idFields ]);
                             echo json_encode([ "id" => $idFields, "linkId" => $linkId, "type" => $linkType, "value" => $fieldValue, "listValue" => $fieldList ]);
                         }
+                        addLog("table", "update", $idTable);
                         break;
                     case 256: // Добавление элемента из левого меню в таблицу по значению
                         $idTable = (int)$param[0];
@@ -549,6 +592,7 @@
                                     break;
                             }
                         }
+                        addLog("table", "update", $idTable);
                         break;
                     case 257: // Добавить строку в таблицу
                         $idTable = (int)$param[0];
@@ -562,11 +606,13 @@
                                 $out[$row[0]] = ["id" => $mysqli->insert_id, "value" => ""];
                             }
                         echo json_encode($out);
+                        addLog("table", "update", $idTable);
                         break;
                     case 258: // Удалить строку из таблицы
                         $idTable = (int)$param[0];
                         if((getRights($idTable) & 8) != 8) return; // Права на изменение
                         query("DELETE FROM fields WHERE tableId = %i AND i = %i AND type != 'head'", [ $idTable, (int)$param[1] ]);
+                        addLog("table", "update", $idTable);
                         break;
                     case 259: // Копировать ячейку
                         $idCellTo = (int)$param[0];
@@ -595,6 +641,7 @@
                                 query("UPDATE fields SET type='value', value='', linkId=NULL, linkType=NULL, stateId=NULL, stateValue=NULL, info=NULL WHERE id = %i", [ $idCellFrom ]);
                             }
                         }
+                        addLog("table", "update", $idTable);
                         break;
                 }
             if($nQuery >= 300 && $nQuery < 350) // Работа со значениями 
@@ -665,6 +712,21 @@
                             while ($row = $result->fetch_array(MYSQLI_NUM)) $idValue = (int)$row[0]; */
                         echo json_encode(getListValues($idValue));
                         break;
+                }
+            if($nQuery >= 350 && $nQuery < 400) // Работа с логом
+                switch($nQuery)
+                {
+                    case 350: // Запрос времени открытия таблицы
+                        $idTable = (int)$param[0];
+                        request("SELECT date FROM main_log WHERE operation = 'open' AND login = %s AND value = %i ORDER BY date DESC", [$login, $idTable]);
+                        break;
+                    case 351: // Проверка необходимости синхронизации
+                        $idTable = (int)$param[0];
+                        $update = false;
+                        if($result = query("SELECT date FROM main_log WHERE operation = 'update' AND login != %s AND value = %i AND date >= %s ORDER BY date DESC", [ $login, $idTable, $param[1] ]))
+                            while ($row = $result->fetch_array(MYSQLI_NUM)) { $update = true; break; }
+                        echo json_encode([$update]);
+                        break; 
                 }
         }
         /* else query("UPDATE signin SET checkkey = '', login = '' WHERE id = %s", [$paramI]); // Если пользователь послал не тот id  */
@@ -812,4 +874,9 @@
             }
         }
     }
-?>				
+    function addLog($type, $operation, $value)
+    {
+        global $login;
+        query("INSERT INTO main_log (type, operation, value, date, login) VALUES(%s, %s, %s, %s, %s)", [ $type, $operation, $value, "@DATE@", $login ]);
+    }
+?>
