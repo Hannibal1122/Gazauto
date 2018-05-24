@@ -8,6 +8,7 @@ export class QueryService
 {
     //url = 'http://localhost/gazprom/scripts/main.php';
     url = 'http://localhost:8081/gazprom/scripts/main.php';
+    /* url = '/scripts/main.php'; */
     constructor() 
     { 
         /* $.ajaxSetup({ headers: {  'Access-Control-Allow-Origin': 'http://localhost:8081' } }); */

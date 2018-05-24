@@ -9,7 +9,8 @@ import { EnterComponent } from './enter/enter.component';
 import { ModalWindowModule } from "./system/modalwindow/modalwindow.module";
 import { LoadingComponent } from './system/loading/loading.component';
 import { TableEditorComponent } from './software/table-editor/table-editor.component';
-import { ErrorTableComponent } from './system/error-table/error-table.component'
+import { ErrorTableComponent } from './system/error-table/error-table.component';
+import { InfoComponent } from './software/info/info.component'
 
 @NgModule({
     declarations: [ 
@@ -17,7 +18,7 @@ import { ErrorTableComponent } from './system/error-table/error-table.component'
         LeftMenuElementComponent, 
         ExplorerComponent, 
         DynamicComponent, 
-        EnterComponent, LoadingComponent, TableEditorComponent, ErrorTableComponent
+        EnterComponent, LoadingComponent, TableEditorComponent, ErrorTableComponent, InfoComponent
     ],
     imports: [ BrowserModule, FormsModule, ModalWindowModule ],
     providers: [],

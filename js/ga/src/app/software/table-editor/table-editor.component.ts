@@ -16,8 +16,8 @@ export class TableEditorComponent implements OnInit
     onChange = null;
     set inputFromApp(value)
     {
-        if(value)
-            this.searchCell(value);
+        if(value && value.search) this.searchCell(value.search);
+        if(value && value.update) this.loadTable();
     }
 
     inputs = { id: -1, searchObjectId: -1 };
@@ -92,11 +92,11 @@ export class TableEditorComponent implements OnInit
                 this.needUpdate = false;
             }
             else this.needUpdate = data[0];
-            this.lastUpdateTimer = setTimeout(() => { this.getLastUpdateTime(); }, 2000);
+            this.lastUpdateTimer = setTimeout(() => { this.getLastUpdateTime(); }, 10000);
         });
     }
     private listLoginTimer = null;
-    private listLogin = [];
+    listLogin = [];
     private getListLogin() // Получить список пользователей работающих с таблицей
     {
         clearTimeout(this.listLoginTimer);
@@ -105,7 +105,7 @@ export class TableEditorComponent implements OnInit
             this.listLogin = [];
             for(var key in data)
                 this.listLogin.push(key);
-            this.listLoginTimer = setTimeout(() => { this.getListLogin(); }, 10000);
+            this.listLoginTimer = setTimeout(() => { this.getListLogin(); }, 30000);
         });
     }
     /*************************************************/
@@ -344,19 +344,25 @@ export class TableEditorComponent implements OnInit
     {
         let i = this.editTable.configInput.i;
         let j = this.editTable.configInput.j;
+        let operation = localStorage.getItem("lastOperationTable");
         let queryFunction = (typePaste) =>
         {
             this.load = true;
-            this.query.protectionPost(259, { param: [this.editTable.listTables[i][j].id, localStorage.getItem("copyTable"), localStorage.getItem("lastOperationTable"), typePaste] }, (data) =>
+            this.query.protectionPost(259, { param: [this.editTable.listTables[i][j].id, localStorage.getItem("copyTable"), operation, typePaste] }, (data) =>
             {
-                this.editTable.listTables[i][j] = data;
+                if(operation == "cut")
+                {
+                    this.loadTable();
+                    this.onChange({ type: "updateTable", id: data.idTableFrom});
+                }
+                else this.editTable.listTables[i][j] = data;
                 this.load = false;            
             });   
             localStorage.removeItem("copyTable");
             localStorage.removeItem("copyTableValue");
             this.rules.copy = this.rules.cut = this.rules.paste = false;
         }
-        if(localStorage.getItem("lastOperationTable") == 'copy')
+        if(operation == 'copy')
             this.modal.open({ 
                 title: "Как добавить элемент в таблицу", 
                 data: [["Тип:", {selected: "по значению", data: ["по значению", "по ссылке"]}, "select"]], 

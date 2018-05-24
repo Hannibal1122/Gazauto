@@ -3,6 +3,7 @@ import { ExplorerComponent } from './software/explorer/explorer.component';
 import { QueryService } from "./lib/query.service";
 import { FunctionsService } from "./lib/functions.service";
 import { TableEditorComponent } from './software/table-editor/table-editor.component';
+import { InfoComponent } from './software/info/info.component';
 
 declare var trace:any;
 declare var $: any;
@@ -41,9 +42,10 @@ export class AppComponent implements OnInit
             this.enter = true; 
             this.Login = localStorage.getItem("login");
             this.refreshLeftMenu();
-            /* this.openSoftware("explorer", { }); */
+            /* this.openSoftware("explorer", { id: 0 }); */
+            /* this.openSoftware("info", { id: -1 }); */
             this.openSoftware("table", { id: 66 });
-            /* this.openSoftware("table", { id: 102 }); */
+            this.openSoftware("table", { id: 102 });
         });
         this.firstEnter(this);
         ////////////////////////////////////////////////////////////////////
@@ -169,15 +171,25 @@ export class AppComponent implements OnInit
                     }
                 });
                 break;
+            case "updateTable":
+                let i = 0;
+                for(; i < this.tabs.length; i++)
+                    if(this.tabs[i].type == "table" && this.tabs[i].software.inputs && this.tabs[i].software.inputs.id == e.id)
+                    {
+                        this.tabs[i].inputFromApp = { update: true };
+                        break;
+                    }
+                break;
         }
     }
-    openSoftware(type, input?) // Открыть приложение
+    openSoftware(type, input) // Открыть приложение
     {
         var i = 0;
         switch(type)
         {
             case "explorer": i = this.checkRepeatSoftware(type, { component: ExplorerComponent, inputs: input }); break;
             case "table": i = this.checkRepeatSoftware(type, { component: TableEditorComponent, inputs: input, appendFromLeftMenu: {} }); break;
+            case "info": i = this.checkRepeatSoftware(type, { component: InfoComponent, inputs: input }); break;
         }
         this.currentSoftware = i;
     }
@@ -190,13 +202,14 @@ export class AppComponent implements OnInit
         {
             case "explorer": name = "Проводник"; break;
             case "table": name = "Редактор таблицы"; break;
+            case "info": name = "Справка"; break;
         }
         for(; i < this.tabs.length; i++)
             if(this.tabs[i].type == type && this.tabs[i].software.inputs && this.tabs[i].software.inputs.id == input.id) break;
         if(i != this.tabs.length) 
         {
             if(input.searchObjectId) 
-                this.tabs[i].inputFromApp = input.searchObjectId;
+                this.tabs[i].inputFromApp = { search: input.searchObjectId };
         }
         else
             this.tabs[i] = 

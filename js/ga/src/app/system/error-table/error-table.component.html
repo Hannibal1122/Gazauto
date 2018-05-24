@@ -1,4 +1,4 @@
-<div #mainContainer style = "position:relative; overflow:auto;" [style.height] = "height">
+<div #mainContainer style = "overflow:auto;" [style.height] = "height">
     <table class = "errorTable" (dragover)="dragoverHandler($event);">  <!--  -->
         <tbody (click) = "change ? editField($event) : null">
             <tr>

@@ -8,6 +8,7 @@ import { CreateRightService } from "../create-right.service";
 import { CreateValueService } from "../create-value.service";
 import { PasteObjectService } from "../paste-object.service";
 import { CreateFileService } from "../create-file.service";
+import { CreateInfoService } from "../create-info.service";
 
 declare var $:any;
 declare var trace:any;
@@ -24,7 +25,8 @@ declare var trace:any;
         CreateRightService,
         CreateValueService,
         PasteObjectService,
-        CreateFileService
+        CreateFileService,
+        CreateInfoService
     ]
 })
 export class ExplorerComponent implements OnInit 
@@ -32,8 +34,8 @@ export class ExplorerComponent implements OnInit
     @ViewChild('modal') public modal: any;
     set inputFromApp(value)
     {
-        if(value) 
-            this.openObjectById("search", value);
+        if(value && value.search) 
+            this.openObjectById("search", value.search);
     }
     onChange = null;
     inputs = { id: -1, element: null, searchObjectId: null };
@@ -65,6 +67,7 @@ export class ExplorerComponent implements OnInit
         private createValue: CreateValueService,
         private pasteObject: PasteObjectService,
         private createFile: CreateFileService,
+        private createInfo: CreateInfoService,
     ) {}
     ngOnInit() 
     { 
@@ -89,6 +92,7 @@ export class ExplorerComponent implements OnInit
         this.createValue.modal = this.modal;
         this.pasteObject.modal = this.modal;
         this.createFile.modal = this.modal;
+        this.createInfo.modal = this.modal;
     }
     openObjectById(type, id)
     {
@@ -238,6 +242,7 @@ export class ExplorerComponent implements OnInit
             this.selectRules.rights = Boolean(right.change);
             this.selectRules.remove = Boolean(right.change);
             this.selectRules.paste = Boolean(right.change) && this.selectObjectCopy.id != -1;
+            this.selectRules.info = Boolean(right.change);
             if(objectType == "file") this.selectRules.download = true;
         });
     }
@@ -319,5 +324,10 @@ export class ExplorerComponent implements OnInit
         document.body.appendChild(iframe);
         iframe.onload = () => { document.body.removeChild(iframe); } // надо удалять!!!
         document.body.appendChild(iframe);
+    }
+    addInfo()
+    {
+        if(this.selectObjectI != -1)
+            this.createInfo.create(this.outFolders[this.selectObjectI].id);
     }
 }

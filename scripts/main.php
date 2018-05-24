@@ -69,7 +69,7 @@
             case 0: // Запрос версии
                 /* include("./version/versions.php"); */
                 $project = [];	
-                $project['main'] = "0.7.5";/* getVersion(		$_main["name"], 		$_main["data"]); */
+                $project['main'] = "0.8.1";/* getVersion(		$_main["name"], 		$_main["data"]); */
                 $project['php'] = "0.9.1";/* getVersion(		$_php["name"], 			$_php["data"]); */
                 echo json_encode($project);
                 break;
@@ -326,6 +326,16 @@
                         $filePathForDownload = "../files/$idElement/$name";
                         require_once("getFile.php");
                         addLog("file", "download", $idElement);
+                        break;
+                    case 122: // запрос информации об элементе структуры
+                        $idElement = (int)$param[0];
+                        if((getRights($idElement) & 1) != 1) return; // Права на изменение
+                        request("SELECT info FROM structures WHERE id = %i", [ $idElement ]);
+                        break;
+                    case 123: // выставление информации в структуре
+                        $idElement = (int)$param[0];
+                        if((getRights($idElement) & 8) != 8) return; // Права на изменение
+                        query("UPDATE structures SET info = %s WHERE id = %i", [ $param[1], $idElement ]);
                         break;
                 }
             if($nQuery >= 150 && $nQuery < 200) // Работа с Пользователями // Только admin
@@ -614,7 +624,7 @@
                         $idCellTo = (int)$param[0];
                         $idCellFrom = (int)$param[1];
                         $operation = $param[2];
-                        $typePate = $param[3];
+                        $typePaste = $param[3];
                         if($idCellTo == $idCellFrom) return; // нельзя скопировать в ту же ячейку
                         if($result = query("SELECT tableId FROM fields WHERE id = %i", [$idCellTo])) $idTableTo = (int)($result->fetch_array(MYSQLI_NUM)[0]);
                         if($result = query("SELECT tableId FROM fields WHERE id = %i", [$idCellFrom])) $idTableFrom = (int)($result->fetch_array(MYSQLI_NUM)[0]);
@@ -623,9 +633,14 @@
                         if($operation == "cut" && (getRights($idTableFrom) & 8) != 8) return; // Права на изменение
                         if($operation == "copy") 
                         {
-                            if($typePate == "cell") query("UPDATE fields SET value = %s, linkId = %i, linkType = %s, type = 'link' WHERE id = %i", [ "", $idCellFrom, "cell", $idCellTo]);
+                            if($typePaste == "cell") query("UPDATE fields SET value = %s, linkId = %i, linkType = %s, type = 'link' WHERE id = %i", [ "", $idCellFrom, "cell", $idCellTo]);
                             else query("UPDATE fields SET value = %s, linkId = NULL, linkType = NULL, type = 'value' WHERE id = %i", [ getCellLink($idCellFrom, true), $idCellTo]);
-                            echo json_encode([ "id" => $idCellTo, "value" => getCellLink($idCellFrom, true), "type" => $typePate == "cell" ? $typePate : null ]);
+                            echo json_encode([ 
+                                "id" => $idCellTo, 
+                                "value" => getCellLink($idCellFrom, true), 
+                                "type" => $typePaste == "cell" ? $typePaste : null, 
+                                "linkId" => $typePaste == "cell" ? $idCellFrom : null ]);
+                            addLog("table", "update", $idTableTo); // изменение основной таблицы
                         }
                         if($operation == "cut") 
                         {
@@ -635,9 +650,10 @@
                                 query("UPDATE fields SET type=%s, value=%s, linkId=%i, linkType=%s, stateId=%i, stateValue=%i, info=%s WHERE id = %i", [ 
                                     $valueData[0], $valueData[1], $valueData[2], $valueData[3], $valueData[4], $valueData[5], $valueData[6], $idCellTo ]);
                                 query("UPDATE fields SET type='value', value='', linkId=NULL, linkType=NULL, stateId=NULL, stateValue=NULL, info=NULL WHERE id = %i", [ $idCellFrom ]);
+                                echo json_encode([ "idTableFrom" => $idTableFrom ]);
+                                addLog("table", "update", $idTableFrom); // изменение таблицы из которой вырезали
                             }
                         }
-                        addLog("table", "update", $idTable);
                         break;
                 }
             if($nQuery >= 300 && $nQuery < 350) // Работа со значениями 
@@ -714,7 +730,12 @@
                 {
                     case 350: // Запрос времени открытия таблицы
                         $idTable = (int)$param[0];
-                        request("SELECT date FROM main_log WHERE operation = 'open' AND login = %s AND value = %i ORDER BY date DESC", [$login, $idTable]);
+                        if($result = query("SELECT date FROM main_log WHERE operation = 'open' AND login = %s AND value = %i ORDER BY date DESC", [ $login, $idTable ]))
+                            while ($row = $result->fetch_array(MYSQLI_NUM)) 
+                            { 
+                                echo json_encode([[$row[0]]]);
+                                break; 
+                            }
                         break;
                     case 351: // Проверка необходимости синхронизации
                         $idTable = (int)$param[0];

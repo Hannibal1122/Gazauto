@@ -201,9 +201,9 @@ export class ErrorTableComponent implements OnInit
             j = Number(a[1]);
 
             let mainOffset = $(this.mainContainer.nativeElement).offset();
-            let scrollTop = this.mainContainer.nativeElement.scrollTop;
+            /* let scrollTop = this.mainContainer.nativeElement.scrollTop; */
             let offset = $(element).offset();
-            out.top = (offset.top - mainOffset.top + scrollTop) + "px";
+            out.top = (offset.top - mainOffset.top/*  + scrollTop */) + "px";
             out.left = (offset.left - mainOffset.left) + "px";
             out.width = (element.clientWidth + 1) + "px";
             out.height = (element.clientHeight + 1) + "px";

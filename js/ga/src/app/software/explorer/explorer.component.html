@@ -1,5 +1,5 @@
 
-<button class = "explorerButton" title = "Назад" (click) = "openBackFolder(parent)"><i class="fas fa-arrow-left"></i></button>
+<button class = "explorerButton" title = "Назад" (click) = "openBackFolder()"><i class="fas fa-arrow-left"></i></button>
 <input type = "text" style = "border-radius:5px; padding: 5px; border: 1px solid #eeeeee;" placeholder="Поиск">
 <button class = "explorerButton" title = "Добавить элемент" (click) = "newObject()" [disabled] = "!selectRules.new"><i class="fas fa-file"></i></button>
 <button class = "explorerButton" title = "Копировать" (click) = "copyObject('copy')" [disabled] = "!selectRules.copy"><i class="fas fa-copy"></i></button>
