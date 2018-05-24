@@ -29,6 +29,10 @@ export class DynamicComponent
         if (this.currentComponent) this.currentComponent.destroy();
         this.currentComponent = component;
     }
+    @Input() set inputFromApp(value)
+    {
+        this.currentComponent._component.inputFromApp = value;
+    }
     @Output() onChange = new EventEmitter<any>();
     constructor(private resolver: ComponentFactoryResolver) { }
 }

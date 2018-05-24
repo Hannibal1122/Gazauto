@@ -40,7 +40,7 @@ export class AppComponent implements OnInit
         { 
             this.enter = true; 
             this.Login = localStorage.getItem("login");
-            this.refresh();
+            this.refreshLeftMenu();
             /* this.openSoftware("explorer", { }); */
             this.openSoftware("table", { id: 66 });
             /* this.openSoftware("table", { id: 102 }); */
@@ -128,7 +128,7 @@ export class AppComponent implements OnInit
             else if(this.tabs[i - 1]) this.currentSoftware = i - 1;
         }
     }
-    refresh() // обновить левое меню
+    refreshLeftMenu() // обновить левое меню
     {
         this.query.protectionPost(113, { param: [] }, (data) => 
         { 
@@ -136,7 +136,7 @@ export class AppComponent implements OnInit
             setTimeout(() => { this.leftMenuOnResize(); }, 20); 
         });
     }
-    onChangeInLeftMenu(e)
+    onChangeInLeftMenu(e) // События из левого меню
     {
         switch(e.type)
         {
@@ -146,7 +146,7 @@ export class AppComponent implements OnInit
             case "height": setTimeout(() => { this.leftMenuOnResize(); }, 20); break;
         }
     }
-    onChangeInSoftware(e)
+    onChangeInSoftware(e) // Происходит из других приложений
     {
         switch(e.type)
         {
@@ -161,10 +161,10 @@ export class AppComponent implements OnInit
                         case "table":
                         case "file":
                         case "value":
-                            this.openSoftware("explorer", { id: idParent[0][0], searchElement: e.value.name == "value" ? idParent[0][1] : e.value.id });
+                            this.openSoftware("explorer", { id: idParent[0][0], searchObjectId: e.value.name == "value" ? idParent[0][1] : e.value.id });
                             break;
                         case "cell":
-                            this.openSoftware("table", { id: idParent[0][0], searchCellId: e.value.id });
+                            this.openSoftware("table", { id: idParent[0][0], searchObjectId: e.value.id });
                             break;
                     }
                 });
@@ -173,39 +173,47 @@ export class AppComponent implements OnInit
     }
     openSoftware(type, input?) // Открыть приложение
     {
+        var i = 0;
         switch(type)
         {
-            case "explorer":
-                this.tabs.push(
-                {
-                    name: "Проводник",
-                    type: "explorer",
-                    software:{
-                        component: ExplorerComponent,
-                        inputs: { data: input }
-                    }
-                })
-                break;
-            case "table":
-                this.tabs.push(
-                {
-                    name: "Редактор таблицы",
-                    type: "table",
-                    software:{
-                        component: TableEditorComponent,
-                        inputs: input,
-                        appendFromLeftMenu: {}
-                    }
-                })
-                break;
+            case "explorer": i = this.checkRepeatSoftware(type, { component: ExplorerComponent, inputs: input }); break;
+            case "table": i = this.checkRepeatSoftware(type, { component: TableEditorComponent, inputs: input, appendFromLeftMenu: {} }); break;
         }
-        this.currentSoftware = this.tabs.length - 1;
+        this.currentSoftware = i;
+    }
+    checkRepeatSoftware(type, software)
+    {
+        var i = 0;
+        var input = software.inputs;
+        var name = "";
+        switch(type)
+        {
+            case "explorer": name = "Проводник"; break;
+            case "table": name = "Редактор таблицы"; break;
+        }
+        for(; i < this.tabs.length; i++)
+            if(this.tabs[i].type == type && this.tabs[i].software.inputs && this.tabs[i].software.inputs.id == input.id) break;
+        if(i != this.tabs.length) 
+        {
+            if(input.searchObjectId) 
+                this.tabs[i].inputFromApp = input.searchObjectId;
+        }
+        else
+            this.tabs[i] = 
+            {
+                name: name,
+                type: type,
+                software: software,
+                inputFromApp: null,
+            };
+        return i;
     }
     hideMenuSoftware() // скрыть из левого меню приложения
     {
         this.hideSoftware = !this.hideSoftware;
         setTimeout(() => { this.leftMenuOnResize(); }, 20); 
     }
+    /*******************************************************************/
     autoLogin(func) // Автовход
     {
         this.load = true;

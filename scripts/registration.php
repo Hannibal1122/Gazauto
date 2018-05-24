@@ -23,7 +23,7 @@
             $sult = unique_md5();
             $hash = myhash($pass, $sult);
             query("INSERT INTO password VALUES(%s,%s)", [$newLogin, $hash]);
-            query("INSERT INTO registration VALUES(%s, %s, %s)", [$newLogin, $role, $current_time]);
+            query("INSERT INTO registration VALUES(%s, %s, NOW())", [$newLogin, $role]);
             echo json_encode(["yes", "yes", "yes"]);
         }
     }

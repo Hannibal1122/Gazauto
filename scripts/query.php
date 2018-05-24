@@ -7,7 +7,7 @@
     } */
     function query($sql, $record_values)
     {
-        global $mysqli, $current_time, $nQuery;
+        global $mysqli, $nQuery;
         $arr = array();
         $sql_bind_string = "";
         $sql_len = strlen($sql);
@@ -48,8 +48,8 @@
         if ($i_count_prepare != count($record_values)) return false;
         $arr[] = $sql_bind_string;
         for ($i = 0; $i < count($record_values); $i++) 
-            if ((string)$record_values[$i] == "@DATE@") $arr[] = $current_time;
-            else $arr[] = $record_values[$i];
+            /* if ((string)$record_values[$i] == "@DATE@") $arr[] = $current_time;
+            else  */$arr[] = $record_values[$i];
         $stmt = $mysqli->prepare($sql);
         if (count($record_values) > 0) call_user_func_array(array($stmt, 'bind_param'), refValues($arr));
         $stmt->execute();

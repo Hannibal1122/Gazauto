@@ -14,12 +14,17 @@ export class TableEditorComponent implements OnInit
     @ViewChild('modal') public modal: any;
     @ViewChild('editTable') public editTable: any;
     onChange = null;
+    set inputFromApp(value)
+    {
+        if(value)
+            this.searchCell(value);
+    }
 
-    inputs = { id: -1, searchCellId: -1 };
+    inputs = { id: -1, searchObjectId: -1 };
     firstData = {};
     dataHeader = [];
     dataTable = [];
-    mode = "Local";
+    mode = "Global"; //Local
     nameTable = "";
     error = false;
     load = false;
@@ -64,34 +69,46 @@ export class TableEditorComponent implements OnInit
                 this.dataTable[i] = data.data[key];
                 this.dataTable[i].__ID__ = key;
             }
-            if(this.inputs.searchCellId) this.searchCell(this.inputs.searchCellId);
+            if(this.inputs.searchObjectId) this.searchCell(this.inputs.searchObjectId);
             this.query.protectionPost(350, { param: [this.inputs.id] }, (data) => 
             { 
                 this.lastUpdateTime = data[0][0]; 
                 this.getLastUpdateTime();
+                this.getListLogin();
                 this.load = false;
             });
         });
     }
-    lastUpdateTimer = null;
-    getLastUpdateTime()
+    /*************************************************/
+    private lastUpdateTimer = null;
+    private getLastUpdateTime() // Запрос изменений таблицы
     {
         clearTimeout(this.lastUpdateTimer);
-        this.lastUpdateTimer = setTimeout(() =>
-        {
-            this.query.protectionPost(351, { param: [this.inputs.id, this.lastUpdateTime] }, (data) => 
-            { 
-                
-                if(data[0] && !this.editTable.inputProperty.visible) 
-                {
-                    this.loadTable();
-                    this.needUpdate = false;
-                }
-                else this.needUpdate = data[0];
-                this.getLastUpdateTime();
-            });
-        }, 2000);
+        this.query.protectionPost(351, { param: [this.inputs.id, this.lastUpdateTime] }, (data) => 
+        { 
+            if(data[0] && !this.editTable.inputProperty.visible) 
+            {
+                this.loadTable();
+                this.needUpdate = false;
+            }
+            else this.needUpdate = data[0];
+            this.lastUpdateTimer = setTimeout(() => { this.getLastUpdateTime(); }, 2000);
+        });
     }
+    private listLoginTimer = null;
+    private listLogin = [];
+    private getListLogin() // Получить список пользователей работающих с таблицей
+    {
+        clearTimeout(this.listLoginTimer);
+        this.query.protectionPost(352, { param: [ this.inputs.id ] }, (data) => 
+        { 
+            this.listLogin = [];
+            for(var key in data)
+                this.listLogin.push(key);
+            this.listLoginTimer = setTimeout(() => { this.getListLogin(); }, 10000);
+        });
+    }
+    /*************************************************/
     ngOnDestroy() 
     {
         clearTimeout(this.lastUpdateTimer);
@@ -267,7 +284,7 @@ export class TableEditorComponent implements OnInit
                 this.query.protectionPost(257, { param: [ this.inputs.id, property.idRow ]}, (data) => 
                 {
                     this.dataTable.push(data);
-                    this.editTable.data = this.dataTable; // update edit table */
+                    this.editTable.data = this.dataTable; // update edit table
                     this.load = false;
                 });
                 break;
@@ -275,16 +292,17 @@ export class TableEditorComponent implements OnInit
                 this.load = true;
                 this.query.protectionPost(252, { param: [ this.inputs.id,  JSON.stringify(property.out) ]}, (data) => 
                 {
-                    if(property.out.__type__ == "insert")
+                    if(typeof data.value === "object")
+                    {
+                        this.dataTable[property.i][property.nameColumn].listValue = data.value.listValue;
+                        this.dataTable[property.i][property.nameColumn].value = data.value.value;
+                        this.editTable.data = this.dataTable; // update edit table
+                    }
+                    else // Либо insert, либо update 
+                    {
                         this.dataTable[property.i][property.nameColumn] = data;
-                    else 
-                        if(typeof data.value === "object")
-                        {
-                            this.dataTable[property.i][property.nameColumn].listValue = data.value.listValue;
-                            this.dataTable[property.i][property.nameColumn].value = data.value.value;
-                        }
-                        else this.dataTable[property.i][property.nameColumn] = data;
-                    this.editTable.data = this.dataTable; // update edit table */
+                        this.editTable.setCell = { i: property.i, key: property.nameColumn, value: data };
+                    }
                     this.load = false;
                 });
                 break;
@@ -293,7 +311,7 @@ export class TableEditorComponent implements OnInit
                 this.query.protectionPost(258, { param: [ this.inputs.id, this.dataTable[property.i].__ID__ ]}, (data) => 
                 {
                     this.dataTable.splice(property.i, 1);
-                    this.editTable.data = this.dataTable; // update edit table */
+                    this.editTable.data = this.dataTable; // update edit table
                     this.load = false;
                 });
                 break;

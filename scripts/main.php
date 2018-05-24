@@ -37,10 +37,6 @@
 				$paramI = $_POST['paramI']; 
         }
     }
-
-    $year = explode("T", date("c"));
-    $time = explode("+", $year[1]);
-    $current_time = $year[0]." ".$time[0];
             
     $mysqli = new mysqli('localhost', $username, $password, $dbName);
     if (mysqli_connect_errno()) { echo("Не могу создать соединение"); exit(); }
@@ -61,7 +57,7 @@
             while ($row = $result->fetch_array(MYSQLI_NUM)) $checkLogin = true;
         if(!$checkLogin) 
         { 
-            query("INSERT INTO registration VALUES(%s, %s, %s)", ["admin", "", "@DATE@"]);
+            query("INSERT INTO registration VALUES(%s, %s, NOW())", ["admin", ""]);
             query("INSERT INTO password VALUES(%s, %s)", ["admin", "$2a$10$644bb3233e1ff251b4b4eumdZjoiZjWjFLyol.Ad7uUoNWlWCpz.u"]);
         }
         exit();
@@ -73,8 +69,8 @@
             case 0: // Запрос версии
                 /* include("./version/versions.php"); */
                 $project = [];	
-                $project['main'] = "0.7.15";/* getVersion(		$_main["name"], 		$_main["data"]); */
-                $project['php'] = "0.9.0";/* getVersion(		$_php["name"], 			$_php["data"]); */
+                $project['main'] = "0.7.5";/* getVersion(		$_main["name"], 		$_main["data"]); */
+                $project['php'] = "0.9.1";/* getVersion(		$_php["name"], 			$_php["data"]); */
                 echo json_encode($project);
                 break;
             case 1: // Возвращает информацию о текущем пользователе
@@ -723,9 +719,18 @@
                     case 351: // Проверка необходимости синхронизации
                         $idTable = (int)$param[0];
                         $update = false;
+                        query("UPDATE main_log SET dateUpdate = NOW() WHERE operation = 'open' AND login = %s AND value = %i AND date = %s", [$login, $idTable, $param[1]]);
                         if($result = query("SELECT date FROM main_log WHERE operation = 'update' AND login != %s AND value = %i AND date >= %s ORDER BY date DESC", [ $login, $idTable, $param[1] ]))
                             while ($row = $result->fetch_array(MYSQLI_NUM)) { $update = true; break; }
                         echo json_encode([$update]);
+                        break; 
+                    case 352: // Получить список пользователей работающих с таблицей
+                        $idTable = (int)$param[0];
+                        $logins = [];
+                        if($result = query("SELECT login FROM main_log WHERE value = %s AND dateUpdate >= DATE_SUB(NOW(), INTERVAL 1 MINUTE)", [ $idTable ]))
+                            while ($row = $result->fetch_array(MYSQLI_NUM)) 
+                                $logins[$row[0]] = "";
+                        echo json_encode($logins);
                         break; 
                 }
         }
@@ -877,6 +882,6 @@
     function addLog($type, $operation, $value)
     {
         global $login;
-        query("INSERT INTO main_log (type, operation, value, date, login) VALUES(%s, %s, %s, %s, %s)", [ $type, $operation, $value, "@DATE@", $login ]);
+        query("INSERT INTO main_log (type, operation, value, date, login) VALUES(%s, %s, %s, NOW(), %s)", [ $type, $operation, $value, $login ]);
     }
 ?>

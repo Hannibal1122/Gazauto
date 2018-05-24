@@ -1,6 +1,6 @@
 <div>
-    <div style = "height:30px; position:relative;">
-        <input type = "text" style = "height:30px; border: 2px solid #eeeeee; padding-left:5px;" [(ngModel)] = "nameTable" (change) = "changeNameTable()">
+    <div style = "height:30px; position:relative; margin-bottom:4px;">
+        <input type = "text" style = "height:30px; border: 2px solid #eeeeee; padding-left:5px;" [(ngModel)] = "nameTable" (change) = "changeNameTable()" [disabled] = "!rules.add">
         <button [style.color] = "rules.save ? '#456486' : '#a6b9ce'" title = "save" [disabled] = "!rules.save"><i class="fas fa-save"></i></button>
         <button [style.color] = "rules.head ? '#456486' : '#a6b9ce'" title = "head" (click) = "changeHeader()" [disabled] = "!rules.head"><i class="fas fa-heading"></i></button>
         <button id = "tableCutButton" [style.color] = "rules.cut ? '#456486' : '#a6b9ce'" title = "cut" (click) = "copyField('cut')" [disabled] = "!rules.cut"><i class="fas fa-cut"></i></button>
@@ -8,9 +8,11 @@
         <button id = "tablePasteButton" [style.color] = "rules.paste ? '#456486' : '#a6b9ce'" title = "paste" (click) = "pasteField()" [disabled] = "!rules.paste"><i class="fas fa-paste"></i></button>
         <button [style.color] = "rules.add ? '#456486' : '#a6b9ce'" title = "add" (click) = "addRow()" [disabled] = "!rules.add"><i class="fas fa-plus"></i></button>
         <button [style.color] = "'#456486'" (click) = "loadTable()" title = "refresh"><i class="fas fa-sync-alt"></i></button>
-        <span *ngIf = "mode == 'Global'" style = "position:absolute; right:10px; color:#b5e498; font-size:20px;" title = "global"><i class="fas fa-cloud"></i></span>
+        <span *ngIf = "mode == 'Global'" style = "float:right; color:#b5e498; font-size:20px; margin-left:5px;" title = "global"><i class="fas fa-cloud"></i></span>
+        <span *ngIf = "!rules.add" style = "float:right; color:#b5e498; font-size:20px; margin-left:5px;" title = "Режим просмотра"><i class="fas fa-eye"></i></span>
         <span *ngIf = "load" style = "color:#757575;font-size:12px;">Loading...</span>
-        {{ needUpdate ? 'Требуется синхронизация' : '' }}
+        <span *ngIf = "needUpdate" style = "color:#757575;font-size:12px;">Требуется синхронизация</span>
+        <span *ngFor = "let login of listLogin" class = "loginFromList">{{login}}</span>
     </div>
     <div *ngIf = "error" style = "color:#af7e7e; font-size:24px; font-weight:bold">Таблица не доступна!</div>
     <div *ngIf = "!error && dataHeader.length == 0" style = "color:#b8b8b8; font-size:24px; font-weight:bold">Таблица пуста</div>

@@ -47,7 +47,7 @@
                     <div class = "softwareIcon softwareEvent" title = "Редактор связей"> <i class = "fas fa-link"></i> </div>
                     <div class = "softwareIcon softwareEvent" title = "Редактор событий"> <i class = "fas fa-bolt"></i> </div>
                     <div class = "softwareIcon softwareTasks" title = "Справка"> <i class = "fas fa-info"></i> </div>
-                    <div class = "softwareIcon softwareStatistics" title = "Обновить" (click) = "refresh()"> <i class = "fas fa-sync-alt"></i> </div>
+                    <div class = "softwareIcon softwareStatistics" title = "Обновить" (click) = "refreshLeftMenu()"> <i class = "fas fa-sync-alt"></i> </div>
                 </div>
             </div>
             <app-left-menu-element *ngFor = "let element of leftMenuData" 
@@ -72,7 +72,7 @@
         style = "height:calc(100% - 50px); transition: 0.3s; position: absolute; top: 50px; padding: 10px; color:#000000;">
         <div *ngFor="let app of tabs; let i = index;">
             <div [style.display] = "i == currentSoftware ? 'block' : 'none'">
-                <vg-dynamic-view [componentData] = "app.software" (onChange) = "onChangeInSoftware($event)"></vg-dynamic-view>
+                <vg-dynamic-view [componentData] = "app.software" (onChange) = "onChangeInSoftware($event)" [inputFromApp] = "app.inputFromApp"></vg-dynamic-view>
             </div> 
         </div>
         <div *ngIf = "tabs.length == 0">

@@ -79,6 +79,15 @@ export class ErrorTableComponent implements OnInit
     {
         if(id) this.searchCellId = id;
     }
+    set setCell(value)
+    {
+        this.listTables[value.i][this.firstHeader[value.key]] = value.value;
+    }
+    set setObjectCell(value)
+    {
+        this.listTables[value.i][this.firstHeader[value.key]].listValue = value.listValue;
+        this.listTables[value.i][this.firstHeader[value.key]].value = value.value;
+    }
     configInput = 
     {
         width: "100px",

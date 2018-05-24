@@ -30,11 +30,13 @@ declare var trace:any;
 export class ExplorerComponent implements OnInit 
 {
     @ViewChild('modal') public modal: any;
-    onChange = null;
-    inputs = 
+    set inputFromApp(value)
     {
-        data: null
-    };
+        if(value) 
+            this.openObjectById("search", value);
+    }
+    onChange = null;
+    inputs = { id: -1, element: null, searchObjectId: null };
     allPath = [];
     parent = 0;
     outFolders = [];
@@ -67,19 +69,15 @@ export class ExplorerComponent implements OnInit
     ngOnInit() 
     { 
         /* trace(this.inputs.data) */
-        if(this.inputs.data && this.inputs.data.id) 
+        if(this.inputs && this.inputs.id) 
         {
-            this.openFolder(this.inputs.data.id, () => 
+            this.openFolder(this.inputs.id, () => 
             {
                 let id = -1;
-                if(this.inputs.data.element) id = this.inputs.data.element;
-                if(this.inputs.data.searchElement) id = this.inputs.data.searchElement;
-                let i = 0;
-                for(; i < this.outFolders.length; i++)
-                    if(id == this.outFolders[i].id) break;
-               
-                if(this.inputs.data.element) this.openObject(this.outFolders[i]);
-                if(this.inputs.data.searchElement) this.addSearchObject(i);
+                let type = "";
+                if(this.inputs.element) { id = this.inputs.element; type = "element"; }
+                if(this.inputs.searchObjectId) { id = this.inputs.searchObjectId; type = "search"; }
+                this.openObjectById(type, id);
             });
         }
         else this.openFolder(0);
@@ -91,6 +89,14 @@ export class ExplorerComponent implements OnInit
         this.createValue.modal = this.modal;
         this.pasteObject.modal = this.modal;
         this.createFile.modal = this.modal;
+    }
+    openObjectById(type, id)
+    {
+        let i = 0;
+        for(; i < this.outFolders.length; i++)
+            if(id == this.outFolders[i].id) break;
+        if(type == "element") this.openObject(this.outFolders[i]);
+        else if(type == "search") this.searchObject(i);
     }
     newObject() // Создание объекта
     {
@@ -199,7 +205,7 @@ export class ExplorerComponent implements OnInit
     }
     searchObjectI = -1;
     searchTimeout = null
-    addSearchObject(i) // Выделяет объект зеленой границей
+    searchObject(i) // Выделяет объект зеленой границей
     {
         clearInterval(this.searchTimeout);
         this.searchObjectI = i;
@@ -259,6 +265,7 @@ export class ExplorerComponent implements OnInit
                 this.selectRules.paste = Boolean(right.change) && this.selectObjectCopy.id != -1;
                 this.selectRules.new = Boolean(right.change);
                 if(func) func();
+                this.inputs.id = id;
             });
         });
     }
