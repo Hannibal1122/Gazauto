@@ -93,6 +93,9 @@ export class ExplorerComponent implements OnInit
         this.pasteObject.modal = this.modal;
         this.createFile.modal = this.modal;
         this.createInfo.modal = this.modal;
+
+        this.globalClick = (e) => { if(e.target.className == "col-md-12" && this.selectObjectI != -1) this.refresh(); }
+        window.addEventListener("click", this.globalClick, false);
     }
     openObjectById(type, id)
     {
@@ -265,7 +268,6 @@ export class ExplorerComponent implements OnInit
                     this.selectObjectCopy.type = localStorage.getItem("lastOperationExplorer");
                 }
 
-                this.clearRules(true);
                 let right = this.createRight.decodeRights(data[0]);
                 this.selectRules.paste = Boolean(right.change) && this.selectObjectCopy.id != -1;
                 this.selectRules.new = Boolean(right.change);
@@ -329,5 +331,10 @@ export class ExplorerComponent implements OnInit
     {
         if(this.selectObjectI != -1)
             this.createInfo.create(this.outFolders[this.selectObjectI].id);
+    }
+    globalClick = null;
+    ngOnDestroy() 
+    {
+        window.removeEventListener("click", this.globalClick, false);
     }
 }

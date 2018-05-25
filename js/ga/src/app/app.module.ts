@@ -10,7 +10,8 @@ import { ModalWindowModule } from "./system/modalwindow/modalwindow.module";
 import { LoadingComponent } from './system/loading/loading.component';
 import { TableEditorComponent } from './software/table-editor/table-editor.component';
 import { ErrorTableComponent } from './system/error-table/error-table.component';
-import { InfoComponent } from './software/info/info.component'
+import { InfoComponent } from './software/info/info.component';
+import { TasksComponent } from './software/tasks/tasks.component'
 
 @NgModule({
     declarations: [ 
@@ -18,7 +19,7 @@ import { InfoComponent } from './software/info/info.component'
         LeftMenuElementComponent, 
         ExplorerComponent, 
         DynamicComponent, 
-        EnterComponent, LoadingComponent, TableEditorComponent, ErrorTableComponent, InfoComponent
+        EnterComponent, LoadingComponent, TableEditorComponent, ErrorTableComponent, InfoComponent, TasksComponent
     ],
     imports: [ BrowserModule, FormsModule, ModalWindowModule ],
     providers: [],

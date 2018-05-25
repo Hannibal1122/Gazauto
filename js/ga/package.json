@@ -22,8 +22,6 @@
     "@angular/platform-browser-dynamic": "^6.0.2",
     "@angular/router": "^6.0.2",
     "core-js": "^2.4.1",
-    "devextreme": "^17.2.7",
-    "devextreme-angular": "^17.2.7",
     "rxjs": "^6.1.0",
     "zone.js": "^0.8.14"
   },

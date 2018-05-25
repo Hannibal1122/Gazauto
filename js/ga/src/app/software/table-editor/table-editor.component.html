@@ -1,14 +1,13 @@
 <div class="row" style = "margin-left:0; margin-right:0;">
     <div class="col-md-8 col-sm-12" style = "height:30px; position:relative; margin-bottom:4px;">
         <input type = "text" style = "height:30px; border: 2px solid #eeeeee; padding-left:5px;" [(ngModel)] = "nameTable" (change) = "changeNameTable()" [disabled] = "!rules.add">
-        <!-- <button [style.color] = "rules.save ? '#456486' : '#a6b9ce'" title = "save" [disabled] = "!rules.save"><i class="fas fa-save"></i></button> -->
-        <button [style.color] = "rules.head ? '#456486' : '#a6b9ce'" title = "head" (click) = "changeHeader()" [disabled] = "!rules.head"><i class="fas fa-heading"></i></button>
-        <button id = "tableCutButton" [style.color] = "rules.cut ? '#456486' : '#a6b9ce'" title = "cut" (click) = "copyField('cut')" [disabled] = "!rules.cut"><i class="fas fa-cut"></i></button>
-        <button id = "tableCopyButton" [style.color] = "rules.copy ? '#456486' : '#a6b9ce'" title = "copy" (click) = "copyField('copy')" [disabled] = "!rules.copy"><i class="fas fa-copy"></i></button>
-        <button id = "tablePasteButton" [style.color] = "rules.paste ? '#456486' : '#a6b9ce'" title = "paste" (click) = "pasteField()" [disabled] = "!rules.paste"><i class="fas fa-paste"></i></button>
-        <button [style.color] = "rules.add ? '#456486' : '#a6b9ce'" title = "add" (click) = "addRow()" [disabled] = "!rules.add"><i class="fas fa-plus"></i></button>
-        <button [style.color] = "'#456486'" (click) = "loadTable()" title = "refresh"><i class="fas fa-sync-alt"></i></button>
-        <span *ngIf = "load" style = "color:#757575;font-size:12px;">Loading...</span>
+        <button class = "tableButton" title = "Заголовок" (click) = "changeHeader()" [disabled] = "!rules.head"><i class="fas fa-heading"></i></button>
+        <button id = "tablePasteButton"  class = "tableButton" title = "Вставить" (click) = "pasteField()" [disabled] = "!rules.paste"><i class="fas fa-paste"></i></button>
+        <button id = "tableCutButton"  class = "tableButton" title = "Вырезать" (click) = "copyField('cut')" [disabled] = "!rules.cut"><i class="fas fa-cut"></i></button>
+        <button id = "tableCopyButton"  class = "tableButton" title = "Копировать" (click) = "copyField('copy')" [disabled] = "!rules.copy"><i class="fas fa-copy"></i></button>
+        <button class = "tableButton" title = "Добавить строку" (click) = "addRow()" [disabled] = "!rules.add"><i class="fas fa-plus"></i></button>
+        <button class = "tableButton" (click) = "loadTable()" title = "Обновить"><i class="fas fa-sync-alt"></i></button>
+        <span *ngIf = "load" style = "color:#757575;font-size:12px;">Загрузка...</span>
         <span *ngIf = "needUpdate" style = "color:#757575;font-size:12px;">Требуется синхронизация</span>
     </div>
     <div class="col-md-4 col-sm-12 float-right" style = "height:30px; position:relative; margin-bottom:4px;">

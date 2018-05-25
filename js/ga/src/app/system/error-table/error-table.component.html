@@ -30,7 +30,7 @@
     </table>
 
     <div #mainEditElement style = "position:absolute;" [ngStyle] = "configInput" [hidden] = "!inputProperty.visible">
-        <input #mainInputElement type = "text" class = "mainInputStyle" (blur) = "acceptEditField($event)" [(ngModel)] = "inputProperty.value">
+        <input #mainInputElement type = "text" class = "mainInputStyle" (blur) = "acceptEditField($event)" [(ngModel)] = "inputProperty.value" (keydown)="downEnter($event)">
         <button #mainButtonElement [hidden] = "inputProperty.type != 'table'" 
             style = "position:absolute; right:0px; top: 0px; color:red; cursor:pointer; border:none; background:none; outline: none;"
             (click) = "inputProperty.value = ''; acceptEditField($event)">

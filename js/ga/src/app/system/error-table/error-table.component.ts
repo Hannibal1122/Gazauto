@@ -38,6 +38,11 @@ export class ErrorTableComponent implements OnInit
         this.functionResize = () => { this.resize(); };
         window.addEventListener("resize", this.functionResize, false);
 
+        this.mainContainer.nativeElement.onscroll = () => 
+        { 
+            if(this.inputProperty.visible) this.inputProperty.visible = false;
+        }
+
         this.mainEditElement.nativeElement.setAttribute("id", this.mainElementIds.mainEditElement);
         this.mainInputElement.nativeElement.setAttribute("id", this.mainElementIds.mainInputElement);
         this.mainButtonElement.nativeElement.setAttribute("id", this.mainElementIds.mainButtonElement);
@@ -225,4 +230,8 @@ export class ErrorTableComponent implements OnInit
         window.removeEventListener("resize", this.functionResize, false);
     }
     dragoverHandler(e) { e.preventDefault(); } // для того чтобы подсвечивалось cursor
+    downEnter(e)
+    {
+        if(e.keyCode == 13 && this.inputProperty.visible) this.inputProperty.visible = false;
+    }
 }
