@@ -5,6 +5,7 @@ import { FunctionsService } from "./lib/functions.service";
 import { TableEditorComponent } from './software/table-editor/table-editor.component';
 import { InfoComponent } from './software/info/info.component';
 import { TasksComponent } from './software/tasks/tasks.component';
+import { TaskComponent } from './software/task/task.component';
 
 declare var trace:any;
 declare var $: any;
@@ -45,8 +46,9 @@ export class AppComponent implements OnInit
             this.refreshLeftMenu();
             /* this.openSoftware("explorer", { id: 0 }); */
             /* this.openSoftware("info", { id: -1 }); */
-            this.openSoftware("tasks", { id: -1 });
-            /* this.openSoftware("table", { id: 66 }); */
+            /* this.openSoftware("task", { id: -1 }); */
+            /* this.openSoftware("tasks", { id: -1 }); */
+            this.openSoftware("table", { id: 66 });
             /* this.openSoftware("table", { id: 102 }); */
         });
         this.firstEnter(this);
@@ -134,10 +136,27 @@ export class AppComponent implements OnInit
     }
     refreshLeftMenu() // обновить левое меню
     {
+        this.query.protectionPost(353, { }, (data) =>
+        {
+            this.lastUpdateTime = data[0][0];
+            this.getLastUpdateTime();
+        });
         this.query.protectionPost(113, { param: [] }, (data) => 
         { 
             this.leftMenuData = data; 
             setTimeout(() => { this.leftMenuOnResize(); }, 20); 
+        });
+    }
+    private lastUpdateTimer = null;
+    private lastUpdateTime = "";
+    private getLastUpdateTime() // Запрос изменений таблицы
+    {
+        clearTimeout(this.lastUpdateTimer);
+        this.query.protectionPost(354, { param: [ this.lastUpdateTime ] }, (data) => 
+        { 
+            this.lastUpdateTime = data[1];
+            if(data[0]) this.refreshLeftMenu();
+            else this.lastUpdateTimer = setTimeout(() => { this.getLastUpdateTime(); }, 10000);
         });
     }
     onChangeInLeftMenu(e) // События из левого меню
@@ -193,6 +212,7 @@ export class AppComponent implements OnInit
             case "table": i = this.checkRepeatSoftware(type, { component: TableEditorComponent, inputs: input, appendFromLeftMenu: {} }); break;
             case "info": i = this.checkRepeatSoftware(type, { component: InfoComponent, inputs: input }); break;
             case "tasks": i = this.checkRepeatSoftware(type, { component: TasksComponent, inputs: input }); break;
+            case "task": i = this.checkRepeatSoftware(type, { component: TaskComponent, inputs: input }); break;
         }
         this.currentSoftware = i;
     }
@@ -207,8 +227,9 @@ export class AppComponent implements OnInit
             case "table": name = "Редактор таблицы"; break;
             case "info": name = "Справка"; break;
             case "tasks": name = "Задачник"; break;
+            case "task": name = "Задача"; break;
         }
-        for(; i < this.tabs.length; i++)
+        for(; i < this.tabs.length; i++) // Проверка на уже открытую вкладку
             if(this.tabs[i].type == type && this.tabs[i].software.inputs && this.tabs[i].software.inputs.id == input.id) break;
         if(i != this.tabs.length) 
         {

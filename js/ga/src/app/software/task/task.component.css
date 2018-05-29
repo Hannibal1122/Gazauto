@@ -1,0 +1,28 @@
+.headPanelTasks
+{
+    background-color:#ccb6b6; 
+    font-size:20px; 
+    padding:3px; 
+    height:35px;
+}
+.panelTasks
+{
+    font-size:14px; 
+    padding:3px; 
+    overflow:auto;
+}
+.tasksButton
+{
+    color:#456486;
+    width: 32px;
+    height: 32px;
+    background-color: #e5e5e5;
+    border: 1px solid #456486;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+.tasksButton:hover
+{
+    background-color: #eeeeee;
+}

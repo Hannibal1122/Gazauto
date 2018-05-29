@@ -81,7 +81,7 @@ export class LeftMenuElementComponent implements OnInit
     }
     openElement(data)
     {
-        trace(data)
+        /* trace(data) */
         switch(data.objectType)
         {
             case "folder":
@@ -100,7 +100,7 @@ export class LeftMenuElementComponent implements OnInit
             case "file":
                 this.query.protectionPost(111, { param: [ data.objectType, data.id ]}, (idParent) =>
                 {
-                    this.onChange.emit({ type: "open", value: { name: "explorer", id: idParent[0][0] }});
+                    this.onChange.emit({ type: "open", value: { name: "explorer", id: idParent[0][0], searchObjectId: data.id }});
                 });
                 break;
         }

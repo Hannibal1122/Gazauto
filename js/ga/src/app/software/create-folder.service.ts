@@ -23,7 +23,10 @@ export class CreateFolderService
         this.modal.open(this.Data, (save) =>
         {
             if(save)
+            {
+                if(this.Data.data[0][1] == "") return "Введите имя!";
                 this.query.protectionPost(100, { param: ["folder", "NULL", this.Data.data[0][1], id, 0, ""] }, (data) => { update() });
+            }
         });
     }
     remove(id, update)

@@ -284,7 +284,7 @@ export class DateTimeComponent implements AfterViewInit/* , OnChanges */ /*  imp
         {
             for(var i = 0; i < this.range.length; i++)
                 if(this.currentSelection <= this.range[i][1] && this.currentSelection >= this.range[i][0]) break;
-            if(this.range[i++] != undefined)
+            if(this.range[++i] != undefined)
             {
                 this.currentSelection = this.range[i][0];
                 this.mainInput.nativeElement.setSelectionRange(this.range[i][0], this.range[i][1])

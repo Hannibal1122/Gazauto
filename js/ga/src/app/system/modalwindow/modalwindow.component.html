@@ -17,10 +17,10 @@
                         <button *ngIf = "data[2] === 'selectAndButton'" (click) = "data[4]()">Добавить</button>
                         <!-- ******************************************************************************** -->
                         <div *ngIf = "data[2] === 'choiceListSelect'" >
-                            <select size = "10" style = "float: left; width: 150px;" [(ngModel)] = "data[1].current1">
+                            <select size = "10" style = "float: left; width: 150px; height:190px;" [(ngModel)] = "data[1].current1">
                                 <option value = "{{data[1].value ? data[1].value[j] : option}}" *ngFor = "let option of data[1].data; let j = index;">{{option}}</option>
                             </select>
-                            <select size = "10" [(ngModel)] = "data[1].current2" style = "width: 150px;">
+                            <select size = "10" [(ngModel)] = "data[1].current2" style = "width: 150px; height:190px;">
                                 <option value = "{{option.value}}" *ngFor = "let option of data[1].selected; let j = index;">{{option.name}}</option>
                             </select><br>
                             <button class = "btn btn-primary btn-sm" (click) = "addToSelectList(data)">добавить</button>

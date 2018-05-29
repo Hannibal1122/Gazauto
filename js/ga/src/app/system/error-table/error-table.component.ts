@@ -12,10 +12,10 @@ declare var $:any;
 export class ErrorTableComponent implements OnInit 
 {
     @ViewChild("mainContainer") mainContainer:ElementRef;
-    @ViewChild("mainEditElement") mainEditElement:ElementRef;
     @ViewChild("mainInputElement") mainInputElement:ElementRef;
     @ViewChild("mainButtonElement") mainButtonElement:ElementRef;
     @ViewChild("mainSelectElement") mainSelectElement:ElementRef;
+    @ViewChild("mainStatusElement") mainStatusElement:ElementRef;
     
     @Output() onChange = new EventEmitter<any>();
     header = [];
@@ -26,10 +26,10 @@ export class ErrorTableComponent implements OnInit
     change = false;
     mainElementIds = 
     {
-        mainEditElement: this.sys.getUnicName("m"),
         mainInputElement: this.sys.getUnicName("m"),
         mainButtonElement: this.sys.getUnicName("m"),
         mainSelectElement: this.sys.getUnicName("m"),
+        mainStatusElement: this.sys.getUnicName("m"),
     };
     constructor(private sys:FunctionsService, private query:QueryService) { }
     ngOnInit() 
@@ -43,10 +43,12 @@ export class ErrorTableComponent implements OnInit
             if(this.inputProperty.visible) this.inputProperty.visible = false;
         }
 
-        this.mainEditElement.nativeElement.setAttribute("id", this.mainElementIds.mainEditElement);
         this.mainInputElement.nativeElement.setAttribute("id", this.mainElementIds.mainInputElement);
         this.mainButtonElement.nativeElement.setAttribute("id", this.mainElementIds.mainButtonElement);
         this.mainSelectElement.nativeElement.setAttribute("id", this.mainElementIds.mainSelectElement);
+        this.mainStatusElement.nativeElement.setAttribute("id", this.mainElementIds.mainStatusElement);
+
+        /* this.query.protectionPost(261, { param: [102] }, (data) => {trace(data)}); */
     }
     @Input() set head(value)
     {
@@ -108,7 +110,10 @@ export class ErrorTableComponent implements OnInit
         value: "",
         visible: false,
         values: [],
-        type: ""
+        type: "",
+        oldState: 0,
+        state: 0,
+        visibleState: false,
     }
     cacheListValues = {};
     editField(e) // нажали на ячейку для редактирования
@@ -119,6 +124,8 @@ export class ErrorTableComponent implements OnInit
             let j = this.configInput.j;
             this.inputProperty.visible = true;
             this.inputProperty.type = this.listTables[i][j] ? this.listTables[i][j].type : "value";
+            this.inputProperty.visibleState = this.inputProperty.type == "value" || this.inputProperty.type == undefined;
+            this.inputProperty.oldState = this.inputProperty.state = this.listTables[i][j].state;
             if(this.listTables[i][j] && this.listTables[i][j].listValue) 
             {
                 let _i = 0;
@@ -159,11 +166,12 @@ export class ErrorTableComponent implements OnInit
             if(e.relatedTarget.getAttribute("id") == this.mainElementIds.mainInputElement) return;
             else if(e.relatedTarget.getAttribute("id") == this.mainElementIds.mainSelectElement) return;
                 else if(e.relatedTarget.getAttribute("id") == this.mainElementIds.mainButtonElement) return;
+                    else if(e.relatedTarget.getAttribute("id") == this.mainElementIds.mainStatusElement) return;
         this.inputProperty.visible = false;
+        let i = this.configInput.i;
+        let j = this.configInput.j;
         if(this.inputProperty.oldValue != this.inputProperty.value)
         {
-            let i = this.configInput.i;
-            let j = this.configInput.j;
             let type = "value";
             let out:any = { __type__: this.inputProperty.oldValue == undefined ? "insert" : "update", nameColumn: this.header[j].value };
             if(this.listTables[i][j] && this.listTables[i][j].type == "cell") out.__type__ = "update"; // Для ссылок на несуществующие элементы
@@ -181,6 +189,9 @@ export class ErrorTableComponent implements OnInit
             if(type == "list") out.value = { value:_i, linkId:this.listTables[i][j].linkId, type:"value", listValue: this.inputProperty.values[_i] };
             this.onChange.emit({ type: "field", out: out, i: i, nameColumn: this.header[j].value });
         }
+        if(this.inputProperty.oldState != this.inputProperty.state)
+            this.onChange.emit({ type: "state", id: this.listTables[i][j].id, i: i, nameColumn: this.header[j].value, state: this.inputProperty.state });
+        
         if(e.relatedTarget)
             if(e.relatedTarget.getAttribute("id") == "tableCutButton" ||
                 e.relatedTarget.getAttribute("id") == "tableCopyButton" ||
@@ -200,7 +211,7 @@ export class ErrorTableComponent implements OnInit
         let i = -1;
         let j = -1;
         let a = element.getAttribute("id") ? element.getAttribute("id").split("_") : [];
-        if(a.length == 2)
+        if(a.length == 2 && a[0] != "TH")
         {
             i = Number(a[0]);
             j = Number(a[1]);

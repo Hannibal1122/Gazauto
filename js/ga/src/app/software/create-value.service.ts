@@ -11,7 +11,7 @@ export class CreateValueService
     modal;
     create(_idParent, update, data)
     {
-        let idParent = _idParent ? _idParent : data.parent;
+        let idParent = _idParent != undefined ? _idParent : data.parent;
         var Data:any = {
             title: "<b>" + (data ? "Изменение" : "Добавление") + " значения</b>",  
             data: [
@@ -68,6 +68,7 @@ export class CreateValueService
         {
             if(save)
             {
+                if(Data.data[1][1] == "") return "Введите имя!";
                 let out = this.modal.Data[2][1];
                 let type = data ? valueType : this.modal.Data[0][1].selected;
                 if(type == "array") // "Список" - это для загруженных 

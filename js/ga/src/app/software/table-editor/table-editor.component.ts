@@ -49,7 +49,6 @@ export class TableEditorComponent implements OnInit
         this.load = true;
         this.query.protectionPost(250, { param: [this.inputs.id]}, (data) => 
         {
-            trace(data)
             if(data.head == undefined) 
             {
                 this.error = true;
@@ -112,6 +111,7 @@ export class TableEditorComponent implements OnInit
     ngOnDestroy() 
     {
         clearTimeout(this.lastUpdateTimer);
+        clearTimeout(this.listLoginTimer);
     }
     changeNameTable()
     {
@@ -221,7 +221,7 @@ export class TableEditorComponent implements OnInit
                                                 this.modal.Data[1] ? this.modal.Data[1][1].selected : null ] }, 
                                                 (data) =>
                                                 {
-                                                    trace(data)
+                                                    /* trace(data) */
                                                     this.dataTable[i][nameColumn] = data;
                                                     if(--length == 0) this.editTable.data = this.dataTable; // update edit table
                                                 });
@@ -235,7 +235,7 @@ export class TableEditorComponent implements OnInit
                                         ((i) =>{
                                             this.query.protectionPost(255, { param: [ this.inputs.id, data.id, ID, nameColumn, type ] }, (data) =>
                                             {
-                                                trace(data)
+                                                /* trace(data) */
                                                 this.dataTable[i][nameColumn] = data;
                                                 if(--length == 0) this.editTable.data = this.dataTable; // update edit table
                                             });
@@ -254,7 +254,7 @@ export class TableEditorComponent implements OnInit
                         ((i) =>{
                             this.query.protectionPost(255, { param: [ this.inputs.id, data.id, ID, nameColumn, type ] }, (data) =>
                             {
-                                trace(data)
+                                /* trace(data) */
                                 this.dataTable[i][nameColumn] = data;
                                 if(--length == 0) this.editTable.data = this.dataTable; // update edit table
                             });
@@ -262,7 +262,7 @@ export class TableEditorComponent implements OnInit
                     }
                     break;
             }
-            trace(data)
+            /* trace(data) */
         }
     })();
     addRow()
@@ -279,7 +279,7 @@ export class TableEditorComponent implements OnInit
     {
         switch(property.type)
         {
-            case "row":
+            case "row": // Добавление строки
                 this.load = true;
                 this.query.protectionPost(257, { param: [ this.inputs.id, property.idRow ]}, (data) => 
                 {
@@ -288,7 +288,7 @@ export class TableEditorComponent implements OnInit
                     this.load = false;
                 });
                 break;
-            case "field":
+            case "field": // Обновление ячейки
                 this.load = true;
                 this.query.protectionPost(252, { param: [ this.inputs.id,  JSON.stringify(property.out) ]}, (data) => 
                 {
@@ -306,7 +306,7 @@ export class TableEditorComponent implements OnInit
                     this.load = false;
                 });
                 break;
-            case "remove":
+            case "remove": // Удаление строки
                 this.load = true;
                 this.query.protectionPost(258, { param: [ this.inputs.id, this.dataTable[property.i].__ID__ ]}, (data) => 
                 {
@@ -315,12 +315,12 @@ export class TableEditorComponent implements OnInit
                     this.load = false;
                 });
                 break;
-            case "operation":
+            case "operation": // Обновление возможных операций с ячейкой
                 this.rules.copy = property.rules.copy;
                 this.rules.cut = property.rules.cut;
                 this.rules.paste = property.rules.paste;
                 break;
-            case "explorer":
+            case "explorer": // Открыть значение в проводнике
                 if(property.data.type == "cell")
                     this.query.protectionPost(111, { param: [ "cell", property.data.linkId ]}, (idParent) => 
                     {
@@ -328,6 +328,14 @@ export class TableEditorComponent implements OnInit
                         else this.onChange({ type: "openFromTable", value: { name: "cell", id: property.data.linkId }});
                     });
                 else this.onChange({ type: "openFromTable", value: { name: property.data.type, id: property.data.linkId }});
+                break;
+            case "state": // Изменить состояние ячейки
+                this.load = true;
+                this.query.protectionPost(260, { param: [ this.inputs.id,  property.id, property.state ]}, (data) => 
+                {
+                    this.dataTable[property.i][property.nameColumn].state = property.state;
+                    this.load = false;
+                });
                 break;
         }
     }
@@ -409,6 +417,7 @@ export class TableEditorComponent implements OnInit
             {
                 clearInterval(this.searchTimeout);
                 this.searchCellId = -1;
+                this.inputs.searchObjectId = -1;
             }
         }, 500);
     }

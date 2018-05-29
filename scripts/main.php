@@ -1,4 +1,6 @@
 <?php
+    /* $start = microtime(true); */
+    /* , round(microtime(true) - $start, 4) */
     header('Access-Control-Allow-Origin: *');
     include("config.php");
 	include("query.php");
@@ -69,8 +71,8 @@
             case 0: // Запрос версии
                 /* include("./version/versions.php"); */
                 $project = [];	
-                $project['main'] = "0.8.1";/* getVersion(		$_main["name"], 		$_main["data"]); */
-                $project['php'] = "0.9.1";/* getVersion(		$_php["name"], 			$_php["data"]); */
+                $project['main'] = "0.8.61";/* getVersion(		$_main["name"], 		$_main["data"]); */
+                $project['php'] = "0.9.61";/* getVersion(		$_php["name"], 			$_php["data"]); */
                 echo json_encode($project);
                 break;
             case 1: // Возвращает информацию о текущем пользователе
@@ -435,10 +437,10 @@
                         if($result = query("SELECT i, name_column FROM fields WHERE tableId = %i AND type = 'head'", [$idTable]))
                             while ($row = $result->fetch_array(MYSQLI_NUM)) 
                                 $head[] = $row;
-                        if($result = query("SELECT i, name_column, value, type, linkId, linkType, id FROM fields WHERE tableId = %i AND type != 'head'", [$idTable]))
+                        if($result = query("SELECT i, name_column, value, type, linkId, linkType, id, state FROM fields WHERE tableId = %i AND type != 'head'", [$idTable]))
                             while ($row = $result->fetch_array(MYSQLI_NUM)) 
                             {
-                                $field = [ "id" => (int)$row[6], "value" => $row[2] ];
+                                $field = [ "id" => (int)$row[6], "value" => $row[2], "state" => $row[7] ];
                                 if($row[3] == "link")
                                 {
                                     $field["linkId"] = (int)$row[4];
@@ -458,10 +460,13 @@
                                             $field["type"] = $row[5];
                                             if($value = query("SELECT name FROM structures WHERE id = %i", [ $field["linkId"] ]))
                                                 $field["value"] = $value->fetch_array(MYSQLI_NUM)[0];
+                                            if($row[5] == "table") $field["state"] = getStatusForTable($field["linkId"], true);
                                             break;
                                         case "cell":
+                                            $value = getCellLink($field["linkId"], true);
                                             $field["type"] = "cell";
-                                            $field["value"] = getCellLink($field["linkId"], true);
+                                            $field["value"] = $value["value"];
+                                            $field["state"] = $value["state"];
                                             break;
                                     }
                                 }
@@ -494,12 +499,12 @@
                         if((getRights($idTable) & 8) != 8) return; // Права на изменение
                         $data = json_decode($param[1]);
                         $value = $data->value;
-                        $idFields = property_exists($data, "id") ? $data->id : -1;
+                        $idField = property_exists($data, "id") ? $data->id : -1;
                         switch($data->__type__)
                         {
                             case "insert":
                                 query("INSERT INTO fields (tableId, i, name_column, type, value) VALUES(%i, %i, %s, %s, %s) ", [ $idTable, $data->__ID__, $data->nameColumn, "value", $value ]);
-                                $idFields = $mysqli->insert_id;
+                                $idField = $mysqli->insert_id;
                                 break;
                             case "update":
                                 $typeField = is_object($value) ? "link" : "value";
@@ -507,7 +512,7 @@
                                     query("UPDATE fields SET value = %s, linkId = NULL, linkType = NULL, type = 'value' WHERE tableId = %i AND id = %i", [ 
                                         $value, 
                                         $idTable, // для подстраховки
-                                        $idFields
+                                        $idField
                                     ]);
                                 if($typeField == "link")
                                     query("UPDATE fields SET value = %s, linkId = %i, linkType = %s, type = 'link' WHERE tableId = %i AND id = %i", [ 
@@ -515,11 +520,11 @@
                                         $value->linkId, 
                                         $value->type, 
                                         $idTable, // для подстраховки
-                                        $idFields
+                                        $idField
                                     ]);
                                 break;
                         }
-                        echo json_encode([ "id" => $idFields, "value" => $value ]);
+                        echo json_encode([ "id" => $idField, "value" => $value ]);
                         addLog("table", "update", $idTable);
                         break;
                     case 253: // Изменить имя таблицы
@@ -546,13 +551,19 @@
                             $idFields = (int)$param[2];
                             $linkType = $row[1];
                             $fieldList = null;
+                            $fieldState = 0;
                             if($linkType == "value" && $value = query("SELECT id, value, type FROM my_values WHERE id = %i", [ (int)$row[2] ]))
                             {
                                 $valueData = $value->fetch_array(MYSQLI_NUM);
                                 $fieldValue = $valueData[2] == "array" ? 0 : $valueData[1];
                                 if($valueData[2] == "array") $fieldList = getListValueByKey((int)$row[2], $fieldValue);
                             }
-                            else $fieldValue = $row[0];
+                            else 
+                            {
+                                $fieldValue = $row[0];
+                                if($linkType == "table")
+                                    $fieldState = getStatusForTable($idObject, true);
+                            }
                             $linkId = $linkType != "value" ? $idObject : (int)$valueData[0];
                             
                             if($typeOperation == "insert")
@@ -564,7 +575,7 @@
                             if($typeOperation == "update")
                                 query("UPDATE fields SET value = %s, linkId = %i, linkType = %s, type = 'link' WHERE tableId = %i AND id = %i", [ 
                                     0, $linkId, $linkType, $idTable, $idFields ]);
-                            echo json_encode([ "id" => $idFields, "linkId" => $linkId, "type" => $linkType, "value" => $fieldValue, "listValue" => $fieldList ]);
+                            echo json_encode([ "id" => $idFields, "linkId" => $linkId, "type" => $linkType, "value" => $fieldValue, "state" => $fieldState, "listValue" => $fieldList ]);
                         }
                         addLog("table", "update", $idTable);
                         break;
@@ -633,27 +644,36 @@
                         if($operation == "cut" && (getRights($idTableFrom) & 8) != 8) return; // Права на изменение
                         if($operation == "copy") 
                         {
-                            if($typePaste == "cell") query("UPDATE fields SET value = %s, linkId = %i, linkType = %s, type = 'link' WHERE id = %i", [ "", $idCellFrom, "cell", $idCellTo]);
-                            else query("UPDATE fields SET value = %s, linkId = NULL, linkType = NULL, type = 'value' WHERE id = %i", [ getCellLink($idCellFrom, true), $idCellTo]);
+                            $value = getCellLink($idCellFrom, true);
+                            if($typePaste == "cell") query("UPDATE fields SET value = %s, linkId = %i, linkType = %s, type = 'link' WHERE id = %i", [ "", $idCellFrom, "cell", $idCellTo ]);
+                            else query("UPDATE fields SET value = %s, linkId = NULL, linkType = NULL, type = 'value' WHERE id = %i", [ $value["value"], $idCellTo ]);
                             echo json_encode([ 
                                 "id" => $idCellTo, 
-                                "value" => getCellLink($idCellFrom, true), 
+                                "value" => $value["value"], 
+                                "state" => $value["state"], 
                                 "type" => $typePaste == "cell" ? $typePaste : null, 
                                 "linkId" => $typePaste == "cell" ? $idCellFrom : null ]);
                             addLog("table", "update", $idTableTo); // изменение основной таблицы
                         }
                         if($operation == "cut") 
                         {
-                            if($result = query("SELECT type, value, linkId, linkType, stateId, stateValue, info FROM fields WHERE id = %i", [$idCellFrom])) 
+                            if($result = query("SELECT type, value, linkId, linkType, state, info FROM fields WHERE id = %i", [$idCellFrom])) 
                             {
                                 $valueData = $result->fetch_array(MYSQLI_NUM);
-                                query("UPDATE fields SET type=%s, value=%s, linkId=%i, linkType=%s, stateId=%i, stateValue=%i, info=%s WHERE id = %i", [ 
-                                    $valueData[0], $valueData[1], $valueData[2], $valueData[3], $valueData[4], $valueData[5], $valueData[6], $idCellTo ]);
-                                query("UPDATE fields SET type='value', value='', linkId=NULL, linkType=NULL, stateId=NULL, stateValue=NULL, info=NULL WHERE id = %i", [ $idCellFrom ]);
+                                query("UPDATE fields SET type=%s, value=%s, linkId=%i, linkType=%s, state=%i, info=%s WHERE id = %i", [ 
+                                    $valueData[0], $valueData[1], $valueData[2], $valueData[3], $valueData[4], $valueData[5], $idCellTo ]);
+                                query("UPDATE fields SET type='value', value='', linkId=NULL, linkType=NULL, state=0, info=NULL WHERE id = %i", [ $idCellFrom ]);
                                 echo json_encode([ "idTableFrom" => $idTableFrom ]);
                                 addLog("table", "update", $idTableFrom); // изменение таблицы из которой вырезали
                             }
                         }
+                        break;
+                    case 260: //Выставить статус
+                        $idTable = (int)$param[0];
+                        $idField = (int)$param[1];
+                        if((getRights($idTable) & 8) != 8) return; // Права на изменение
+                        query("UPDATE fields SET state = %i WHERE id = %s AND tableId = %i", [ (int)$param[2], $idField, $idTable ]);
+                        addLog("table", "updateState", $idTable);
                         break;
                 }
             if($nQuery >= 300 && $nQuery < 350) // Работа со значениями 
@@ -730,7 +750,7 @@
                 {
                     case 350: // Запрос времени открытия таблицы
                         $idTable = (int)$param[0];
-                        if($result = query("SELECT date FROM main_log WHERE operation = 'open' AND login = %s AND value = %i ORDER BY date DESC", [ $login, $idTable ]))
+                        if($result = query("SELECT date FROM main_log WHERE type = 'table' AND operation = 'open' AND login = %s AND value = %i ORDER BY date DESC", [ $login, $idTable ]))
                             while ($row = $result->fetch_array(MYSQLI_NUM)) 
                             { 
                                 echo json_encode([[$row[0]]]);
@@ -740,19 +760,65 @@
                     case 351: // Проверка необходимости синхронизации
                         $idTable = (int)$param[0];
                         $update = false;
-                        query("UPDATE main_log SET dateUpdate = NOW() WHERE operation = 'open' AND login = %s AND value = %i AND date = %s", [$login, $idTable, $param[1]]);
-                        if($result = query("SELECT date FROM main_log WHERE operation = 'update' AND login != %s AND value = %i AND date >= %s ORDER BY date DESC", [ $login, $idTable, $param[1] ]))
-                            while ($row = $result->fetch_array(MYSQLI_NUM)) { $update = true; break; }
+                        query("UPDATE main_log SET dateUpdate = NOW() WHERE type = 'table' AND operation = 'open' AND login = %s AND value = %i AND date = %s", [$login, $idTable, $param[1]]);
+                        if($result = query("SELECT date FROM main_log WHERE type = 'table' AND (operation = 'update' OR operation = 'updateState') AND login != %s AND value = %i AND date >= %s LIMIT 1", [ $login, $idTable, $param[1] ]))
+                            while ($row = $result->fetch_array(MYSQLI_NUM)) $update = true;
+                        if(!$update)
+                            if($result = query("SELECT date FROM main_log WHERE type = 'table' AND (operation = 'update' OR operation = 'updateState') AND value IN (SELECT tableId FROM fields WHERE type = 'link' AND linkId = %i AND linkType = 'table') AND date >= %s LIMIT 1", [ $idTable, $param[1] ]))
+                                while ($row = $result->fetch_array(MYSQLI_NUM)) $update = true;
                         echo json_encode([$update]);
                         break; 
                     case 352: // Получить список пользователей работающих с таблицей
                         $idTable = (int)$param[0];
                         $logins = [];
-                        if($result = query("SELECT login FROM main_log WHERE value = %s AND dateUpdate >= DATE_SUB(NOW(), INTERVAL 1 MINUTE)", [ $idTable ]))
+                        if($result = query("SELECT login FROM main_log WHERE type = 'table' AND value = %s AND dateUpdate >= DATE_SUB(NOW(), INTERVAL 1 MINUTE)", [ $idTable ]))
                             while ($row = $result->fetch_array(MYSQLI_NUM)) 
                                 $logins[$row[0]] = "";
                         echo json_encode($logins);
                         break; 
+                    case 353: // Запрос текущего времени
+                        request("SELECT NOW()", []);
+                        break; 
+                    case 354: // Проверка необходимости синхронизации структуры
+                        $update = false;
+                        $time = $param[0];
+                        if($result = query("SELECT NOW() FROM main_log WHERE type = 'structure' AND operation != 'open' AND date >= %s LIMIT 1", [ $time ]))
+                            while ($row = $result->fetch_array(MYSQLI_NUM)) 
+                            {
+                                $update = true;
+                                $time = $row[0];
+                            }
+                        echo json_encode([$update, $time]);
+                        break; 
+                }
+            if($nQuery >= 400 && $nQuery < 450) // Работа с задачами
+                switch($nQuery)
+                {
+                    case 400: // Запрос списка пользователей с именами
+                        // Получаем список логинов
+                        $logins = [];
+                        $fields = [];
+                        if($result = query("SELECT login FROM registration", []))
+                            while ($row = $result->fetch_array(MYSQLI_NUM)) 
+                                $logins[$row[0]] = ["name" => "", "familiya" => "", "patronymic" => ""];
+                        if($result = query("SELECT i, name_column, value FROM fields WHERE tableId = 4 AND type != 'head'", []))
+                            while ($row = $result->fetch_array(MYSQLI_NUM)) 
+                            {
+                                if(!array_key_exists($row[0], $fields)) $fields[$row[0]] = [];
+                                $fields[$row[0]][$row[1]] = $row[2];
+                            }
+                        foreach($fields as $field)
+                        {
+                            $login = $field["Логин"];
+                            if($login != "")
+                            {
+                                $logins[$login]["name"] = $field["Имя"];
+                                $logins[$login]["familiya"] = $field["Фамилия"];
+                                $logins[$login]["patronymic"] = $field["Отчество"];
+                            }
+                        }
+                        echo json_encode($logins);
+                        break;
                 }
         }
         /* else query("UPDATE signin SET checkkey = '', login = '' WHERE id = %s", [$paramI]); // Если пользователь послал не тот id  */
@@ -820,19 +886,6 @@
             return $row[0];
         }
     }
-    /* function straighten(&$out, $data, $parent) // из объекта получаем одномерный массив со всеми полями дерева
-    {
-        $childrens = $data["childrens"];
-        $j = count($out);
-        $out[$j] = [];
-        $out[$j]["id"] = $data["id"];
-        $out[$j]["n"] = $data["name"];
-        $out[$j]["ot"] = $data["objectType"];
-        $out[$j]["p"] = $parent;
-        if(count($childrens) != 0)
-            for($j = 0; $j < count($childrens); $j++)
-                straighten($out, $childrens[$j], $data["id"]);
-    } */
     function getRemoveElementbyStructure(&$out, $parent) // По id собирает все элементы для удаления
     {
         if($result = query("SELECT id FROM structures WHERE parent = %i", [$parent]))
@@ -875,28 +928,31 @@
         if($first) $countCycle = 0;
         global $countCycle;
         if(++$countCycle > 50) return Null; // ограничение на зацикливание
-        if($result = query("SELECT value, type, linkId, linkType, id FROM fields WHERE id = %i", [ (int)$linkId ]))
+        if($result = query("SELECT value, type, linkId, linkType, id, state FROM fields WHERE id = %i", [ (int)$linkId ]))
         {
             $row = $result->fetch_array(MYSQLI_NUM);
             if($row[3] == "cell") return getCellLink($row[2], false);
             else
             {
-                if($row[1] == "value") return $row[0];
+                $out = ["value" => $row[0], "state" => (int)$row[5]];
+                /* if($row[1] == "value") return ["value" => $row[0], "state" => $row[5]]; */
                 if($row[1] == "link")
                 {
                     if($row[3] == "value")
                         if($value = query("SELECT value, type FROM my_values WHERE id = %i", [ (int)$row[2] ]))
                         {
                             $valueData = $value->fetch_array(MYSQLI_NUM);
-                            if($valueData[1] == "array") return getListValueByKey((int)$row[2], (int)$row[0]);
-                            else return $valueData[0];
+                            if($valueData[1] == "array") $out["value"] = getListValueByKey((int)$row[2], (int)$row[0]);
+                            else $out["value"] = $valueData[0];
                         }
                     if($row[3] == "table")
                     {
                         if($value = query("SELECT name FROM structures WHERE id = %i", [ (int)$row[2] ]))
-                            return $value->fetch_array(MYSQLI_NUM)[0];
+                            $out["value"] = $value->fetch_array(MYSQLI_NUM)[0];
+                        $out["state"] = getStatusForTable((int)$row[2], true);
                     }
                 }
+                return $out;
             }
         }
     }
@@ -904,5 +960,43 @@
     {
         global $login;
         query("INSERT INTO main_log (type, operation, value, date, login) VALUES(%s, %s, %s, NOW(), %s)", [ $type, $operation, $value, $login ]);
+    }
+    function getStatusForTable($idTable, $first)
+    {
+        if($first) $countCycle = 0;
+        global $countCycle;
+        if(++$countCycle > 50) return Null; // ограничение на зацикливание
+        $state = [];
+        if($result = query("SELECT i, name_column, value, type, linkId, linkType, id, state FROM fields WHERE tableId = %i AND type != 'head'", [$idTable]))
+        while ($row = $result->fetch_array(MYSQLI_NUM)) 
+        {
+            if($row[3] == "link")
+            {
+                $field["linkId"] = (int)$row[4];
+                switch($row[5])
+                {
+                    case "value":
+                        $state[] = (int)$row[7];
+                        break;
+                    case "table":
+                        $state[] = getStatusForTable($field["linkId"], false);
+                        break;
+                    case "cell":
+                        $value = getCellLink($field["linkId"], true);
+                        $state[] = $value["state"];
+                        break;
+                }
+            }
+            else $state[] = (int)$row[7];
+        }
+        $k = 0;
+        $sum = 0;
+        for($i = 0, $c = count($state); $i < $c; $i++)
+            if($state[$i] > 0) 
+            {
+                $k++; 
+                $sum += $state[$i];
+            }
+        return $k > 0 ? floor($sum / $k) : 0;
     }
 ?>

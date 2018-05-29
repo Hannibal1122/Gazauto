@@ -11,7 +11,8 @@ import { LoadingComponent } from './system/loading/loading.component';
 import { TableEditorComponent } from './software/table-editor/table-editor.component';
 import { ErrorTableComponent } from './system/error-table/error-table.component';
 import { InfoComponent } from './software/info/info.component';
-import { TasksComponent } from './software/tasks/tasks.component'
+import { TasksComponent } from './software/tasks/tasks.component';
+import { TaskComponent } from './software/task/task.component'
 
 @NgModule({
     declarations: [ 
@@ -19,7 +20,7 @@ import { TasksComponent } from './software/tasks/tasks.component'
         LeftMenuElementComponent, 
         ExplorerComponent, 
         DynamicComponent, 
-        EnterComponent, LoadingComponent, TableEditorComponent, ErrorTableComponent, InfoComponent, TasksComponent
+        EnterComponent, LoadingComponent, TableEditorComponent, ErrorTableComponent, InfoComponent, TasksComponent, TaskComponent
     ],
     imports: [ BrowserModule, FormsModule, ModalWindowModule ],
     providers: [],

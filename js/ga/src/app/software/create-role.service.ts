@@ -24,6 +24,7 @@ export class CreateRoleService
             {
                 if(save)
                 {
+                    if(this.modal.Data[0][1] == "") return "Введите название!";
                     data ? this.query.protectionPost(155, { param: [ this.modal.Data[0][1], data.name ] }, (data) =>
                         {
                             update();

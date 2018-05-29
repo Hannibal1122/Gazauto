@@ -14,6 +14,7 @@ export class CreateUserService
     {
         this.loadRoleAndUser((users, roles) =>
         {
+            let _new = true;
             trace(data)
             var Data:any = {
                 title: "<b>" + (data ? "Изменение" : "Добавление") + " пользователя</b>",  
@@ -26,6 +27,7 @@ export class CreateUserService
             };
             if(data)
             {
+                _new = false;
                 Data.data[0][1] = data.name;
                 Data.data[1][1].selected = users[data.name];
             }
@@ -33,6 +35,8 @@ export class CreateUserService
             {
                 if(save)
                 {
+                    if(this.modal.Data[0][1] == "") return "Введите логин!";
+                    if(this.modal.Data[2][1] == "" && _new) return "Введите пароль!";
                     var param = [this.modal.Data[0][1], this.modal.Data[1][1].selected, this.modal.Data[2][1] == "" ? "" : md5(this.modal.Data[2][1])];
                     data ? this.query.protectionPost(154, { param: param }, (data) =>
                             {

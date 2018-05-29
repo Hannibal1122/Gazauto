@@ -115,6 +115,14 @@
 {
     border-bottom: 10px solid #141414;
 }
+.inputMy
+{
+    padding: 5px;
+    margin-top: 5px;
+    color: #444444;
+    height: 30px;
+    border: 1px solid #cccccc;
+}
 /* .MyArrow-bottom
 {
     cursor: pointer;
