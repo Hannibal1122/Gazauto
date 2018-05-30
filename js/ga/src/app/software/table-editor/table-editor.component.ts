@@ -43,9 +43,13 @@ export class TableEditorComponent implements OnInit
     ngOnInit() 
     {
         this.loadTable();
+        this.getLastUpdateTime();
+        this.getListLogin();
     }
+    tableIds = {}; // для контроля изменений
     loadTable()
     {
+        /* trace("update " + this.inputs.id) */
         this.load = true;
         this.query.protectionPost(250, { param: [this.inputs.id]}, (data) => 
         {
@@ -62,28 +66,29 @@ export class TableEditorComponent implements OnInit
             this.firstData = data.data;
             for(var i = 0; i < data.head.length; i++)
                 this.dataHeader.push({ i: data.head[i][0], value: data.head[i][1] });
+            this.tableIds = {};
             for(var key in data.data)
             {
                 let i = this.dataTable.length;
                 this.dataTable[i] = data.data[key];
                 this.dataTable[i].__ID__ = key;
+                for(var _key in data.data[key])
+                    if(data.data[key][_key].tableId) this.tableIds[data.data[key][_key].tableId] = data.data[key][_key].tableId;
             }
             if(this.inputs.searchObjectId) this.searchCell(this.inputs.searchObjectId);
-            this.query.protectionPost(350, { param: [this.inputs.id] }, (data) => 
-            { 
-                this.lastUpdateTime = data[0][0]; 
-                this.getLastUpdateTime();
-                this.getListLogin();
-                this.load = false;
-            });
+            
+            this.lastUpdateTime = data.time;
+            this.load = false;
+            
         });
     }
     /*************************************************/
+    private globalStop = false;
     private lastUpdateTimer = null;
     private getLastUpdateTime() // Запрос изменений таблицы
     {
         clearTimeout(this.lastUpdateTimer);
-        this.query.protectionPost(351, { param: [this.inputs.id, this.lastUpdateTime] }, (data) => 
+        this.query.protectionPost(351, { param: [this.inputs.id, this.lastUpdateTime, this.tableIds] }, (data) => 
         { 
             if(data[0] && !this.editTable.inputProperty.visible) 
             {
@@ -91,7 +96,7 @@ export class TableEditorComponent implements OnInit
                 this.needUpdate = false;
             }
             else this.needUpdate = data[0];
-            this.lastUpdateTimer = setTimeout(() => { this.getLastUpdateTime(); }, 10000);
+            if(!this.globalStop) this.lastUpdateTimer = setTimeout(() => { this.getLastUpdateTime(); }, 10000);
         });
     }
     private listLoginTimer = null;
@@ -104,14 +109,13 @@ export class TableEditorComponent implements OnInit
             this.listLogin = [];
             for(var key in data)
                 this.listLogin.push(key);
-            this.listLoginTimer = setTimeout(() => { this.getListLogin(); }, 30000);
+            if(!this.globalStop) this.listLoginTimer = setTimeout(() => { this.getListLogin(); }, 30000);
         });
     }
     /*************************************************/
     ngOnDestroy() 
     {
-        clearTimeout(this.lastUpdateTimer);
-        clearTimeout(this.listLoginTimer);
+        this.globalStop = true;
     }
     changeNameTable()
     {

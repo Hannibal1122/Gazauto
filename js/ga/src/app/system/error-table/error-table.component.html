@@ -35,7 +35,7 @@
         <input #mainInputElement type = "text" class = "mainInputStyle" (blur) = "acceptEditField($event)" [(ngModel)] = "inputProperty.value" (keydown)="downEnter($event)">
         <button #mainButtonElement [hidden] = "inputProperty.type != 'table'" 
             style = "position:absolute; right:0px; top: 0px; color:red; cursor:pointer; border:none; background:none; outline: none;"
-            (click) = "inputProperty.value = ''; acceptEditField($event)">
+            (click) = "inputProperty.value = ''; inputProperty.state = 0; acceptEditField($event)">
             <i class = "fa fa-times-circle"></i>
         </button>
         <select #mainSelectElement [hidden] = "inputProperty.values.length == 0" (blur) = "acceptEditField($event)" style = "position:absolute; top: 100%; height: 24px; width:100%;" [(ngModel)] = "inputProperty.value">

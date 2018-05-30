@@ -71,8 +71,8 @@
             case 0: // Запрос версии
                 /* include("./version/versions.php"); */
                 $project = [];	
-                $project['main'] = "0.8.61";/* getVersion(		$_main["name"], 		$_main["data"]); */
-                $project['php'] = "0.9.61";/* getVersion(		$_php["name"], 			$_php["data"]); */
+                $project['main'] = "0.8.65";/* getVersion(		$_main["name"], 		$_main["data"]); */
+                $project['php'] = "0.9.65";/* getVersion(		$_php["name"], 			$_php["data"]); */
                 echo json_encode($project);
                 break;
             case 1: // Возвращает информацию о текущем пользователе
@@ -430,10 +430,11 @@
                         $idTable = (int)$param[0];
                         if((getRights($idTable) & 1) != 1) return; // Права на просмотр
                         $nameTable = "";
+                        $timeOpen = "";
                         $head = [];
                         $data = [];
-                        if($result = query("SELECT name FROM structures WHERE id = %i", [$idTable]))
-                            while ($row = $result->fetch_array(MYSQLI_NUM)) $nameTable = $row;
+                        if($result = query("SELECT name, NOW() FROM structures WHERE id = %i", [$idTable]))
+                            while ($row = $result->fetch_array(MYSQLI_NUM)) { $nameTable = $row[0]; $timeOpen = $row[1]; }
                         if($result = query("SELECT i, name_column FROM fields WHERE tableId = %i AND type = 'head'", [$idTable]))
                             while ($row = $result->fetch_array(MYSQLI_NUM)) 
                                 $head[] = $row;
@@ -460,19 +461,24 @@
                                             $field["type"] = $row[5];
                                             if($value = query("SELECT name FROM structures WHERE id = %i", [ $field["linkId"] ]))
                                                 $field["value"] = $value->fetch_array(MYSQLI_NUM)[0];
-                                            if($row[5] == "table") $field["state"] = getStatusForTable($field["linkId"], true);
+                                            if($row[5] == "table") 
+                                            {
+                                                $field["state"] = getStatusForTable($field["linkId"], true);
+                                                $field["tableId"] = $field["linkId"];
+                                            }
                                             break;
                                         case "cell":
                                             $value = getCellLink($field["linkId"], true);
                                             $field["type"] = "cell";
                                             $field["value"] = $value["value"];
                                             $field["state"] = $value["state"];
+                                            $field["tableId"] = $value["tableId"];
                                             break;
                                     }
                                 }
                                 $data[(int)$row[0]][$row[1]] = $field;
                             }
-                        echo json_encode(["head" => $head, "data" => $data, "name" => $nameTable, "change" => (getRights($idTable) & 8) == 8]);
+                        echo json_encode(["head" => $head, "data" => $data, "name" => $nameTable, "change" => (getRights($idTable) & 8) == 8, "time" => $timeOpen]);
                         addLog("table", "open", $idTable);
                         /* request("SELECT * FROM fields WHERE tableId = %i", [$idTable]); */
                         break;
@@ -509,7 +515,7 @@
                             case "update":
                                 $typeField = is_object($value) ? "link" : "value";
                                 if($typeField == "value")
-                                    query("UPDATE fields SET value = %s, linkId = NULL, linkType = NULL, type = 'value' WHERE tableId = %i AND id = %i", [ 
+                                    query("UPDATE fields SET value = %s, linkId = NULL, linkType = NULL, type = 'value', state = 0 WHERE tableId = %i AND id = %i", [ 
                                         $value, 
                                         $idTable, // для подстраховки
                                         $idField
@@ -645,8 +651,8 @@
                         if($operation == "copy") 
                         {
                             $value = getCellLink($idCellFrom, true);
-                            if($typePaste == "cell") query("UPDATE fields SET value = %s, linkId = %i, linkType = %s, type = 'link' WHERE id = %i", [ "", $idCellFrom, "cell", $idCellTo ]);
-                            else query("UPDATE fields SET value = %s, linkId = NULL, linkType = NULL, type = 'value' WHERE id = %i", [ $value["value"], $idCellTo ]);
+                            if($typePaste == "cell") query("UPDATE fields SET value = %s, linkId = %i, linkType = %s, type = 'link', state = 0 WHERE id = %i", [ "", $idCellFrom, "cell", $idCellTo ]);
+                            else query("UPDATE fields SET value = %s, linkId = NULL, linkType = NULL, type = 'value', state = 0 WHERE id = %i", [ $value["value"], $idCellTo ]);
                             echo json_encode([ 
                                 "id" => $idCellTo, 
                                 "value" => $value["value"], 
@@ -748,30 +754,25 @@
             if($nQuery >= 350 && $nQuery < 400) // Работа с логом
                 switch($nQuery)
                 {
-                    case 350: // Запрос времени открытия таблицы
-                        $idTable = (int)$param[0];
-                        if($result = query("SELECT date FROM main_log WHERE type = 'table' AND operation = 'open' AND login = %s AND value = %i ORDER BY date DESC", [ $login, $idTable ]))
-                            while ($row = $result->fetch_array(MYSQLI_NUM)) 
-                            { 
-                                echo json_encode([[$row[0]]]);
-                                break; 
-                            }
+                    case 350: // Резерв
                         break;
                     case 351: // Проверка необходимости синхронизации
                         $idTable = (int)$param[0];
+                        $idFollowTable = array_key_exists(2, $param) ? $param[2] : [];
                         $update = false;
                         query("UPDATE main_log SET dateUpdate = NOW() WHERE type = 'table' AND operation = 'open' AND login = %s AND value = %i AND date = %s", [$login, $idTable, $param[1]]);
                         if($result = query("SELECT date FROM main_log WHERE type = 'table' AND (operation = 'update' OR operation = 'updateState') AND login != %s AND value = %i AND date >= %s LIMIT 1", [ $login, $idTable, $param[1] ]))
                             while ($row = $result->fetch_array(MYSQLI_NUM)) $update = true;
                         if(!$update)
-                            if($result = query("SELECT date FROM main_log WHERE type = 'table' AND (operation = 'update' OR operation = 'updateState') AND value IN (SELECT tableId FROM fields WHERE type = 'link' AND linkId = %i AND linkType = 'table') AND date >= %s LIMIT 1", [ $idTable, $param[1] ]))
-                                while ($row = $result->fetch_array(MYSQLI_NUM)) $update = true;
+                            if($result = query("SELECT DISTINCT value FROM main_log WHERE type = 'table' AND (operation = 'update' OR operation = 'updateState') AND date >= %s", [ $param[1] ]))
+                                while ($row = $result->fetch_array(MYSQLI_NUM))
+                                    if(array_key_exists($row[0], $idFollowTable)) { $update = true; break; }
                         echo json_encode([$update]);
                         break; 
                     case 352: // Получить список пользователей работающих с таблицей
                         $idTable = (int)$param[0];
                         $logins = [];
-                        if($result = query("SELECT login FROM main_log WHERE type = 'table' AND value = %s AND dateUpdate >= DATE_SUB(NOW(), INTERVAL 1 MINUTE)", [ $idTable ]))
+                        if($result = query("SELECT login FROM main_log WHERE type = 'table' AND value = %s AND dateUpdate >= DATE_SUB(NOW(), INTERVAL 2 MINUTE)", [ $idTable ]))
                             while ($row = $result->fetch_array(MYSQLI_NUM)) 
                                 $logins[$row[0]] = "";
                         echo json_encode($logins);
@@ -928,13 +929,13 @@
         if($first) $countCycle = 0;
         global $countCycle;
         if(++$countCycle > 50) return Null; // ограничение на зацикливание
-        if($result = query("SELECT value, type, linkId, linkType, id, state FROM fields WHERE id = %i", [ (int)$linkId ]))
+        if($result = query("SELECT value, type, linkId, linkType, id, state, tableId FROM fields WHERE id = %i", [ (int)$linkId ]))
         {
             $row = $result->fetch_array(MYSQLI_NUM);
             if($row[3] == "cell") return getCellLink($row[2], false);
             else
             {
-                $out = ["value" => $row[0], "state" => (int)$row[5]];
+                $out = ["value" => $row[0], "state" => (int)$row[5], "tableId" => (int)$row[6]];
                 /* if($row[1] == "value") return ["value" => $row[0], "state" => $row[5]]; */
                 if($row[1] == "link")
                 {
@@ -950,6 +951,7 @@
                         if($value = query("SELECT name FROM structures WHERE id = %i", [ (int)$row[2] ]))
                             $out["value"] = $value->fetch_array(MYSQLI_NUM)[0];
                         $out["state"] = getStatusForTable((int)$row[2], true);
+                        $out["tableId"] = (int)$row[2];
                     }
                 }
                 return $out;

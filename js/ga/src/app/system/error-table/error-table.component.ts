@@ -125,7 +125,7 @@ export class ErrorTableComponent implements OnInit
             this.inputProperty.visible = true;
             this.inputProperty.type = this.listTables[i][j] ? this.listTables[i][j].type : "value";
             this.inputProperty.visibleState = this.inputProperty.type == "value" || this.inputProperty.type == undefined;
-            this.inputProperty.oldState = this.inputProperty.state = this.listTables[i][j].state;
+            this.inputProperty.oldState = this.inputProperty.state = this.listTables[i][j].state ? this.listTables[i][j].state : 0;
             if(this.listTables[i][j] && this.listTables[i][j].listValue) 
             {
                 let _i = 0;
@@ -187,7 +187,7 @@ export class ErrorTableComponent implements OnInit
             }
             if(type == "value") out.value = this.inputProperty.value;
             if(type == "list") out.value = { value:_i, linkId:this.listTables[i][j].linkId, type:"value", listValue: this.inputProperty.values[_i] };
-            this.onChange.emit({ type: "field", out: out, i: i, nameColumn: this.header[j].value });
+            this.onChange.emit({ type: "field", out: out, i: i, nameColumn: this.header[j].value, state: this.inputProperty.state });
         }
         if(this.inputProperty.oldState != this.inputProperty.state)
             this.onChange.emit({ type: "state", id: this.listTables[i][j].id, i: i, nameColumn: this.header[j].value, state: this.inputProperty.state });
