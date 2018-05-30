@@ -278,11 +278,11 @@ export class AppComponent implements OnInit
             self.query.post(1, { paramI: localStorage.getItem("ID") }, (data) =>
             {
                 if(data.length == 0)
-                    self.query.post(2, {param: [localStorage.getItem("ID"), '', '', '@DATE@']}, function(data)
+                    self.query.post(2, {param: [localStorage.getItem("ID"), '', '']}, function(data)
                     {
                     });
                 else
-                    self.query.post(3, {param: ["@DATE@", localStorage.getItem("ID")]}, function(data)
+                    self.query.post(3, {param: [localStorage.getItem("ID")]}, function(data)
                     {
                     });
             });	

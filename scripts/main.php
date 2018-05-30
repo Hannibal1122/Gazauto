@@ -79,10 +79,10 @@
                 request("SELECT * FROM signin WHERE id = %s", [$paramI]);
                 break;
             case 2: // Фиксирует вход на сайт нового пользователя
-                query("INSERT INTO signin VALUES(%s, %s, %s, %s)", $param);
+                query("INSERT INTO signin VALUES(%s, %s, %s, NOW())", $param);
                 break;
             case 3: // Обновление времени нахождения пользователя на сайте
-                query("UPDATE signin SET date = %s WHERE id = %s", $param);
+                query("UPDATE signin SET date = NOW() WHERE id = %s", $param);
                 break;
             case 4: // вход
                 require_once("enter.php");
@@ -620,7 +620,10 @@
                     case 257: // Добавить строку в таблицу
                         $idTable = (int)$param[0];
                         if((getRights($idTable) & 8) != 8) return; // Права на изменение
-                        $idRow = (int)$param[1];
+                        $idRow = 1;
+                        /* $idRow = (int)$param[1]; */
+                        if($result = query("SELECT MAX(i) FROM fields WHERE tableId = %i AND type != 'head'", [$idTable]))
+                            while ($row = $result->fetch_array(MYSQLI_NUM)) $idRow = (int)$row[0] + 1;
                         $out = ["__ID__" => $idRow];
                         if($result = query("SELECT name_column FROM fields WHERE tableId = %i AND type = 'head'", [$idTable]))
                             while ($row = $result->fetch_array(MYSQLI_NUM)) 

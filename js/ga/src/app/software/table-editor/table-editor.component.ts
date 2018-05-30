@@ -276,8 +276,8 @@ export class TableEditorComponent implements OnInit
             this.modal.open({ title: "Нужно добавить заголовок!", data: [], ok: "Ок", cancel: ""});
             return;
         }
-        let idRow = String(this.getID());
-        this.update({ type: "row", idRow: idRow });
+        /* let idRow = String(this.getID()); */
+        this.update({ type: "row"/* , idRow: idRow */ });
     }
     update(property)
     {
@@ -285,7 +285,7 @@ export class TableEditorComponent implements OnInit
         {
             case "row": // Добавление строки
                 this.load = true;
-                this.query.protectionPost(257, { param: [ this.inputs.id, property.idRow ]}, (data) => 
+                this.query.protectionPost(257, { param: [ this.inputs.id/* , property.idRow */ ]}, (data) => 
                 {
                     this.dataTable.push(data);
                     this.editTable.data = this.dataTable; // update edit table
@@ -390,14 +390,14 @@ export class TableEditorComponent implements OnInit
             });
         else queryFunction("");
     }
-    getID()
+    /* getID()
     {
         if(this.dataTable.length == 0) return 1;
         let max = Number(this.dataTable[0].__ID__);
         for(var i = 1; i < this.dataTable.length; i++)
             if(max < Number(this.dataTable[i].__ID__)) max = Number(this.dataTable[i].__ID__);
         return max + 1;
-    }
+    } */
     compareNumeric(a, b) 
     {
         let _a = Number(a.__ID__);
