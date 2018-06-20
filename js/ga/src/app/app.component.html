@@ -63,7 +63,7 @@
             [style.margin-left] = "i == 0 ? '35px' : '-1px'"
             [style.border-bottom] = "i == currentSoftware ? 'none' : ''"
             class = "myTabs" [class.myTabsActive] = "i == currentSoftware">
-            <div (click) = "openTab(i)"style = "padding: 3px 0px 0px 5px;" >
+            <div (click) = "openTab(i)" style = "padding: 3px 0px 0px 5px; width: calc(100% - 20px); text-overflow: ellipsis; overflow: hidden; white-space: nowrap;" >
                 <span *ngIf = "tab.type == 'explorer'"> <i class = "fas fa-sitemap"></i> </span>
                 <span *ngIf = "tab.type == 'table'"> <i class = "fas fa-table"></i> </span>
                 {{tab.name}}

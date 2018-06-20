@@ -4,7 +4,7 @@
 	$role = $param[1];
 	$pass = $param[2];
 	
-    if (!preCheckL($newLogin)/*  && !preCheckP($mail) */ && !preCheckPass($pass)) // Далее проверяется правильность написания логина пароля и почты
+    if (!preCheckL($newLogin) && !preCheckPass($pass)) // Далее проверяется правильность написания логина пароля и почты
     {
         $array = [];
         $j = 0;
@@ -16,15 +16,12 @@
                     $j++;
                 }
         $bool = false;
-        if(!checkL2($array, $newLogin)) $bool = true;
-        else echo json_encode(["no"]);
-        if ($bool)
-        {
-            $sult = unique_md5();
-            $hash = myhash($pass, $sult);
-            query("INSERT INTO password VALUES(%s,%s)", [$newLogin, $hash]);
-            query("INSERT INTO registration VALUES(%s, %s, NOW())", [$newLogin, $role]);
-            echo json_encode(["yes", "yes", "yes"]);
-        }
+        if(checkL2($array, $newLogin)) return false;
+        $sult = unique_md5();
+        $hash = myhash($pass, $sult);
+        query("INSERT INTO password VALUES(%s,%s)", [$newLogin, $hash]);
+        query("INSERT INTO registration VALUES(%s, %s, NOW())", [$newLogin, $role]);
+        return true;
     }
+    return false;
 ?>

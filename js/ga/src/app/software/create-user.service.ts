@@ -10,7 +10,7 @@ export class CreateUserService
     { 
     }
     modal;
-    create(update, data)
+    create(parentId, update, data)
     {
         this.loadRoleAndUser((users, roles) =>
         {
@@ -37,7 +37,7 @@ export class CreateUserService
                 {
                     if(this.modal.Data[0][1] == "") return "Введите логин!";
                     if(this.modal.Data[2][1] == "" && _new) return "Введите пароль!";
-                    var param = [this.modal.Data[0][1], this.modal.Data[1][1].selected, this.modal.Data[2][1] == "" ? "" : md5(this.modal.Data[2][1])];
+                    var param = [this.modal.Data[0][1], this.modal.Data[1][1].selected, this.modal.Data[2][1] == "" ? "" : md5(this.modal.Data[2][1]), parentId];
                     data ? this.query.protectionPost(154, { param: param }, (data) =>
                             {
                                 update();

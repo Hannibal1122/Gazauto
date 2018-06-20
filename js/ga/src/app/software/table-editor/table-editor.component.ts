@@ -43,8 +43,7 @@ export class TableEditorComponent implements OnInit
     ngOnInit() 
     {
         this.loadTable();
-        this.getLastUpdateTime();
-        this.getListLogin();
+        this.getLastUpdateTime(() => { this.getListLogin(); });
     }
     tableIds = {}; // для контроля изменений
     loadTable()
@@ -85,7 +84,7 @@ export class TableEditorComponent implements OnInit
     /*************************************************/
     private globalStop = false;
     private lastUpdateTimer = null;
-    private getLastUpdateTime() // Запрос изменений таблицы
+    private getLastUpdateTime(func?) // Запрос изменений таблицы
     {
         clearTimeout(this.lastUpdateTimer);
         this.query.protectionPost(351, { param: [this.inputs.id, this.lastUpdateTime, this.tableIds] }, (data) => 
@@ -97,6 +96,7 @@ export class TableEditorComponent implements OnInit
             }
             else this.needUpdate = data[0];
             if(!this.globalStop) this.lastUpdateTimer = setTimeout(() => { this.getLastUpdateTime(); }, 10000);
+            if(func) func();
         });
     }
     private listLoginTimer = null;

@@ -44,11 +44,12 @@ export class AppComponent implements OnInit
             this.enter = true; 
             this.Login = localStorage.getItem("login");
             this.refreshLeftMenu();
-            /* this.openSoftware("explorer", { id: 0 }); */
+            this.openSoftware("explorer", { id: 2 });
             /* this.openSoftware("info", { id: -1 }); */
             /* this.openSoftware("task", { id: -1 }); */
             /* this.openSoftware("tasks", { id: -1 }); */
-            this.openSoftware("table", { id: 66 });
+            /* this.openSoftware("table", { id: 66 });
+            this.openSoftware("table", { id: 102 }); */
             /* this.openSoftware("table", { id: 102 }); */
         });
         this.firstEnter(this);

@@ -191,8 +191,8 @@
                                 }
                                 $out["folder"][] = $elem;
                             }
-                        if($param[0] == 2) getUsersOrRoles($out["folder"], "users");
-                        if($param[0] == 3) getUsersOrRoles($out["folder"], "roles");
+                        /* if($param[0] == 2) getUsersOrRoles($out["folder"], "users");
+                        if($param[0] == 3) getUsersOrRoles($out["folder"], "roles"); */
                         getFullPath($out["path"], $param[0]);
                         echo json_encode($out);
                         addLog("structure", "open", $idParent);
@@ -352,14 +352,21 @@
                         request("SELECT role FROM roles", []);
                         break;
                     case 152: // Добавление пользователя 
-                        require_once("registration.php");
-                        addLog("user", "add", json_encode([$param[0], $param[1]]));
+                        if((getRights($param[3]) & 8) != 8) return; // Права на изменение структуры
+                        if(require_once("registration.php"))
+                        {
+                            query("INSERT INTO structures (objectType, objectId, name, parent) VALUES('user', NULL, %s, %i)", [$param[0], $param[3]]);
+                            addLog("user", "add", json_encode([$param[0], $param[1]]));
+                        }
                         break;
                     case 153: // Добавление роли
-                        request("INSERT INTO roles (role) VALUES(%s)", $param);
+                        if((getRights($param[1]) & 8) != 8) return; // Права на изменение структуры
+                        query("DELETE FROM roles WHERE role = %s", [$param[0]]); // Проверка на повторяющиеся значения
+                        query("INSERT INTO roles (role) VALUES(%s)", [$param[0]]);
+                        query("INSERT INTO structures (objectType, objectId, name, parent) VALUES('role', NULL, %s, %i)", [$param[0], $param[1]]);
                         break;
                     case 154: // Изменение пользователя
-                        request("UPDATE registration SET role = %s WHERE login = %s", [$param[1], $param[0]]);
+                        query("UPDATE registration SET role = %s WHERE login = %s", [$param[1], $param[0]]);
                         addLog("user", "update", json_encode([$param[0], $param[1]]));
                         if($param[2] != "")
                         {
@@ -369,19 +376,22 @@
                         }
                         break;
                     case 155: // Изменение роли
-                        request("DELETE FROM roles WHERE role = %s", [$param[1]]); // старое
-                        request("INSERT INTO roles (role) VALUES(%s)", [$param[0]]); // новое
-                        request("UPDATE registration SET role = %s WHERE role = %s", $param); //Обновить все логины
-                        request("UPDATE rights SET login = %s WHERE login = %s AND type = 'role'", $param); //Обновить все права
+                        query("DELETE FROM roles WHERE role = %s", [$param[1]]); // старое
+                        query("INSERT INTO roles (role) VALUES(%s)", [$param[0]]); // новое
+                        query("UPDATE registration SET role = %s WHERE role = %s", $param); //Обновить все логины
+                        query("UPDATE rights SET login = %s WHERE login = %s AND type = 'role'", $param); //Обновить все права
+                        query("UPDATE structures SET name = %s WHERE name = %s AND objectType = 'role'", $param); //Обновить структуру
                         break;
                     case 156: // Удаление пользователя
                         if($param[0] == "admin") break;
-                        request("DELETE FROM registration WHERE login = %s", $param);
-                        request("DELETE FROM password WHERE login = %s", $param);
+                        query("DELETE FROM registration WHERE login = %s", $param);
+                        query("DELETE FROM password WHERE login = %s", $param);
+                        query("DELETE FROM structures WHERE objectType = 'user' AND name = %s", $param);
                         addLog("user", "remove", json_encode($param));
                         break;
                     case 157: // Удаление роли
-                        request("DELETE FROM roles WHERE role = %s", $param);
+                        query("DELETE FROM roles WHERE role = %s", $param);
+                        query("DELETE FROM structures WHERE objectType = 'role' AND name = %s", $param);
                         break;
                 }
             }
@@ -964,7 +974,7 @@
     function addLog($type, $operation, $value)
     {
         global $login;
-        query("INSERT INTO main_log (type, operation, value, date, login) VALUES(%s, %s, %s, NOW(), %s)", [ $type, $operation, $value, $login ]);
+        query("INSERT INTO main_log (type, operation, value, date, dateUpdate, login) VALUES(%s, %s, %s, NOW(), NOW(), %s)", [ $type, $operation, $value, $login ]);
     }
     function getStatusForTable($idTable, $first)
     {

@@ -162,10 +162,10 @@ export class ExplorerComponent implements OnInit
                 this.createRight.create(id, () => { this.refresh() });
                 break;
             case "Пользователь":
-                this.createUser.create(() => { this.refresh() }, data);
+                this.createUser.create(id, () => { this.refresh() }, data);
                 break;
             case "Роль": 
-                this.createRole.create(() => { this.refresh() }, data);
+                this.createRole.create(id, () => { this.refresh() }, data);
                 break;
             case "Файл": 
                 this.createFile.create(id, () => { this.refresh() });
@@ -240,9 +240,9 @@ export class ExplorerComponent implements OnInit
         {
             this.clearRules(false);
             let right = this.createRight.decodeRights(data[0]);
-            this.selectRules.copy = Boolean(right.copy);
+            this.selectRules.copy = objectType == "user" || objectType == "role" ? false : Boolean(right.copy);
             this.selectRules.cut = Boolean(right.change);
-            this.selectRules.rights = Boolean(right.change);
+            this.selectRules.rights = objectType == "user" || objectType == "role" ? false : Boolean(right.change);
             this.selectRules.remove = Boolean(right.change);
             this.selectRules.paste = Boolean(right.change) && this.selectObjectCopy.id != -1;
             this.selectRules.info = Boolean(right.change);

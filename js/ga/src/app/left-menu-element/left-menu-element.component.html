@@ -40,6 +40,9 @@
                         <i class="fas fa-folder-open"></i>
                     </span>
 
+                    <i *ngIf = "data.objectType == 'user'" class="fas fa-user" style = "color:#e6e6e6;"></i>
+                    <i *ngIf = "data.objectType == 'role'" class="fas fa-address-book" style = "color:#e6e6e6;"></i>
+
                     <i *ngIf = "data.objectType == 'value'" class="fas fa-superscript" style = "color:#f1b0e8;"></i>
                     <!-- <i *ngIf = "data.objectType == 'value' && data.type == 'var'" class="fas fa-superscript"></i>
                     <i *ngIf = "data.objectType == 'value' && data.type == 'array'" class="fas fa-clipboard-list"></i>
