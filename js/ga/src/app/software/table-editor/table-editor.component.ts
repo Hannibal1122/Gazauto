@@ -42,16 +42,23 @@ export class TableEditorComponent implements OnInit
     constructor(private query:QueryService) { }
     ngOnInit() 
     {
-        this.loadTable();
-        this.getLastUpdateTime(() => { this.getListLogin(); });
+        this.loadTable(() =>
+        {
+            this.getLastUpdateTime(() => 
+            { 
+                this.getListLogin(); 
+            });
+        });
     }
     tableIds = {}; // для контроля изменений
-    loadTable()
+    loadTable(func?)
     {
         /* trace("update " + this.inputs.id) */
         this.load = true;
+        let START = new Date().getTime();
         this.query.protectionPost(250, { param: [this.inputs.id]}, (data) => 
         {
+            trace(data)
             if(data.head == undefined) 
             {
                 this.error = true;
@@ -66,20 +73,30 @@ export class TableEditorComponent implements OnInit
             for(var i = 0; i < data.head.length; i++)
                 this.dataHeader.push({ i: data.head[i][0], value: data.head[i][1] });
             this.tableIds = {};
-            for(var key in data.data)
+
+            let l = Object.keys(data.data).length;
+            let key;
+            for(key in data.data) if(data.data[key].__NEXT__ == null) break; //Находим null
+            for(i = l - 1; i >= 0; i--) // Тут должна быть сортировка по next
             {
-                let i = this.dataTable.length;
                 this.dataTable[i] = data.data[key];
                 this.dataTable[i].__ID__ = key;
                 for(var _key in data.data[key])
-                    if(data.data[key][_key].tableId) this.tableIds[data.data[key][_key].tableId] = data.data[key][_key].tableId;
+                    if(_key != "__NEXT__" && data.data[key][_key].tableId && data.data[key][_key].tableId != this.inputs.id) 
+                        this.tableIds[data.data[key][_key].tableId] = data.data[key][_key].tableId;
+                key = this.getNextI(data.data, key);
             }
             if(this.inputs.searchObjectId) this.searchCell(this.inputs.searchObjectId);
             
             this.lastUpdateTime = data.time;
             this.load = false;
-            
+            if(func) func();
+            trace(new Date().getTime() - START);
         });
+    }
+    getNextI(object, next)
+    {
+        for(var key in object) if(object[key].__NEXT__ == next) return key;
     }
     /*************************************************/
     private globalStop = false;
@@ -119,8 +136,9 @@ export class TableEditorComponent implements OnInit
     }
     changeNameTable()
     {
-        this.load = true;
-        this.query.protectionPost(253, { param: [this.inputs.id, this.nameTable]}, (data) => { this.load = false; });
+        this.addToQueue(253, [this.inputs.id, this.nameTable], (data) => { this.load = false; });
+        /* this.load = true;
+        this.query.protectionPost(253, { param: }, ); */
     }
     changeHeader() // изменить заголовок таблицы
     {
@@ -151,25 +169,21 @@ export class TableEditorComponent implements OnInit
                 }
                 let changes = Data.data[0][3];
                 this.load = true;
+                trace(out)
+                trace(changes)
                 this.query.protectionPost(251, { param: [ this.inputs.id, JSON.stringify(out), changes ]}, (data) => 
                 {
-                    this.dataHeader = [];
-                    for(var i = 0; i < Data.data[0][1].length; i++)
-                        this.dataHeader[i] = { value: Data.data[0][1][i].value, i: i };
-
-                    this.editTable.head = this.dataHeader; // update edit table
-                    this.editTable.data = this.dataTable; // update edit table
-                    this.load = false;
+                    this.loadTable();
                 });
             }
         });
     }
-    appendFromLeftMenu = (() => // Добавление из леаого меню
+    appendFromLeftMenu = (() => // Добавление из левого меню
     {
         return (i, j, data, _nameColumn) =>
         {
             let nameColumn = "";
-            let type = "update";
+            /* let type = "update"; */
             if(_nameColumn) nameColumn = this.dataHeader[Number(_nameColumn)].value;
             else
                 for(var _i = 0; _i < this.dataHeader.length; _i++)
@@ -218,14 +232,11 @@ export class TableEditorComponent implements OnInit
                                 if(this.modal.Data[0][1].selected == "по значению")
                                     for(k = beginI; k <= endI; k++)
                                     {
-                                        if(this.dataTable[k][nameColumn] == undefined) type = "insert";
-                                        let ID = type == "insert" ? this.dataTable[k].__ID__ : this.dataTable[k][nameColumn].id;
+                                        let ID = this.dataTable[k][nameColumn].id;
                                         ((i) =>{
-                                            this.query.protectionPost(256, { param: [ this.inputs.id, data.id, ID, nameColumn, type, 
-                                                this.modal.Data[1] ? this.modal.Data[1][1].selected : null ] }, 
-                                                (data) =>
+                                            this.addToQueue(256, [ this.inputs.id, data.id, ID, nameColumn, 
+                                                this.modal.Data[1] ? this.modal.Data[1][1].selected : null ], (data) =>
                                                 {
-                                                    /* trace(data) */
                                                     this.dataTable[i][nameColumn] = data;
                                                     if(--length == 0) this.editTable.data = this.dataTable; // update edit table
                                                 });
@@ -234,12 +245,10 @@ export class TableEditorComponent implements OnInit
                                 if(this.modal.Data[0][1].selected == "по ссылке")
                                     for(k = beginI; k <= endI; k++)
                                     {
-                                        if(this.dataTable[k][nameColumn] == undefined) type = "insert";
-                                        let ID = type == "insert" ? this.dataTable[k].__ID__ : this.dataTable[k][nameColumn].id;
+                                        let ID = this.dataTable[k][nameColumn].id;
                                         ((i) =>{
-                                            this.query.protectionPost(255, { param: [ this.inputs.id, data.id, ID, nameColumn, type ] }, (data) =>
+                                            this.addToQueue(255, [ this.inputs.id, data.id, ID, nameColumn ], (data) =>
                                             {
-                                                /* trace(data) */
                                                 this.dataTable[i][nameColumn] = data;
                                                 if(--length == 0) this.editTable.data = this.dataTable; // update edit table
                                             });
@@ -253,12 +262,10 @@ export class TableEditorComponent implements OnInit
                 case "table": 
                     for(k = beginI; k <= endI; k++)
                     {
-                        if(this.dataTable[k][nameColumn] == undefined) type = "insert";
-                        let ID = type == "insert" ? this.dataTable[k].__ID__ : this.dataTable[k][nameColumn].id;
+                        let ID = this.dataTable[k][nameColumn].id;
                         ((i) =>{
-                            this.query.protectionPost(255, { param: [ this.inputs.id, data.id, ID, nameColumn, type ] }, (data) =>
+                            this.addToQueue(255, [ this.inputs.id, data.id, ID, nameColumn], (data) =>
                             {
-                                /* trace(data) */
                                 this.dataTable[i][nameColumn] = data;
                                 if(--length == 0) this.editTable.data = this.dataTable; // update edit table
                             });
@@ -276,25 +283,18 @@ export class TableEditorComponent implements OnInit
             this.modal.open({ title: "Нужно добавить заголовок!", data: [], ok: "Ок", cancel: ""});
             return;
         }
-        /* let idRow = String(this.getID()); */
-        this.update({ type: "row"/* , idRow: idRow */ });
+        let l = this.dataTable.length;
+        this.update({ type: "row", idRow: l > 0 ? this.dataTable[l - 1].__ID__ : -1 });
     }
     update(property)
     {
         switch(property.type)
         {
             case "row": // Добавление строки
-                this.load = true;
-                this.query.protectionPost(257, { param: [ this.inputs.id/* , property.idRow */ ]}, (data) => 
-                {
-                    this.dataTable.push(data);
-                    this.editTable.data = this.dataTable; // update edit table
-                    this.load = false;
-                });
+                this.addToQueue(257, [ this.inputs.id, property.idRow ], (data) => { this.loadTable(); });
                 break;
             case "field": // Обновление ячейки
-                this.load = true;
-                this.query.protectionPost(252, { param: [ this.inputs.id,  JSON.stringify(property.out) ]}, (data) => 
+                this.addToQueue(252, [ this.inputs.id,  JSON.stringify(property.out) ], (data) =>
                 {
                     if(typeof data.value === "object")
                     {
@@ -307,17 +307,10 @@ export class TableEditorComponent implements OnInit
                         this.dataTable[property.i][property.nameColumn] = data;
                         this.editTable.setCell = { i: property.i, key: property.nameColumn, value: data };
                     }
-                    this.load = false;
                 });
                 break;
             case "remove": // Удаление строки
-                this.load = true;
-                this.query.protectionPost(258, { param: [ this.inputs.id, this.dataTable[property.i].__ID__ ]}, (data) => 
-                {
-                    this.dataTable.splice(property.i, 1);
-                    this.editTable.data = this.dataTable; // update edit table
-                    this.load = false;
-                });
+                this.addToQueue(258, [ this.inputs.id, this.dataTable[property.i].__ID__ ], (data) => { this.loadTable(); });
                 break;
             case "operation": // Обновление возможных операций с ячейкой
                 this.rules.copy = property.rules.copy;
@@ -334,14 +327,31 @@ export class TableEditorComponent implements OnInit
                 else this.onChange({ type: "openFromTable", value: { name: property.data.type, id: property.data.linkId }});
                 break;
             case "state": // Изменить состояние ячейки
-                this.load = true;
-                this.query.protectionPost(260, { param: [ this.inputs.id,  property.id, property.state ]}, (data) => 
+                this.addToQueue(260, [ this.inputs.id,  property.id, property.state ], (data) => 
                 {
                     this.dataTable[property.i][property.nameColumn].state = property.state;
                     this.load = false;
                 });
                 break;
         }
+    }
+    queue = [];
+    addToQueue(nquery, param, func)
+    {
+        this.queue.push({ nquery: nquery, param: param, func: func });
+        if(this.queue.length == 1) this.updateQueue();
+    }
+    updateQueue()
+    {
+        this.load = true;
+        let queue = this.queue[0];
+        this.query.protectionPost(queue.nquery, { param: queue.param }, (data) => 
+        {
+            queue.func(data);
+            this.queue.splice(0, 1);
+            if(this.queue.length != 0) this.updateQueue();
+            else this.load = false;
+        });
     }
     copyField(copyOrCut)
     {
@@ -389,21 +399,6 @@ export class TableEditorComponent implements OnInit
                 }
             });
         else queryFunction("");
-    }
-    /* getID()
-    {
-        if(this.dataTable.length == 0) return 1;
-        let max = Number(this.dataTable[0].__ID__);
-        for(var i = 1; i < this.dataTable.length; i++)
-            if(max < Number(this.dataTable[i].__ID__)) max = Number(this.dataTable[i].__ID__);
-        return max + 1;
-    } */
-    compareNumeric(a, b) 
-    {
-        let _a = Number(a.__ID__);
-        let _b = Number(b.__ID__);
-        if (_a > _b) return 1;
-        if (_a < _b) return -1;
     }
     searchCellId = -1; // Для отображения ячейки в таблице
     searchTimeout = null

@@ -4,8 +4,6 @@ import { QueryService } from "./lib/query.service";
 import { FunctionsService } from "./lib/functions.service";
 import { TableEditorComponent } from './software/table-editor/table-editor.component';
 import { InfoComponent } from './software/info/info.component';
-import { TasksComponent } from './software/tasks/tasks.component';
-import { TaskComponent } from './software/task/task.component';
 
 declare var trace:any;
 declare var $: any;
@@ -44,12 +42,12 @@ export class AppComponent implements OnInit
             this.enter = true; 
             this.Login = localStorage.getItem("login");
             this.refreshLeftMenu();
-            this.openSoftware("explorer", { id: 2 });
+            /* this.openSoftware("explorer", { id: 2 }); */
             /* this.openSoftware("info", { id: -1 }); */
             /* this.openSoftware("task", { id: -1 }); */
             /* this.openSoftware("tasks", { id: -1 }); */
-            /* this.openSoftware("table", { id: 66 });
-            this.openSoftware("table", { id: 102 }); */
+            this.openSoftware("table", { id: 4 });
+            /* this.openSoftware("table", { id: 102 }); */
             /* this.openSoftware("table", { id: 102 }); */
         });
         this.firstEnter(this);
@@ -212,8 +210,6 @@ export class AppComponent implements OnInit
             case "explorer": i = this.checkRepeatSoftware(type, { component: ExplorerComponent, inputs: input }); break;
             case "table": i = this.checkRepeatSoftware(type, { component: TableEditorComponent, inputs: input, appendFromLeftMenu: {} }); break;
             case "info": i = this.checkRepeatSoftware(type, { component: InfoComponent, inputs: input }); break;
-            case "tasks": i = this.checkRepeatSoftware(type, { component: TasksComponent, inputs: input }); break;
-            case "task": i = this.checkRepeatSoftware(type, { component: TaskComponent, inputs: input }); break;
         }
         this.currentSoftware = i;
     }
@@ -227,15 +223,13 @@ export class AppComponent implements OnInit
             case "explorer": name = "Проводник"; break;
             case "table": name = "Редактор таблицы"; break;
             case "info": name = "Справка"; break;
-            case "tasks": name = "Задачник"; break;
-            case "task": name = "Задача"; break;
         }
         for(; i < this.tabs.length; i++) // Проверка на уже открытую вкладку
             if(this.tabs[i].type == type && this.tabs[i].software.inputs && this.tabs[i].software.inputs.id == input.id) break;
         if(i != this.tabs.length) 
         {
-            if(input.searchObjectId) 
-                this.tabs[i].inputFromApp = { search: input.searchObjectId };
+            if(input.searchObjectId) this.tabs[i].inputFromApp = { search: input.searchObjectId };
+            if(input.element) this.tabs[i].inputFromApp = { element: input.element };
         }
         else
             this.tabs[i] = 

@@ -34,8 +34,9 @@ export class ExplorerComponent implements OnInit
     @ViewChild('modal') public modal: any;
     set inputFromApp(value)
     {
-        if(value && value.search) 
-            this.openObjectById("search", value.search);
+        if(value) 
+            if(value.search) this.openObjectById("search", value.search);
+            else if(value.element) this.openObjectById("element", value.element);
     }
     onChange = null;
     inputs = { id: -1, element: null, searchObjectId: null };
@@ -330,7 +331,7 @@ export class ExplorerComponent implements OnInit
     addInfo()
     {
         if(this.selectObjectI != -1)
-            this.createInfo.create(this.outFolders[this.selectObjectI].id);
+            this.createInfo.create(this.outFolders[this.selectObjectI].id, () => { this.refresh(); });
     }
     globalClick = null;
     ngOnDestroy() 

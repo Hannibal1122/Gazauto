@@ -15,7 +15,6 @@ export class CreateUserService
         this.loadRoleAndUser((users, roles) =>
         {
             let _new = true;
-            trace(data)
             var Data:any = {
                 title: "<b>" + (data ? "Изменение" : "Добавление") + " пользователя</b>",  
                 data: [

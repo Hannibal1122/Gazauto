@@ -202,6 +202,8 @@
                         $idElement = (int)$param[1];
                         switch($typeElement)
                         {
+                            case "role":
+                            case "user":
                             case "folder":
                             case "table":
                             case "file":
@@ -445,10 +447,10 @@
                         $data = [];
                         if($result = query("SELECT name, NOW() FROM structures WHERE id = %i", [$idTable]))
                             while ($row = $result->fetch_array(MYSQLI_NUM)) { $nameTable = $row[0]; $timeOpen = $row[1]; }
-                        if($result = query("SELECT i, name_column FROM fields WHERE tableId = %i AND type = 'head'", [$idTable]))
+                        if($result = query("SELECT i, name_column FROM fields WHERE tableId = %i AND type = 'head' ORDER by i", [$idTable]))
                             while ($row = $result->fetch_array(MYSQLI_NUM)) 
                                 $head[] = $row;
-                        if($result = query("SELECT i, name_column, value, type, linkId, linkType, id, state FROM fields WHERE tableId = %i AND type != 'head'", [$idTable]))
+                        if($result = query("SELECT i, name_column, value, type, linkId, linkType, fields.id, state, next FROM fields LEFT JOIN line_ids ON line_ids.id = fields.i WHERE tableId = %i AND type != 'head'", [$idTable]))
                             while ($row = $result->fetch_array(MYSQLI_NUM)) 
                             {
                                 $field = [ "id" => (int)$row[6], "value" => $row[2], "state" => $row[7] ];
@@ -462,7 +464,7 @@
                                             {
                                                 $field["type"] = "value";
                                                 $valueData = $value->fetch_array(MYSQLI_NUM);
-                                                if($valueData[1] == "array") $field["listValue"] = getListValueByKey($field["linkId"], $field["value"]);/* getListValues($field["linkId"]) */
+                                                if($valueData[1] == "array") $field["listValue"] = getListValueByKey($field["linkId"], $field["value"]);
                                                 else $field["value"] = $valueData[0];
                                             }
                                             break;
@@ -487,6 +489,7 @@
                                     }
                                 }
                                 $data[(int)$row[0]][$row[1]] = $field;
+                                $data[(int)$row[0]]["__NEXT__"] = $row[8];
                             }
                         echo json_encode(["head" => $head, "data" => $data, "name" => $nameTable, "change" => (getRights($idTable) & 8) == 8, "time" => $timeOpen]);
                         addLog("table", "open", $idTable);
@@ -496,50 +499,51 @@
                         $idTable = (int)$param[0];
                         if((getRights($idTable) & 8) != 8) return; // Права на изменение
                         $data = json_decode($param[1]);
-                        query("DELETE FROM fields WHERE tableId = %i AND type = 'head'", [ $idTable ]);
-                        $c = count($data);
-                        for($i = 0; $i < $c; $i++)
+                        $changes = $param[2];
+                        $head = [];
+                        if($result = query("SELECT name_column FROM fields WHERE tableId = %i AND type = 'head'", [$idTable]))
+                            while ($row = $result->fetch_array(MYSQLI_NUM)) $head[$row[0]] = "";
+                        for($i = 0, $c = count($data); $i < $c; $i++)
                         {
+                            $name_column = $data[$i]->value;
                             if(isset($data[$i]->oldValue)) // Изменить имя поле у всех ячеек
-                                query("UPDATE fields SET name_column = %s WHERE name_column = %s AND tableId = %i", [ $data[$i]->value, $data[$i]->oldValue, $idTable ]);
-                            query("INSERT INTO fields (tableId, i, name_column, type) VALUES(%i, %i, %s, %s) ", [ $idTable, $data[$i]->i, $data[$i]->value, "head" ]);
+                                query("UPDATE fields SET name_column = %s WHERE name_column = %s AND tableId = %i", [ $name_column, $data[$i]->oldValue, $idTable ]);
+                            if(!array_key_exists($name_column, $head)) // Если это новый столбец, то создать по всем строкам
+                            {
+                                if($result = query("SELECT DISTINCT i FROM fields WHERE tableId = %i AND type = 'value'", [ $idTable ]))
+                                    while($row = $result->fetch_array(MYSQLI_NUM))
+                                        query("INSERT INTO fields (tableId, i, name_column, type, value) VALUES(%i, %i, %s, %s, %s) ", [ $idTable, $row[0], $name_column, "value", "" ]);
+                                query("INSERT INTO fields (tableId, i, name_column, type) VALUES(%i, %i, %s, %s) ", [ $idTable, $data[$i]->i, $name_column, "head" ]);
+                            }
+                            query("UPDATE fields SET i = %i WHERE name_column = %s AND tableId = %i AND type = 'head'", [ $i, $name_column, $idTable ]);
                         }
-                        $c = count($param[2]); // удаление ячеек
-                        for($i = 0; $i < $c; $i++)
-                            query("DELETE FROM fields WHERE tableId = %i AND name_column = %s AND type != 'head'", [ $idTable, $param[2][$i] ]);
-                        print_r($data);
+                        for($i = 0, $c = count($changes); $i < $c; $i++) // удаление ячеек и заголовка
+                            query("DELETE FROM fields WHERE tableId = %i AND name_column = %s", [ $idTable, $param[2][$i] ]);
                         addLog("table", "update", $idTable);
                         break;
-                    case 252: // Добавить/Удалить/Изменить ячейки в таблице
+                    case 252: // Изменить ячейки в таблице
                         $idTable = (int)$param[0];
                         if((getRights($idTable) & 8) != 8) return; // Права на изменение
                         $data = json_decode($param[1]);
                         $value = $data->value;
-                        $idField = property_exists($data, "id") ? $data->id : -1;
-                        switch($data->__type__)
-                        {
-                            case "insert":
-                                query("INSERT INTO fields (tableId, i, name_column, type, value) VALUES(%i, %i, %s, %s, %s) ", [ $idTable, $data->__ID__, $data->nameColumn, "value", $value ]);
-                                $idField = $mysqli->insert_id;
-                                break;
-                            case "update":
-                                $typeField = is_object($value) ? "link" : "value";
-                                if($typeField == "value")
-                                    query("UPDATE fields SET value = %s, linkId = NULL, linkType = NULL, type = 'value', state = 0 WHERE tableId = %i AND id = %i", [ 
-                                        $value, 
-                                        $idTable, // для подстраховки
-                                        $idField
-                                    ]);
-                                if($typeField == "link")
-                                    query("UPDATE fields SET value = %s, linkId = %i, linkType = %s, type = 'link' WHERE tableId = %i AND id = %i", [ 
-                                        $value->value, 
-                                        $value->linkId, 
-                                        $value->type, 
-                                        $idTable, // для подстраховки
-                                        $idField
-                                    ]);
-                                break;
-                        }
+                        $idField = $data->id;
+
+                        $typeField = is_object($value) ? "link" : "value";
+                        if($typeField == "value")
+                            query("UPDATE fields SET value = %s, linkId = NULL, linkType = NULL, type = 'value', state = 0 WHERE tableId = %i AND id = %i", [ 
+                                $value, 
+                                $idTable, // для подстраховки
+                                $idField
+                            ]);
+                        if($typeField == "link")
+                            query("UPDATE fields SET value = %s, linkId = %i, linkType = %s, type = 'link' WHERE tableId = %i AND id = %i", [ 
+                                $value->value, 
+                                $value->linkId, 
+                                $value->type, 
+                                $idTable, // для подстраховки
+                                $idField
+                            ]);
+
                         echo json_encode([ "id" => $idField, "value" => $value ]);
                         addLog("table", "update", $idTable);
                         break;
@@ -558,7 +562,6 @@
                     case 255: // Добавление элемента из левого меню в таблицу по ссылке
                         $idTable = (int)$param[0];
                         $idObject = (int)$param[1];
-                        $typeOperation = $param[4];
                         if((getRights($idTable) & 8) != 8) return; // Права на изменение
                         if((getRights($idObject) & 4) != 4) return; // Права на наследование
                         if($result = query("SELECT name, objectType, objectId FROM structures WHERE id = %i", [ $idObject ]))
@@ -582,15 +585,7 @@
                             }
                             $linkId = $linkType != "value" ? $idObject : (int)$valueData[0];
                             
-                            if($typeOperation == "insert")
-                            {
-                                query("INSERT INTO fields (tableId, i, name_column, type, value, linkId, linkType) VALUES(%i, %i, %s, %s, %s, %i, %s) ", [ 
-                                    $idTable, $idFields, $param[3], "link", 0, $linkId, $linkType ]);
-                                $idFields = $mysqli->insert_id;
-                            }
-                            if($typeOperation == "update")
-                                query("UPDATE fields SET value = %s, linkId = %i, linkType = %s, type = 'link' WHERE tableId = %i AND id = %i", [ 
-                                    0, $linkId, $linkType, $idTable, $idFields ]);
+                            query("UPDATE fields SET value = %s, linkId = %i, linkType = %s, type = 'link' WHERE tableId = %i AND id = %i", [ 0, $linkId, $linkType, $idTable, $idFields ]);
                             echo json_encode([ "id" => $idFields, "linkId" => $linkId, "type" => $linkType, "value" => $fieldValue, "state" => $fieldState, "listValue" => $fieldList ]);
                         }
                         addLog("table", "update", $idTable);
@@ -598,7 +593,6 @@
                     case 256: // Добавление элемента из левого меню в таблицу по значению
                         $idTable = (int)$param[0];
                         $idObject = (int)$param[1];
-                        $typeOperation = $param[4];
                         if((getRights($idTable) & 8) != 8) return; // Права на изменение
                         if((getRights($idObject) & 1) != 1) return; // Права на просмотр
                         if($result = query("SELECT objectType, objectId FROM structures WHERE id = %i", [ $idObject ]))
@@ -611,15 +605,9 @@
                                     if($value = query("SELECT value, type FROM my_values WHERE id = %i", [ (int)$row[1] ]))
                                     {
                                         $valueData = $value->fetch_array(MYSQLI_NUM);
-                                        if($valueData[1] == "array") $fieldValue = getListValueByKey((int)$row[1], (int)$param[5]);
+                                        if($valueData[1] == "array") $fieldValue = getListValueByKey((int)$row[1], (int)$param[4]);
                                         else $fieldValue = $valueData[0];
-                                        if($typeOperation == "insert")
-                                        {
-                                            query("INSERT INTO fields (tableId, i, name_column, type, value) VALUES(%i, %i, %s, %s, %s) ", [ $idTable, $param[2], $param[3], "value", $fieldValue ]);
-                                            $idFields = $mysqli->insert_id;
-                                        }
-                                        if($typeOperation == "update")
-                                            query("UPDATE fields SET value = %s, type = 'value', linkId = NULL, linkType = NULL WHERE tableId = %i AND id = %i", [ $fieldValue, $idTable, $idFields]);
+                                        query("UPDATE fields SET value = %s, type = 'value', linkId = NULL, linkType = NULL WHERE tableId = %i AND id = %i", [ $fieldValue, $idTable, $idFields]);
                                         echo json_encode([ "id" => $idFields, "value" => $fieldValue ]);
                                     }
                                     break;
@@ -630,11 +618,15 @@
                     case 257: // Добавить строку в таблицу
                         $idTable = (int)$param[0];
                         if((getRights($idTable) & 8) != 8) return; // Права на изменение
-                        $idRow = 1;
-                        /* $idRow = (int)$param[1]; */
-                        if($result = query("SELECT MAX(i) FROM fields WHERE tableId = %i AND type != 'head'", [$idTable]))
-                            while ($row = $result->fetch_array(MYSQLI_NUM)) $idRow = (int)$row[0] + 1;
+                        $idPrevRow = (int)$param[1]; // id предыдущей строки
+                        $oldNext = "NULL";
+                        
+                        if($idPrevRow != -1) query("INSERT INTO line_ids(next) SELECT next FROM line_ids WHERE id = %i", [$idPrevRow]);
+                        else query("INSERT INTO line_ids (next) VALUES(NULL)", []);
+                        
+                        $idRow = $mysqli->insert_id;
                         $out = ["__ID__" => $idRow];
+                        if($idPrevRow != -1) query("UPDATE line_ids SET next = %i WHERE id = %i", [$idRow, $idPrevRow]); 
                         if($result = query("SELECT name_column FROM fields WHERE tableId = %i AND type = 'head'", [$idTable]))
                             while ($row = $result->fetch_array(MYSQLI_NUM)) 
                             {
@@ -647,7 +639,15 @@
                     case 258: // Удалить строку из таблицы
                         $idTable = (int)$param[0];
                         if((getRights($idTable) & 8) != 8) return; // Права на изменение
-                        query("DELETE FROM fields WHERE tableId = %i AND i = %i AND type != 'head'", [ $idTable, (int)$param[1] ]);
+                        $idRow = (int)$param[1];
+                        $idNext =  -1;
+                        if($result = query("SELECT next FROM line_ids WHERE id = %i", [$idRow])) $idNext = $result->fetch_array(MYSQLI_NUM)[0];
+                        $idPrevRow = -1;
+                        if($result = query("SELECT id FROM line_ids WHERE next = %i", [$idRow])) $idPrevRow = $result->fetch_array(MYSQLI_NUM)[0];
+                        if($idNext == -1) query("UPDATE line_ids SET next = NULL WHERE id = %i", [$idPrevRow]); 
+                        else query("UPDATE line_ids SET next = %s WHERE id = %i", [$idNext, $idPrevRow]); 
+                        query("DELETE FROM line_ids WHERE id = %i", [ $idRow ]);
+                        query("DELETE FROM fields WHERE tableId = %i AND i = %i AND type != 'head'", [ $idTable, $idRow ]);
                         addLog("table", "update", $idTable);
                         break;
                     case 259: // Копировать ячейку

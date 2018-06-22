@@ -103,6 +103,13 @@ export class LeftMenuElementComponent implements OnInit
                     this.onChange.emit({ type: "open", value: { name: "explorer", id: idParent[0][0], searchObjectId: data.id }});
                 });
                 break;
+            case "user":
+            case "role":
+                this.query.protectionPost(111, { param: [ data.objectType, data.id ]}, (idParent) =>
+                {
+                    this.onChange.emit({ type: "open", value: { name: "explorer", id: idParent[0][0], element: data.id }});
+                });
+                break;
         }
     }
     straighten(out, data, level, parent) // из объекта получаем одномерный массив со всеми полями дерева

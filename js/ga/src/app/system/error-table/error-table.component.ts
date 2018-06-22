@@ -173,10 +173,7 @@ export class ErrorTableComponent implements OnInit
         if(this.inputProperty.oldValue != this.inputProperty.value)
         {
             let type = "value";
-            let out:any = { __type__: this.inputProperty.oldValue == undefined ? "insert" : "update", nameColumn: this.header[j].value };
-            if(this.listTables[i][j] && this.listTables[i][j].type == "cell") out.__type__ = "update"; // Для ссылок на несуществующие элементы
-            if(out.__type__ == "insert") out.__ID__ = this.firstData[i]; // Если вставляем новое значение, то надо знать номер строки
-            if(out.__type__ == "update") out.id = this.listTables[i][j].id; // при обновлении достаточно знать id
+            let out:any = {  nameColumn: this.header[j].value, id: this.listTables[i][j].id }; // при обновлении достаточно знать id
             let valuesLength = this.inputProperty.values.length;
             let _i = 0;
             if(valuesLength > 0)
