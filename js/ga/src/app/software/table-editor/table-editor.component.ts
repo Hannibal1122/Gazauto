@@ -55,17 +55,19 @@ export class TableEditorComponent implements OnInit
     {
         /* trace("update " + this.inputs.id) */
         this.load = true;
-        let START = new Date().getTime();
+        /* let START = new Date().getTime(); */
         this.query.protectionPost(250, { param: [this.inputs.id]}, (data) => 
         {
-            trace(data)
+            /* trace(data) */
             if(data.head == undefined) 
             {
                 this.error = true;
                 return;
             }
             this.error = false;
-            this.rules.head = this.rules.add = this.editTable.change = data.change;
+            this.rules.head = data.changeHead ? false : true;
+            if(this.rules.head && !data.change) this.rules.head = false;
+            this.rules.add = this.editTable.change = data.change;
             this.nameTable = data.name;
             this.dataHeader = [];
             this.dataTable = [];
@@ -91,7 +93,7 @@ export class TableEditorComponent implements OnInit
             this.lastUpdateTime = data.time;
             this.load = false;
             if(func) func();
-            trace(new Date().getTime() - START);
+            /* trace(new Date().getTime() - START); */
         });
     }
     getNextI(object, next)

@@ -23,7 +23,10 @@
                     <span *ngIf = "row[j] != undefined && row[j].type == 'file'" class = "linkClass linkValueClass" (dblclick) = "openToExplorer(row[j])">
                         <i class = "fa fa-file"></i>
                     </span>
-                    <div *ngIf = "row[j] != undefined && row[j].state" [style.width] = "row[j].state + '%'" class = "tableStateLoading">
+                    <div *ngIf = "row[j] != undefined && row[j].state" [style.width] = "row[j].state + '%'" class = "tableStateLoading" 
+                        [class.tableCellStateGreen] = "row[j].state == 100"
+                        [class.tableCellStateYellow] = "row[j].state >= 50 && row[j].state < 100"
+                        [class.tableCellStateRed] = "row[j].state < 50">
                     </div>
                 </td>
                 <td><button *ngIf = "change" (click) = "removeRow(i)" style = "color:#456486;"><i class="fas fa-trash"></i></button></td>
@@ -32,7 +35,8 @@
     </table>
 
     <div #mainEditElement style = "position:absolute;" [ngStyle] = "configInput" [hidden] = "!inputProperty.visible">
-        <input #mainInputElement type = "text" class = "mainInputStyle" (blur) = "acceptEditField($event)" [(ngModel)] = "inputProperty.value" (keydown)="downEnter($event)">
+        <!-- <input #mainInputElement type = "text" class = "mainInputStyle" (blur) = "acceptEditField($event)" [(ngModel)] = "inputProperty.value" (keydown)="downEnter($event)"> -->
+        <textarea #mainInputElement class = "mainInputStyle" (blur) = "acceptEditField($event)" [(ngModel)] = "inputProperty.value" (keydown)="downEnter($event)"></textarea>
         <button #mainButtonElement [hidden] = "inputProperty.type != 'table'" 
             style = "position:absolute; right:0px; top: 0px; color:red; cursor:pointer; border:none; background:none; outline: none;"
             (click) = "inputProperty.value = ''; inputProperty.state = 0; acceptEditField($event)">

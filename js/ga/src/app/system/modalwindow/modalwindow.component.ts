@@ -81,6 +81,7 @@ export class ModalWindowComponent
     }
     upFromListTable(i)
     {
+        if(this.selectInListTable == "") return;
         var j = this.searchInListTable(i, this.selectInListTable);
         if(j == 0) return;
         this.Data[i][1][j] = this.Data[i][1][j - 1];
@@ -88,6 +89,7 @@ export class ModalWindowComponent
     }
     downFromListTable(i)
     {
+        if(this.selectInListTable == "") return;
         var j = this.searchInListTable(i, this.selectInListTable);
         if(j == this.Data[i][1].length - 1) return;
         this.Data[i][1][j] = this.Data[i][1][j + 1];

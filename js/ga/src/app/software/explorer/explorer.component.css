@@ -8,6 +8,7 @@
     white-space: nowrap;
     padding: 5px;
     border: 2px solid #ffffff;
+    position: relative;
 }
 .selectElementExplorer
 {
