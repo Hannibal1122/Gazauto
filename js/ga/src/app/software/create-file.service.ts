@@ -26,23 +26,12 @@ export class CreateFileService
                 if(this.Data.data[0][1].length == 0) return "Добавьте файл!";  
                 this.query.protectionPost(100, { param: ["file", "NULL", this.Data.data[0][1][0].fullName, id, 0, ""] }, (data) => 
                 { 
-                    /* update()  */
                     this.query.protectionPost(119, { param: [data[1], this.Data.data[0][1][0].fullName] }, (data) => 
                     { 
                         this.modal.close(false);
                         update();
                     });
                 });
-                /* this.query.protectionPost(114, { param: JSON.stringify([this.Data.data[0][1][0].fullName, this.templates, this.header, this.IdTable]) }, (data) =>
-                {
-                    trace(data)
-                    if(data[0] == "ERROR") this.modal.error = data[1];
-                    else if(data[0] == "OK") 
-                    {
-                        this.modal.close(false);
-                        this.LoadTable();
-                    }
-                });   */      
                 return "Загрузка";
             }
         });
@@ -58,12 +47,9 @@ export class CreateFileService
         this.modal.open(Data, (save) =>
         {
             if(save)
-                this.query.protectionPost(120, { param: [id] }, (data) => 
-                { 
-                    this.query.protectionPost(112, { param: [id] }, (data) => 
-                    {
-                        update();
-                    });
+                this.query.protectionPost(112, { param: [id] }, (data) => 
+                {
+                    update();
                 });
         });
     }

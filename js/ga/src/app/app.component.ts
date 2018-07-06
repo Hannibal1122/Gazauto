@@ -48,7 +48,7 @@ export class AppComponent implements OnInit
             /* this.openSoftware("tasks", { id: -1 }); */
             /* this.openSoftware("table", { id: 4 }); */
             /* this.openSoftware("table", { id: 102 }); */
-            /* this.openSoftware("table", { id: 102 }); */
+            /* this.openSoftware("table", { id: 222 }); */
         });
         this.firstEnter(this);
         ////////////////////////////////////////////////////////////////////
@@ -137,11 +137,13 @@ export class AppComponent implements OnInit
     {
         this.query.protectionPost(353, { }, (data) =>
         {
+            if(data === "") return;
             this.lastUpdateTime = data[0][0];
             this.getLastUpdateTime();
         });
         this.query.protectionPost(113, { param: [] }, (data) => 
         { 
+            if(data === "") return;
             this.leftMenuData = data; 
             setTimeout(() => { this.leftMenuOnResize(); }, 20); 
         });
@@ -153,6 +155,7 @@ export class AppComponent implements OnInit
         clearTimeout(this.lastUpdateTimer);
         this.query.protectionPost(354, { param: [ this.lastUpdateTime ] }, (data) => 
         { 
+            if(data === "") return;
             this.lastUpdateTime = data[1];
             if(data[0]) this.refreshLeftMenu();
             else this.lastUpdateTimer = setTimeout(() => { this.getLastUpdateTime(); }, 10000);
@@ -178,6 +181,7 @@ export class AppComponent implements OnInit
             case "openFromTable":
                 this.query.protectionPost(111, { param: [ e.value.name, e.value.id ]}, (idParent) =>
                 {
+                    if(idParent === "") return;
                     switch(e.value.name)
                     {
                         case "table":
@@ -252,6 +256,7 @@ export class AppComponent implements OnInit
         this.load = true;
         this.query.protectionPost(6, {}, (data) =>
         {
+            if(data === "") return;
             if(data[0] == -1)
             {
                 this.query.post(7, { paramI: localStorage.getItem("ID") }, (data) => { });
@@ -302,3 +307,4 @@ export class AppComponent implements OnInit
         this.hideMenu = !this.hideMenu;
     }
 }
+/* $.post('http://localhost:8081/gazprom/scripts/main.php', {nquery: -1}, (data)=>{console.log(data)}); */

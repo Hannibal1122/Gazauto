@@ -1,0 +1,34 @@
+/*******************************************************/
+.createContextMenu
+{
+    background-color: #ffffff;
+    position: fixed;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    box-shadow: 0px 0px 7px 1px #0000006e;
+    width:200px;
+    z-index:10000;
+}
+.contextMenuList
+{
+    color:#626A82;
+    background-color: #ffffff;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    padding-left: 15px;
+    padding-right: 15px;
+    font-size: 12px;
+    cursor: pointer;
+    width: 100%;
+    border: none;
+    text-align: left;
+}
+.contextMenuList:hover
+{
+    color:#ffffff !important;
+    background-color: #428bca;
+}
+.contextMenuList:disabled
+{
+    color:#9b9b9b;
+}

@@ -1,10 +1,11 @@
 <div class="row" style = "margin-left:0; margin-right:0;">
     <div class="col-md-8 col-sm-12" style = "height:30px; position:relative; margin-bottom:4px;">
-        <input type = "text" style = "height:30px; border: 2px solid #eeeeee; padding-left:5px;" [(ngModel)] = "nameTable" (change) = "changeNameTable()" [disabled] = "!rules.add">
+        <div style = "height:30px; border-bottom: 2px solid #eeeeee; float:left; margin-right:10px;">{{nameTable}}</div>
         <button class = "tableButton" title = "Заголовок" (click) = "changeHeader()" [disabled] = "!rules.head"><i class="fas fa-heading"></i></button>
         <button id = "tablePasteButton"  class = "tableButton" title = "Вставить" (click) = "pasteField()" [disabled] = "!rules.paste"><i class="fas fa-paste"></i></button>
         <button id = "tableCutButton"  class = "tableButton" title = "Вырезать" (click) = "copyField('cut')" [disabled] = "!rules.cut"><i class="fas fa-cut"></i></button>
         <button id = "tableCopyButton"  class = "tableButton" title = "Копировать" (click) = "copyField('copy')" [disabled] = "!rules.copy"><i class="fas fa-copy"></i></button>
+        <button class = "tableButton" title = "Экспорт в Excel" (click) = "exportToExcel()" ><i class="fas fa-file-excel"></i></button>
         <button class = "tableButton" title = "Добавить строку" (click) = "addRow()" [disabled] = "!rules.add"><i class="fas fa-plus"></i></button>
         <button class = "tableButton" (click) = "loadTable()" title = "Обновить"><i class="fas fa-sync-alt"></i></button>
         <span *ngIf = "load" style = "color:#757575;font-size:12px;">Загрузка...</span>

@@ -9,6 +9,7 @@ import { CreateValueService } from "../create-value.service";
 import { PasteObjectService } from "../paste-object.service";
 import { CreateFileService } from "../create-file.service";
 import { CreateInfoService } from "../create-info.service";
+import { RenameObjectService } from "../rename-object.service";
 
 declare var $:any;
 declare var trace:any;
@@ -26,7 +27,8 @@ declare var trace:any;
         CreateValueService,
         PasteObjectService,
         CreateFileService,
-        CreateInfoService
+        CreateInfoService,
+        RenameObjectService
     ]
 })
 export class ExplorerComponent implements OnInit 
@@ -55,7 +57,8 @@ export class ExplorerComponent implements OnInit
         rights: false, 
         remove: false,
         download: false,
-        info: false
+        info: false,
+        rename: false
     }
     constructor(
         private injector: Injector, 
@@ -69,6 +72,7 @@ export class ExplorerComponent implements OnInit
         private pasteObject: PasteObjectService,
         private createFile: CreateFileService,
         private createInfo: CreateInfoService,
+        private renameObject: RenameObjectService,
     ) {}
     ngOnInit() 
     { 
@@ -94,8 +98,13 @@ export class ExplorerComponent implements OnInit
         this.pasteObject.modal = this.modal;
         this.createFile.modal = this.modal;
         this.createInfo.modal = this.modal;
+        this.renameObject.modal = this.modal;
 
-        this.globalClick = (e) => { if(e.target.className == "col-md-12" && this.selectObjectI != -1) this.refresh(); }
+        this.globalClick = (e) => 
+        { 
+            if(e.target.className == "col-md-12" && this.selectObjectI != -1) this.refresh(); 
+            this.createContextMenu.visible = false;
+        }
         window.addEventListener("click", this.globalClick, false);
     }
     openObjectById(type, id)
@@ -124,7 +133,7 @@ export class ExplorerComponent implements OnInit
         };
         this.modal.open(Data);
     }
-    openObject(object)
+    openObject(object) // Открыть объект
     {
         switch(object.objectType)
         {
@@ -145,7 +154,7 @@ export class ExplorerComponent implements OnInit
                 break;
         }
     }
-    createObject(id, type, data)
+    createObject(id, type, data) // Создать объект
     {
         switch(type)
         {
@@ -173,15 +182,34 @@ export class ExplorerComponent implements OnInit
                 break;
         }
     }
-    copyObject(copyOrCut)
+    copyObject(copyOrCut) // Копировать/вырезать объект
     {
         localStorage.setItem("copyExplorer", JSON.stringify(this.outFolders[this.selectObjectI]));
         localStorage.setItem("lastOperationExplorer", copyOrCut);
         this.refresh();
     }
+    downloadObject() // Загрузить объект
+    {
+        var elem = this.outFolders[this.selectObjectI];
+        var iframe = document.createElement("iframe");
+        iframe.style.display = "none";
+        iframe.setAttribute("src", this.query.protectionGet(121, elem.id));
+        document.body.appendChild(iframe);
+        iframe.onload = () => { document.body.removeChild(iframe); } // надо удалять!!!
+        /* document.body.appendChild(iframe); */
+    }
+    getRenameObject() // Переименовать объект
+    {
+        if(this.selectObjectI == -1) return;
+        var id = this.outFolders[this.selectObjectI].id;
+        var objectType = this.outFolders[this.selectObjectI].objectType;
+        var name = this.outFolders[this.selectObjectI].name;
+        this.renameObject.rename(id, name, () => { this.refresh() });
+    }
     _pasteObject()
     {
-        this.pasteObject.paste(this.parent, () => { this.refresh() })
+        this.load = true;
+        this.pasteObject.paste(this.parent, () => { this.refresh() }, () => { this.load = false; })
     }
     removeObject() // Удалить объект
     {
@@ -247,6 +275,7 @@ export class ExplorerComponent implements OnInit
             this.selectRules.remove = Boolean(right.change);
             this.selectRules.paste = Boolean(right.change) && this.selectObjectCopy.id != -1;
             this.selectRules.info = Boolean(right.change);
+            this.selectRules.rename = Boolean(right.change) && objectType != "user" && objectType != "role" && objectType != "file";
             if(objectType == "file") this.selectRules.download = true;
         });
     }
@@ -277,6 +306,11 @@ export class ExplorerComponent implements OnInit
             });
         });
     }
+    addInfo() // Добавить справку
+    {
+        if(this.selectObjectI != -1)
+            this.createInfo.create(this.outFolders[this.selectObjectI].id, () => { this.refresh(); });
+    }
     openBackFolder()
     {
         this.query.protectionPost(111, { param: [ "folder", this.parent ] }, (data) =>
@@ -296,6 +330,7 @@ export class ExplorerComponent implements OnInit
             this.allPath.reverse();
             if(func) func();
             this.parent = parent;
+            this.searchInput = "";
             this.load = false;
         });
     }
@@ -310,7 +345,8 @@ export class ExplorerComponent implements OnInit
             rights: false, 
             remove: false,
             download: false,
-            info: false
+            info: false,
+            rename: false
         }
     }
     refresh(clearCopy?)
@@ -318,22 +354,40 @@ export class ExplorerComponent implements OnInit
         if(clearCopy) localStorage.removeItem("copyExplorer");
         this.openFolder(this.parent);
     }
-    downloadObject()
+    searchInput = "";
+    searchInputType = "";
+    searchInputObject()
     {
-        var elem = this.outFolders[this.selectObjectI];
-        var iframe = document.createElement("iframe");
-        iframe.style.display = "none";
-        iframe.setAttribute("src", this.query.protectionGet(121, elem.id));
-        document.body.appendChild(iframe);
-        iframe.onload = () => { document.body.removeChild(iframe); } // надо удалять!!!
-        document.body.appendChild(iframe);
+        if(this.searchInput == "") return;
+        this.load = true;
+        this.unSelectObject();
+        this.query.protectionPost(124, { param: ["%" + this.searchInput + "%", "%" + this.searchInputType + "%"] }, (data) =>
+        {
+            this.outFolders = data.folder;
+            this.load = false;
+        });
     }
-    addInfo()
+    clearSearch()
     {
-        if(this.selectObjectI != -1)
-            this.createInfo.create(this.outFolders[this.selectObjectI].id, () => { this.refresh(); });
+        if(this.searchInput == "") this.refresh();
     }
     globalClick = null;
+    /**************************************/
+    createContextMenu = 
+    {
+        top: "", 
+        left: "", 
+        visible: false, 
+        i: -1
+    }
+    getContextmenu(e, data)
+    {
+        this.createContextMenu.left = e.clientX + "px";
+        this.createContextMenu.top = e.clientY + "px";
+        this.createContextMenu.visible = true;
+        this.selectObject(data);
+        e.preventDefault();
+    }
     ngOnDestroy() 
     {
         window.removeEventListener("click", this.globalClick, false);

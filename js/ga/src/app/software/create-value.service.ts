@@ -104,7 +104,7 @@ export class CreateValueService
         this.modal.open(Data, (save) =>
         {
             if(save)
-                this.query.protectionPost(302, { param: [id] }, (data) => 
+                this.query.protectionPost(112, { param: [id] }, (data) => 
                 { 
                     update();
                 });

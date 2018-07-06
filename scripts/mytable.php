@@ -165,7 +165,7 @@
             }
             addLog("table", "update", $idTable);
         }
-        function addRow($idPrevRow, $echo) // Добавить строку в таблицу
+        function addRow($idPrevRow, $idNextRow, $echo) // Добавить строку в таблицу
         {
             global $mysqli;
             $idTable = $this->idTable; 
@@ -177,6 +177,7 @@
             $idRow = $mysqli->insert_id;
             $out = ["__ID__" => $idRow];
             if($idPrevRow != -1) query("UPDATE line_ids SET next = %i WHERE id = %i", [$idRow, $idPrevRow]); 
+            if($idNextRow != -1) query("UPDATE line_ids SET next = %i WHERE id = %i", [$idNextRow, $idRow]); 
             if($result = query("SELECT name_column FROM fields WHERE tableId = %i AND type = 'head'", [$idTable]))
                 while ($row = $result->fetch_array(MYSQLI_NUM)) 
                 {
@@ -266,7 +267,7 @@
         function copyTable($idTableFrom, $link) // Копировать таблицу
         {
             global $mysqli;
-            $idTable = $this->idTable; 
+            $idTable = $this->idTable;
             $idNewRow = -1;
             $addI = [];
             if($result = query("SELECT i, name_column FROM fields WHERE tableId = %i AND type = 'head'", [ $idTableFrom ])) // Копирование заголовка
@@ -277,7 +278,7 @@
                 {
                     if(!in_array($row[0], $addI))
                     {
-                        $newRow = $this->addRow($idNewRow, false);
+                        $newRow = $this->addRow($idNewRow, -1, false);
                         $idNewRow = $newRow["__ID__"];
                         $addI[] = $row[0];
                     }
@@ -316,6 +317,177 @@
             if($result = query("SELECT parent FROM structures WHERE id = %i", [ $parent ]))
                 while ($row = $result->fetch_array(MYSQLI_NUM))
                     $this->calculateStateForFolder((int)$row[0]);
+        }
+        function remove() // Удаление таблицы
+        {
+            $idTable = $this->idTable;
+            if($result = query("SELECT DISTINCT i FROM fields WHERE tableId = %i AND type != 'head'", [ $idTable ]))
+                while($row = $result->fetch_array(MYSQLI_NUM)) query("DELETE FROM line_ids WHERE id = %i", [ $row[0] ]);
+            query("DELETE FROM fields WHERE tableId = %i", [ $idTable ]);
+            query("UPDATE structures SET bindId = NULL WHERE bindId = %i AND objectType = 'table'", [ $idTable ]);
+        }
+        function getArrayTable() // Получить таблицу в виде массива
+        {
+            $myField = new MyField();
+            $idTable = $this->idTable;
+            $data = [];
+            $outData = [[]]; // на выходе
+            $headMap = [];
+            if($result = query("SELECT name FROM structures WHERE id = %i", [$idTable]))
+                while ($row = $result->fetch_array(MYSQLI_NUM)) $nameTable = $row[0];
+            if($result = query("SELECT i, name_column FROM fields WHERE tableId = %i AND type = 'head' ORDER by i", [$idTable]))
+                while ($row = $result->fetch_array(MYSQLI_NUM)) 
+                {
+                    $headMap[$row[1]] = $row[0];
+                    $outData[0][(int)$row[0]] = $row[1];
+                }
+            if($result = query("SELECT i, name_column, value, type, linkId, linkType, fields.id, state, next FROM fields LEFT JOIN line_ids ON line_ids.id = fields.i WHERE tableId = %i AND type != 'head'", [$idTable]))
+                while ($row = $result->fetch_array(MYSQLI_NUM)) 
+                {
+                    $field = [ "id" => (int)$row[6], "value" => $row[2], "state" => $row[7] ];
+                    if($row[3] == "link")
+                    {
+                        $field["linkId"] = (int)$row[4];
+                        switch($row[5])
+                        {
+                            case "value": $myField->getValue($field); break;
+                            case "file": $myField->getFile($field, $row[5]); break;
+                            case "table": $myField->getTable($field, $row[5]); break;
+                            case "cell": $myField->getCell($field); break;
+                        }
+                    }
+                    $data[(int)$row[0]][(int)$headMap[$row[1]]] = $field;
+                    $data[(int)$row[0]]["__NEXT__"] = $row[8];
+                }
+            $l = count($data);
+            foreach($data as $key => $value) if(array_key_exists("__NEXT__", $value) && $value["__NEXT__"] == null) break; //Находим null
+            for($i = $l - 1; $i >= 0; $i--) // Тут сортировка по next
+            {
+                $outData[$i] = $data[$key];
+                unset($outData[$i]["__NEXT__"]);
+                $key = $this->getNextI($data, $key);
+            }
+            $myArray = new MyArray($outData);
+            for($i = 0; $i < count($myArray->myArray); $i++)
+                for($j = 0; $j < count($myArray->myArray[$i]); $j++)
+                    if(!is_null($myArray->myArray[$i][$j]) && array_key_exists("type", $myArray->myArray[$i][$j]) && $myArray->myArray[$i][$j]["type"] == "table")
+                    {
+                        $myTable = new MyTable((int)$myArray->myArray[$i][$j]["linkId"]);
+                        $myArray->insertArrayInField($i, $j, $myTable->getArrayTable());
+                    }
+            return $myArray->myArray;
+        }
+        function getNextI($object, $next) { foreach($object as $key => $value) if($value["__NEXT__"] == $next) return $key; }
+        function export()
+        {
+            require_once("exportToExcel.php");
+            require_once("myField.php");
+            $data = $this->getArrayTable();
+            $out = [];
+            $i = 0;
+            for($i = 0, $w = count($data); $i < $w; $i++)
+            {
+                $out[$i] = [];
+                for($j = 0, $c = count($data[$i]); $j < $c; $j++) $out[$i][$j] = $data[$i][$j];
+            }
+            $excel = new ExportToExcel();
+            $excel->export($out);
+        }
+    }
+    class Structures
+    {
+        function __construct($idElement, $idParent, $typeOperation)
+        {
+            $this->idElement = $idElement;
+            $this->idParent = $idParent;
+            $this->typeOperation = $typeOperation;
+        }
+        function copy() // Скопировать элемент структуры, по типам
+        {
+            global $login, $mysqli;
+            $idElement = $this->idElement;
+            $idParent = $this->idParent;
+            $elem = [];
+            if($result = query("SELECT objectType, objectId, name, parent, priority, info FROM structures WHERE id = %i", [$idElement]))
+                $elem = $result->fetch_array(MYSQLI_NUM);
+            $elem[3] = $idParent;// parent
+            query("INSERT INTO structures (objectType, objectId, name, parent, priority, info) VALUES(%s, %i, %s, %i, %i, %s)", $elem);
+            $idNewElement = $mysqli->insert_id;
+            if($login != "admin")
+                query("INSERT INTO rights (objectId, type, login, rights) VALUES(%s, %i, %s, %s, %i) ", [ $idNewElement, "user", $login, 255 ]);
+            switch($elem[0])
+            {
+                case "table": $this->copyTable($idNewElement); break;
+                case "file": $this->copyFile($idNewElement, $elem[2]); break;
+                case "value": $this->copyValue($idNewElement, $elem[1]); break;
+                case "folder": $this->copyFolder($idNewElement); break;
+            }    
+        }
+        function copyTable($idNewElement) // Скопировать таблицу
+        {
+            $idElement = $this->idElement;
+            $myTable = new MyTable($idNewElement);
+            $myTable->copyTable($idElement, $this->typeOperation == "inherit");
+        }
+        function copyFile($idNewElement, $name) // Скопировать файл
+        {
+            $idElement = $this->idElement;
+            if (!file_exists("../files/$idNewElement")) mkdir("../files/$idNewElement", 0700);
+            copy("../files/$idElement/".$name, "../files/$idNewElement/".$name);
+        }
+        function copyValue($idNewElement, $objectId) // Скопировать значение
+        {
+            global $mysqli;
+            $value = [];
+            if($result = query("SELECT type, value FROM my_values WHERE id = %i", [ (int)$objectId ]))
+                $value = $result->fetch_array(MYSQLI_NUM);
+            query("INSERT INTO my_values (type, value) VALUES(%s, %s)", [ $value[0], $value[1] ]);
+            $idValue = $mysqli->insert_id;
+            query("UPDATE structures SET objectId = %i WHERE id = %i", [$idValue, $idNewElement]);
+        }
+        function copyFolder($idNewElement) // Скопировать папку
+        {
+            $idElement = $this->idElement;
+            $typeOperation = $this->typeOperation;
+            if($result = query("SELECT id FROM structures WHERE parent = %i", [$idElement]))
+                while($row = $result->fetch_array(MYSQLI_NUM))
+                {
+                    $structures = new Structures((int)$row[0], $idNewElement, $typeOperation);
+                    $structures->copy();
+                }
+        }
+        function remove($idElement) // Удалить элемент структуры, по типам
+        {
+            $element = query("SELECT objectType, name, objectId FROM structures WHERE id = %i", [ $idElement ])->fetch_array(MYSQLI_NUM);
+            if($idElement < 6) return;
+            switch($element[0])
+            {
+                case "role": query("DELETE FROM roles WHERE role = %s", [ $element[1] ]); break;
+                case "user": 
+                    if($element[1] == "admin") return;
+                    query("DELETE FROM registration WHERE login = %s", [ $element[1] ]);
+                    query("DELETE FROM password WHERE login = %s", [ $element[1] ]);
+                    addLog("user", "remove", json_encode([ $element[1] ]));
+                    break;
+                case "folder": break;
+                case "table":
+                    $myTable = new MyTable($idElement);
+                    $myTable->remove();
+                    addLog("table", "remove", $idElement);
+                    break;
+                case "file":
+                    unlink("../files/$idElement/".scandir("../files/$idElement")[2]); 
+                    rmdir("../files/$idElement"); 
+                    break;
+                case "value":
+                    query("DELETE FROM my_values WHERE id = %i", [ (int)$element[2] ]);
+                    query("DELETE FROM structures WHERE id = %i", [ $idElement ]);
+                    query("DELETE FROM my_list WHERE value_id = %i", [ (int)$element[2] ]);
+                    break;
+            }
+            query("DELETE FROM structures WHERE id = %i", [ $idElement ]);
+            query("DELETE FROM rights WHERE objectId = %i", [ $idElement ]);
+            addLog("structure", "remove", $idElement);
         }
     }
 ?>

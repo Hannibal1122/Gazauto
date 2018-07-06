@@ -11,6 +11,7 @@ import { LoadingComponent } from './system/loading/loading.component';
 import { TableEditorComponent } from './software/table-editor/table-editor.component';
 import { ErrorTableComponent } from './system/error-table/error-table.component';
 import { InfoComponent } from './software/info/info.component';
+import { HttpClientModule } from '@angular/common/http';
 
 @NgModule({
     declarations: [ 
@@ -20,7 +21,7 @@ import { InfoComponent } from './software/info/info.component';
         DynamicComponent, 
         EnterComponent, LoadingComponent, TableEditorComponent, ErrorTableComponent, InfoComponent
     ],
-    imports: [ BrowserModule, FormsModule, ModalWindowModule ],
+    imports: [ BrowserModule, FormsModule, ModalWindowModule, HttpClientModule ],
     providers: [],
     bootstrap: [AppComponent]
 })

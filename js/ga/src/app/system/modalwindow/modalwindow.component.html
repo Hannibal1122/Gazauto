@@ -27,7 +27,7 @@
                             <button class = "btn btn-primary btn-sm" (click) = "removeFromSelectList(data)">удалить</button>
                         </div>
                         <!-- ******************************************************************************** -->
-                        <input *ngIf = "data[2] === 'text'" type = "text" [value]="data[1]" [(ngModel)] = "data[1]">
+                        <input style = "width: 100%;" *ngIf = "data[2] === 'text'" type = "text" [value]="data[1]" [(ngModel)] = "data[1]">
                         <!-- ******************************************************************************** -->
                         <input *ngIf = "data[2] === 'password'" type = "text" [value]="data[1]" [(ngModel)] = "data[1]">
                         <button *ngIf = "data[2] === 'password'" (click) = "generatePassword(i)">Создать</button>

@@ -1,5 +1,28 @@
 <?php   
-    $_param = json_decode($param);
+    class ExportToExcel
+    {
+        function export($data)
+        {
+            require_once dirname(__FILE__).'/PHPExcel.php';
+            $objPHPExcel = new PHPExcel();
+            $activeSheet = $objPHPExcel->setActiveSheetIndex(0);
+            for($i = 0, $h = count($data); $i < $h; $i++)
+                for($j = 0, $w = count($data[$i]); $j < $w; $j++)
+                {
+                    $value = "";
+                    if(!is_null($data[$i][$j]))
+                        if(is_array($data[$i][$j])) $value = $data[$i][$j]["value"]; 
+                        else $value = $data[$i][$j]; 
+                    $activeSheet->setCellValueByColumnAndRow($j, $i + 1, $value);
+                }
+            $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
+            $nameFile = str_replace(" ", "_", "test".date("_m_d_y_H_i_s"));
+            $objWriter->save("../export/$nameFile.xlsx");
+            echo json_encode(["http://localhost:8081/gazprom/export/$nameFile.xlsx", $nameFile]);
+        }
+    }
+
+    /* $_param = json_decode($param);
     $_param[0] = (array)$_param[0]; // шаблоны
     $_param[1] = (array)$_param[1]; // заголовки
     $_param[2] = (array)$_param[2]; // данные
@@ -15,10 +38,10 @@
         for($k = 0; $k < $c1; $k ++)
             $_param[2][$i][$k] = (array)$_param[2][$i][$k];
     }
-    $data = (array)$_param[2];
-    require_once dirname(__FILE__) . '/PHPExcel.php';
-    $objPHPExcel = new PHPExcel();
-    $styleArray = [
+    $data = (array)$_param[2]; */
+    /* require_once dirname(__FILE__) . '/PHPExcel.php';
+    $objPHPExcel = new PHPExcel(); */
+    /* $styleArray = [
         'fill' => [
             'type' => PHPExcel_Style_Fill::FILL_SOLID,
             'startcolor' => [ 'rgb' => "70C8FF" ]
@@ -43,13 +66,7 @@
             'bottom' => [ 'style' => PHPExcel_Style_Border::BORDER_THIN, ],
         ]
     ];
-    /* $objPHPExcel->getProperties()->setCreator("Maarten Balliauw")
-                                ->setLastModifiedBy("Maarten Balliauw")
-                                ->setTitle("Office 2007 XLSX Test Document")
-                                ->setSubject("Office 2007 XLSX Test Document")
-                                ->setDescription("Test document for Office 2007 XLSX, generated using PHP classes.")
-                                ->setKeywords("office 2007 openxml php")
-                                ->setCategory("Test result file"); */                            
+                          
     $objPHPExcel->getProperties()->setDescription(json_encode([$_param[4], $_param[0], $_param[1]]));
     $out = $objPHPExcel->setActiveSheetIndex(0);
     $idTable = -1;
@@ -60,8 +77,6 @@
         for($k = 0; $k < $c1; $k += 2)
         {
             $j = $k / 2;
-            /* $objPHPExcel->getActiveSheet()->getColumnDimension(getExcelColumn($k + 1))->setCollapsed(false);
-            $objPHPExcel->getActiveSheet()->getColumnDimension(getExcelColumn($k + 1))->setVisible(false); */
             if($i == 0) // Заголовок
             {
                 if($idTable != (int)$_param[1][$j]["idTable"])
@@ -76,17 +91,20 @@
             // тело
             $out->setCellValueByColumnAndRow($k, $i + 3, $data[$i][$j]["data"]);
             $out->setCellValueByColumnAndRow($k + 1, $i + 3, json_encode($data[$i][$j]));
-            /* $objPHPExcel->getActiveSheet()->getStyle(getExcelColumn($k + 1).($i + 3))->getNumberFormat()->setFormatCode(';;;'); */
             if($data[$i][$j]["block"] == "1") $styleArray['fill']['startcolor']['rgb'] = 'e8f6ff';
             else $styleArray['fill']['startcolor']['rgb'] = 'f1ffe8';
             $objPHPExcel->getActiveSheet()->getStyle(getExcelColumn($k).($i + 3))->applyFromArray($styleArray);
         }
-    }
+    } */
     // Rename worksheet
-    /*$objPHPExcel->getActiveSheet()->setTitle('Simple');
-    $objPHPExcel->setActiveSheetIndex(0); */
+    /* $activeSheet = $objPHPExcel->setActiveSheetIndex(0);
+    for($i = 0; $i < 4; $i++)
+        for($k = 0; $k < 4; $k += 2)
+        {
+            $activeSheet->setCellValueByColumnAndRow($k, $i, 1);
+        }
     $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
-    $nameFile = str_replace(" ", "_", $_param[3].date("_m_d_y_H_i_s"));
-    $objWriter->save("../reports/$nameFile.xlsx");
-    echo json_encode(["http://localhost:80/reports/$nameFile.xlsx", $nameFile]);
+    $nameFile = str_replace(" ", "_", "test".date("_m_d_y_H_i_s"));
+    $objWriter->save("../export/$nameFile.xlsx");
+    echo json_encode(["http://localhost:8081/gazprom/export/$nameFile.xlsx", $nameFile]); */
 ?>

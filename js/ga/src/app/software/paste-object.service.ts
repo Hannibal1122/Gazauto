@@ -10,18 +10,7 @@ export class PasteObjectService {
         data: [
             ["", { selected: "Копировать", data: [] }, "select", { onselect: (value) =>
             {
-                switch(value)
-                {
-                    case "Копировать": 
-                        this.modal.Data[1][1] = "Копирует по значению";
-                        break;
-                    case "Наследовать":
-                        this.modal.Data[1][1] = "Создает новый элемент, с сылкой на значение";
-                        break;
-                    case "Копировать структуру":
-                        this.modal.Data[1][1] = "Создает все входящие дирректории и элементы без значений";
-                        break;
-                }
+                this.modal.Data[1][1] = this.getInfo(value);
             }}],
             ["Описание", "Копирует по значению", "html"]
         ], 
@@ -32,7 +21,19 @@ export class PasteObjectService {
     { 
     }
     modal;
-    paste(parent, update) // сюда id parent
+    getInfo(value)
+    {
+        switch(value)
+        {
+            case "Копировать": 
+                return "Копирует по значению";
+            case "Наследовать":
+                return "Создает новый элемент, с сылкой на значение";
+            case "Копировать структуру":
+                return "Создает все входящие дирректории и элементы без значений";
+        }
+    }
+    paste(parent, update, loadUpdate) // сюда id parent
     {
         let copyExplorer = JSON.parse(localStorage.getItem("copyExplorer"));
         let type = localStorage.getItem("lastOperationExplorer");
@@ -51,12 +52,14 @@ export class PasteObjectService {
         }
         this.Data.data[0][1].data = selectValue;
         this.Data.data[0][1].selected = "Копировать";
+        this.Data.data[1][1] = this.getInfo(this.Data.data[0][1].selected);
         if(selectValue.length > 1 && type != "cut")
             this.modal.open(this.Data, (save) =>
             {
-                if(save) this.copyOrPaste(copyExplorer.id, parent, type, () => { update(); });
+                if(save) this.copyOrPaste(copyExplorer.id, parent, type, () => { update(); loadUpdate(); });
+                else loadUpdate();
             })
-        else this.copyOrPaste(copyExplorer.id, parent, type, () => { update(); });
+        else this.copyOrPaste(copyExplorer.id, parent, type, () => { update(); loadUpdate(); });
     }
     copyOrPaste(id, parent, type, func)
     {

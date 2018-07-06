@@ -1,7 +1,24 @@
 <div class = "row" style = "margin-left:0; margin-right:0;">
-    <div class = "col-md-12" style = "user-select:none;">
+    <div class = "col-md-12" style = "user-select:none; padding-right:5px; padding-left:5px;">
         <button class = "explorerButton" title = "Назад" (click) = "openBackFolder()"><i class="fas fa-arrow-left"></i></button>
-        <input type = "text" style = "border-radius:5px; padding: 5px; border: 1px solid #eeeeee;" placeholder="Поиск">
+        <input type = "text" 
+            [(ngModel)] = "searchInput" 
+            (change) = "clearSearch()"
+            style = "border-radius:5px; padding: 5px; border: 1px solid #eeeeee; width:calc(100% - 224px)" 
+            placeholder="Поиск">
+        <select style = "height: 36px; border: 1px solid #eeeeee; border-radius:5px;" [(ngModel)] = "searchInputType">
+            <option value = "">Все</option>
+            <option value = "folder">Папка</option>
+            <option value = "table">Таблица</option>
+            <option value = "value">Значение</option>
+            <option value = "event">Событие</option>
+            <option value = "user">Пользователь</option>
+            <option value = "role">Роль</option>
+            <option value = "file">Файл</option>
+        </select>
+        <button class = "explorerButton" title = "Поиск" (click) = "searchInputObject()" style = "margin-right:10px;"><i class="fas fa-search"></i></button>
+    </div>
+    <div class = "col-md-12" style = "user-select:none; padding-right:5px; padding-left:5px; margin-top:4px;">
         <button class = "explorerButton" title = "Добавить элемент" (click) = "newObject()" [disabled] = "!selectRules.new"><i class="fas fa-file"></i></button>
         <button class = "explorerButton" title = "Вставить" (click) = "_pasteObject()" [disabled] = "!selectRules.paste"><i class="fas fa-paste"></i></button>
         <button class = "explorerButton" title = "Вырезать" (click) = "copyObject('cut')" [disabled] = "!selectRules.cut"><i class="fas fa-cut"></i></button>
@@ -11,16 +28,16 @@
         <button class = "explorerButton" title = "Удалить" (click) = "removeObject()" [disabled] = "!selectRules.remove"><i class="fas fa-trash"></i></button>
         <button class = "explorerButton" title = "Скачать" (click) = "downloadObject()" [disabled] = "!selectRules.download"><i class="fas fa-download"></i></button>
         <button class = "explorerButton" title = "Обновить" (click) = "refresh(true)"><i class="fas fa-sync-alt"></i></button>
-        <!-- <a href = "http://localhost:8081/gazprom/scripts/main.php" download="test">test</a> -->
     </div>
     <div class = "col-md-12" style = "font-size:12px; color:#8f8f8f">
         <span *ngFor = "let path of allPath" (click) = "openObject({objectType: 'folder', id: path.id})" style = "cursor:pointer;">{{ path.name }}/</span>
     </div>
     <br>
     <div class = "col-md-12" style = "display: flex; color: #456486; flex-wrap: wrap; font-size:12px;">
-        <span *ngFor = "let object of outFolders; let i = index;"><!--  -->
+        <span *ngFor = "let object of outFolders; let i = index;">
             <div class = "elementExplorer" 
                 (click) = "selectObject(i)"
+                (contextmenu) = "getContextmenu($event, i)"
                 [class.selectElementExplorer] = "i == selectObjectI"
                 [class.selectSearchElementExplorer] = "i != selectObjectI && i == searchObjectI"
                 [class.selectCopyElementExplorer] = "i != selectObjectI && object.id == selectObjectCopy.id"
@@ -68,5 +85,27 @@
         <span *ngIf = "load" style = "color:#757575;font-size:12px;">Loading...</span>
     </div>
 </div>
-
+<div class = "createContextMenu" [hidden] = "!createContextMenu.visible" [style.top] = "createContextMenu.top" [style.left] = "createContextMenu.left">
+    <button class = "contextMenuList" (click) = "getRenameObject()" [disabled] = "!selectRules.rename">
+        <span *ngIf = "!selectRules.rename"><i class="fas fa-lock" style = "font-size:10px;"></i></span>
+         Переименовать</button>
+    <button class = "contextMenuList" (click) = "copyObject('cut')" [disabled] = "!selectRules.cut">
+        <span *ngIf = "!selectRules.cut"><i class="fas fa-lock" style = "font-size:10px;"></i></span>
+         Вырезать</button>
+    <button class = "contextMenuList" (click) = "copyObject('copy')" [disabled] = "!selectRules.copy">
+        <span *ngIf = "!selectRules.copy"><i class="fas fa-lock" style = "font-size:10px;"></i></span>
+        Копировать</button>
+    <button class = "contextMenuList" (click) = "createObject(outFolders[selectObjectI].id, 'Права', null)" [disabled] = "!selectRules.rights">
+        <span *ngIf = "!selectRules.rights"><i class="fas fa-lock" style = "font-size:10px;"></i></span>
+        Добавить права</button>
+    <button class = "contextMenuList" (click) = "addInfo()" [disabled] = "!selectRules.info">
+        <span *ngIf = "!selectRules.info"><i class="fas fa-lock" style = "font-size:10px;"></i></span>
+        Справка</button>
+    <button class = "contextMenuList" (click) = "removeObject()" [disabled] = "!selectRules.remove">
+        <span *ngIf = "!selectRules.remove"><i class="fas fa-lock" style = "font-size:10px;"></i></span>
+        Удалить</button>
+    <button class = "contextMenuList" (click) = "downloadObject()" [disabled] = "!selectRules.download">
+        <span *ngIf = "!selectRules.download"><i class="fas fa-lock" style = "font-size:10px;"></i></span>
+        Скачать</button>
+</div>
 <modalwindow #modal></modalwindow>

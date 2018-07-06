@@ -79,7 +79,7 @@ export class TableEditorComponent implements OnInit
             let l = Object.keys(data.data).length;
             let key;
             for(key in data.data) if(data.data[key].__NEXT__ == null) break; //Находим null
-            for(i = l - 1; i >= 0; i--) // Тут должна быть сортировка по next
+            for(i = l - 1; i >= 0; i--) // Тут сортировка по next
             {
                 this.dataTable[i] = data.data[key];
                 this.dataTable[i].__ID__ = key;
@@ -102,10 +102,14 @@ export class TableEditorComponent implements OnInit
     }
     /*************************************************/
     private globalStop = false;
-    private lastUpdateTimer = null;
+    private Timer = 
+    {
+        lastUpdate: null, 
+        listLogin: null
+    };
     private getLastUpdateTime(func?) // Запрос изменений таблицы
     {
-        clearTimeout(this.lastUpdateTimer);
+        clearTimeout(this.Timer.lastUpdate);
         this.query.protectionPost(351, { param: [this.inputs.id, this.lastUpdateTime, this.tableIds] }, (data) => 
         { 
             if(data[0] && !this.editTable.inputProperty.visible) 
@@ -114,33 +118,25 @@ export class TableEditorComponent implements OnInit
                 this.needUpdate = false;
             }
             else this.needUpdate = data[0];
-            if(!this.globalStop) this.lastUpdateTimer = setTimeout(() => { this.getLastUpdateTime(); }, 10000);
+            if(!this.globalStop) this.Timer.lastUpdate = setTimeout(() => { this.getLastUpdateTime(); }, 10000);
             if(func) func();
         });
     }
-    private listLoginTimer = null;
     listLogin = [];
     private getListLogin() // Получить список пользователей работающих с таблицей
     {
-        clearTimeout(this.listLoginTimer);
+        clearTimeout(this.Timer.listLogin);
         this.query.protectionPost(352, { param: [ this.inputs.id ] }, (data) => 
         { 
             this.listLogin = [];
-            for(var key in data)
-                this.listLogin.push(key);
-            if(!this.globalStop) this.listLoginTimer = setTimeout(() => { this.getListLogin(); }, 30000);
+            for(var key in data) this.listLogin.push(key);
+            if(!this.globalStop) this.Timer.listLogin = setTimeout(() => { this.getListLogin(); }, 30000);
         });
     }
     /*************************************************/
     ngOnDestroy() 
     {
         this.globalStop = true;
-    }
-    changeNameTable()
-    {
-        this.addToQueue(253, [this.inputs.id, this.nameTable], (data) => { this.load = false; });
-        /* this.load = true;
-        this.query.protectionPost(253, { param: }, ); */
     }
     changeHeader() // изменить заголовок таблицы
     {
@@ -286,14 +282,14 @@ export class TableEditorComponent implements OnInit
             return;
         }
         let l = this.dataTable.length;
-        this.update({ type: "row", idRow: l > 0 ? this.dataTable[l - 1].__ID__ : -1 });
+        this.update({ type: "row", idRow: l > 0 ? this.dataTable[l - 1].__ID__ : -1, idNextRow: -1 });
     }
     update(property)
     {
         switch(property.type)
         {
             case "row": // Добавление строки
-                this.addToQueue(257, [ this.inputs.id, property.idRow ], (data) => { this.loadTable(); });
+                this.addToQueue(257, [ this.inputs.id, property.idRow, property.idNextRow ], (data) => { this.loadTable(); });
                 break;
             case "field": // Обновление ячейки
                 this.addToQueue(252, [ this.inputs.id,  JSON.stringify(property.out) ], (data) =>
@@ -338,7 +334,7 @@ export class TableEditorComponent implements OnInit
         }
     }
     queue = [];
-    addToQueue(nquery, param, func)
+    addToQueue(nquery, param, func) // Добавить запрос в очередь
     {
         this.queue.push({ nquery: nquery, param: param, func: func });
         if(this.queue.length == 1) this.updateQueue();
@@ -355,7 +351,7 @@ export class TableEditorComponent implements OnInit
             else this.load = false;
         });
     }
-    copyField(copyOrCut)
+    copyField(copyOrCut) // Копирование ячейки
     {
         let i = this.editTable.configInput.i;
         let j = this.editTable.configInput.j;
@@ -364,7 +360,7 @@ export class TableEditorComponent implements OnInit
 
         this.rules.copy = this.rules.cut = this.rules.paste = false;
     }
-    pasteField()
+    pasteField() // вставить ячейку
     {
         let i = this.editTable.configInput.i;
         let j = this.editTable.configInput.j;
@@ -404,7 +400,7 @@ export class TableEditorComponent implements OnInit
     }
     searchCellId = -1; // Для отображения ячейки в таблице
     searchTimeout = null
-    searchCell(id)
+    searchCell(id) // Поиск ячейки и моргание
     {
         clearInterval(this.searchTimeout);
         this.searchCellId = Number(id);
@@ -421,5 +417,20 @@ export class TableEditorComponent implements OnInit
                 this.inputs.searchObjectId = -1;
             }
         }, 500);
+    }
+    exportToExcel()
+    {
+        this.query.protectionPost(261, { param: [ this.inputs.id ] }, (data) =>
+        {
+            function downloadURI(uri, name) 
+            {
+                var link = document.createElement("a");
+                link.download = name;
+                link.href = uri;
+                link.click();
+            }
+            downloadURI(data[0], data[1]);
+            $("#BlockLoaderPanel").fadeOut(400);
+        })
     }
 }

@@ -35,20 +35,21 @@ export class ErrorTableComponent implements OnInit
     ngOnInit() 
     {
         this.resize();
+        this.globalClick = (e) => 
+        { 
+            this.createContextMenu.visible = false; 
+        };
         this.functionResize = () => { this.resize(); };
         window.addEventListener("resize", this.functionResize, false);
-
+        window.addEventListener("click", this.globalClick, false);
         this.mainContainer.nativeElement.onscroll = () => 
         { 
             if(this.inputProperty.visible) this.inputProperty.visible = false;
         }
-
         this.mainInputElement.nativeElement.setAttribute("id", this.mainElementIds.mainInputElement);
         this.mainButtonElement.nativeElement.setAttribute("id", this.mainElementIds.mainButtonElement);
         this.mainSelectElement.nativeElement.setAttribute("id", this.mainElementIds.mainSelectElement);
         this.mainStatusElement.nativeElement.setAttribute("id", this.mainElementIds.mainStatusElement);
-
-        /* this.query.protectionPost(261, { param: [102] }, (data) => {trace(data)}); */
     }
     @Input() set head(value)
     {
@@ -67,7 +68,6 @@ export class ErrorTableComponent implements OnInit
     {
         if(value)
         {
-            /* trace(value) */
             this.mainData = value;
             this.firstData = [];
             this.listTables = [];
@@ -227,14 +227,37 @@ export class ErrorTableComponent implements OnInit
         return false;
     }
     //////////////////////////////////
+    createContextMenu = 
+    {
+        top: "", 
+        left: "", 
+        visible: false, 
+        i: -1
+    }
+    getContextmenu(e, data)
+    {
+        this.createContextMenu.left = e.clientX + "px";
+        this.createContextMenu.top = e.clientY + "px";
+        this.createContextMenu.visible = true;
+        this.createContextMenu.i = data;
+        e.preventDefault();
+    }
+    addRow(prevOrNext)
+    {
+        let idRow = this.firstData[this.createContextMenu.i + prevOrNext] ? this.firstData[this.createContextMenu.i + prevOrNext] : -1;
+        this.onChange.emit({ type: "row", idRow: idRow, idNextRow: idRow == -1 ? this.firstData[this.createContextMenu.i] : -1 });
+    }
+    //////////////////////////////////
     height = "";
     functionResize;
+    globalClick;
     resize()
     {
         this.height = document.documentElement.clientHeight - 100 + "px";
     }
     ngOnDestroy() 
     {
+        window.removeEventListener("click", this.globalClick, false);
         window.removeEventListener("resize", this.functionResize, false);
     }
     dragoverHandler(e) { e.preventDefault(); } // для того чтобы подсвечивалось cursor
