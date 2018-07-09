@@ -44,7 +44,8 @@ export class PasteObjectService {
                 selectValue = ["Копировать", "Копировать структуру", "Наследовать"];
                 break;
             case "table":
-                selectValue = ["Копировать", "Наследовать"];
+                selectValue = ["Копировать"];
+                if(copyExplorer.bindId == null) selectValue.push("Наследовать"); // Нельзя наследовать от наследуемой
                 break;
             case "value":
                 selectValue = ["Копировать"];
@@ -73,6 +74,7 @@ export class PasteObjectService {
         this.query.protectionPost(114, { param: [ id, parent, type ] }, (data) =>
         {
             trace(data)
+            if(data == "ERROR") this.modal.open({ title: "Ошибка! Конечная папка является дочерней для копируемой!", data: [], ok: "Ок", cancel: ""});
             if(func) func();
             localStorage.removeItem("copyExplorer");
         });

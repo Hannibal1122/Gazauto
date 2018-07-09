@@ -217,6 +217,12 @@
                     case 114: // Копирование элемента
                         $idElement = (int)$param[0]; // id Элемента 
                         $idParent = (int)$param[1]; // id папки в которую копируем
+                        
+                        $out = [$idElement]; //Проверка на добавление папки саму в себя
+                        getRemoveElementbyStructure($out, $idElement);
+                        for($i = 0, $c = count($out); $i < $c; $i++) 
+                            if($out[$i] == $idParent) { echo "ERROR"; return; }
+
                         require_once("myTable.php"); // $myTable класс для работы с таблицей и структурой
                         $type = $param[2]; // тип операции
                         if((getRights($idParent) & 8) != 8) continue; // Права на изменение
@@ -239,7 +245,7 @@
                             case "inherit": 
                                 if((getRights($idElement) & 4) != 4) continue; // Права на наследование
                                 break;  */
-                        print_r($param);
+                        /* print_r($param); */
                         break;
                     case 115: // Запрос приоритета
                         if((getRights($param[0]) & 1) != 1) continue; // Права на просмотр
@@ -727,7 +733,7 @@
             if($row[3] == "cell") return getCellLink($row[2], false);
             else
             {
-                $out = ["value" => $row[0], "tableId" => (int)$row[5]];
+                $out = ["value" => $row[0], "tableId" => (int)$row[5], "linkType" => null];
                 /* if($row[1] == "value") return ["value" => $row[0], "state" => $row[5]]; */
                 if($row[1] == "link")
                 {
@@ -744,6 +750,7 @@
                             $out["value"] = $value->fetch_array(MYSQLI_NUM)[0];
                         $out["tableId"] = (int)$row[2];
                     }
+                    $out["linkType"] = $row[3];
                 }
                 return $out;
             }

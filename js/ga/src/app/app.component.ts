@@ -47,8 +47,8 @@ export class AppComponent implements OnInit
             /* this.openSoftware("task", { id: -1 }); */
             /* this.openSoftware("tasks", { id: -1 }); */
             /* this.openSoftware("table", { id: 4 }); */
-            /* this.openSoftware("table", { id: 102 }); */
-            /* this.openSoftware("table", { id: 222 }); */
+            this.openSoftware("table", { id: 224 });
+            this.openSoftware("table", { id: 222 });
         });
         this.firstEnter(this);
         ////////////////////////////////////////////////////////////////////

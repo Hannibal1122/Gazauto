@@ -52,6 +52,7 @@
     </div>
 </div>
 <div class = "createContextMenu" [hidden] = "!createContextMenu.visible" [style.top] = "createContextMenu.top" [style.left] = "createContextMenu.left">
+    <div class = "contextMenuList" (click) = "removeRow(createContextMenu.i)">Удалить строку</div>
     <div class = "contextMenuList" (click) = "addRow(-1)">Вставить строку выше</div>
     <div class = "contextMenuList" (click) = "addRow(0)">Вставить строку ниже</div>
 </div>

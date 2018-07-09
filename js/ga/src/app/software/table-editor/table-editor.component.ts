@@ -264,6 +264,7 @@ export class TableEditorComponent implements OnInit
                         ((i) =>{
                             this.addToQueue(255, [ this.inputs.id, data.id, ID, nameColumn], (data) =>
                             {
+                                if(data == "ERROR") { this.modal.open({ title: "Ошибка! Вы пытаетесь вставить ссылку на текущую таблицу!", data: [], ok: "Ок", cancel: ""}); return;}
                                 this.dataTable[i][nameColumn] = data;
                                 if(--length == 0) this.editTable.data = this.dataTable; // update edit table
                             });
@@ -370,12 +371,15 @@ export class TableEditorComponent implements OnInit
             this.load = true;
             this.query.protectionPost(259, { param: [this.editTable.listTables[i][j].id, localStorage.getItem("copyTable"), operation, typePaste] }, (data) =>
             {
-                if(operation == "cut")
-                {
-                    this.loadTable();
-                    this.onChange({ type: "updateTable", id: data.idTableFrom});
-                }
-                else this.editTable.listTables[i][j] = data;
+                if(data == "ERROR") 
+                    this.modal.open({ title: "Ошибка! Вы пытаетесь вставить ссылку на текущую таблицу!", data: [], ok: "Ок", cancel: ""});
+                else
+                    if(operation == "cut")
+                    {
+                        this.loadTable();
+                        this.onChange({ type: "updateTable", id: data.idTableFrom});
+                    }
+                    else this.editTable.listTables[i][j] = data;
                 this.load = false;            
             });   
             localStorage.removeItem("copyTable");

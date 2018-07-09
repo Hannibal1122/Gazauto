@@ -115,6 +115,7 @@
         function setCellByLink($idObject, $idFields) // Добавление элемента из левого меню в таблицу по ссылке
         {
             $idTable = $this->idTable; 
+            if((int)$idTable == (int)$idObject) { echo "ERROR"; return; }
             if($result = query("SELECT name, objectType, objectId, state FROM structures WHERE id = %i", [ $idObject ]))
             {
                 $row = $result->fetch_array(MYSQLI_NUM);
@@ -215,6 +216,7 @@
                 if($typePaste == "cell")
                 {
                     $value = getCellLink($idCellFrom, true);
+                    if($value["linkType"] == "table") if((int)$value["tableId"] == (int)$idTableTo) { echo "ERROR"; return; }
                     $out["value"] = $value["value"];
                     $out["type"] = $typePaste;
                     $out["linkId"] = $idCellFrom;
@@ -239,19 +241,20 @@
                         $out["value"] = $value["value"];
                         if($valueData[3] == "cell") $out["linkId"] = $idCellFrom;
                         if($valueData[3] == "cell" || $valueData[3] == "file" || $valueData[3] == "table") $out["type"] = $valueData[3];
+                        if($valueData[3] == "table") if((int)$value["tableId"] == (int)$idTableTo) { echo "ERROR"; return; } // Нельзя вставить ссылку в таблицу на себя
                     }
                     
                     query("UPDATE fields SET type=%s, value=%s, linkId=%i, linkType=%s, state=%i, info=%s WHERE id = %i", [ 
                         $valueData[0], $valueData[1], $valueData[2], $valueData[3], $valueData[4], $valueData[5], $idCellTo ]);
                 }
-                if($echo)
-                {
-                    echo json_encode($out);
-                    addLog("table", "update", $idTableTo); // изменение основной таблицы
-                }
+                if($echo) echo json_encode($out);
+                addLog("table", "update", $idTableTo); // изменение основной таблицы
             }
             if($operation == "cut") 
             {
+                if($valueData[3] == "table")
+                    if((int)getCellLink($idCellFrom, true)["tableId"] == (int)$idTableTo) { echo "ERROR"; return; } // Нельзя вставить ссылку в таблицу на себя
+
                 query("UPDATE fields SET type=%s, value=%s, linkId=%i, linkType=%s, state=%i, info=%s WHERE id = %i", [ 
                     $valueData[0], $valueData[1], $valueData[2], $valueData[3], $valueData[4], $valueData[5], $idCellTo ]);
                 query("UPDATE fields SET type='value', value='', linkId=NULL, linkType=NULL, state=0, info=NULL WHERE id = %i", [ $idCellFrom ]);
@@ -408,10 +411,11 @@
             $idElement = $this->idElement;
             $idParent = $this->idParent;
             $elem = [];
-            if($result = query("SELECT objectType, objectId, name, parent, priority, info FROM structures WHERE id = %i", [$idElement]))
+            if($result = query("SELECT objectType, objectId, name, parent, priority, info, bindId FROM structures WHERE id = %i", [$idElement]))
                 $elem = $result->fetch_array(MYSQLI_NUM);
+            if($this->typeOperation == "inherit" && $elem[6] != null) return; // Нельзя наследовать от наследуемой
             $elem[3] = $idParent;// parent
-            query("INSERT INTO structures (objectType, objectId, name, parent, priority, info) VALUES(%s, %i, %s, %i, %i, %s)", $elem);
+            query("INSERT INTO structures (objectType, objectId, name, parent, priority, info, bindId) VALUES(%s, %i, %s, %i, %i, %s, %i)", $elem);
             $idNewElement = $mysqli->insert_id;
             if($login != "admin")
                 query("INSERT INTO rights (objectId, type, login, rights) VALUES(%s, %i, %s, %s, %i) ", [ $idNewElement, "user", $login, 255 ]);

@@ -34,45 +34,6 @@
             $field["value"] = $value["value"];
             $field["tableId"] = $value["tableId"];
         }
-        /* function getTable() // Запрос таблицы
-        {
-            $idTable = $this->idTable; 
-            $nameTable = "";
-            $timeOpen = "";
-            $head = [];
-            $data = [];
-            if($result = query("SELECT name, NOW(), bindId FROM structures WHERE id = %i", [$idTable]))
-                while ($row = $result->fetch_array(MYSQLI_NUM)) { $nameTable = $row[0]; $timeOpen = $row[1]; $bindId = $row[2]; }
-            if($result = query("SELECT i, name_column FROM fields WHERE tableId = %i AND type = 'head' ORDER by i", [$idTable]))
-                while ($row = $result->fetch_array(MYSQLI_NUM)) 
-                    $head[] = $row;
-            if($result = query("SELECT i, name_column, value, type, linkId, linkType, fields.id, state, next FROM fields LEFT JOIN line_ids ON line_ids.id = fields.i WHERE tableId = %i AND type != 'head'", [$idTable]))
-                while ($row = $result->fetch_array(MYSQLI_NUM)) 
-                {
-                    $field = [ "id" => (int)$row[6], "value" => $row[2], "state" => $row[7] ];
-                    if($row[3] == "link")
-                    {
-                        $field["linkId"] = (int)$row[4];
-                        switch($row[5])
-                        {
-                            case "value":
-                                
-                                break;
-                            case "file":
-                            case "table":
-                                
-                                break;
-                            case "cell":
-                                
-                                break;
-                        }
-                    }
-                    $data[(int)$row[0]][$row[1]] = $field;
-                    $data[(int)$row[0]]["__NEXT__"] = $row[8];
-                }
-            echo json_encode(["head" => $head, "data" => $data, "name" => $nameTable, "change" => (getRights($idTable) & 8) == 8, "time" => $timeOpen, "changeHead" => $bindId]);
-            addLog("table", "open", $idTable);
-        } */
     }
     class MyArray
     {
