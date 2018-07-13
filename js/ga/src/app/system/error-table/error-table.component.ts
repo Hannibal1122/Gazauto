@@ -81,6 +81,12 @@ export class ErrorTableComponent implements OnInit
             }
         }
     }
+    setScroll(i) // Устанавливает скролл
+    {
+        setTimeout(() => {
+            this.mainContainer.nativeElement.scrollTop = i * 30;
+        }, 100);
+    }
     searchCellId = -1; 
     @Input() set searchCell(id) // Выделяет объект красной границей 10 секунд
     {

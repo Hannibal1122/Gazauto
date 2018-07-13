@@ -4,7 +4,7 @@
         <input type = "text" 
             [(ngModel)] = "searchInput" 
             (change) = "clearSearch()"
-            style = "border-radius:5px; padding: 5px; border: 1px solid #eeeeee; width:calc(100% - 224px)" 
+            style = "border-radius:5px; padding: 5px; border: 1px solid #eeeeee; width:calc(100% - 257px)" 
             placeholder="Поиск">
         <select style = "height: 36px; border: 1px solid #eeeeee; border-radius:5px;" [(ngModel)] = "searchInputType">
             <option value = "">Все</option>
@@ -16,7 +16,8 @@
             <option value = "role">Роль</option>
             <option value = "file">Файл</option>
         </select>
-        <button class = "explorerButton" title = "Поиск" (click) = "searchInputObject()" style = "margin-right:10px;"><i class="fas fa-search"></i></button>
+        <button class = "explorerButton" title = "Поиск в папке" (click) = "searchInputObjectFromFolder()" ><i class="fas fa-search"></i></button>
+        <button class = "explorerButton" title = "Глобальный поиск" (click) = "searchInputObject()" style = "margin-right:10px;"><i class="fas fa-globe"></i></button>
     </div>
     <div class = "col-md-12" style = "user-select:none; padding-right:5px; padding-left:5px; margin-top:4px;">
         <button class = "explorerButton" title = "Добавить элемент" (click) = "newObject()" [disabled] = "!selectRules.new"><i class="fas fa-file"></i></button>
@@ -33,9 +34,10 @@
         <span *ngFor = "let path of allPath" (click) = "openObject({objectType: 'folder', id: path.id})" style = "cursor:pointer;">{{ path.name }}/</span>
     </div>
     <br>
-    <div class = "col-md-12" style = "display: flex; color: #456486; flex-wrap: wrap; font-size:12px;">
+    <div [class.col-md-12] = "!listLink.visible" [class.col-md-8] = "listLink.visible" style = "display: flex; color: #456486; flex-wrap: wrap; font-size:12px;">
         <span *ngFor = "let object of outFolders; let i = index;">
             <div class = "elementExplorer" 
+                *ngIf = "object.visible !== false"
                 (click) = "selectObject(i)"
                 (contextmenu) = "getContextmenu($event, i)"
                 [class.selectElementExplorer] = "i == selectObjectI"
@@ -80,6 +82,41 @@
             </div>
         </span>
     </div>
+    <!-- Просмотр связей -->
+    <div *ngIf = "listLink.visible" class = "col-md-4" style = "display: flex; color: #456486; flex-wrap: wrap; font-size:12px; border-left:1px solid #b8b8b8;"> 
+        <span *ngIf = "listLink.fromInherit.length == 0 && listLink.whoInherit.length == 0 && listLink.whoRefes.length == 0" 
+            class = "col-md-12" 
+            style = "color:#b8b8b8; font-size:24px; font-weight:bold"> Связи отсутсвуют</span>
+        <div *ngIf = "listLink.fromInherit.length != 0" class = "col-md-12">
+            <div style = "font-size:16px; font-weight:bold;">Объект наследуется от:</div>
+            <div *ngFor = "let data of listLink.fromInherit" class = "linkTable" (click) = "openTable(data[0])">
+                <span *ngIf = "data[1] == 'table'"><i class="fas fa-table" style = "color: #aeec6c"></i> </span>
+                {{ data[2] }}
+            </div>
+        </div>
+        <div *ngIf = "listLink.whoInherit.length != 0" class = "col-md-12">
+            <div style = "font-size:16px; font-weight:bold;">Объект наследуют:</div>
+            <div *ngFor = "let data of listLink.whoInherit" class = "linkTable" (click) = "openTable(data[0])">
+                <span *ngIf = "data[1] == 'table'"><i class="fas fa-table" style = "color: #aeec6c"></i> </span>
+                {{ data[2] }}
+            </div>
+        </div>
+        <div *ngIf = "listLink.whoRefes.length != 0" class = "col-md-12">
+            <div style = "font-size:16px; font-weight:bold;">Объект используется:</div>
+            <div *ngFor = "let data of listLink.whoRefes">
+                <div (click) = "openTable(data.id)" class = "linkTable">
+                    <i class="fas fa-table" style = "color: #aeec6c"></i> {{ data.name }}
+                </div>
+                <div *ngFor = "let _data of data.fields" class = "linkField" (click) = "openField(_data, data.id)">
+                    <i class="fas fa-cube"></i> Ячейка {{ _data }}
+                </div>
+            </div>
+        </div>
+        <button style = "position:absolute; right:5px; top:5px; color:#eb7e7e; font-size:16px; background:none; border:none; cursor:pointer;" (click) = "closeListLink()">
+            <i class="fas fa-times-circle"></i>
+        </button>
+    </div>            
+
     <span class = "col-md-12" *ngIf = "outFolders.length == 0" style = "color:#b8b8b8; font-size:24px; font-weight:bold"> Папка пуста</span>
     <div class = "col-md-12" style = "margin-bottom:5px; margin-top:25px; height:20px;background-color:#ececec; line-height:20px; padding-left:3px;">
         <span *ngIf = "load" style = "color:#757575;font-size:12px;">Loading...</span>
@@ -89,6 +126,7 @@
     <button class = "contextMenuList" (click) = "getRenameObject()" [disabled] = "!selectRules.rename">
         <span *ngIf = "!selectRules.rename"><i class="fas fa-lock" style = "font-size:10px;"></i></span>
          Переименовать</button>
+    <button class = "contextMenuList" (click) = "getListLink()">Показать связи</button>
     <button class = "contextMenuList" (click) = "copyObject('cut')" [disabled] = "!selectRules.cut">
         <span *ngIf = "!selectRules.cut"><i class="fas fa-lock" style = "font-size:10px;"></i></span>
          Вырезать</button>

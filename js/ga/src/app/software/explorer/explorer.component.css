@@ -48,3 +48,25 @@
     color:#a6b9ce;
     border: 1px solid #839ab3;
 }
+
+
+.linkTable
+{
+    cursor: pointer;
+    font-size:14px;
+}
+.linkTable:hover
+{
+    text-decoration: underline;
+}
+
+.linkField
+{
+    cursor: pointer;
+    font-size:12px;
+    margin-left:15px;
+}
+.linkField:hover
+{
+    text-decoration: underline;
+}

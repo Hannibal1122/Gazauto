@@ -10,10 +10,11 @@
             $idTable = $this->idTable; 
             $nameTable = "";
             $timeOpen = "";
+            $stateTable = 0;
             $head = [];
             $data = [];
-            if($result = query("SELECT name, NOW(), bindId FROM structures WHERE id = %i", [$idTable]))
-                while ($row = $result->fetch_array(MYSQLI_NUM)) { $nameTable = $row[0]; $timeOpen = $row[1]; $bindId = $row[2]; }
+            if($result = query("SELECT name, NOW(), bindId, state FROM structures WHERE id = %i", [$idTable]))
+                while ($row = $result->fetch_array(MYSQLI_NUM)) { $nameTable = $row[0]; $timeOpen = $row[1]; $bindId = $row[2]; $stateTable = (int)$row[3]; }
             if($result = query("SELECT i, name_column FROM fields WHERE tableId = %i AND type = 'head' ORDER by i", [$idTable]))
                 while ($row = $result->fetch_array(MYSQLI_NUM)) 
                     $head[] = $row;
@@ -53,7 +54,7 @@
                     $data[(int)$row[0]][$row[1]] = $field;
                     $data[(int)$row[0]]["__NEXT__"] = $row[8];
                 }
-            echo json_encode(["head" => $head, "data" => $data, "name" => $nameTable, "change" => (getRights($idTable) & 8) == 8, "time" => $timeOpen, "changeHead" => $bindId]);
+            echo json_encode(["head" => $head, "data" => $data, "name" => $nameTable, "change" => (getRights($idTable) & 8) == 8, "time" => $timeOpen, "changeHead" => $bindId, "state" => $stateTable]);
             addLog("table", "open", $idTable);
         }
         function setAndRemoveHeader($data, $changes) // Добавить/Удалить заголовок

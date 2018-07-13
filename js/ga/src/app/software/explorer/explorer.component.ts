@@ -356,7 +356,7 @@ export class ExplorerComponent implements OnInit
     }
     searchInput = "";
     searchInputType = "";
-    searchInputObject()
+    searchInputObject() // Глобальный поиск
     {
         if(this.searchInput == "") return;
         this.load = true;
@@ -367,11 +367,56 @@ export class ExplorerComponent implements OnInit
             this.load = false;
         });
     }
+    searchInputObjectFromFolder() // Поиск в папке
+    {
+        if(this.searchInput == "") return;
+        let searchInput = this.searchInput.toLowerCase();
+        for(var i = 0; i < this.outFolders.length; i++)
+            if(this.outFolders[i].name.toLowerCase().indexOf(searchInput) != -1) this.outFolders[i].visible = true;
+            else this.outFolders[i].visible = false;
+    }
     clearSearch()
     {
         if(this.searchInput == "") this.refresh();
     }
     globalClick = null;
+    /**************************************/
+    listLink = 
+    {
+        visible: false,
+        fromInherit: [], // От кого наследует
+        whoInherit: [], // Кто наследует
+        whoRefes: [] // Кто ссылается
+    }
+    getListLink()
+    {
+        if(this.selectObjectI == -1) return;
+        this.query.protectionPost(125, { param: [ this.outFolders[this.selectObjectI].id ]}, (data) =>
+        {
+            this.listLink.fromInherit = data.fromInherit;
+            this.listLink.whoInherit = data.whoInherit;
+            this.listLink.whoRefes = [];
+            for(var key in data.whoRefes)
+                this.listLink.whoRefes.push({
+                    id: key, 
+                    fields: data.whoRefes[key].fields, 
+                    name: data.whoRefes[key].name
+                });
+            this.listLink.visible = true;
+        });
+    }
+    closeListLink()
+    {
+        this.listLink.visible = false;
+    }
+    openTable(id)
+    {
+        this.onChange({ type: "openFromTable", value: { name: "table", id: id }});
+    }
+    openField(id, tableId)
+    {
+        this.onChange({ type: "openFromTable", value: { name: "cell", id: id }});
+    }
     /**************************************/
     createContextMenu = 
     {

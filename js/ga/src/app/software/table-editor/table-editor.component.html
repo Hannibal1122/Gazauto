@@ -1,6 +1,13 @@
 <div class="row" style = "margin-left:0; margin-right:0;">
     <div class="col-md-8 col-sm-12" style = "height:30px; position:relative; margin-bottom:4px;">
-        <div style = "height:30px; border-bottom: 2px solid #eeeeee; float:left; margin-right:10px;">{{nameTable}}</div>
+        <div style = "height:30px; float:left; padding: 4px; padding-top:0px; margin-right:10px; width: 200px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;" 
+            title="{{nameTable}}">
+            {{nameTable}}
+            <div style="position:absolute; top:24px; width:200px; height:6px; background-color:#d8d8d8; left:15px; border-radius:3px;">
+                <div style="position:absolute; top:0px; height:6px; background-color:#aeec6c; left:0px; border-radius:3px;" [style.width] = "stateTable + '%'"></div>
+                <div style="position:absolute; top:-5px; left:0px; width:100%; text-align:center; font-size: 11px; font-weight: bold; color: #456486;">{{stateTable + '%'}}</div>
+            </div>
+        </div>
         <button class = "tableButton" title = "Заголовок" (click) = "changeHeader()" [disabled] = "!rules.head"><i class="fas fa-heading"></i></button>
         <button id = "tablePasteButton"  class = "tableButton" title = "Вставить" (click) = "pasteField()" [disabled] = "!rules.paste"><i class="fas fa-paste"></i></button>
         <button id = "tableCutButton"  class = "tableButton" title = "Вырезать" (click) = "copyField('cut')" [disabled] = "!rules.cut"><i class="fas fa-cut"></i></button>

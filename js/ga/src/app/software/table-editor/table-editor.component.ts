@@ -26,6 +26,7 @@ export class TableEditorComponent implements OnInit
     dataTable = [];
     mode = "Global"; //Local
     nameTable = "";
+    stateTable = 0;
     error = false;
     load = false;
     lastUpdateTime = "";
@@ -69,6 +70,7 @@ export class TableEditorComponent implements OnInit
             if(this.rules.head && !data.change) this.rules.head = false;
             this.rules.add = this.editTable.change = data.change;
             this.nameTable = data.name;
+            this.stateTable = data.state;
             this.dataHeader = [];
             this.dataTable = [];
             this.firstData = data.data;
@@ -408,6 +410,13 @@ export class TableEditorComponent implements OnInit
     {
         clearInterval(this.searchTimeout);
         this.searchCellId = Number(id);
+        for(var i = 0; i < this.dataTable.length; i++)
+            for(var key in this.dataTable[i])
+                if(key != "__ID__" && key != "__NEXT__" && this.dataTable[i][key].id == id) 
+                {
+                    this.editTable.setScroll(i);
+                    break;
+                }
         let searchCellId = this.searchCellId;
         let searchCellCount = 0;
         this.searchTimeout = setInterval(() => 
