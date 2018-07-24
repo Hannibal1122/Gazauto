@@ -23,22 +23,28 @@ export class DateTimeComponent implements AfterViewInit/* , OnChanges */ /*  imp
 
             if(!this.availabilityDay) this.range = [[0, 2], [3, 7]];
             else if(!this.availabilityTime) this.range = [[0, 2], [3, 5], [6, 10]];
+
+            if(config.error != undefined) this.error = config.error;
+            if(config.block != undefined) this.block = config.block;
         }
     };
     @Input() set setValue(value: string) 
     { 
-        if(value && typeof(value) == "string")
+        if(value)
         {
-            var date:any = value.split(" ")[0].split(".");
-            if(this.availabilityTime) this.selectTime = value.split(" ")[1];
-            this.ClickDay({day: Number(date[0]), month: Number(date[1]) - 1, year: Number(date[2])});
+            let timeValue = value.split(" ");
+            let date:any = timeValue[0].split(".");
+            if(this.availabilityTime) this.selectTime = timeValue[1];
+            this.ClickDay({day: Number(date[0]), month: Number(date[1]) - 1, year: Number(date[2]), set: true});
         } 
         else 
         {
-            date = new Date();
-            this.ClickDay({day: date.getDate(), month: date.getMonth(), year: date.getFullYear(), time: "00:00"});
+            let date = new Date();
+            this.ClickDay({day: date.getDate(), month: date.getMonth(), year: date.getFullYear(), time: "00:00", set: true});
         }
     }
+    error = false;
+    block = false;
     load = false;
     currentDate;
     allDay = 42;
@@ -59,7 +65,6 @@ export class DateTimeComponent implements AfterViewInit/* , OnChanges */ /*  imp
     dayOnMonth = []
     dayCalendar = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"]
     calendar = [];
-    valid = true; // Проверка на правильность даты
     availabilityTime = true;
     availabilityDay = true;
     minSize = false;
@@ -73,8 +78,7 @@ export class DateTimeComponent implements AfterViewInit/* , OnChanges */ /*  imp
     constructor() 
     { 
         var self = this;
-        for(var i = 0; i < 24; i++)
-            this.timeCalendar.push((i < 10 ? "0" + i : i) + ":00");
+        for(var i = 0; i < 24; i++) this.timeCalendar.push(this.addZeros(i) + ":00");
         for(var i = 1995; i < 2040; i++)
             this.yearCalendar.push(i);
         var _i = 0;
@@ -94,7 +98,7 @@ export class DateTimeComponent implements AfterViewInit/* , OnChanges */ /*  imp
         this.selectTime = "00:00";
         this.changePageYear(0);
         this.updateCalendar();
-        window.addEventListener("click", (e:any) =>
+        this.globalClick = (e:any) =>
         {
             if(e.path == undefined) return;
             for(var i = 0; i < e.path.length; i++)
@@ -105,8 +109,10 @@ export class DateTimeComponent implements AfterViewInit/* , OnChanges */ /*  imp
                 }
             if(self.open && self.oldOpen) self.openMenu();
             self.oldOpen = self.open;
-        });
+        };
+        window.addEventListener("click", this.globalClick);
     }
+    globalClick = null;
     updateCalendar()
     {
         var dayOnMonth = 33 - new Date(this.year, this.month, 33).getDate();
@@ -140,23 +146,34 @@ export class DateTimeComponent implements AfterViewInit/* , OnChanges */ /*  imp
     {
         $(this.CalendarDiv.nativeElement).fadeOut(0);
         this.open = false;
+        if(date.time != undefined) this.selectTime = date.time;
+
+        /*************************Проверка даты************************/
+        let _time = this.selectTime.split(":");
+        let hour = date.hour != undefined ? date.hour : Number(_time[0]);
+        let minutes = date.minutes != undefined ? date.minutes : Number(_time[1]);
+        let testDate = new Date(date.year, date.month, date.day, hour, minutes);
+        date.year = testDate.getFullYear();
+        date.month = testDate.getMonth();
+        date.day = testDate.getDate();
+        this.selectTime = this.getTimeStr(testDate.getHours(), testDate.getMinutes());
+        let set = date.set ? true : false; 
         if(date.month != this.month || date.year != this.year)
         {
             this.year = date.year;
             this.month = date.month;
             this.updateCalendar();
         }
-        var month = Number(date.month) + 1; // Потому что с нуля
+        var month = date.month + 1; // Потому что с нуля
         this.day = date.day;
         this.selectYear = date.year;
         this.selectMonth = date.month;
-        if(date.time != undefined) this.selectTime = date.time;
-        this.mainInput.nativeElement.value = (this.availabilityDay ? (date.day < 10 ? "0" + date.day : date.day) + "." : "") + (month < 10 ? "0" + month : month) + "." + date.year + (this.availabilityTime ?  " " + this.selectTime : "");
+        
+        this.mainInput.nativeElement.value = (this.availabilityDay ? this.addZeros(date.day) + "." : "") + this.addZeros(month) + "." + date.year + (this.availabilityTime ?  " " + this.selectTime : "");
         var date:any = this.mainInput.nativeElement.value.split(" ")[0];
         var time = this.selectTime;
         
-        this.onChange.emit({date: date, time: time, milliseconds: this.getTime()});
-        this.valid = true;
+        this.onChange.emit({date: date, time: time, milliseconds: this.getTime(), set: set});
     }
     getTime()
     {
@@ -175,31 +192,27 @@ export class DateTimeComponent implements AfterViewInit/* , OnChanges */ /*  imp
         else $(this.CalendarDiv.nativeElement).fadeOut(0);
         var position = $(this.mainInput.nativeElement).offset();
         var top = position.top + 30;
-        if(top + 235 > document.documentElement.clientHeight) top = document.documentElement.clientHeight - 235;
+        if(top + 235 > document.documentElement.clientHeight) top = document.documentElement.clientHeight - 245;
         $(this.CalendarDiv.nativeElement).css({ top: top, left: position.left })
         this.open = !this.open;
         this.window = !this.availabilityDay ? 1 : 0;
     }
     OnChangeInput()
     {
-        var re = /(0[1-9]|[12][0-9]|3[01])[-/.](0[1-9]|1[012])[-/.](19|20)\d\d$/i;
-        if(!this.availabilityDay) re = /(0[1-9]|1[012])[-/.](19|20)\d\d$/i;
-        var reTime = /^([0-1]\d|2[0-3])(:[0-5]\d)$/i;
         var date:any = this.mainInput.nativeElement.value.split(" ")[0];
-        var time = this.mainInput.nativeElement.value.replace(date + " ", "");
-        if(!this.availabilityTime) time = "00:00";
-        this.valid = reTime.test(time) && re.test(date); 
-         
-        if (this.valid) // Может придется убрать this.valid 
-        {
-            let i = 0;
-            let _date = date.split(".");
-            if(!this.availabilityDay) i = -1;
-            let day = this.availabilityDay ? Number(_date[i]) : 1;
-            let month = Number(_date[i + 1]) - 1;
-            let year = Number(_date[i + 2]);
-            this.ClickDay({day: day, month: month, year: year, time: time});
-        }
+        var time = this.mainInput.nativeElement.value.replace(date + " ", "").split(":");
+        if(!this.availabilityTime) time = [0, 0];
+
+        let i = 0;
+        let _date = date.split(".");
+        if(!this.availabilityDay) i = -1;
+        let day = this.availabilityDay ? Number(_date[i]) : 1;
+        let month = Number(_date[i + 1]) - 1;
+        let year = Number(_date[i + 2]);
+        let hour = Number(time[0]);
+        let minutes = Number(time[1]);
+        if(day < 32 && month < 12 && hour < 24 && minutes < 60) this.ClickDay({day: day, month: month, year: year, hour: hour, minutes: minutes });
+        else this.mainInput.nativeElement.value = (this.availabilityDay ? this.addZeros(this.day) + "." : "") + this.addZeros(this.selectMonth + 1) + "." + this.selectYear + (this.availabilityTime ?  " " + this.selectTime : "");
     }
     OnclickInput(e)
     {
@@ -258,42 +271,62 @@ export class DateTimeComponent implements AfterViewInit/* , OnChanges */ /*  imp
         for(var i = 0; i < this.range.length; i++)
             if(this.currentSelection <= this.range[i][1] && this.currentSelection >= this.range[i][0]) break;
         this.mainInput.nativeElement.setSelectionRange(this.range[i][0], this.range[i][1]);
+        switch(this.currentSelection) { case 2: case 5: case 10: case 13: this.OnChangeInput(); break; } // проверка на введенные значения
         if(this.currentSelection == this.range[i][1] && this.range[i + 1] != undefined)
         {
             this.currentSelection++;
             this.mainInput.nativeElement.setSelectionRange(this.range[i + 1][0], this.range[i + 1][1])
         }
-        if(this.currentSelection == this.range[i][1] && this.range[i + 1] == undefined)
-            this.currentSelection--;
-        this.OnChangeInput();
+        if(this.currentSelection == this.range[i][1] && this.range[i + 1] == undefined) this.currentSelection--;
         return false;
     }
     OnKeydownInput(e)
     {
-        if(e.keyCode == 8)
+        if(e.keyCode == 8 || e.keyCode == 37) this.setRange(-1);
+        if(e.keyCode == 9 || e.keyCode == 39) this.setRange(1);
+        if(e.keyCode == 38 || e.keyCode == 40)
         {
-            for(var i = 0; i < this.range.length; i++)
-                if(this.currentSelection <= this.range[i][1] && this.currentSelection >= this.range[i][0]) break;
-            if(this.range[--i] != undefined)
-            {
-                this.currentSelection = this.range[i][0];
-                this.mainInput.nativeElement.setSelectionRange(this.range[i][0], this.range[i][1])
-            }
-        }
-        if(e.keyCode == 9)
-        {
-            for(var i = 0; i < this.range.length; i++)
-                if(this.currentSelection <= this.range[i][1] && this.currentSelection >= this.range[i][0]) break;
-            if(this.range[++i] != undefined)
-            {
-                this.currentSelection = this.range[i][0];
-                this.mainInput.nativeElement.setSelectionRange(this.range[i][0], this.range[i][1])
-            }
+            let error = e.keyCode == 38 ? 1 : -1;
+            let time = this.selectTime.split(":");
+            let i = this.getRange();
+            this.ClickDay({ 
+                day: this.day + (i == 0 && this.availabilityDay ? error : 0),
+                month: this.month + (i == 1 && this.availabilityDay || i == 0 && !this.availabilityDay ? error : 0), 
+                year: this.year + (i == 2 && this.availabilityDay || i == 1 && !this.availabilityDay ? error : 0), 
+                hour: Number(time[0]) + (i == 3 && this.availabilityTime ? error : 0), 
+                minutes: Number(time[1]) + (i == 4 && this.availabilityTime ? error : 0)
+            });
+            this.setRange(0);
         }
         if(isNaN(Number(e.key))) return false;
+    }
+    getTimeStr(hour, minutes)
+    {
+        return this.addZeros(hour) + ":" + this.addZeros(minutes);
+    }
+    addZeros(value) // Добавить в строку нули если число меньше 10
+    {
+        return (value < 10 ? "0" + value : value);
+    }
+    getRange()
+    {
+        for(var i = 0; i < this.range.length; i++)
+            if(this.currentSelection <= this.range[i][1] && this.currentSelection >= this.range[i][0]) break;
+        return i;
+    }
+    setRange(error) // выделить диапазон
+    {
+        let i = this.getRange();
+        i += error;
+        if(this.range[i] != undefined)
+        {
+            this.currentSelection = this.range[i][0];
+            this.mainInput.nativeElement.setSelectionRange(this.range[i][0], this.range[i][1])
+        }
     }
     replaceChar = function(str, pos, chars)
     {
         return str.substring(0, pos) + chars + str.substring(pos + 1, str.length);
     }
+    ngOnDestroy() { window.removeEventListener("click", this.globalClick); }
 }

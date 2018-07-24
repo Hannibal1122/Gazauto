@@ -12,6 +12,7 @@ import { TableEditorComponent } from './software/table-editor/table-editor.compo
 import { ErrorTableComponent } from './system/error-table/error-table.component';
 import { InfoComponent } from './software/info/info.component';
 import { HttpClientModule } from '@angular/common/http';
+import { EventEditorComponent } from './software/event-editor/event-editor.component';
 
 @NgModule({
     declarations: [ 
@@ -19,7 +20,7 @@ import { HttpClientModule } from '@angular/common/http';
         LeftMenuElementComponent, 
         ExplorerComponent, 
         DynamicComponent, 
-        EnterComponent, LoadingComponent, TableEditorComponent, ErrorTableComponent, InfoComponent
+        EnterComponent, LoadingComponent, TableEditorComponent, ErrorTableComponent, InfoComponent, EventEditorComponent
     ],
     imports: [ BrowserModule, FormsModule, ModalWindowModule, HttpClientModule ],
     providers: [],

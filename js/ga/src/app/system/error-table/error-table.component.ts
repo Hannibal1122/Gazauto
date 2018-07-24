@@ -112,6 +112,7 @@ export class ErrorTableComponent implements OnInit
     }
     inputProperty = 
     {
+        id: -1,
         oldValue: "",
         value: "",
         visible: false,
@@ -129,6 +130,7 @@ export class ErrorTableComponent implements OnInit
             let i = this.configInput.i;
             let j = this.configInput.j;
             this.inputProperty.visible = true;
+            this.inputProperty.id = this.listTables[i][j].id;
             this.inputProperty.type = this.listTables[i][j] ? this.listTables[i][j].type : "value";
             this.inputProperty.visibleState = this.inputProperty.type == "value" || this.inputProperty.type == undefined;
             this.inputProperty.oldState = this.inputProperty.state = this.listTables[i][j] && this.listTables[i][j].state ? this.listTables[i][j].state : 0;
@@ -160,7 +162,6 @@ export class ErrorTableComponent implements OnInit
             else
                 if(localStorage.getItem("copyTable") && this.listTables[i][j].id != localStorage.getItem("copyTable")) rules.paste = true;
             this.onChange.emit({ type: "operation", rules: rules});
-
             setTimeout(() => { this.mainInputElement.nativeElement.focus(); }, 20);
             return true;
         }
@@ -259,7 +260,7 @@ export class ErrorTableComponent implements OnInit
     globalClick;
     resize()
     {
-        this.height = document.documentElement.clientHeight - 100 + "px";
+        this.height = document.documentElement.clientHeight - 120 + "px";
     }
     ngOnDestroy() 
     {

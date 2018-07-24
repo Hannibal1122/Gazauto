@@ -101,7 +101,8 @@
             case 7: // Очищает логин и ключ при выходе пользователя с сайта
                 query("UPDATE signin SET checkkey = '', login = '' WHERE id = %s", [$paramI]);
                 break;
-  
+            case 8: // резерв 
+                break;
             case 9: // Проверка правильности введенного логина
                 $login = $paramL;
                 $array = [];
@@ -565,7 +566,7 @@
             if($nQuery >= 350 && $nQuery < 400) // Работа с логом
                 switch($nQuery)
                 {
-                    case 350: // Резерв
+                    case 350: // резерв
                         break;
                     case 351: // Проверка необходимости синхронизации
                         $idTable = (int)$param[0];
@@ -603,7 +604,7 @@
                         echo json_encode([$update, $time]);
                         break; 
                 }
-            if($nQuery >= 400 && $nQuery < 450) // Работа с задачами
+            if($nQuery >= 400 && $nQuery < 410) // Работа с задачами
                 switch($nQuery)
                 {
                     case 400: // Запрос списка пользователей с именами
@@ -632,6 +633,32 @@
                         echo json_encode($logins);
                         break;
                 }
+            if($nQuery >= 410 && $nQuery < 450) // Работа с событиями
+            switch($nQuery)
+            {
+                case 410: // Создание события
+                    query("INSERT INTO events (id, type, param, code) VALUES(%i, %s, %s, 'end')", $param);
+                    break;
+                case 411: // Загрузить событие
+                    $idElement = (int)$param[0];
+                    if((getRights($idElement) & 1) != 1) return; // Права на просмотр
+                    $out = [];
+                    if($result = query("SELECT type, param, date, code, ready FROM events WHERE id = %i", $param))
+                        $out = $result->fetch_array(MYSQLI_NUM);
+                    $out[] = selectOne("SELECT name FROM structures WHERE id = %i", $param);
+                    echo json_encode($out);
+                    break;
+                case 412: // Обновить событие
+                    $idElement = (int)$param[0];
+                    if((getRights($idElement) & 8) != 8) return; // Права на изменение
+                    query("UPDATE events SET code = %s WHERE id = %i", [$param[1], $param[0]]);
+                    break;
+                case 413: // Выполнить код по id
+                    require_once("FASM.php"); // класс для работы с событиями
+                    $fasm = new FASM();
+                    echo json_encode($fasm->parse(selectOne("SELECT code FROM events WHERE id = %i", $param)));
+                    break;
+            }
         }
         /* else query("UPDATE signin SET checkkey = '', login = '' WHERE id = %s", [$paramI]); // Если пользователь послал не тот id  */
     }

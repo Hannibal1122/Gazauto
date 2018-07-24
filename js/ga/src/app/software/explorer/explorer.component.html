@@ -57,6 +57,10 @@
                     (dblclick) = "openObject(object)">
                     <i class="fas fa-user" style = "font-size: 65px; color: #739ac7"></i>
                 </div>
+                <div *ngIf = "object.objectType == 'event'"
+                    (dblclick) = "openObject(object)">
+                    <i class="fas fa-bolt" style = "font-size: 65px; color: #c1c773"></i>
+                </div>
                 <div *ngIf = "object.objectType == 'role'"
                     (dblclick) = "openObject(object)">
                     <i class="fas fa-address-book" style = "font-size: 65px; color: #3a4046"></i>

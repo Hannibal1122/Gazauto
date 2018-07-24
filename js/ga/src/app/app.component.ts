@@ -3,6 +3,7 @@ import { ExplorerComponent } from './software/explorer/explorer.component';
 import { QueryService } from "./lib/query.service";
 import { FunctionsService } from "./lib/functions.service";
 import { TableEditorComponent } from './software/table-editor/table-editor.component';
+import { EventEditorComponent } from './software/event-editor/event-editor.component';
 import { InfoComponent } from './software/info/info.component';
 
 declare var trace:any;
@@ -42,7 +43,9 @@ export class AppComponent implements OnInit
             this.enter = true; 
             this.Login = localStorage.getItem("login");
             this.refreshLeftMenu();
-            this.openSoftware("explorer", { id: 98 });
+            this.openSoftware("event", { id: 263 });
+            this.openSoftware("table", { id: 224 });
+            /* this.openSoftware("explorer", { id: 98 }); */
             /* this.openSoftware("info", { id: -1 }); */
             /* this.openSoftware("task", { id: -1 }); */
             /* this.openSoftware("tasks", { id: -1 }); */
@@ -214,6 +217,7 @@ export class AppComponent implements OnInit
             case "explorer": i = this.checkRepeatSoftware(type, { component: ExplorerComponent, inputs: input }); break;
             case "table": i = this.checkRepeatSoftware(type, { component: TableEditorComponent, inputs: input, appendFromLeftMenu: {} }); break;
             case "info": i = this.checkRepeatSoftware(type, { component: InfoComponent, inputs: input }); break;
+            case "event": i = this.checkRepeatSoftware(type, { component: EventEditorComponent, inputs: input }); break;
         }
         this.currentSoftware = i;
     }
@@ -227,6 +231,7 @@ export class AppComponent implements OnInit
             case "explorer": name = "Проводник"; break;
             case "table": name = "Редактор таблицы"; break;
             case "info": name = "Справка"; break;
+            case "event": name = "Редактор событий"; break;
         }
         for(; i < this.tabs.length; i++) // Проверка на уже открытую вкладку
             if(this.tabs[i].type == type && this.tabs[i].software.inputs && this.tabs[i].software.inputs.id == input.id) break;

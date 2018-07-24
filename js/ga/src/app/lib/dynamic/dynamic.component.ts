@@ -1,13 +1,15 @@
 import { Component, ViewChild, ViewContainerRef, Input, ComponentFactoryResolver, ReflectiveInjector, Output, EventEmitter } from "@angular/core";
 import { ExplorerComponent } from "../../software/explorer/explorer.component";
 import { TableEditorComponent } from "../../software/table-editor/table-editor.component";
+import { EventEditorComponent } from "../../software/event-editor/event-editor.component";
+
 import { InfoComponent } from "../../software/info/info.component";
 declare var trace: any;
 
 @Component({
     selector: "vg-dynamic-view",
     template: "<div #container></div>",
-    entryComponents: [ExplorerComponent, TableEditorComponent, InfoComponent],
+    entryComponents: [ExplorerComponent, TableEditorComponent, EventEditorComponent, InfoComponent],
 })
 export class DynamicComponent
 {

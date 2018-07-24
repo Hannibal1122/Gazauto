@@ -5,18 +5,22 @@
             (keypress) = "OnKeypressInput($event)" 
             (click) = "OnclickInput($event)" 
             (blur) = "OnBlurInput($event)"
-            [style.border-color] = "valid ? '' : 'rgb(255, 102, 0)'">
-        <div (click) = "openMenu()" style = "position: absolute; right: 0px; top: 5px; width: 30px; height: 30px; cursor: pointer;">
-            <div style = "background: url('assets/img/calendar.png'); background-size:cover; width: 24px; height: 26px; margin: auto; margin-top: 2px;"></div>
+            [style.border-color] = "!error ? '' : 'rgb(255, 102, 0)'" [disabled] = "block">
+        <div (click) = "block ? null : openMenu()" style = "position: absolute; right: 0px; top: 5px; width: 30px; height: 30px; cursor: pointer;">
+            <i class="fas fa-calendar-alt" style = "font-size: 20px; margin-top: 5px; margin-left: 6px;"></i>
         </div>
     </div>
     <div #CalendarDiv style = "position: fixed; background-color:white; box-shadow: 0 0 10px rgba(0,0,0,0.5); z-index: 1000; padding: 5px; display: none;">
         <div *ngIf = "window == 0" class = "MyButton" (click) = "selectWindowMonth()">{{monthCalendar[month]}} {{year}}</div>
-        <div *ngIf = "window == 1" class = "MyButton" (click) = "selectWindowYear()">{{year}} г.</div>
-        <div *ngIf = "window == 2" class = "MyButton2" style = "width: 100px;" >{{pageYear}} - {{pageYear + 11}} г.</div>
-        <div *ngIf = "window == 2" style = "position: absolute; top: 0px; right: 0px; width: 46px; height: 28px;">
-            <div class="MyArrow-bottom" (click) = "changePageYear(12)"></div>
-            <div class="MyArrow-top" (click) = "changePageYear(-12)"></div>
+        <div *ngIf = "window == 1" class = "MyButton" (click) = "selectWindowYear()">{{year}}</div>
+        <div *ngIf = "window == 2" class = "MyButton2" style = "width: 100px;" >{{pageYear}} - {{pageYear + 11}}</div>
+        <div *ngIf = "window == 2" style = "position: absolute; top: 0px; right: 0px; width: 57px; height: 28px;">
+            <div class="MyArrow" (click) = "changePageYear(12)" style = "margin-right:5px;">
+                <i class="colorArrow fas fa-caret-down"></i>
+            </div>
+            <div class="MyArrow" (click) = "changePageYear(-12)">
+                <i class="colorArrow fas fa-caret-up"></i>
+            </div>
         </div>
         <div *ngIf = "window == 0">
             <select *ngIf = "availabilityTime" [(ngModel)] = "selectTime" style = "position: absolute; top: 6px; right: 5px;">

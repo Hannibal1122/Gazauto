@@ -10,6 +10,7 @@ import { PasteObjectService } from "../paste-object.service";
 import { CreateFileService } from "../create-file.service";
 import { CreateInfoService } from "../create-info.service";
 import { RenameObjectService } from "../rename-object.service";
+import { CreateEventService } from "../create-event.service";
 
 declare var $:any;
 declare var trace:any;
@@ -28,7 +29,8 @@ declare var trace:any;
         PasteObjectService,
         CreateFileService,
         CreateInfoService,
-        RenameObjectService
+        RenameObjectService,
+        CreateEventService
     ]
 })
 export class ExplorerComponent implements OnInit 
@@ -73,6 +75,7 @@ export class ExplorerComponent implements OnInit
         private createFile: CreateFileService,
         private createInfo: CreateInfoService,
         private renameObject: RenameObjectService,
+        private createEvent: CreateEventService,
     ) {}
     ngOnInit() 
     { 
@@ -99,6 +102,7 @@ export class ExplorerComponent implements OnInit
         this.createFile.modal = this.modal;
         this.createInfo.modal = this.modal;
         this.renameObject.modal = this.modal;
+        this.createEvent.modal = this.modal;
 
         this.globalClick = (e) => 
         { 
@@ -143,6 +147,9 @@ export class ExplorerComponent implements OnInit
             case "table":
                 this.onChange({ type: "open", value: { name: "table", id: object.id }});
                 break;
+            case "event":
+                this.onChange({ type: "open", value: { name: "event", id: object.id }});
+                break;
             case "user":
                 this.createObject(null, 'Пользователь', object);
                 break;
@@ -167,7 +174,9 @@ export class ExplorerComponent implements OnInit
             case "Значение":
                 this.createValue.create(id, () => { this.refresh() }, data);
                 break;
-            case "Событие": break;
+            case "Событие": 
+                this.createEvent.create(id, () => { this.refresh() });
+                break;
             case "Права": 
                 this.createRight.create(id, () => { this.refresh() });
                 break;
@@ -233,6 +242,9 @@ export class ExplorerComponent implements OnInit
                 break;
             case "value": 
                 this.createValue.remove(id, () => { this.refresh() });
+                break;
+            case "event": 
+                this.createEvent.remove(id, () => { this.refresh() });
                 break;
             case "file": 
                 this.createFile.remove(id, () => { this.refresh() });

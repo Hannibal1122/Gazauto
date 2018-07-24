@@ -10,7 +10,8 @@
 }
 .Datetime th 
 {
-	border-width: 1px;
+    border-width: 1px;
+    /* width:30px; */
 	padding: 6px;
 	border-bottom: 1px solid #dedede;
 }
@@ -24,6 +25,7 @@
     /* background-color: #ffffff; */
     cursor: pointer;
     transition: 200ms;
+    /* border-radius: 15px; */
 }
 .Datetime td:hover 
 {
@@ -71,7 +73,7 @@
 {
     color: white;
     background-color: #3276b1;
-    box-shadow: inset 0px 0px 5px rgba(0,0,0,0.5);
+    /* box-shadow: inset 0px 0px 5px rgba(0,0,0,0.5); */
 }
 .MyButton
 {
@@ -89,31 +91,17 @@
     padding: 4px;
     color: black;
 }
-.MyArrow-bottom
+.MyArrow
 {
+    font-size: 26px;
+    float: right;
     cursor: pointer;
-    position: absolute;
-    top: 12px;
-    left: 0px;
-    border: 10px solid transparent;	
-    border-top: 10px solid #428bca;
+    color: #3276b1;
+    transition: 200ms;
 }
-.MyArrow-bottom:hover
+.MyArrow:hover
 {
-    border-top: 10px solid #141414;
-}
-.MyArrow-top
-{
-    cursor: pointer;
-    position: absolute;
-    top: 3px;
-    left: 22px;
-    border: 10px solid transparent;	
-    border-bottom: 10px solid #428bca;
-}
-.MyArrow-top:hover
-{
-    border-bottom: 10px solid #141414;
+    color: #141414;
 }
 .inputMy
 {
@@ -123,27 +111,3 @@
     height: 30px;
     border: 1px solid #cccccc;
 }
-/* .MyArrow-bottom
-{
-    cursor: pointer;
-    width: 20px;
-    height: 10px;
-    background-image: url('/static/img/upArrow.png');
-    transition: 200ms;
-}
-.MyArrow-top
-{
-    cursor: pointer;
-    width: 20px;
-    height: 10px;
-    background-image: url('/static/img/downArrow.png');
-    transition: 200ms;
-}
-.MyArrow-bottom:hover
-{
-    background-image: url('/static/img/upArrowOver.png');
-}
-.MyArrow-top:hover
-{
-    background-image: url('/static/img/downArrowOver.png');
-} */

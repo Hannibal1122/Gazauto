@@ -119,7 +119,10 @@ export class ModalWindowComponent
         if(save)
             for(var i = 0; i < this.Data.length; i++)
                 if(this.Data[i][1] !== null) 
+                {
+                    if(!this.BeginData[i]) this.BeginData[i] = [];
                     this.BeginData[i][1] = this.Data[i][1];
+                }
         if(this.closeFunction) 
             out = this.closeFunction(save);
         if(out === undefined || out === true)
