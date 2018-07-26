@@ -273,6 +273,10 @@ export class TableEditorComponent implements OnInit
                         })(k);
                     }
                     break;
+                case "event":
+                    let ID = this.dataTable[k][nameColumn].id;
+                    this.addToQueue(262, [ this.inputs.id, data.id, ID ], (data) => { trace(data) });
+                    break;
             }
             /* trace(data) */
         }

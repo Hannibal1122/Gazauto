@@ -502,6 +502,9 @@
                     case 261: // Экспорт таблицы в excel с подгрузкой всех данных 
                         $myTable->export();
                         break;
+                    case 262: // Добавление события из левого меню на ячейку
+                        query("UPDATE fields SET eventId = %i WHERE id = %i", [(int)$param[1], (int)$param[2]]);
+                        break;
                 }
             }
             if($nQuery >= 300 && $nQuery < 350) // Работа со значениями 
@@ -634,31 +637,31 @@
                         break;
                 }
             if($nQuery >= 410 && $nQuery < 450) // Работа с событиями
-            switch($nQuery)
-            {
-                case 410: // Создание события
-                    query("INSERT INTO events (id, type, param, code) VALUES(%i, %s, %s, 'end')", $param);
-                    break;
-                case 411: // Загрузить событие
-                    $idElement = (int)$param[0];
-                    if((getRights($idElement) & 1) != 1) return; // Права на просмотр
-                    $out = [];
-                    if($result = query("SELECT type, param, date, code, ready FROM events WHERE id = %i", $param))
-                        $out = $result->fetch_array(MYSQLI_NUM);
-                    $out[] = selectOne("SELECT name FROM structures WHERE id = %i", $param);
-                    echo json_encode($out);
-                    break;
-                case 412: // Обновить событие
-                    $idElement = (int)$param[0];
-                    if((getRights($idElement) & 8) != 8) return; // Права на изменение
-                    query("UPDATE events SET code = %s WHERE id = %i", [$param[1], $param[0]]);
-                    break;
-                case 413: // Выполнить код по id
-                    require_once("FASM.php"); // класс для работы с событиями
-                    $fasm = new FASM();
-                    echo json_encode($fasm->parse(selectOne("SELECT code FROM events WHERE id = %i", $param)));
-                    break;
-            }
+                switch($nQuery)
+                {
+                    case 410: // Создание события
+                        query("INSERT INTO events (id, type, param, code) VALUES(%i, %s, %s, 'end')", $param);
+                        break;
+                    case 411: // Загрузить событие
+                        $idElement = (int)$param[0];
+                        if((getRights($idElement) & 1) != 1) return; // Права на просмотр
+                        $out = [];
+                        if($result = query("SELECT type, param, date, code, ready FROM events WHERE id = %i", $param))
+                            $out = $result->fetch_array(MYSQLI_NUM);
+                        $out[] = selectOne("SELECT name FROM structures WHERE id = %i", $param);
+                        echo json_encode($out);
+                        break;
+                    case 412: // Обновить событие
+                        $idElement = (int)$param[0];
+                        if((getRights($idElement) & 8) != 8) return; // Права на изменение
+                        query("UPDATE events SET code = %s WHERE id = %i", [$param[1], $param[0]]);
+                        break;
+                    case 413: // Выполнить код по id
+                        require_once("FASM.php"); // класс для работы с событиями
+                        $fasm = new FASM();
+                        $fasm->start(selectOne("SELECT code FROM events WHERE id = %i", $param));
+                        break;
+                }
         }
         /* else query("UPDATE signin SET checkkey = '', login = '' WHERE id = %s", [$paramI]); // Если пользователь послал не тот id  */
     }

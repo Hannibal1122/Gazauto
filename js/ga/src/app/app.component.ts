@@ -43,7 +43,7 @@ export class AppComponent implements OnInit
             this.enter = true; 
             this.Login = localStorage.getItem("login");
             this.refreshLeftMenu();
-            this.openSoftware("event", { id: 263 });
+            this.openSoftware("event", { id: 256 });
             this.openSoftware("table", { id: 224 });
             /* this.openSoftware("explorer", { id: 98 }); */
             /* this.openSoftware("info", { id: -1 }); */

@@ -24,7 +24,6 @@ export class EventEditorComponent implements OnInit
 
         this.query.protectionPost(411, { param: [ this.inputs.id ] }, (data) =>
         {
-            trace(data)
             this.name = data[5];
             switch(data[0])
             {
