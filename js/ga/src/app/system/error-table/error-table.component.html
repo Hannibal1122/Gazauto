@@ -23,6 +23,9 @@
                     <span *ngIf = "row[j] != undefined && row[j].type == 'file'" class = "linkClass linkValueClass" (dblclick) = "openToExplorer(row[j])">
                         <i class = "fa fa-file"></i>
                     </span>
+                    <span *ngIf = "row[j] != undefined && row[j].eventId" class = "eventClass linkCellClass" (dblclick) = "openEventToExplorer(row[j].eventId)">
+                        <i class = "fa fa-bolt"></i>
+                    </span>
                     <div *ngIf = "row[j] != undefined && row[j].state" [style.width] = "row[j].state + '%'" class = "tableStateLoading" 
                         [class.tableCellStateGreen] = "row[j].state == 100"
                         [class.tableCellStateYellow] = "row[j].state >= 50 && row[j].state < 100"

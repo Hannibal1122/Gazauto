@@ -18,10 +18,10 @@
             if($result = query("SELECT i, name_column FROM fields WHERE tableId = %i AND type = 'head' ORDER by i", [$idTable]))
                 while ($row = $result->fetch_array(MYSQLI_NUM)) 
                     $head[] = $row;
-            if($result = query("SELECT i, name_column, value, type, linkId, linkType, fields.id, state, next FROM fields LEFT JOIN line_ids ON line_ids.id = fields.i WHERE tableId = %i AND type != 'head'", [$idTable]))
+            if($result = query("SELECT i, name_column, value, type, linkId, linkType, fields.id, state, next, eventId FROM fields LEFT JOIN line_ids ON line_ids.id = fields.i WHERE tableId = %i AND type != 'head'", [$idTable]))
                 while ($row = $result->fetch_array(MYSQLI_NUM)) 
                 {
-                    $field = [ "id" => (int)$row[6], "value" => $row[2], "state" => $row[7] ];
+                    $field = [ "id" => (int)$row[6], "value" => $row[2], "state" => $row[7], "eventId" => $row[9] ];
                     if($row[3] == "link")
                     {
                         $field["linkId"] = (int)$row[4];
@@ -87,7 +87,7 @@
                 query("DELETE FROM fields WHERE (tableId = %i OR tableId IN (SELECT id FROM structures WHERE bindId = %i)) AND name_column = %s", [ $idTable, $idTable, $changes[$i] ]);
             addLog("table", "update", $idTable);
         }
-        function setCell($data) // Изменить ячейки в таблице
+        function setCell($data, $echo) // Изменить ячейки в таблице
         {
             $idTable = $this->idTable; 
             $value = $data->value;
@@ -108,8 +108,14 @@
                     $idTable, // для подстраховки
                     $idField
                 ]);
-
-            echo json_encode([ "id" => $idField, "value" => $value ]);
+            $idEvent = selectOne("SELECT eventId FROM fields WHERE id = %i", [ $idField ]);
+            if(!is_null($idEvent))
+            {
+                require_once("FASM.php"); // класс для работы с событиями
+                $fasm = new FASM();
+                $fasm->start(selectOne("SELECT code FROM events WHERE id = %i", [ (int)$idEvent ]));
+            }
+            if($echo) echo json_encode([ "id" => $idField, "value" => $value ]);
             $this->calculateStateForTable($idTable);
             addLog("table", "update", $idTable);
         }
@@ -426,6 +432,7 @@
                 case "file": $this->copyFile($idNewElement, $elem[2]); break;
                 case "value": $this->copyValue($idNewElement, $elem[1]); break;
                 case "folder": $this->copyFolder($idNewElement); break;
+                case "event": $this->copyEvent($idNewElement); break;
             }    
         }
         function copyTable($idNewElement) // Скопировать таблицу
@@ -461,6 +468,14 @@
                     $structures->copy();
                 }
         }
+        function copyEvent($idNewElement) // Скопировать событие
+        {
+            $idElement = $this->idElement;
+            $typeOperation = $this->typeOperation;
+            if($result = query("SELECT type, param, date, code FROM events WHERE id = %i", [ $idElement ]))
+                while($row = $result->fetch_array(MYSQLI_NUM))
+                    query("INSERT INTO events (id, type, param, date, code) VALUES(%i, %s, %s, %s, %s)", [ (int)$idNewElement, $row[0], $row[1], $row[2], $row[3] ]);
+        }
         function remove($idElement) // Удалить элемент структуры, по типам
         {
             $element = query("SELECT objectType, name, objectId FROM structures WHERE id = %i", [ $idElement ])->fetch_array(MYSQLI_NUM);
@@ -489,9 +504,12 @@
                     query("DELETE FROM structures WHERE id = %i", [ $idElement ]);
                     query("DELETE FROM my_list WHERE value_id = %i", [ (int)$element[2] ]);
                     break;
+                case "event":
+                    query("DELETE FROM events WHERE id = %i", [ (int)$idElement ]);
+                    break;
             }
-            query("DELETE FROM structures WHERE id = %i", [ $idElement ]);
-            query("DELETE FROM rights WHERE objectId = %i", [ $idElement ]);
+            query("DELETE FROM structures WHERE id = %i", [ (int)$idElement ]);
+            query("DELETE FROM rights WHERE objectId = %i", [ (int)$idElement ]);
             addLog("structure", "remove", $idElement);
         }
     }

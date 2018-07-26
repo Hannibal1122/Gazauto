@@ -189,6 +189,7 @@ export class AppComponent implements OnInit
                     {
                         case "table":
                         case "file":
+                        case "event":
                         case "value":
                             this.openSoftware("explorer", { id: idParent[0][0], searchObjectId: e.value.name == "value" ? idParent[0][1] : e.value.id });
                             break;

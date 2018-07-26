@@ -210,6 +210,10 @@ export class ErrorTableComponent implements OnInit
     {
         this.onChange.emit({ type: "explorer", data: data });
     }
+    openEventToExplorer(eventId)
+    {
+        this.onChange.emit({ type: "event", eventId: eventId });
+    }
     getPositionInTable(element, out)
     {
         let i = -1;

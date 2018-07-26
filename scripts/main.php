@@ -175,6 +175,7 @@
                             case "folder":
                             case "table":
                             case "file":
+                            case "event":
                                 request("SELECT parent FROM structures WHERE id = %i", [$idElement]);
                                 break;
                             case "value":
@@ -449,7 +450,7 @@
                     case 252: // Изменить ячейки в таблице
                         if((getRights($idTable) & 8) != 8) return; // Права на изменение
                         $data = json_decode($param[1]);
-                        $myTable->setCell($data);
+                        $myTable->setCell($data, true);
                         break;
                     case 253: // резерв
                         break;

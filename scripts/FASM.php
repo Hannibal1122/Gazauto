@@ -87,7 +87,7 @@ class FASM
                 case "set": // выставить значение
                     require_once("myTable.php");
                     $myTable = new MyTable($value["tableId"]);
-                    $myTable->setCell((object) ["id" => $idField, "value" => $current["operand"][1]]);
+                    $myTable->setCell((object) ["id" => $idField, "value" => $current["operand"][1]], false);
                     $i++;
                     break; 
                 case "eq": // сравнить на равенство значение
@@ -138,7 +138,7 @@ class FASM
                             if($value = query("SELECT value, type FROM my_values WHERE id = %i", [ $field["linkId"] ]))
                             {
                                 $valueData = $value->fetch_array(MYSQLI_NUM);
-                                if($valueData[1] == "array") $field["listValue"] = getListValueByKey($field["linkId"], $field["value"]);
+                                if($valueData[1] == "array") $field["value"] = getListValueByKey($field["linkId"], $field["value"]);
                                 else $field["value"] = $valueData[0];
                             }
                             break;

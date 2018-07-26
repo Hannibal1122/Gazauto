@@ -338,6 +338,9 @@ export class TableEditorComponent implements OnInit
                     this.load = false;
                 });
                 break;
+            case "event": // Открыть в проводнике событие
+                this.onChange({ type: "openFromTable", value: { name: "event", id: property.eventId }});
+                break;
         }
     }
     queue = [];
