@@ -8,8 +8,10 @@
 .elementMenu
 {
     cursor: pointer;
+    transition: 0.3s;
+    margin-left:0px;
 }
 .elementMenu:hover
 {
-    text-decoration: underline;
+    margin-left:4px;
 }

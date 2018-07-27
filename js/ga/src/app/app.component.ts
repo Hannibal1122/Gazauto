@@ -43,15 +43,8 @@ export class AppComponent implements OnInit
             this.enter = true; 
             this.Login = localStorage.getItem("login");
             this.refreshLeftMenu();
-            this.openSoftware("event", { id: 256 });
-            this.openSoftware("table", { id: 224 });
-            /* this.openSoftware("explorer", { id: 98 }); */
-            /* this.openSoftware("info", { id: -1 }); */
-            /* this.openSoftware("task", { id: -1 }); */
-            /* this.openSoftware("tasks", { id: -1 }); */
-            /* this.openSoftware("table", { id: 4 }); */
-            /* this.openSoftware("table", { id: 224 });
-            this.openSoftware("table", { id: 222 }); */
+            let saveTabs = this.getSaveTabs();
+            for(var i = 0; i < saveTabs.length; i++) this.openSoftware(saveTabs[i][0], saveTabs[i][1]);
         });
         this.firstEnter(this);
         ////////////////////////////////////////////////////////////////////
@@ -102,9 +95,11 @@ export class AppComponent implements OnInit
         });
         ////////////////////////////////////////////////////////////////////
     }
+    widthLeftMenu = 410;
     leftMenuOnResize()
     {
         var elem = this.MyLeftObjects.nativeElement;
+        var width = document.documentElement.clientWidth; // высота документа
         var height = document.documentElement.clientHeight; // высота документа
         var height2 = elem.clientHeight;
         let y = Number(elem.style.top.replace("px", ""));
@@ -121,6 +116,9 @@ export class AppComponent implements OnInit
         else this.leftMenuScroll.height = "0px";
         y = Number(elem.style.top.replace("px", ""));
         this.leftMenuScroll.top = Math.abs(Math.floor(y * height / elem.clientHeight)) + "px";
+
+        if(width < 410) this.widthLeftMenu = width;
+        else this.widthLeftMenu = 410; 
     }
     openTab(i) // Активировать вкладку
     {
@@ -128,6 +126,7 @@ export class AppComponent implements OnInit
     }
     closeTab(i) // Закрыть вкладку
     {
+        this.removeSaveTab(i);
         this.tabs.splice(i, 1);
         if(i < this.currentSoftware) this.currentSoftware--;
         else if(i == this.currentSoftware)
@@ -213,6 +212,7 @@ export class AppComponent implements OnInit
     openSoftware(type, input) // Открыть приложение
     {
         var i = 0;
+        let length = this.tabs.length;
         switch(type)
         {
             case "explorer": i = this.checkRepeatSoftware(type, { component: ExplorerComponent, inputs: input }); break;
@@ -220,6 +220,7 @@ export class AppComponent implements OnInit
             case "info": i = this.checkRepeatSoftware(type, { component: InfoComponent, inputs: input }); break;
             case "event": i = this.checkRepeatSoftware(type, { component: EventEditorComponent, inputs: input }); break;
         }
+        if(length != this.tabs.length) this.setSaveTab(i, type, input) // Новая вкладка, нужно сохранить
         this.currentSoftware = i;
     }
     checkRepeatSoftware(type, software)
@@ -311,6 +312,28 @@ export class AppComponent implements OnInit
     hideLeftMenu()
     {
         this.hideMenu = !this.hideMenu;
+    }
+
+    getSaveTabs() // Запрос всех сохраненных вкладок
+    {
+        let saveData:any = localStorage.getItem("Tabs"); 
+        if(saveData == null) return [];
+        else return JSON.parse(saveData);
+    }
+    setSaveTab(i, type, input) // Сохранение вкладки
+    {
+        let saveData:any = localStorage.getItem("Tabs");
+        if(saveData == null) saveData = [];
+        else saveData = JSON.parse(saveData);
+        saveData[i] = [type, { id: input.id }];
+        localStorage.setItem("Tabs", JSON.stringify(saveData));
+    }
+    removeSaveTab(i) // Удаление вкладки из сохранения
+    {
+        let saveData:any = localStorage.getItem("Tabs"); 
+        saveData = JSON.parse(saveData);
+        saveData.splice(i, 1);
+        localStorage.setItem("Tabs", JSON.stringify(saveData));
     }
 }
 /* $.post('http://localhost:8081/gazprom/scripts/main.php', {nquery: -1}, (data)=>{console.log(data)}); */

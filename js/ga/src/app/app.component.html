@@ -1,7 +1,7 @@
 <app-loading [load] = "load"></app-loading>
 <app-enter *ngIf = "!enter && !load"></app-enter>
 <div [hidden] = "!enter || load">
-    <div [style.left] = "hideMenu ? '0px' : '410px'"
+    <div [style.left] = "hideMenu ? '0px' : (widthLeftMenu - 30) + 'px'"
         [title] = "hideMenu ? 'открыть' : 'скрыть'"
         style = "position: fixed; transition: 0.3s; cursor: pointer; font-size:20px; width:30px; height:30px; top:4px; text-align:center;background-color:#456486; color:white;z-index: 1001;" 
         (click) = "hideLeftMenu()">
@@ -9,28 +9,29 @@
         <span *ngIf = "hideMenu"><i class="fas fa-angle-right"></i></span>
     </div>
     <div #MyLeftMenu
-        [style.width] = "hideMenu ? '0px' : '410px'" 
-        style = "background-color:#85a3c5; height:100%; position:fixed; overflow:hidden; z-index: 1000; transition: 0.3s;">
+        [style.width] = "hideMenu ? '0px' : widthLeftMenu + 'px'" 
+        class = "mainPlaneColor"
+        style = "height:100%; position:fixed; overflow:hidden; z-index: 1000; transition: 0.3s;"><!--  border-right: 1px solid #dfe0e1; -->
         <div [hidden] = "leftMenuScroll.height == '0px'" 
-            style = "position:absolute; width:10px; height:100%; background-color:rgba(161, 196, 79, 0.4); right:0px; z-index:10">
+            style = "position:absolute; width:10px; height:100%; background-color:rgba(43, 52, 62, 0.4); right:0px; z-index:10">
             <div [style.top] = "leftMenuScroll.top"
                 [style.height] = "leftMenuScroll.height" 
-                style = "position:absolute; width:6px; height:60px; background-color:rgba(213, 245, 137, 0.6); left:2px; border-radius:3px;">
+                style = "position:absolute; width:6px; height:60px; background-color:rgba(223, 224, 225, 0.6); left:2px; border-radius:3px;">
             </div>
         </div>
         <div #MyLeftObjects style = "position:absolute; top:0px;">
-            <div style = "width: 410px; background-color:#6085ac; color: white;">
-                <div style = "height: 30px; background-color:#2b343e; padding: 6px; font-weight:bold; font-size:14px; position: relative;">
-                    <span style = "position: absolute; left:35px;">
+            <div [style.width] = "widthLeftMenu + 'px'" style = "color: white;">
+                <div style = "height: 40px; background-color:#2b343e; padding: 6px; font-weight:bold; font-size:14px; position: relative;">
+                    <span style = "position: absolute; left:35px; top: 9px;">
                         {{ Login }} <!-- <i class="fas fa-user-circle"></i> -->
                     </span>
-                    <span style = "position: absolute; left:10px; top: 4px; cursor: pointer; font-size:18px;" (click) = "exitLogin()" title = "выйти">
+                    <span style = "position: absolute; left:10px; top: 7px; cursor: pointer; font-size:18px;" (click) = "exitLogin()" title = "выйти">
                         <i class="fas fa-sign-out-alt"></i>
                     </span>
                 </div>
             </div>
-            <div style = "width: 410px; background-color:#6085ac; color: white;">
-                <div style = "height: 40px; background-color:#456486; padding: 6px; font-weight:bold; font-size:18px; position: relative;">
+            <div class = "leftMenuList mainPlaneColor">
+                <div class = "leftMenuTitle">
                     Приложения
                     <span *ngIf = "!hideSoftware" style = "position: absolute; right:10px; top: 8px; cursor: pointer;" (click) = "hideMenuSoftware()">
                         <i  class="fas fa-arrow-circle-up"></i>
@@ -39,7 +40,7 @@
                         <i  class="fas fa-arrow-circle-down"></i>
                     </span>
                 </div>
-                <div *ngIf = "!hideSoftware" style = "width:100%; height:60px; background-color: #6085ac; display: flex; flex-wrap: wrap; align-items: center; justify-content: center;">
+                <div *ngIf = "!hideSoftware" style = "width:100%; height:60px; display: flex; flex-wrap: wrap; align-items: center; justify-content: center;">
                     <div class = "softwareIcon softwareExplorer" title = "Проводник" (click) = "openSoftware('explorer', { id: 0 })"><i class = "fas fa-sitemap"></i></div>
                     <!-- <div class = "softwareIcon softwareTable" title = "Редактор таблиц" (click) = "openSoftware('table')"> <i class = "fas fa-table"></i> </div> -->
                     <div class = "softwareIcon softwareStatistics" title = "Статистика"><i class = "fas fa-chart-line"></i></div>
@@ -60,7 +61,7 @@
         [style.left] = "hideMenu ? '0' : '410px'"
         style = "height:40px; position: fixed; transition: 0.3s; top: 0px; border-bottom: 1px #bebebe solid; display: flex; font-size: 14px; z-index: 1000; background-color: white;">
         <div *ngFor = "let tab of tabs; let i = index;" 
-            [style.margin-left] = "i == 0 ? '35px' : '-1px'"
+            [style.margin-left] = "i == 0 ? (hideMenu ? '35px' : '10px') : '-1px'"
             [style.border-bottom] = "i == currentSoftware ? 'none' : ''"
             class = "myTabs" [class.myTabsActive] = "i == currentSoftware">
             <div (click) = "openTab(i)" style = "padding: 3px 0px 0px 5px; width: calc(100% - 20px); text-overflow: ellipsis; overflow: hidden; white-space: nowrap;" >

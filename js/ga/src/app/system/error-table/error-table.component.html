@@ -32,7 +32,7 @@
                         [class.tableCellStateRed] = "row[j].state < 50">
                     </div>
                 </td>
-                <td><button *ngIf = "change" (click) = "removeRow(i)" style = "color:#456486;"><i class="fas fa-trash"></i></button></td>
+                <td style = "border:none;"><button *ngIf = "change" (click) = "removeRow(i)" class = "tableButton"><i class="fas fa-trash"></i></button></td>
             </tr>
         </tbody>
     </table>
@@ -55,7 +55,7 @@
     </div>
 </div>
 <div *ngIf = "inputProperty.visible" style = "position:absolute; bottom:-22px; font-size:12px; color:#6e6e6e;">id: {{ inputProperty.id }}</div>
-<div class = "createContextMenu" [hidden] = "!createContextMenu.visible" [style.top] = "createContextMenu.top" [style.left] = "createContextMenu.left">
+<div class = "createContextMenu" [hidden] = "!createContextMenu.visible || !change" [style.top] = "createContextMenu.top" [style.left] = "createContextMenu.left">
     <div class = "contextMenuList" (click) = "removeRow(createContextMenu.i)">Удалить строку</div>
     <div class = "contextMenuList" (click) = "addRow(-1)">Вставить строку выше</div>
     <div class = "contextMenuList" (click) = "addRow(0)">Вставить строку ниже</div>

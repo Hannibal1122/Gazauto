@@ -32,3 +32,60 @@
 {
     color:#9b9b9b;
 }
+/*******************************************************/
+.leftMenuTitle
+{
+    height: 40px;
+    background-color: #2B3E53;
+    padding: 6px;
+    font-weight: bold;
+    font-size: 18px;
+    position: relative;
+}
+.leftMenuList
+{
+    width: 410px;
+    color: #ffffff;
+}
+.mainPlaneColor
+{
+    background-color: #456486;
+}
+/*******************************************************/
+.tableButton
+{
+    color:#456486;
+    width: 32px;
+    height: 32px;
+    background-color: #e5e5e5;
+    border: 1px solid #456486;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+.tableButton:hover
+{
+    background-color: #eeeeee;
+}
+.tableButton:disabled,tableButton[disabled]
+{
+    color:#a6b9ce;
+    border: 1px solid #839ab3;
+}
+/*******************************************************/
+.colorIconEvent
+{
+    color: #caca5d;
+}
+.colorIconValue
+{
+    color: #d38dca;
+}
+.colorIconTable
+{
+    color: #9dd165;
+}
+.colorIconRole
+{
+    color: #c2c2c2;
+}

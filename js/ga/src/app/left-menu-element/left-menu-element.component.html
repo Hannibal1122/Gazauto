@@ -1,5 +1,5 @@
-<div style = "width: 410px; background-color:#6085ac; color: white;">
-    <div style = "height: 40px; background-color:#456486; padding: 6px; font-weight:bold; font-size:18px; position: relative;">
+<div class = "leftMenuList mainPlaneColor">
+    <div class = "leftMenuTitle">
         <!-- <i class="fas fa-book"></i> --> {{ _config.name }}
         <span style = "position: absolute; right:62px; top: 8px; cursor:pointer;" (click) = "visibleSearch()">
             <i class="fas fa-search"></i>
@@ -30,32 +30,28 @@
                     (dblclick) = "openElement(data)" 
                     draggable="true" style = "user-select:none;" 
                     (dragstart) = "dragEvents(data, $event)">
-                    <!-- (dragover) = "dragEvents('over', data)"
-                    (dragenter) = "dragEvents('enter', data, $event)"
-                    (dragend) = "dragEvents('end', data)" -->
-                    <span *ngIf = "data.objectType == 'folder' && !data.open" style = "cursor: pointer;" (click) = "openCollapse(i, data.level)">
+                    <span *ngIf = "data.objectType == 'folder' && !data.open" style = "cursor: pointer; margin-right:2px;" (click) = "openCollapse(i, data.level)">
                         <i class="fas fa-folder"></i>
                     </span>
                     <span *ngIf = "data.objectType == 'folder' && data.open" style = "cursor: pointer;" (click) = "openCollapse(i, data.level)">
                         <i class="fas fa-folder-open"></i>
                     </span>
 
-                    <i *ngIf = "data.objectType == 'user'" class="fas fa-user" style = "color:#e6e6e6;"></i>
-                    <i *ngIf = "data.objectType == 'role'" class="fas fa-address-book" style = "color:#e6e6e6;"></i>
+                    <i *ngIf = "data.objectType == 'user'" class="fas fa-user colorIconRole"></i>
+                    <i *ngIf = "data.objectType == 'role'" class="fas fa-address-book colorIconRole"></i>
 
-                    <i *ngIf = "data.objectType == 'value'" class="fas fa-superscript" style = "color:#f1b0e8;"></i>
+                    <i *ngIf = "data.objectType == 'value'" class="fas fa-superscript colorIconValue"></i>
                     <!-- <i *ngIf = "data.objectType == 'value' && data.type == 'var'" class="fas fa-superscript"></i>
                     <i *ngIf = "data.objectType == 'value' && data.type == 'array'" class="fas fa-clipboard-list"></i>
                     <i *ngIf = "data.objectType == 'value' && data.type == 'state'" class="fas fas fa-balance-scale" style = "color:#f1b0e8;"></i> -->
                     
-                    <i *ngIf = "data.objectType == 'table'" class="fas fa-table" style = "color:#aeec6c;"></i>
-                    <i *ngIf = "data.objectType == 'event'" class="fas fa-bolt" style = "color:#ecec42;"></i>
+                    <i *ngIf = "data.objectType == 'table'" class="fas fa-table colorIconTable"></i>
+                    <i *ngIf = "data.objectType == 'event'" class="fas fa-bolt colorIconEvent"></i>
                     <i *ngIf = "data.objectType == 'right'" class="fas fa-address-card"></i>
-                    <!-- <i *ngIf = "data.objectType == 'file'" class="fas fas fa-file-alt" style = "color:#aeec6c"></i>
- -->
-                    <i *ngIf = "data.fileType == 'img'" class="fas fa-file-image" style = "color: #aeec6c"></i>
-                    <i *ngIf = "data.fileType == 'xls'" class="fas fa-file-excel" style = "color: #aeec6c"></i>
-                    <i *ngIf = "data.fileType == 'doc'" class="fas fa-file-word" style = "color: #aeec6c"></i>
+
+                    <i *ngIf = "data.fileType == 'img'" class="fas fa-file-image colorIconTable"></i>
+                    <i *ngIf = "data.fileType == 'xls'" class="fas fa-file-excel colorIconTable"></i>
+                    <i *ngIf = "data.fileType == 'doc'" class="fas fa-file-word colorIconTable"></i>
                     {{data.name}}
                 </div>
             </div>
