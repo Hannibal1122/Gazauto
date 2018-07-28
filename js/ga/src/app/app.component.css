@@ -1,24 +1,55 @@
 .myTabs
 {
     width: 200px; 
-    background-color:#f4f4f4;
-    border-radius: 5px 5px 0 0; 
-    height: 30px; margin-top:10px; 
-    border: 1px #bebebe solid;
+    background-color:rgb(37, 37, 38);
+    height: 40px; 
     position:relative;
-    color: #566b86;
+    color: #cacaca;
     cursor: pointer;
+}
+.mainPanelApp
+{
+    position:fixed; 
+    z-index: 1000;
+    overflow: auto; 
+    overflow-x:hidden; 
+    background-color:rgb(37, 37, 38); 
+    height:100%; 
+    width:320px; 
+    left:60px;
+    color:#ffffff;
+}
+.mainPanelAppTitle
+{
+    width: 100%;
+    height: 40px;
+    background-color: rgb(37, 37, 38);
+    color:#cacaca;
+    padding-left:10px;
+    line-height: 40px;
 }
 .myTabsActive
 {
-    background-color:#ffffff; 
-    color: #508fd3;
+    background-color:rgb(30, 30, 30); 
+    color: #ffffff;
 }
-
+.miniButton
+{
+    height:50px; 
+    line-height: 50px; 
+    font-size: 26px; 
+    color:#cacaca; 
+    text-align: center;
+    cursor: pointer;
+}
+.miniButtonActive
+{
+    color: #ffffff;
+}
 .tubExitButton
 {
     position: absolute; 
-    top: 6px; 
+    top: 12px; 
     right:4px; 
     color: #464646;
 }

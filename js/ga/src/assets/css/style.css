@@ -35,16 +35,16 @@
 /*******************************************************/
 .leftMenuTitle
 {
-    height: 40px;
-    background-color: #2B3E53;
+    height: 34px;
+    background-color: rgb(56, 56, 56);
     padding: 6px;
     font-weight: bold;
-    font-size: 18px;
+    font-size: 16px;
     position: relative;
 }
 .leftMenuList
 {
-    width: 410px;
+    width: 320px;
     color: #ffffff;
 }
 .mainPlaneColor
@@ -52,7 +52,7 @@
     background-color: #456486;
 }
 /*******************************************************/
-.tableButton
+.mainButton
 {
     color:#456486;
     width: 32px;
@@ -62,12 +62,13 @@
     border-radius: 3px;
     cursor: pointer;
     transition: 0.2s;
+    margin-left:2px;
 }
-.tableButton:hover
+.mainButton:hover
 {
     background-color: #eeeeee;
 }
-.tableButton:disabled,tableButton[disabled]
+.mainButton:disabled,mainButton[disabled]
 {
     color:#a6b9ce;
     border: 1px solid #839ab3;
@@ -88,4 +89,8 @@
 .colorIconRole
 {
     color: #c2c2c2;
+}
+.colorIconExplorer
+{
+    color: #c77373;
 }

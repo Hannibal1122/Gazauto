@@ -4,7 +4,7 @@
             <tr>
                 <th></th>
                 <th *ngFor = "let head of header; let i = index;" id = "{{'TH_' + i}}">{{ head.value }}</th>
-                <th></th>
+                <th *ngIf = "change" class = "lastTD"></th>
             </tr>
             <tr *ngFor = "let row of listTables; let i = index;">
                 <td (contextmenu) = "getContextmenu($event, i)">{{ i + 1 }}</td>
@@ -32,7 +32,7 @@
                         [class.tableCellStateRed] = "row[j].state < 50">
                     </div>
                 </td>
-                <td style = "border:none;"><button *ngIf = "change" (click) = "removeRow(i)" class = "tableButton"><i class="fas fa-trash"></i></button></td>
+                <td class = "lastTD"><button *ngIf = "change" (click) = "removeRow(i)" class = "mainButton"><i class="fas fa-trash"></i></button></td>
             </tr>
         </tbody>
     </table>

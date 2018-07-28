@@ -1,16 +1,16 @@
-<div class = "leftMenuList mainPlaneColor">
+<div class = "leftMenuList">
     <div class = "leftMenuTitle">
         <!-- <i class="fas fa-book"></i> --> {{ _config.name }}
-        <span style = "position: absolute; right:62px; top: 8px; cursor:pointer;" (click) = "visibleSearch()">
+        <span style = "position: absolute; right:62px; top: 5px; cursor:pointer;" (click) = "visibleSearch()">
             <i class="fas fa-search"></i>
         </span>
-        <span style = "position: absolute; right:34px; top: 8px; cursor:pointer;" (click) = "openElement({ objectType: 'folder', id: _config.id })">
+        <span style = "position: absolute; right:34px; top: 5px; cursor:pointer;" (click) = "openElement({ objectType: 'folder', id: _config.id })">
             <i class="fas fa-external-link-alt"></i>
         </span>
-        <span *ngIf = "!hide" style = "position: absolute; right:10px; top: 8px; cursor: pointer;" (click) = "hideAllMenu()">
+        <span *ngIf = "!hide" style = "position: absolute; right:10px; top: 5px; cursor: pointer;" (click) = "hideAllMenu()">
             <i  class="fas fa-arrow-circle-up"></i>
         </span>
-        <span *ngIf = "hide" style = "position: absolute; right:10px; top: 8px; cursor: pointer;" (click) = "hideAllMenu()">
+        <span *ngIf = "hide" style = "position: absolute; right:10px; top: 5px; cursor: pointer;" (click) = "hideAllMenu()">
             <i  class="fas fa-arrow-circle-down"></i>
         </span>
         <input 

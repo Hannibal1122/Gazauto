@@ -18,8 +18,8 @@ declare var $: any;
 })
 export class AppComponent implements OnInit
 {
-    @ViewChild('MyLeftMenu') public MyLeftMenu: ElementRef;
-    @ViewChild('MyLeftObjects') public MyLeftObjects: ElementRef;
+    /* @ViewChild('MyLeftMenu') public MyLeftMenu: ElementRef;
+    @ViewChild('MyLeftObjects') public MyLeftObjects: ElementRef; */
     timeSend = 900000;
     firstEnterBool = false;
     enter = false;
@@ -48,7 +48,7 @@ export class AppComponent implements OnInit
         });
         this.firstEnter(this);
         ////////////////////////////////////////////////////////////////////
-        var onWheel = (e) => 
+        /* var onWheel = (e) => 
         {
             var elem = this.MyLeftObjects.nativeElement;
             var height = document.documentElement.clientHeight;
@@ -64,10 +64,10 @@ export class AppComponent implements OnInit
                 else elem.style.top = delta + "px";
             y = Number(elem.style.top.replace("px", ""));
             this.leftMenuScroll.top = Math.abs(Math.floor(y * height / elem.clientHeight)) + "px";
-        }
-        var elem = this.MyLeftMenu.nativeElement;
-        elem.addEventListener("mousewheel", onWheel);
-        window.addEventListener("resize", () => { this.leftMenuOnResize() }, false);
+        } */
+        /* var elem = this.MyLeftMenu.nativeElement;
+        elem.addEventListener("mousewheel", onWheel); */
+        /* window.addEventListener("resize", () => { this.leftMenuOnResize() }, false); */
         
         ////////////////////////////////////////////////////////////////////
         document.addEventListener("dragenter", (e:any) => 
@@ -95,8 +95,8 @@ export class AppComponent implements OnInit
         });
         ////////////////////////////////////////////////////////////////////
     }
-    widthLeftMenu = 410;
-    leftMenuOnResize()
+    /* widthLeftMenu = 60; */
+    /* leftMenuOnResize()
     {
         var elem = this.MyLeftObjects.nativeElement;
         var width = document.documentElement.clientWidth; // высота документа
@@ -118,8 +118,8 @@ export class AppComponent implements OnInit
         this.leftMenuScroll.top = Math.abs(Math.floor(y * height / elem.clientHeight)) + "px";
 
         if(width < 410) this.widthLeftMenu = width;
-        else this.widthLeftMenu = 410; 
-    }
+        else this.widthLeftMenu = 60; 
+    } */
     openTab(i) // Активировать вкладку
     {
         this.currentSoftware = i;
@@ -147,7 +147,7 @@ export class AppComponent implements OnInit
         { 
             if(data === "") return;
             this.leftMenuData = data; 
-            setTimeout(() => { this.leftMenuOnResize(); }, 20); 
+           /*  setTimeout(() => { this.leftMenuOnResize(); }, 20);  */
         });
     }
     private lastUpdateTimer = null;
@@ -170,7 +170,7 @@ export class AppComponent implements OnInit
             case "open":
                 this.openSoftware(e.value.name, e.value);
                 break;
-            case "height": setTimeout(() => { this.leftMenuOnResize(); }, 20); break;
+            /* case "height": setTimeout(() => { this.leftMenuOnResize(); }, 20); break; */
         }
     }
     onChangeInSoftware(e) // Происходит из других приложений
@@ -252,11 +252,11 @@ export class AppComponent implements OnInit
             };
         return i;
     }
-    hideMenuSoftware() // скрыть из левого меню приложения
+    /* hideMenuSoftware() // скрыть из левого меню приложения
     {
         this.hideSoftware = !this.hideSoftware;
         setTimeout(() => { this.leftMenuOnResize(); }, 20); 
-    }
+    } */
     /*******************************************************************/
     autoLogin(func) // Автовход
     {
@@ -309,9 +309,13 @@ export class AppComponent implements OnInit
         localStorage.setItem("name", "");
     }
     hideMenu = false;
-    hideLeftMenu()
+    currentMiniApp = "explorer";
+    openMiniApp(name)
     {
-        this.hideMenu = !this.hideMenu;
+        if(name != this.currentMiniApp)
+            this.hideMenu = false;
+        else this.hideMenu = !this.hideMenu;
+        this.currentMiniApp = name;
     }
 
     getSaveTabs() // Запрос всех сохраненных вкладок

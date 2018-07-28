@@ -1,6 +1,6 @@
 <div class = "row" style = "margin-left:0; margin-right:0;">
     <div class = "col-md-12" style = "user-select:none; padding-right:5px; padding-left:5px;">
-        <button class = "explorerButton" title = "Назад" (click) = "openBackFolder()"><i class="fas fa-arrow-left"></i></button>
+        <button class = "mainButton" title = "Назад" (click) = "openBackFolder()"><i class="fas fa-arrow-left"></i></button>
         <input type = "text" 
             [(ngModel)] = "searchInput" 
             (change) = "clearSearch()"
@@ -16,19 +16,19 @@
             <option value = "role">Роль</option>
             <option value = "file">Файл</option>
         </select>
-        <button class = "explorerButton" title = "Поиск в папке" (click) = "searchInputObjectFromFolder()" ><i class="fas fa-search"></i></button>
-        <button class = "explorerButton" title = "Глобальный поиск" (click) = "searchInputObject()" style = "margin-right:10px;"><i class="fas fa-globe"></i></button>
+        <button class = "mainButton" title = "Поиск в папке" (click) = "searchInputObjectFromFolder()" ><i class="fas fa-search"></i></button>
+        <button class = "mainButton" title = "Глобальный поиск" (click) = "searchInputObject()" style = "margin-right:10px;"><i class="fas fa-globe"></i></button>
     </div>
     <div class = "col-md-12" style = "user-select:none; padding-right:5px; padding-left:5px; margin-top:4px;">
-        <button class = "explorerButton" title = "Добавить элемент" (click) = "newObject()" [disabled] = "!selectRules.new"><i class="fas fa-file"></i></button>
-        <button class = "explorerButton" title = "Вставить" (click) = "_pasteObject()" [disabled] = "!selectRules.paste"><i class="fas fa-paste"></i></button>
-        <button class = "explorerButton" title = "Вырезать" (click) = "copyObject('cut')" [disabled] = "!selectRules.cut"><i class="fas fa-cut"></i></button>
-        <button class = "explorerButton" title = "Копировать" (click) = "copyObject('copy')" [disabled] = "!selectRules.copy"><i class="fas fa-copy"></i></button>
-        <button class = "explorerButton" title = "Добавить права" (click) = "createObject(outFolders[selectObjectI].id, 'Права', null)" [disabled] = "!selectRules.rights"><i class="fas fa-address-card"></i></button>
-        <button class = "explorerButton" title = "Справка" (click) = "addInfo()" [disabled] = "!selectRules.info"><i class="fas fa-info"></i></button>
-        <button class = "explorerButton" title = "Удалить" (click) = "removeObject()" [disabled] = "!selectRules.remove"><i class="fas fa-trash"></i></button>
-        <button class = "explorerButton" title = "Скачать" (click) = "downloadObject()" [disabled] = "!selectRules.download"><i class="fas fa-download"></i></button>
-        <button class = "explorerButton" title = "Обновить" (click) = "refresh(true)"><i class="fas fa-sync-alt"></i></button>
+        <button class = "mainButton" title = "Добавить элемент" (click) = "newObject()" [disabled] = "!selectRules.new"><i class="fas fa-file"></i></button>
+        <button class = "mainButton" title = "Вставить" (click) = "_pasteObject()" [disabled] = "!selectRules.paste"><i class="fas fa-paste"></i></button>
+        <button class = "mainButton" title = "Вырезать" (click) = "copyObject('cut')" [disabled] = "!selectRules.cut"><i class="fas fa-cut"></i></button>
+        <button class = "mainButton" title = "Копировать" (click) = "copyObject('copy')" [disabled] = "!selectRules.copy"><i class="fas fa-copy"></i></button>
+        <button class = "mainButton" title = "Добавить права" (click) = "createObject(outFolders[selectObjectI].id, 'Права', null)" [disabled] = "!selectRules.rights"><i class="fas fa-address-card"></i></button>
+        <button class = "mainButton" title = "Справка" (click) = "addInfo()" [disabled] = "!selectRules.info"><i class="fas fa-info"></i></button>
+        <button class = "mainButton" title = "Удалить" (click) = "removeObject()" [disabled] = "!selectRules.remove"><i class="fas fa-trash"></i></button>
+        <button class = "mainButton" title = "Скачать" (click) = "downloadObject()" [disabled] = "!selectRules.download"><i class="fas fa-download"></i></button>
+        <button class = "mainButton" title = "Обновить" (click) = "refresh(true)"><i class="fas fa-sync-alt"></i></button>
     </div>
     <div class = "col-md-12" style = "font-size:12px; color:#8f8f8f">
         <span *ngFor = "let path of allPath" (click) = "openObject({objectType: 'folder', id: path.id})" style = "cursor:pointer;">{{ path.name }}/</span>
