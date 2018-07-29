@@ -2,25 +2,25 @@
 <app-enter *ngIf = "!enter && !load"></app-enter>
 <div [hidden] = "!enter || load">
     <div>
-        <div style = "position:fixed; z-index:1000; width: 60px; height:100%; background-color:rgb(51, 51, 51);">
-            <div class = "miniButton" 
+        <div class = "PanelMiniAppBColor" style = "position:fixed; z-index:1000; width: 60px; height:100%;">
+            <div class = "miniButton ButtonMiniAppColor"  
                 (click) = "openMiniApp('explorer')"
-                [class.miniButtonActive] = "!hideMenu && currentMiniApp == 'explorer'">
+                [class.ButtonMiniAppActiveColor] = "!hideMenu && currentMiniApp == 'explorer'">
                 <i class="far fa-folder"></i>
             </div>
-            <div class = "miniButton"
+            <div class = "miniButton ButtonMiniAppColor"
                 (click) = "openMiniApp('search')"
-                [class.miniButtonActive] = "!hideMenu && currentMiniApp == 'search'">
+                [class.ButtonMiniAppActiveColor] = "!hideMenu && currentMiniApp == 'search'">
                 <i class="fas fa-search"></i>
             </div>
-            <div class = "miniButton"
+            <div class = "miniButton ButtonMiniAppColor"
                 (click) = "openMiniApp('app')"
-                [class.miniButtonActive] = "!hideMenu && currentMiniApp == 'app'">
+                [class.ButtonMiniAppActiveColor] = "!hideMenu && currentMiniApp == 'app'">
                 <i class="fas fa-cube"></i>
             </div>
-            <div class = "miniButton" 
+            <div class = "miniButton ButtonMiniAppColor" 
                 (click) = "openMiniApp('settings')"
-                [class.miniButtonActive] = "!hideMenu && currentMiniApp == 'settings'"
+                [class.ButtonMiniAppActiveColor] = "!hideMenu && currentMiniApp == 'settings'"
                 style="position: absolute; bottom:0px;">
                 <div style = "text-align: center; width:60px;">
                     <i class="fas fa-cog"></i>
@@ -29,20 +29,20 @@
         </div>
         <div *ngIf = "!hideMenu">
             <div *ngIf = "currentMiniApp == 'explorer'" 
-                class = "mainPanelApp">
-                <div class="mainPanelAppTitle">Проводник</div>
+                class = "mainPanelApp PanelAppColor">
+                <div class="mainPanelAppTitle PanelAppTitleColor">Проводник</div>
                 <app-left-menu-element *ngFor = "let element of leftMenuData" 
                     [config] = "element" 
                     [data] = "element.childrens" 
                     (onChange) = "onChangeInLeftMenu($event)"></app-left-menu-element>
             </div>
             <div *ngIf = "currentMiniApp == 'search'"
-                class = "mainPanelApp">
-                <div class="mainPanelAppTitle">Поиск</div>
+                class = "mainPanelApp PanelAppColor">
+                <div class="mainPanelAppTitle PanelAppTitleColor">Поиск</div>
             </div>
             <div *ngIf = "currentMiniApp == 'app'"
-                class = "mainPanelApp">
-                <div class="mainPanelAppTitle">Приложения</div>
+                class = "mainPanelApp PanelAppColor">
+                <div class="mainPanelAppTitle PanelAppTitleColor">Приложения</div>
                 <div style = "width:100%; height:60px; display: flex; flex-wrap: wrap; align-items: center; justify-content: center;">
                     <div class = "softwareIcon softwareExplorer" title = "Проводник" (click) = "openSoftware('explorer', { id: 0 })"><i class = "fas fa-sitemap"></i></div>
                     <div class = "softwareIcon softwareStatistics" title = "Статистика"><i class = "fas fa-chart-line"></i></div>
@@ -52,8 +52,8 @@
                 </div>
             </div>
             <div *ngIf = "currentMiniApp == 'settings'"
-                class = "mainPanelApp">
-                <div class="mainPanelAppTitle">Настройки</div>
+                class = "mainPanelApp PanelAppColor">
+                <div class="mainPanelAppTitle PanelAppTitleColor">Настройки</div>
                 <div style = "height: 40px; padding: 6px; font-weight:bold; font-size:14px; position: relative;">
                     <span style = "position: absolute; left:35px; top: 9px;">
                         {{ Login }}
@@ -65,76 +65,24 @@
             </div>
         </div>
     </div>
-    <!-- <div [style.left] = "hideMenu ? '0px' : (widthLeftMenu - 30) + 'px'"
-        [title] = "hideMenu ? 'открыть' : 'скрыть'"
-        style = "position: fixed; transition: 0.3s; cursor: pointer; font-size:20px; width:30px; height:30px; top:4px; text-align:center;background-color:#456486; color:white;z-index: 1001;" 
-        (click) = "hideLeftMenu()">
-        <span *ngIf = "!hideMenu"><i class="fas fa-angle-left"></i></span>
-        <span *ngIf = "hideMenu"><i class="fas fa-angle-right"></i></span>
-    </div> -->
-    <!-- <div #MyLeftMenu
-        [style.width] = "hideMenu ? '0px' : widthLeftMenu + 'px'" 
-        class = "mainPlaneColor"
-        style = "height:100%; position:fixed; overflow:hidden; z-index: 1000; transition: 0.3s;">
-        <div [hidden] = "leftMenuScroll.height == '0px'" 
-            style = "position:absolute; width:10px; height:100%; background-color:rgba(43, 52, 62, 0.4); right:0px; z-index:10">
-            <div [style.top] = "leftMenuScroll.top"
-                [style.height] = "leftMenuScroll.height" 
-                style = "position:absolute; width:6px; height:60px; background-color:rgba(223, 224, 225, 0.6); left:2px; border-radius:3px;">
-            </div>
-        </div>
-        <div #MyLeftObjects style = "position:absolute; top:0px;">
-            <div [style.width] = "widthLeftMenu + 'px'" style = "color: white;">
-                <div style = "height: 40px; background-color:#2b343e; padding: 6px; font-weight:bold; font-size:14px; position: relative;">
-                    <span style = "position: absolute; left:35px; top: 9px;">
-                        {{ Login }}
-                    </span>
-                    <span style = "position: absolute; left:10px; top: 7px; cursor: pointer; font-size:18px;" (click) = "exitLogin()" title = "выйти">
-                        <i class="fas fa-sign-out-alt"></i>
-                    </span>
-                </div>
-            </div>
-            <div class = "leftMenuList mainPlaneColor">
-                <div class = "leftMenuTitle">
-                    Приложения
-                    <span *ngIf = "!hideSoftware" style = "position: absolute; right:10px; top: 8px; cursor: pointer;" (click) = "hideMenuSoftware()">
-                        <i  class="fas fa-arrow-circle-up"></i>
-                    </span>
-                    <span *ngIf = "hideSoftware" style = "position: absolute; right:10px; top: 8px; cursor: pointer;" (click) = "hideMenuSoftware()">
-                        <i  class="fas fa-arrow-circle-down"></i>
-                    </span>
-                </div>
-                <div *ngIf = "!hideSoftware" style = "width:100%; height:60px; display: flex; flex-wrap: wrap; align-items: center; justify-content: center;">
-                    <div class = "softwareIcon softwareExplorer" title = "Проводник" (click) = "openSoftware('explorer', { id: 0 })"><i class = "fas fa-sitemap"></i></div>
-                    <div class = "softwareIcon softwareStatistics" title = "Статистика"><i class = "fas fa-chart-line"></i></div>
-                    <div class = "softwareIcon softwareEvent" title = "Редактор событий" (click) = "openSoftware('event', { id: 0 })"><i class = "fas fa-bolt"></i></div>
-                    <div class = "softwareIcon softwareTasks" title = "Справка" (click) = "openSoftware('info', { id: -1 })"><i class = "fas fa-info"></i></div>
-                    <div class = "softwareIcon softwareStatistics" title = "Обновить" (click) = "refreshLeftMenu()"><i class = "fas fa-sync-alt"></i></div>
-                </div>
-            </div>
-            <app-left-menu-element *ngFor = "let element of leftMenuData" 
-                [config] = "element" 
-                [data] = "element.childrens" 
-                (onChange) = "onChangeInLeftMenu($event)"></app-left-menu-element>
-        </div>
-    </div> -->
     <div [style.width] = "hideMenu ? 'calc(100% - 60px)' : 'calc(100% - 380px)'"
         [style.left] = "hideMenu ? '60px' : '380px'"
-        style = "height:40px; position: fixed; top: 0px; overflow:auto; overflow-y:hidden; display:flex; font-size: 14px; z-index: 1000; background-color: rgb(37, 37, 38);">
+        class = "TabsPanelColor"
+        style = "height:40px; position: fixed; top: 0px; overflow:auto; overflow-y:hidden; display:flex; font-size: 14px; z-index: 1000;">
         <div *ngFor = "let tab of tabs; let i = index;" 
-            class = "myTabs" [class.myTabsActive] = "i == currentSoftware">
+            class = "myTabs TabsColor" [class.TabsActiveColor] = "i == currentSoftware">
             <div (click) = "openTab(i)" style = "padding-left:7px; height:40px; line-height:40px; width: calc(100% - 20px); text-overflow: ellipsis; overflow: hidden; white-space: nowrap;" >
                 <span *ngIf = "tab.type == 'explorer'"> <i class = "fas fa-sitemap colorIconExplorer"></i> </span>
                 <span *ngIf = "tab.type == 'table'"> <i class = "fas fa-table colorIconTable"></i> </span>
                 <span *ngIf = "tab.type == 'event'"> <i class = "fas fa-bolt colorIconEvent"></i> </span>
                 {{tab.name}}
             </div>
-            <span (click) = "closeTab(i)"><i class="fas fa-times-circle tubExitButton"></i></span>
+            <span (click) = "closeTab(i)"><i class="fas fa-times-circle tubExitButton TabsButtonExitColor"></i></span>
         </div>
     </div>
     <div [style.width] = "hideMenu ? 'calc(100% - 60px)' : 'calc(100% - 380px)'"
         [style.left] = "hideMenu ? '60px' : '380px'"
-        style = "height:calc(100% - 40px); position: absolute; top: 40px; padding: 10px; color:#000000;">
+        style = "height:calc(100% - 40px); position: absolute; overflow: auto; top: 40px; padding: 10px;" class = "WorkspaceBColor WorkspaceColor">
         <div *ngFor="let app of tabs; let i = index;">
             <div [style.display] = "i == currentSoftware ? 'block' : 'none'">
                 <vg-dynamic-view [componentData] = "app.software" (onChange) = "onChangeInSoftware($event)" [inputFromApp] = "app.inputFromApp"></vg-dynamic-view>

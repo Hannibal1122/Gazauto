@@ -1,13 +1,12 @@
 <div #mainContainer style = "overflow:auto;" [style.height] = "height">
-    <table class = "errorTable" (dragover)="dragoverHandler($event);">  <!--  -->
+    <table class = "errorTable TableCreatorBorderColor" (dragover)="dragoverHandler($event);">  <!--  -->
         <tbody (click) = "change ? editField($event) : null">
             <tr>
-                <th></th>
-                <th *ngFor = "let head of header; let i = index;" id = "{{'TH_' + i}}">{{ head.value }}</th>
-                <th *ngIf = "change" class = "lastTD"></th>
+                <th class = "TableCreatorHeadBColor "></th>
+                <th *ngFor = "let head of header; let i = index;" class = "TableCreatorHeadColor TableCreatorHeadBColor " id = "{{'TH_' + i}}">{{ head.value }}</th>
             </tr>
             <tr *ngFor = "let row of listTables; let i = index;">
-                <td (contextmenu) = "getContextmenu($event, i)">{{ i + 1 }}</td>
+                <td (contextmenu) = "getContextmenu($event, i)" class = "TableCreatorHeadColor TableCreatorHeadBColor ">{{ i + 1 }}</td>
                 <td *ngFor = "let void of header; let j = index;" id = "{{i + '_' + j}}" [style.background] = "row[j] == undefined ? '#fafafa' : (row[j].id == searchCellId ? '#e7f5c6' : none)">
                     {{ row[j] != undefined && !row[j].listValue ? row[j].value : "" }}
                     {{ row[j] != undefined && row[j].listValue ? row[j].listValue : "" }}
@@ -39,7 +38,7 @@
 
     <div #mainEditElement style = "position:absolute;" [ngStyle] = "configInput" [hidden] = "!inputProperty.visible">
         <!-- <input #mainInputElement type = "text" class = "mainInputStyle" (blur) = "acceptEditField($event)" [(ngModel)] = "inputProperty.value" (keydown)="downEnter($event)"> -->
-        <textarea #mainInputElement class = "mainInputStyle" (blur) = "acceptEditField($event)" [(ngModel)] = "inputProperty.value" (keydown)="downEnter($event)"></textarea>
+        <textarea #mainInputElement class = "mainInputStyle TableCreatorInputColor" (blur) = "acceptEditField($event)" [(ngModel)] = "inputProperty.value" (keydown)="downEnter($event)"></textarea>
         <button #mainButtonElement [hidden] = "inputProperty.type != 'table'" 
             style = "position:absolute; right:0px; top: 0px; color:red; cursor:pointer; border:none; background:none; outline: none;"
             (click) = "inputProperty.value = ''; inputProperty.state = 0; acceptEditField($event)">
@@ -48,13 +47,13 @@
         <select #mainSelectElement [hidden] = "inputProperty.values.length == 0" (blur) = "acceptEditField($event)" style = "position:absolute; top: 100%; height: 24px; width:100%;" [(ngModel)] = "inputProperty.value">
             <option *ngFor = "let option of inputProperty.values">{{ option }}</option>
         </select>
-        <div class = "mainStatusStyle" [hidden] = "!inputProperty.visibleState">
+        <div class = "mainStatusStyle TableCreatorStateColor" [hidden] = "!inputProperty.visibleState">
             Статус: <input #mainStatusElement type = "number" (blur) = "acceptEditField($event)" style = "width:45px;" step = "10" min = "0" max = "100" [(ngModel)] = "inputProperty.state"> %
         </div>
         <!-- <div class = "buttonAcceptEditing" title = "сохранить изменения"><i class="fas fa-check"></i></div> -->
     </div>
 </div>
-<div *ngIf = "inputProperty.visible" style = "position:absolute; bottom:-22px; font-size:12px; color:#6e6e6e;">id: {{ inputProperty.id }}</div>
+<div *ngIf = "inputProperty.visible" class = "TableCreatorHeadColor" style = "position:absolute; bottom:-22px; font-size:12px;">id: {{ inputProperty.id }}</div>
 <div class = "createContextMenu" [hidden] = "!createContextMenu.visible || !change" [style.top] = "createContextMenu.top" [style.left] = "createContextMenu.left">
     <div class = "contextMenuList" (click) = "removeRow(createContextMenu.i)">Удалить строку</div>
     <div class = "contextMenuList" (click) = "addRow(-1)">Вставить строку выше</div>

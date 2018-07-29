@@ -1,11 +1,11 @@
 <div class="row" style = "margin-left:0; margin-right:0;">
-    <div class="col-md-8 col-sm-12" style = "height:30px; position:relative; margin-bottom:4px;">
+    <div class="col-md-12 col-sm-12" style = "height:40px; position:relative; margin-bottom:4px; overflow: auto;">
         <div style = "height:30px; float:left; padding: 4px; padding-top:0px; margin-right:10px; width: 200px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;" 
             title="{{nameTable}}">
             {{nameTable}}
-            <div style="position:absolute; top:24px; width:200px; height:6px; background-color:#d8d8d8; left:15px; border-radius:3px;">
+            <div style="position:absolute; top:24px; width:170px; height:6px; background-color:#d8d8d8; left:15px; border-radius:3px;">
                 <div style="position:absolute; top:0px; height:6px; background-color:#aeec6c; left:0px; border-radius:3px;" [style.width] = "stateTable + '%'"></div>
-                <div style="position:absolute; top:-5px; left:0px; width:100%; text-align:center; font-size: 11px; font-weight: bold; color: #456486;">{{stateTable + '%'}}</div>
+                <div style="position:absolute; right:-25px; top: -4px; font-size: 11px; font-weight: bold;" class = "TableCreatorHeadColor">{{stateTable + '%'}}</div>
             </div>
         </div>
         <button class = "mainButton" title = "Заголовок" (click) = "changeHeader()" [disabled] = "!rules.head"><i class="fas fa-heading"></i></button>
@@ -15,11 +15,6 @@
         <button class = "mainButton" title = "Экспорт в Excel" (click) = "exportToExcel()" ><i class="fas fa-file-excel"></i></button>
         <button class = "mainButton" title = "Добавить строку" (click) = "addRow()" [disabled] = "!rules.add"><i class="fas fa-plus"></i></button>
         <button class = "mainButton" (click) = "loadTable()" title = "Обновить"><i class="fas fa-sync-alt"></i></button>
-    </div>
-    <div class="col-md-4 col-sm-12 float-right" style = "height:30px; position:relative; margin-bottom:4px;">
-        <span *ngIf = "mode == 'Global'" style = "float:right; color:#b5e498; font-size:20px; margin-left:5px;" title = "global"><i class="fas fa-cloud"></i></span>
-        <span *ngIf = "!rules.add" style = "float:right; color:#b5e498; font-size:20px; margin-left:5px;" title = "Режим просмотра"><i class="fas fa-eye"></i></span>
-        <span *ngFor = "let login of listLogin" class = "loginFromList">{{login}}</span>
     </div>
     <div *ngIf = "error" style = "color:#af7e7e; font-size:24px; font-weight:bold">Таблица не доступна!</div>
     <div *ngIf = "!error && dataHeader.length == 0" style = "color:#b8b8b8; font-size:24px; font-weight:bold">Таблица пуста</div>
@@ -31,8 +26,11 @@
         class="col-md-12"
         style = "padding-left:0; padding-right:0;"></app-error-table>
     <div style = "position:absolute; bottom:0px; right: 10px;">
-        <span *ngIf = "load" style = "color:#757575;font-size:12px;">Загрузка...</span>
-        <span *ngIf = "needUpdate" style = "color:#757575;font-size:12px;">Требуется синхронизация</span>
+        <span *ngIf = "load" class = "TableCreatorHeadColor" style = "font-size:12px;">Загрузка...</span>
+        <span *ngIf = "needUpdate" class = "TableCreatorHeadColor" style = "font-size:12px;">Требуется синхронизация</span>
+        <span *ngIf = "mode == 'Global'" style = "float:right; color:#b5e498; font-size:20px; margin-left:5px;" title = "global"><i class="fas fa-cloud"></i></span>
+        <span *ngIf = "!rules.add" style = "float:right; color:#b5e498; font-size:20px; margin-left:5px;" title = "Режим просмотра"><i class="fas fa-eye"></i></span>
+        <span *ngFor = "let login of listLogin" class = "loginFromList">{{login}}</span>
     </div>
 </div>
 <modalwindow #modal></modalwindow>

@@ -29,7 +29,6 @@ export class AppComponent implements OnInit
     Login = "";
     
     currentSoftware = 0;
-    hideSoftware = false;
     constructor(private query: QueryService, private lib: FunctionsService) { }
     leftMenuScroll = 
     {
@@ -47,29 +46,6 @@ export class AppComponent implements OnInit
             for(var i = 0; i < saveTabs.length; i++) this.openSoftware(saveTabs[i][0], saveTabs[i][1]);
         });
         this.firstEnter(this);
-        ////////////////////////////////////////////////////////////////////
-        /* var onWheel = (e) => 
-        {
-            var elem = this.MyLeftObjects.nativeElement;
-            var height = document.documentElement.clientHeight;
-            var height2 = elem.clientHeight - height;
-            e = e || window.event;
-            var delta = e.deltaY || e.detail || e.wheelDelta;
-            e.preventDefault ? e.preventDefault() : (e.returnValue = false);
-            var y = Number(elem.style.top.replace("px", ""));
-            delta = y - delta / 2;
-            if(delta >= 0 || height2 < 0) elem.style.top = "0px";
-            else 
-                if(delta <= -height2) elem.style.top = -height2 + "px";
-                else elem.style.top = delta + "px";
-            y = Number(elem.style.top.replace("px", ""));
-            this.leftMenuScroll.top = Math.abs(Math.floor(y * height / elem.clientHeight)) + "px";
-        } */
-        /* var elem = this.MyLeftMenu.nativeElement;
-        elem.addEventListener("mousewheel", onWheel); */
-        /* window.addEventListener("resize", () => { this.leftMenuOnResize() }, false); */
-        
-        ////////////////////////////////////////////////////////////////////
         document.addEventListener("dragenter", (e:any) => 
         {
             let id = e.target.getAttribute("id");
@@ -95,31 +71,6 @@ export class AppComponent implements OnInit
         });
         ////////////////////////////////////////////////////////////////////
     }
-    /* widthLeftMenu = 60; */
-    /* leftMenuOnResize()
-    {
-        var elem = this.MyLeftObjects.nativeElement;
-        var width = document.documentElement.clientWidth; // высота документа
-        var height = document.documentElement.clientHeight; // высота документа
-        var height2 = elem.clientHeight;
-        let y = Number(elem.style.top.replace("px", ""));
-        var viewHeight = elem.clientHeight + y; // видимая высота
-
-        if(height >= height2) elem.style.top = "0px";
-        else
-        {
-            if(height >= viewHeight)
-                elem.style.top = (y + height - viewHeight) + "px";
-        }
-        if(height < height2)
-            this.leftMenuScroll.height = Math.floor(height * height / height2) + "px";
-        else this.leftMenuScroll.height = "0px";
-        y = Number(elem.style.top.replace("px", ""));
-        this.leftMenuScroll.top = Math.abs(Math.floor(y * height / elem.clientHeight)) + "px";
-
-        if(width < 410) this.widthLeftMenu = width;
-        else this.widthLeftMenu = 60; 
-    } */
     openTab(i) // Активировать вкладку
     {
         this.currentSoftware = i;
@@ -252,11 +203,6 @@ export class AppComponent implements OnInit
             };
         return i;
     }
-    /* hideMenuSoftware() // скрыть из левого меню приложения
-    {
-        this.hideSoftware = !this.hideSoftware;
-        setTimeout(() => { this.leftMenuOnResize(); }, 20); 
-    } */
     /*******************************************************************/
     autoLogin(func) // Автовход
     {
@@ -308,8 +254,8 @@ export class AppComponent implements OnInit
         localStorage.setItem("login", "");
         localStorage.setItem("name", "");
     }
-    hideMenu = false;
-    currentMiniApp = "explorer";
+    hideMenu = true;
+    currentMiniApp = "";
     openMiniApp(name)
     {
         if(name != this.currentMiniApp)
@@ -317,7 +263,6 @@ export class AppComponent implements OnInit
         else this.hideMenu = !this.hideMenu;
         this.currentMiniApp = name;
     }
-
     getSaveTabs() // Запрос всех сохраненных вкладок
     {
         let saveData:any = localStorage.getItem("Tabs"); 

@@ -36,20 +36,10 @@
 .leftMenuTitle
 {
     height: 34px;
-    background-color: rgb(56, 56, 56);
     padding: 6px;
     font-weight: bold;
     font-size: 16px;
     position: relative;
-}
-.leftMenuList
-{
-    width: 320px;
-    color: #ffffff;
-}
-.mainPlaneColor
-{
-    background-color: #456486;
 }
 /*******************************************************/
 .mainButton
@@ -63,6 +53,7 @@
     cursor: pointer;
     transition: 0.2s;
     margin-left:2px;
+    margin-top:5px;
 }
 .mainButton:hover
 {
@@ -72,25 +63,4 @@
 {
     color:#a6b9ce;
     border: 1px solid #839ab3;
-}
-/*******************************************************/
-.colorIconEvent
-{
-    color: #caca5d;
-}
-.colorIconValue
-{
-    color: #d38dca;
-}
-.colorIconTable
-{
-    color: #9dd165;
-}
-.colorIconRole
-{
-    color: #c2c2c2;
-}
-.colorIconExplorer
-{
-    color: #c77373;
 }

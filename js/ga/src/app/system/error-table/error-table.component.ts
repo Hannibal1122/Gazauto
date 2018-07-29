@@ -264,7 +264,7 @@ export class ErrorTableComponent implements OnInit
     globalClick;
     resize()
     {
-        this.height = document.documentElement.clientHeight - 120 + "px";
+        this.height = document.documentElement.clientHeight - 127 + "px";
     }
     ngOnDestroy() 
     {

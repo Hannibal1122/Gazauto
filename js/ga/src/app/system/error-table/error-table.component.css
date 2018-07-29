@@ -6,9 +6,8 @@
 .errorTable th 
 {
     padding: 5px;
-    background-color: #ececec;
-    color: #566b86;
-    border-right: 2px solid #ffffff; 
+    border-right: 2px solid; 
+    border-bottom: 2px solid;
     font-size: 16px;
 }
 .errorTable td 
@@ -21,16 +20,14 @@
     font-size: 14px;
     min-width:160px;
     /* border-top: 2px solid #ececec; */
-    border-bottom: 2px solid #ececec;
-    border-right: 2px solid #ececec;
+    border-bottom: 2px solid ;
+    border-right: 2px solid ;
 }
 .errorTable td:first-child 
 {
-    background-color: #ececec;
-    color: #566b86;
     border-right: none;
-    border-top: 2px solid #ffffff; 
-    border-bottom: 2px solid #ffffff; 
+    border-top: 2px solid; 
+    border-bottom: 2px solid; 
     text-align: right;
     min-width:40px;
     width:40px;
@@ -38,6 +35,7 @@
 }
 .lastTD
 {
+    background: none !important;
     border:none !important;
     min-width:50px !important;
     width:50px;
@@ -62,13 +60,11 @@
 }
 .mainStatusStyle
 {
-    color:#566b86;
     border: 2px solid #5293e4;
     font-size: 14px;
     font-weight: bold;
     position: absolute;
     top: -32px; 
-    background-color:#ffffff; 
     border-radius:5px 5px 0px 0px; 
     border-bottom:none; 
     padding:1px; 
@@ -80,20 +76,8 @@
     position: absolute;
     bottom: 0;
     left: 0;
-    height: 20%;
+    height: 4px;
     pointer-events: none;
-}
-.tableCellStateGreen
-{
-    background-color: rgba(174, 236, 108, 0.41);
-}
-.tableCellStateYellow
-{
-    background-color: rgba(226, 236, 83, 0.41);
-}
-.tableCellStateRed
-{
-    background-color: rgba(236, 123, 108, 0.41);
 }
 /* .buttonAcceptEditing
 {

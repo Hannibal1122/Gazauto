@@ -1,61 +1,59 @@
-<div class = "leftMenuList">
-    <div class = "leftMenuTitle">
-        <!-- <i class="fas fa-book"></i> --> {{ _config.name }}
-        <span style = "position: absolute; right:62px; top: 5px; cursor:pointer;" (click) = "visibleSearch()">
-            <i class="fas fa-search"></i>
-        </span>
-        <span style = "position: absolute; right:34px; top: 5px; cursor:pointer;" (click) = "openElement({ objectType: 'folder', id: _config.id })">
-            <i class="fas fa-external-link-alt"></i>
-        </span>
-        <span *ngIf = "!hide" style = "position: absolute; right:10px; top: 5px; cursor: pointer;" (click) = "hideAllMenu()">
-            <i  class="fas fa-arrow-circle-up"></i>
-        </span>
-        <span *ngIf = "hide" style = "position: absolute; right:10px; top: 5px; cursor: pointer;" (click) = "hideAllMenu()">
-            <i  class="fas fa-arrow-circle-down"></i>
-        </span>
-        <input 
-            #inputSearch
-            type = "text" 
-            [style.display] = "searchVisible ? 'block' : 'none'"
-            style = "width: calc(100% - 90px); height: calc(100% - 10px); position: absolute; left:5px; top:5px; border-radius:5px; border: 1px solid #3d87db; padding: 4px;" 
-            value = "search" 
-            [(ngModel)] = "search" 
-            (input) = "OnChangeSearch()" 
-            placeholder = "Поиск">
-    </div>
-    <div *ngIf = "!hide" style = "padding: 5px;">
-        <div *ngFor = "let data of outData; let i = index;" [hidden] = "(search == '' && data.hide) || (search != '' && data.searchHide)">
-            <div [style.marginLeft.px] = "search == '' ? (15 * data.level) : 0">
-                <div class = "elementMenu" 
-                    (dblclick) = "openElement(data)" 
-                    draggable="true" style = "user-select:none;" 
-                    (dragstart) = "dragEvents(data, $event)">
-                    <span *ngIf = "data.objectType == 'folder' && !data.open" style = "cursor: pointer; margin-right:2px;" (click) = "openCollapse(i, data.level)">
-                        <i class="fas fa-folder"></i>
-                    </span>
-                    <span *ngIf = "data.objectType == 'folder' && data.open" style = "cursor: pointer;" (click) = "openCollapse(i, data.level)">
-                        <i class="fas fa-folder-open"></i>
-                    </span>
+<div class = "leftMenuTitle leftMenuTitleBColor">
+    <!-- <i class="fas fa-book"></i> --> {{ _config.name }}
+    <span style = "position: absolute; right:62px; top: 5px; cursor:pointer;" (click) = "visibleSearch()">
+        <i class="fas fa-search"></i>
+    </span>
+    <span style = "position: absolute; right:34px; top: 5px; cursor:pointer;" (click) = "openElement({ objectType: 'folder', id: _config.id })">
+        <i class="fas fa-external-link-alt"></i>
+    </span>
+    <span *ngIf = "!hide" style = "position: absolute; right:10px; top: 5px; cursor: pointer;" (click) = "hideAllMenu()">
+        <i  class="fas fa-arrow-circle-up"></i>
+    </span>
+    <span *ngIf = "hide" style = "position: absolute; right:10px; top: 5px; cursor: pointer;" (click) = "hideAllMenu()">
+        <i  class="fas fa-arrow-circle-down"></i>
+    </span>
+    <input 
+        #inputSearch
+        type = "text" 
+        [style.display] = "searchVisible ? 'block' : 'none'"
+        style = "width: calc(100% - 90px); height: calc(100% - 10px); position: absolute; left:5px; top:5px; border-radius:5px; border: 1px solid #3d87db; padding: 4px;" 
+        value = "search" 
+        [(ngModel)] = "search" 
+        (input) = "OnChangeSearch()" 
+        placeholder = "Поиск">
+</div>
+<div *ngIf = "!hide" style = "padding: 5px;">
+    <div *ngFor = "let data of outData; let i = index;" [hidden] = "(search == '' && data.hide) || (search != '' && data.searchHide)">
+        <div [style.marginLeft.px] = "search == '' ? (15 * data.level) : 0">
+            <div class = "elementMenu" 
+                (dblclick) = "openElement(data)" 
+                draggable="true" style = "user-select:none;" 
+                (dragstart) = "dragEvents(data, $event)">
+                <span *ngIf = "data.objectType == 'folder' && !data.open" style = "cursor: pointer; margin-right:2px;" (click) = "openCollapse(i, data.level)">
+                    <i class="fas fa-folder"></i>
+                </span>
+                <span *ngIf = "data.objectType == 'folder' && data.open" style = "cursor: pointer;" (click) = "openCollapse(i, data.level)">
+                    <i class="fas fa-folder-open"></i>
+                </span>
 
-                    <i *ngIf = "data.objectType == 'user'" class="fas fa-user colorIconRole"></i>
-                    <i *ngIf = "data.objectType == 'role'" class="fas fa-address-book colorIconRole"></i>
+                <i *ngIf = "data.objectType == 'user'" class="fas fa-user colorIconRole"></i>
+                <i *ngIf = "data.objectType == 'role'" class="fas fa-address-book colorIconRole"></i>
 
-                    <i *ngIf = "data.objectType == 'value'" class="fas fa-superscript colorIconValue"></i>
-                    <!-- <i *ngIf = "data.objectType == 'value' && data.type == 'var'" class="fas fa-superscript"></i>
-                    <i *ngIf = "data.objectType == 'value' && data.type == 'array'" class="fas fa-clipboard-list"></i>
-                    <i *ngIf = "data.objectType == 'value' && data.type == 'state'" class="fas fas fa-balance-scale" style = "color:#f1b0e8;"></i> -->
-                    
-                    <i *ngIf = "data.objectType == 'table'" class="fas fa-table colorIconTable"></i>
-                    <i *ngIf = "data.objectType == 'event'" class="fas fa-bolt colorIconEvent"></i>
-                    <i *ngIf = "data.objectType == 'right'" class="fas fa-address-card"></i>
+                <i *ngIf = "data.objectType == 'value'" class="fas fa-superscript colorIconValue"></i>
+                <!-- <i *ngIf = "data.objectType == 'value' && data.type == 'var'" class="fas fa-superscript"></i>
+                <i *ngIf = "data.objectType == 'value' && data.type == 'array'" class="fas fa-clipboard-list"></i>
+                <i *ngIf = "data.objectType == 'value' && data.type == 'state'" class="fas fas fa-balance-scale" style = "color:#f1b0e8;"></i> -->
+                
+                <i *ngIf = "data.objectType == 'table'" class="fas fa-table colorIconTable"></i>
+                <i *ngIf = "data.objectType == 'event'" class="fas fa-bolt colorIconEvent"></i>
+                <i *ngIf = "data.objectType == 'right'" class="fas fa-address-card"></i>
 
-                    <i *ngIf = "data.fileType == 'img'" class="fas fa-file-image colorIconTable"></i>
-                    <i *ngIf = "data.fileType == 'xls'" class="fas fa-file-excel colorIconTable"></i>
-                    <i *ngIf = "data.fileType == 'doc'" class="fas fa-file-word colorIconTable"></i>
-                    {{data.name}}
-                </div>
+                <i *ngIf = "data.fileType == 'img'" class="fas fa-file-image colorIconFile"></i>
+                <i *ngIf = "data.fileType == 'xls'" class="fas fa-file-excel colorIconFile"></i>
+                <i *ngIf = "data.fileType == 'doc'" class="fas fa-file-word colorIconFile"></i>
+                {{data.name}}
             </div>
         </div>
-        <div [hidden] = "outData.length != 0" style = "text-align:center;">Нет данных</div>
     </div>
+    <div [hidden] = "outData.length != 0" style = "text-align:center;">Нет данных</div>
 </div>

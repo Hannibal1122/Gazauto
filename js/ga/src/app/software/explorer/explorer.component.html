@@ -1,11 +1,14 @@
 <div class = "row" style = "margin-left:0; margin-right:0;">
-    <div class = "col-md-12" style = "user-select:none; padding-right:5px; padding-left:5px;">
-        <button class = "mainButton" title = "Назад" (click) = "openBackFolder()"><i class="fas fa-arrow-left"></i></button>
-        <input type = "text" 
-            [(ngModel)] = "searchInput" 
-            (change) = "clearSearch()"
-            style = "border-radius:5px; padding: 5px; border: 1px solid #eeeeee; width:calc(100% - 257px)" 
-            placeholder="Поиск">
+    <div class = "col-md-8 col-sm-12" style = "user-select:none; margin-top:7px; padding-right:5px; padding-left:5px;">
+        <div style = "margin:0px;">
+            <input type = "text" 
+                [(ngModel)] = "searchInput" 
+                (change) = "clearSearch()"
+                style = "border-radius:5px; padding: 5px; border: 1px solid #eeeeee; width:100%;" 
+                placeholder="Поиск">
+        </div>
+    </div>
+    <div class = "col-md-4 col-sm-12" style = "user-select:none; margin-top:4px; padding-right:5px; padding-left:5px;">
         <select style = "height: 36px; border: 1px solid #eeeeee; border-radius:5px;" [(ngModel)] = "searchInputType">
             <option value = "">Все</option>
             <option value = "folder">Папка</option>
@@ -17,9 +20,10 @@
             <option value = "file">Файл</option>
         </select>
         <button class = "mainButton" title = "Поиск в папке" (click) = "searchInputObjectFromFolder()" ><i class="fas fa-search"></i></button>
-        <button class = "mainButton" title = "Глобальный поиск" (click) = "searchInputObject()" style = "margin-right:10px;"><i class="fas fa-globe"></i></button>
+        <button class = "mainButton" title = "Глобальный поиск" (click) = "searchInputObject()"><i class="fas fa-globe"></i></button>
     </div>
-    <div class = "col-md-12" style = "user-select:none; padding-right:5px; padding-left:5px; margin-top:4px;">
+    <div class = "col-md-12" style = "user-select:none; padding-right:5px; padding-left:5px;">
+        <button class = "mainButton" title = "Назад" (click) = "openBackFolder()"><i class="fas fa-arrow-left"></i></button>
         <button class = "mainButton" title = "Добавить элемент" (click) = "newObject()" [disabled] = "!selectRules.new"><i class="fas fa-file"></i></button>
         <button class = "mainButton" title = "Вставить" (click) = "_pasteObject()" [disabled] = "!selectRules.paste"><i class="fas fa-paste"></i></button>
         <button class = "mainButton" title = "Вырезать" (click) = "copyObject('cut')" [disabled] = "!selectRules.cut"><i class="fas fa-cut"></i></button>
@@ -51,36 +55,36 @@
                 </div>
                 <div *ngIf = "object.objectType == 'table'"
                     (dblclick) = "openObject(object)">
-                    <i class="fas fa-table" style = "font-size: 65px; color: #aeec6c"></i>
+                    <i class="fas fa-table colorIconTable" style = "font-size: 65px;"></i>
                 </div>
                 <div *ngIf = "object.objectType == 'user'"
                     (dblclick) = "openObject(object)">
-                    <i class="fas fa-user" style = "font-size: 65px; color: #739ac7"></i>
+                    <i class="fas fa-user colorIconRole" style = "font-size: 65px;"></i>
                 </div>
                 <div *ngIf = "object.objectType == 'event'"
                     (dblclick) = "openObject(object)">
-                    <i class="fas fa-bolt" style = "font-size: 65px; color: #c1c773"></i>
+                    <i class="fas fa-bolt colorIconEvent" style = "font-size: 65px;"></i>
                 </div>
                 <div *ngIf = "object.objectType == 'role'"
                     (dblclick) = "openObject(object)">
-                    <i class="fas fa-address-book" style = "font-size: 65px; color: #3a4046"></i>
+                    <i class="fas fa-address-book colorIconRole" style = "font-size: 65px;"></i>
                 </div>
                 <div *ngIf = "object.objectType == 'value'"
                     (dblclick) = "openObject(object)">
-                    <i class="fas fa-superscript" style = "font-size: 65px; color: #734586"></i>
+                    <i class="fas fa-superscript colorIconValue" style = "font-size: 65px;"></i>
                 </div>
                 <div *ngIf = "object.objectType == 'file'">
-                    <i *ngIf = "object.fileType == 'img'" class="fas fa-file-image" style = "font-size: 65px; color: #458655"></i>
-                    <i *ngIf = "object.fileType == 'xls'" class="fas fa-file-excel" style = "font-size: 65px; color: #458655"></i>
-                    <i *ngIf = "object.fileType == 'doc'" class="fas fa-file-word" style = "font-size: 65px; color: #458655"></i>
+                    <i *ngIf = "object.fileType == 'img'" class="fas fa-file-image colorIconFile" style = "font-size: 65px;"></i>
+                    <i *ngIf = "object.fileType == 'xls'" class="fas fa-file-excel colorIconFile" style = "font-size: 65px;"></i>
+                    <i *ngIf = "object.fileType == 'doc'" class="fas fa-file-word colorIconFile" style = "font-size: 65px;"></i>
                 </div>
                 <div *ngIf = "object.bindId" style = "position:absolute; right:2px; bottom:17px;">
                     <i class="fas fa-link" style = "font-size: 14px; color: #ec9b6c"></i>
                 </div>
                 <div *ngIf = "object.state > 0" style = "position:absolute; top:2px; left:2px;">
-                    <i *ngIf = "object.state < 50" class="fas fa-circle" style = "font-size: 12px; color: #eb7e7e"></i>
-                    <i *ngIf = "object.state >= 50 && object.state < 100" class="fas fa-circle" style = "font-size: 12px; color: #edf06a"></i>
-                    <i *ngIf = "object.state == 100" class="fas fa-circle" style = "font-size: 12px; color: #def7c2"></i>
+                    <i *ngIf = "object.state < 50" class="fas fa-circle LowState" style = "font-size: 12px;"></i>
+                    <i *ngIf = "object.state >= 50 && object.state < 100" class="fas fa-circle MiddleState" style = "font-size: 12px;"></i>
+                    <i *ngIf = "object.state == 100" class="fas fa-circle HightState" style = "font-size: 12px;"></i>
                 </div>
                 {{ object.name }}
             </div>
@@ -94,14 +98,14 @@
         <div *ngIf = "listLink.fromInherit.length != 0" class = "col-md-12">
             <div style = "font-size:16px; font-weight:bold;">Объект наследуется от:</div>
             <div *ngFor = "let data of listLink.fromInherit" class = "linkTable" (click) = "openTable(data[0])">
-                <span *ngIf = "data[1] == 'table'"><i class="fas fa-table" style = "color: #aeec6c"></i> </span>
+                <span *ngIf = "data[1] == 'table'"><i class="fas fa-table colorIconTable"></i> </span>
                 {{ data[2] }}
             </div>
         </div>
         <div *ngIf = "listLink.whoInherit.length != 0" class = "col-md-12">
             <div style = "font-size:16px; font-weight:bold;">Объект наследуют:</div>
             <div *ngFor = "let data of listLink.whoInherit" class = "linkTable" (click) = "openTable(data[0])">
-                <span *ngIf = "data[1] == 'table'"><i class="fas fa-table" style = "color: #aeec6c"></i> </span>
+                <span *ngIf = "data[1] == 'table'"><i class="fas fa-table colorIconTable"></i> </span>
                 {{ data[2] }}
             </div>
         </div>
@@ -109,7 +113,7 @@
             <div style = "font-size:16px; font-weight:bold;">Объект используется:</div>
             <div *ngFor = "let data of listLink.whoRefes">
                 <div (click) = "openTable(data.id)" class = "linkTable">
-                    <i class="fas fa-table" style = "color: #aeec6c"></i> {{ data.name }}
+                    <i class="fas fa-table colorIconTable"></i> {{ data.name }}
                 </div>
                 <div *ngFor = "let _data of data.fields" class = "linkField" (click) = "openField(_data, data.id)">
                     <i class="fas fa-cube"></i> Ячейка {{ _data }}
