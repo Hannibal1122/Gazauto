@@ -1,9 +1,9 @@
 <div class = "leftMenuTitle leftMenuTitleBColor">
     <!-- <i class="fas fa-book"></i> --> {{ _config.name }}
-    <span style = "position: absolute; right:62px; top: 5px; cursor:pointer;" (click) = "visibleSearch()">
+    <span *ngIf = "!hide" style = "position: absolute; right:62px; top: 5px; cursor:pointer;" (click) = "visibleSearch()">
         <i class="fas fa-search"></i>
     </span>
-    <span style = "position: absolute; right:34px; top: 5px; cursor:pointer;" (click) = "openElement({ objectType: 'folder', id: _config.id })">
+    <span *ngIf = "!hide" style = "position: absolute; right:34px; top: 5px; cursor:pointer;" (click) = "openElement({ objectType: 'folder', id: _config.id })">
         <i class="fas fa-external-link-alt"></i>
     </span>
     <span *ngIf = "!hide" style = "position: absolute; right:10px; top: 5px; cursor: pointer;" (click) = "hideAllMenu()">
@@ -15,7 +15,7 @@
     <input 
         #inputSearch
         type = "text" 
-        [style.display] = "searchVisible ? 'block' : 'none'"
+        [style.display] = "searchVisible && !hide ? 'block' : 'none'"
         style = "width: calc(100% - 90px); height: calc(100% - 10px); position: absolute; left:5px; top:5px; border-radius:5px; border: 1px solid #3d87db; padding: 4px;" 
         value = "search" 
         [(ngModel)] = "search" 

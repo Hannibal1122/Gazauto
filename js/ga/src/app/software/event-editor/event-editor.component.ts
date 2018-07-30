@@ -17,14 +17,15 @@ export class EventEditorComponent implements OnInit
     name = "";
     type = "";
     info = "";
+    readonly = false;
     ngOnInit() 
     {
-        this.fasmEditor = new FasmEditor(10, 50, 500, 540, "#2E2E2E");
-        this.editor.nativeElement.appendChild(this.fasmEditor.create());
-
         this.query.protectionPost(411, { param: [ this.inputs.id ] }, (data) =>
         {
             this.name = data[5];
+            this.readonly = data[6];
+            this.fasmEditor = new FasmEditor(10, 50, 500, 540, "#2E2E2E", null, null, this.readonly);
+            this.editor.nativeElement.appendChild(this.fasmEditor.create());
             switch(data[0])
             {
                 case "value": this.type = "по значению"; break;

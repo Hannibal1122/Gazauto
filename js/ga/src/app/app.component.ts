@@ -35,6 +35,11 @@ export class AppComponent implements OnInit
         height: "0px",
         top: "0px"
     }
+    panelApp = 
+    {
+        up: false,
+        width: 320
+    }; // Если размер меньше 720 то меню будет поверх
     ngOnInit(): void 
     {
         this.autoLogin(() => 
@@ -44,6 +49,17 @@ export class AppComponent implements OnInit
             this.refreshLeftMenu();
             let saveTabs = this.getSaveTabs();
             for(var i = 0; i < saveTabs.length; i++) this.openSoftware(saveTabs[i][0], saveTabs[i][1]);
+
+            let currentTab = localStorage.getItem("CurrentTab");
+            if(currentTab !== null) this.currentSoftware = Number(currentTab);
+
+            let miniApp:any = localStorage.getItem("MiniApp");
+            if(miniApp !== null)
+            {
+                miniApp = JSON.parse(miniApp);
+                this.hideMenu = miniApp.hide;
+                this.currentMiniApp = miniApp.current;
+            }
         });
         this.firstEnter(this);
         document.addEventListener("dragenter", (e:any) => 
@@ -69,11 +85,22 @@ export class AppComponent implements OnInit
                 this.tabs[this.currentSoftware].software.appendFromLeftMenu(Number(id[0]), Number(id[1]), data, e.target.tagName == "TH" ? id[1] : null);
             }
         });
+        this.resizeWindow();
+        window.addEventListener("resize", () => { this.resizeWindow() });
         ////////////////////////////////////////////////////////////////////
+    }
+    resizeWindow()
+    {
+        let Width = document.documentElement.clientWidth;
+        if(Width < 380) this.panelApp.width = Width - 60;
+        else this.panelApp.width = 320;
+        if(Width < 720) this.panelApp.up = true;
+        else this.panelApp.up = false;
     }
     openTab(i) // Активировать вкладку
     {
         this.currentSoftware = i;
+        localStorage.setItem("CurrentTab", i);
     }
     closeTab(i) // Закрыть вкладку
     {
@@ -98,7 +125,6 @@ export class AppComponent implements OnInit
         { 
             if(data === "") return;
             this.leftMenuData = data; 
-           /*  setTimeout(() => { this.leftMenuOnResize(); }, 20);  */
         });
     }
     private lastUpdateTimer = null;
@@ -121,7 +147,6 @@ export class AppComponent implements OnInit
             case "open":
                 this.openSoftware(e.value.name, e.value);
                 break;
-            /* case "height": setTimeout(() => { this.leftMenuOnResize(); }, 20); break; */
         }
     }
     onChangeInSoftware(e) // Происходит из других приложений
@@ -262,6 +287,7 @@ export class AppComponent implements OnInit
             this.hideMenu = false;
         else this.hideMenu = !this.hideMenu;
         this.currentMiniApp = name;
+        localStorage.setItem("MiniApp", JSON.stringify({ hide: this.hideMenu, current: name }));
     }
     getSaveTabs() // Запрос всех сохраненных вкладок
     {

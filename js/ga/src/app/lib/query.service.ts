@@ -7,7 +7,7 @@ declare var trace:any;
 @Injectable()
 export class QueryService 
 {
-    url = 'http://localhost/gazprom/scripts/main.php';
+    url = 'http://localhost:8081/gazprom/scripts/main.php';
     //url = 'http://localhost/scripts/main.php';
     /* url = '/scripts/main.php'; */
     constructor() 

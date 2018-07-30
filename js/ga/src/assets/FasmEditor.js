@@ -3,7 +3,7 @@
 //document.getElementById(id).appendChild(fasmEditor.create());
 class FasmEditor
 {
-	constructor(x, y, width, height, backColor, color, data) // инициализация
+	constructor(x, y, width, height, backColor, color, data, readonly) // инициализация
 	{
 		this.x = x || 0;
 		this.y = y || 0;
@@ -23,7 +23,8 @@ class FasmEditor
 		{
 			words: ["(\\d)+"],
 			color: "#52B6E0"
-		}];
+        }];
+        this.readonly = readonly == undefined ? false : readonly;
 		this.fasmEditor = document.createElement("div");
 		this.numberLines = document.createElement("div");
 		this.numberLines2 = document.createElement("div");
@@ -45,7 +46,7 @@ class FasmEditor
 		this.numberLines.setAttribute("style", "position: absolute; width: 15px; height: 100%; top: 0px; left: 0px; background-color: " + this.backColor + "; color: white; padding: 5px;");
 		this.numberLines2.setAttribute("style", "position: absolute; width: 5px; height: 100%; top: 0px; left: 25px; background-color: #111111;");
 		this.mainText.setAttribute("style", "position: absolute; width: " + (this.width - 60) + "px; height: 100%; top: 0px; left: 30px; color: #E7E981; opacity: 0.3; outline: none; word-wrap: break-word; padding: 5px;");
-		this.mainText.setAttribute("contentEditable", "true");
+		this.mainText.setAttribute("contentEditable", !this.readonly);
 		this.colorText.setAttribute("style", "position: absolute; width: " + (this.width - 60) + "px; height: 100%; top: 0px; left: 30px; pointer-events: none; color: white; word-wrap: break-word; padding: 5px;");
 		this.regexp = "";
 		for(var i = 0; i < this.data.length; i++)

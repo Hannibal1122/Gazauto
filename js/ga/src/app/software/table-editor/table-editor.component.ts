@@ -178,12 +178,12 @@ export class TableEditorComponent implements OnInit
             }
         });
     }
-    appendFromLeftMenu = (() => // Добавление из левого меню
-    {
+    appendFromLeftMenu = 
+    (() => 
+    { // Добавление из левого меню
         return (i, j, data, _nameColumn) =>
         {
             let nameColumn = "";
-            /* let type = "update"; */
             if(_nameColumn) nameColumn = this.dataHeader[Number(_nameColumn)].value;
             else
                 for(var _i = 0; _i < this.dataHeader.length; _i++)
@@ -275,7 +275,12 @@ export class TableEditorComponent implements OnInit
                     break;
                 case "event":
                     let ID = this.dataTable[k][nameColumn].id;
-                    this.addToQueue(262, [ this.inputs.id, data.id, ID ], (data) => { trace(data) });
+                    let eventId = data.id;
+                    this.addToQueue(262, [ this.inputs.id, eventId, ID ], (data) => 
+                    { 
+                        if(data !== false) this.dataTable[k][nameColumn].eventId = eventId;
+                        if(--length == 0) this.editTable.data = this.dataTable; // update edit table
+                    });
                     break;
             }
             /* trace(data) */
@@ -340,6 +345,11 @@ export class TableEditorComponent implements OnInit
                 break;
             case "event": // Открыть в проводнике событие
                 this.onChange({ type: "openFromTable", value: { name: "event", id: property.eventId }});
+                break;
+            case "removeEvent":
+                this.dataTable[property.i][property.nameColumn].eventId = null;
+                this.editTable.data = this.dataTable; // update edit table
+                this.addToQueue(263, [ this.inputs.id, property.id ], (data) => { });
                 break;
         }
     }

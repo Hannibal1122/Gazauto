@@ -2,11 +2,11 @@
     <table class = "errorTable TableCreatorBorderColor" (dragover)="dragoverHandler($event);">  <!--  -->
         <tbody (click) = "change ? editField($event) : null">
             <tr>
-                <th class = "TableCreatorHeadBColor "></th>
-                <th *ngFor = "let head of header; let i = index;" class = "TableCreatorHeadColor TableCreatorHeadBColor " id = "{{'TH_' + i}}">{{ head.value }}</th>
+                <th class = "TableCreatorHeadColor"></th>
+                <th *ngFor = "let head of header; let i = index;" class = "TableCreatorHeadColor TableCreatorHeadBColor" id = "{{'TH_' + i}}">{{ head.value }}</th>
             </tr>
             <tr *ngFor = "let row of listTables; let i = index;">
-                <td (contextmenu) = "getContextmenu($event, i)" class = "TableCreatorHeadColor TableCreatorHeadBColor ">{{ i + 1 }}</td>
+                <td (contextmenu) = "getContextmenu($event, i)" class = "TableCreatorHeadColor TableCreatorHeadBColor">{{ i + 1 }}</td>
                 <td *ngFor = "let void of header; let j = index;" id = "{{i + '_' + j}}" [style.background] = "row[j] == undefined ? '#fafafa' : (row[j].id == searchCellId ? '#e7f5c6' : none)">
                     {{ row[j] != undefined && !row[j].listValue ? row[j].value : "" }}
                     {{ row[j] != undefined && row[j].listValue ? row[j].listValue : "" }}
@@ -37,7 +37,6 @@
     </table>
 
     <div #mainEditElement style = "position:absolute;" [ngStyle] = "configInput" [hidden] = "!inputProperty.visible">
-        <!-- <input #mainInputElement type = "text" class = "mainInputStyle" (blur) = "acceptEditField($event)" [(ngModel)] = "inputProperty.value" (keydown)="downEnter($event)"> -->
         <textarea #mainInputElement class = "mainInputStyle TableCreatorInputColor" (blur) = "acceptEditField($event)" [(ngModel)] = "inputProperty.value" (keydown)="downEnter($event)"></textarea>
         <button #mainButtonElement [hidden] = "inputProperty.type != 'table'" 
             style = "position:absolute; right:0px; top: 0px; color:red; cursor:pointer; border:none; background:none; outline: none;"
@@ -49,6 +48,11 @@
         </select>
         <div class = "mainStatusStyle TableCreatorStateColor" [hidden] = "!inputProperty.visibleState">
             Статус: <input #mainStatusElement type = "number" (blur) = "acceptEditField($event)" style = "width:45px;" step = "10" min = "0" max = "100" [(ngModel)] = "inputProperty.state"> %
+            <button #mainButtonRemoveEvent [hidden] = "!inputProperty.eventId" title = "Удалить событие" (blur) = "acceptEditField($event)" (click) = "removeEvent()">
+                <span style = "color:#ca4242;">
+                    <i class = "fa fa-bolt"></i>
+                </span>
+            </button>
         </div>
         <!-- <div class = "buttonAcceptEditing" title = "сохранить изменения"><i class="fas fa-check"></i></div> -->
     </div>

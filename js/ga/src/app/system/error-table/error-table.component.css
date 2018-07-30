@@ -25,7 +25,6 @@
 }
 .errorTable td:first-child 
 {
-    border-right: none;
     border-top: 2px solid; 
     border-bottom: 2px solid; 
     text-align: right;
@@ -68,7 +67,7 @@
     border-radius:5px 5px 0px 0px; 
     border-bottom:none; 
     padding:1px; 
-    width:130px; 
+    width:150px; 
     height:32px;
 }
 .tableStateLoading

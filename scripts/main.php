@@ -504,7 +504,14 @@
                         $myTable->export();
                         break;
                     case 262: // Добавление события из левого меню на ячейку
-                        query("UPDATE fields SET eventId = %i WHERE id = %i", [(int)$param[1], (int)$param[2]]);
+                        $eventId = (int)$param[1];
+                        if((getRights($idElement) & 1) != 1) return; // Права на просмотр
+                        $type = selectOne("SELECT type FROM events WHERE id = %i", [ $eventId ]);
+                        if($type != "date") query("UPDATE fields SET eventId = %i WHERE id = %i", [$eventId, (int)$param[2]]);
+                        else echo json_encode(false);
+                        break;
+                    case 263: // Удаление события с ячейки
+                        query("UPDATE fields SET eventId = NULL WHERE id = %i", [(int)$param[1]]);
                         break;
                 }
             }
@@ -650,6 +657,7 @@
                         if($result = query("SELECT type, param, date, code, ready FROM events WHERE id = %i", $param))
                             $out = $result->fetch_array(MYSQLI_NUM);
                         $out[] = selectOne("SELECT name FROM structures WHERE id = %i", $param);
+                        $out[] = (getRights($idElement) & 8) != 8; // 6 - readonly
                         echo json_encode($out);
                         break;
                     case 412: // Обновить событие

@@ -16,6 +16,7 @@ export class ErrorTableComponent implements OnInit
     @ViewChild("mainButtonElement") mainButtonElement:ElementRef;
     @ViewChild("mainSelectElement") mainSelectElement:ElementRef;
     @ViewChild("mainStatusElement") mainStatusElement:ElementRef;
+    @ViewChild("mainButtonRemoveEvent") mainButtonRemoveEvent:ElementRef;
     
     @Output() onChange = new EventEmitter<any>();
     header = [];
@@ -30,6 +31,7 @@ export class ErrorTableComponent implements OnInit
         mainButtonElement: this.sys.getUnicName("m"),
         mainSelectElement: this.sys.getUnicName("m"),
         mainStatusElement: this.sys.getUnicName("m"),
+        mainButtonRemoveEvent: this.sys.getUnicName("m"),
     };
     constructor(private sys:FunctionsService, private query:QueryService) { }
     ngOnInit() 
@@ -46,10 +48,8 @@ export class ErrorTableComponent implements OnInit
         { 
             if(this.inputProperty.visible) this.inputProperty.visible = false;
         }
-        this.mainInputElement.nativeElement.setAttribute("id", this.mainElementIds.mainInputElement);
-        this.mainButtonElement.nativeElement.setAttribute("id", this.mainElementIds.mainButtonElement);
-        this.mainSelectElement.nativeElement.setAttribute("id", this.mainElementIds.mainSelectElement);
-        this.mainStatusElement.nativeElement.setAttribute("id", this.mainElementIds.mainStatusElement);
+        for(var key in this.mainElementIds) // выставляем id тегам по которым не должно проходить событие клик
+            this[key].nativeElement.setAttribute("id", this.mainElementIds[key]);
     }
     @Input() set head(value)
     {
@@ -121,6 +121,7 @@ export class ErrorTableComponent implements OnInit
         oldState: 0,
         state: 0,
         visibleState: false,
+        eventId: -1
     }
     cacheListValues = {};
     editField(e) // нажали на ячейку для редактирования
@@ -131,6 +132,7 @@ export class ErrorTableComponent implements OnInit
             let j = this.configInput.j;
             this.inputProperty.visible = true;
             this.inputProperty.id = this.listTables[i][j].id;
+            this.inputProperty.eventId = this.listTables[i][j].eventId;
             this.inputProperty.type = this.listTables[i][j] ? this.listTables[i][j].type : "value";
             this.inputProperty.visibleState = this.inputProperty.type == "value" || this.inputProperty.type == undefined;
             this.inputProperty.oldState = this.inputProperty.state = this.listTables[i][j] && this.listTables[i][j].state ? this.listTables[i][j].state : 0;
@@ -170,10 +172,9 @@ export class ErrorTableComponent implements OnInit
     acceptEditField(e) // пропал фокус с выделенной ячейки
     {
         if(e.relatedTarget)
-            if(e.relatedTarget.getAttribute("id") == this.mainElementIds.mainInputElement) return;
-            else if(e.relatedTarget.getAttribute("id") == this.mainElementIds.mainSelectElement) return;
-                else if(e.relatedTarget.getAttribute("id") == this.mainElementIds.mainButtonElement) return;
-                    else if(e.relatedTarget.getAttribute("id") == this.mainElementIds.mainStatusElement) return;
+            for(var key in this.mainElementIds) // проверяем id по которым не должно проходить событие клик
+                if(e.relatedTarget.getAttribute("id") == this.mainElementIds[key]) return;
+
         this.inputProperty.visible = false;
         let i = this.configInput.i;
         let j = this.configInput.j;
@@ -213,6 +214,10 @@ export class ErrorTableComponent implements OnInit
     openEventToExplorer(eventId)
     {
         this.onChange.emit({ type: "event", eventId: eventId });
+    }
+    removeEvent()
+    {
+        this.onChange.emit({ type: "removeEvent", id: this.inputProperty.id, i: this.configInput.i, nameColumn: this.header[this.configInput.j].value });
     }
     getPositionInTable(element, out)
     {
