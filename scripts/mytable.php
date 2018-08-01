@@ -27,12 +27,14 @@
                         $field["linkId"] = (int)$row[4];
                         switch($row[5])
                         {
+                            case "tlist":
                             case "value":
-                                if($value = query("SELECT value, type FROM my_values WHERE id = %i", [ $field["linkId"] ]))
+                                if($value = query("SELECT value, type, tableId FROM my_values WHERE id = %i", [ $field["linkId"] ]))
                                 {
-                                    $field["type"] = "value";
+                                    $field["type"] = $row[5];
                                     $valueData = $value->fetch_array(MYSQLI_NUM);
                                     if($valueData[1] == "array") $field["listValue"] = getListValueByKey($field["linkId"], $field["value"]);
+                                    else if($valueData[1] == "tlist") $field["listValue"] = getTableListValueByKey((int)$field["value"], (int)$valueData[2]);
                                     else $field["value"] = $valueData[0];
                                 }
                                 break;
@@ -95,7 +97,7 @@
 
             $typeField = is_object($value) ? "link" : "value";
             if($typeField == "value")
-                query("UPDATE fields SET value = %s, linkId = NULL, linkType = NULL, type = 'value', state = 0 WHERE tableId = %i AND id = %i", [ 
+                query("UPDATE fields SET value = %s, linkId = NULL, linkType = NULL, type = 'value' WHERE tableId = %i AND id = %i", [ 
                     $value, 
                     $idTable, // для подстраховки
                     $idField
@@ -108,16 +110,24 @@
                     $idTable, // для подстраховки
                     $idField
                 ]);
-            $idEvent = selectOne("SELECT eventId FROM fields WHERE id = %i", [ $idField ]);
+            $idEvent = (int)selectOne("SELECT eventId FROM fields WHERE id = %i", [ $idField ]);
             if(!is_null($idEvent))
             {
-                require_once("FASM.php"); // класс для работы с событиями
-                $fasm = new FASM();
-                $fasm->start(selectOne("SELECT code FROM events WHERE id = %i", [ (int)$idEvent ]));
+                $typeAndCode = query("SELECT type, code FROM events WHERE id = %i", [ $idEvent ])->fetch_array(MYSQLI_NUM);
+                if($typeAndCode[0] == "value")
+                {
+                    require_once("FASM.php"); // класс для работы с событиями
+                    $fasm = new FASM();
+                    $fasm->start($typeAndCode[1]);
+                }
             }
-            if($echo) echo json_encode([ "id" => $idField, "value" => $value ]);
+            if($echo) 
+            {
+                echo json_encode([ "id" => $idField, "value" => $value ]);
+                addLog("table", "update", $idTable);
+            }
+            else addLog("table", "updateScript", $idTable);
             $this->calculateStateForTable($idTable);
-            addLog("table", "update", $idTable);
         }
         function setCellByLink($idObject, $idFields) // Добавление элемента из левого меню в таблицу по ссылке
         {
@@ -129,11 +139,16 @@
                 $linkType = $row[1];
                 $fieldList = null;
                 $fieldState = 0;
-                if($linkType == "value" && $value = query("SELECT id, value, type FROM my_values WHERE id = %i", [ (int)$row[2] ]))
+                if(($linkType == "value" || $linkType == "tlist") && $value = query("SELECT id, value, type, tableId FROM my_values WHERE id = %i", [ (int)$row[2] ]))
                 {
                     $valueData = $value->fetch_array(MYSQLI_NUM);
                     $fieldValue = $valueData[2] == "array" ? 0 : $valueData[1];
                     if($valueData[2] == "array") $fieldList = getListValueByKey((int)$row[2], $fieldValue);
+                    if($valueData[2] == "tlist") 
+                    {
+                        $fieldValue = selectOne("SELECT id FROM fields WHERE type = 'value' AND tableId = %i", [ (int)$valueData[3] ]);
+                        $fieldList = getTableListValueByKey($fieldValue, (int)$valueData[3]);
+                    }
                 }
                 else 
                 {
@@ -144,9 +159,9 @@
                         $this->calculateStateForTable($idTable);
                     }
                 }
-                $linkId = $linkType != "value" ? $idObject : (int)$valueData[0];
+                $linkId = $linkType != "value" && $linkType != "tlist" ? $idObject : (int)$valueData[0];
                 
-                query("UPDATE fields SET value = %s, linkId = %i, linkType = %s, type = 'link', state = %i WHERE tableId = %i AND id = %i", [ 0, $linkId, $linkType, $fieldState, $idTable, $idFields ]);
+                query("UPDATE fields SET value = %s, linkId = %i, linkType = %s, type = 'link', state = %i WHERE tableId = %i AND id = %i", [ $fieldValue, $linkId, $linkType, $fieldState, $idTable, $idFields ]);
                 echo json_encode([ "id" => $idFields, "linkId" => $linkId, "type" => $linkType, "value" => $fieldValue, "state" => $fieldState, "listValue" => $fieldList ]);
             }
             addLog("table", "update", $idTable);
@@ -231,15 +246,18 @@
                 }
                 else
                 {
-                    if($valueData[3] == "value")
+                    if($valueData[3] == "value" || $valueData[3] == "tlist")
                     {
                         $out["type"] = $valueData[3];
                         $out["linkId"] = (int)$valueData[2];
-                        if($value = query("SELECT value, type FROM my_values WHERE id = %i", [ $out["linkId"] ]))
+                        if($value = query("SELECT value, type, tableId FROM my_values WHERE id = %i", [ $out["linkId"] ]))
                         {
                             $_valueData = $value->fetch_array(MYSQLI_NUM);
-                            $out["value"] = $_valueData[1] == "array" ? 0 : $_valueData[0];
+                            $out["value"] = $valueData[1];
                             if($_valueData[1] == "array") $out["listValue"] = getListValueByKey($out["linkId"], $out["value"]);
+                            else if($_valueData[1] == "tlist") $out["listValue"] = getTableListValueByKey((int)$out["value"], (int)$_valueData[2]);
+                            else $out["value"] = $_valueData[0];
+
                         }
                     }
                     else
@@ -302,6 +320,17 @@
             if($result = query("SELECT tableId, id FROM fields WHERE type = 'link' AND linkId = %i AND linkType = 'cell'", [ (int)$idField ]))
                 while ($row = $result->fetch_array(MYSQLI_NUM))
                     $this->setStateForField($row[0], $row[1], $state);
+            $idEvent = (int)selectOne("SELECT eventId FROM fields WHERE id = %i", [ (int)$idField ]);
+            if(!is_null($idEvent))
+            {
+                $typeAndCode = query("SELECT type, code FROM events WHERE id = %i", [ $idEvent ])->fetch_array(MYSQLI_NUM);
+                if($typeAndCode[0] == "state")
+                {
+                    require_once("FASM.php"); // класс для работы с событиями
+                    $fasm = new FASM();
+                    $fasm->start($typeAndCode[1]);
+                }
+            }
             $this->calculateStateForTable($idTable);
         }
         function calculateStateForTable($idTable) // Посчитать статус у таблицы
@@ -501,11 +530,13 @@
                     break;
                 case "value":
                     query("DELETE FROM my_values WHERE id = %i", [ (int)$element[2] ]);
-                    query("DELETE FROM structures WHERE id = %i", [ $idElement ]);
                     query("DELETE FROM my_list WHERE value_id = %i", [ (int)$element[2] ]);
                     break;
                 case "event":
                     query("DELETE FROM events WHERE id = %i", [ (int)$idElement ]);
+                    break;
+                case "tlist":
+                    query("DELETE FROM my_values WHERE id = %i", [ (int)$element[2] ]);
                     break;
             }
             query("DELETE FROM structures WHERE id = %i", [ (int)$idElement ]);

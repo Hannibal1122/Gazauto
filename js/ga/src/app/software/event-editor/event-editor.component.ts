@@ -17,12 +17,14 @@ export class EventEditorComponent implements OnInit
     name = "";
     type = "";
     info = "";
+    ready = false;
     readonly = false;
     ngOnInit() 
     {
         this.query.protectionPost(411, { param: [ this.inputs.id ] }, (data) =>
         {
             this.name = data[5];
+            this.ready = data[4] == 1;
             this.readonly = data[6];
             this.fasmEditor = new FasmEditor(10, 50, 500, 540, "#2E2E2E", null, null, this.readonly);
             this.editor.nativeElement.appendChild(this.fasmEditor.create());
@@ -55,6 +57,20 @@ export class EventEditorComponent implements OnInit
         this.query.protectionPost(413, { param: [ this.inputs.id ] }, (data) =>
         {
             trace(data)
+        });
+    }
+    stopEvent()
+    {
+        this.query.protectionPost(415, { param: [ this.inputs.id ] }, (data) =>
+        {
+            this.ready = true;
+        });
+    }
+    returnEvent()
+    {
+        this.query.protectionPost(416, { param: [ this.inputs.id ] }, (data) =>
+        {
+            this.ready = false;
         });
     }
 }

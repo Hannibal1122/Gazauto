@@ -1,5 +1,19 @@
+.explorerMain
+{
+    display: flex; 
+    color: #456486; 
+    flex-wrap: wrap; 
+    font-size:12px;
+}
+.explorerMainList
+{
+    color: #456486; 
+    flex-wrap: wrap; 
+    font-size:12px;
+}
 .elementExplorer
 {
+    text-align:center;
     width:80px;
     overflow: hidden;
     margin: 5px; 
@@ -9,6 +23,18 @@
     padding: 5px;
     border: 2px solid #ffffff;
     position: relative;
+}
+.elementExplorerList
+{
+    cursor: pointer;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding: 2px;
+    border: 2px solid #ffffff;
+    position: relative;
+    font-size: 16px;
+    width: 320px;
 }
 .selectElementExplorer
 {
@@ -28,7 +54,24 @@
 {
     border: 2px solid #cadf95;
 }
-
+.listIcon
+{
+    float: left;
+    font-size: 16px;
+    margin-right:5px;
+}
+.tableStateIcon
+{
+    position:absolute; 
+    top:2px; 
+    left:2px;
+}
+.listStateIcon
+{
+    position:absolute; 
+    top:2px; 
+    right: 25px;
+}
 .linkTable
 {
     cursor: pointer;

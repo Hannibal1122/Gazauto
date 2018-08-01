@@ -15,7 +15,7 @@ export class CreateValueService
         var Data:any = {
             title: "<b>" + (data ? "Изменение" : "Добавление") + " значения</b>",  
             data: [
-                ["Тип", data ? "" : { selected: "value", data: ["Значение", "Список", "Состояние"], value: ["value", "array", "state"] }, data ? "html" : "select", { onselect: (value) =>
+                ["Тип", data ? "" : { selected: "value", data: ["Значение", "Список"], value: ["value", "array"] }, data ? "html" : "select", { onselect: (value) =>
                 {
                     switch(value)
                     {
@@ -23,9 +23,6 @@ export class CreateValueService
                             this.modal.Data[2] = ["Значение", "", "text"];
                             break;
                         case "array":
-                            this.modal.Data[2] = ["Список", [], "listTable", []];
-                            break;
-                        case "state":
                             this.modal.Data[2] = ["Список", [], "listTable", []];
                             break;
                     }
@@ -53,12 +50,6 @@ export class CreateValueService
                         list = data[2];
                         for(; i < list.length; i++) list[i] = { value: list[i] };
                         this.modal.Data[0][1] = "Список"; 
-                        this.modal.Data[2] = ["Список", list, "listTable", []];
-                        break;
-                    case "state": 
-                        list = data[2];
-                        for(; i < list.length; i++) list[i] = { value: list[i] };
-                        this.modal.Data[0][1] = "Состояние"; 
                         this.modal.Data[2] = ["Список", list, "listTable", []];
                         break;
                 }

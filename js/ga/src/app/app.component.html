@@ -18,6 +18,11 @@
                 [class.ButtonMiniAppActiveColor] = "!hideMenu && currentMiniApp == 'app'">
                 <i class="fas fa-cube"></i>
             </div>
+            <div class = "miniButton ButtonMiniAppColor"
+                (click) = "openMiniApp('chat')"
+                [class.ButtonMiniAppActiveColor] = "!hideMenu && currentMiniApp == 'chat'">
+                <i class="fas fa-comment-alt"></i>
+            </div>
             <div class = "miniButton ButtonMiniAppColor" 
                 (click) = "openMiniApp('settings')"
                 [class.ButtonMiniAppActiveColor] = "!hideMenu && currentMiniApp == 'settings'"
@@ -52,6 +57,24 @@
                     <div class = "softwareIcon softwareEvent" title = "Редактор событий" (click) = "openSoftware('event', { id: 0 })"><i class = "fas fa-bolt"></i></div>
                     <div class = "softwareIcon softwareTasks" title = "Справка" (click) = "openSoftware('info', { id: -1 })"><i class = "fas fa-info"></i></div>
                     <div class = "softwareIcon softwareStatistics" title = "Обновить" (click) = "refreshLeftMenu()"><i class = "fas fa-sync-alt"></i></div>
+                </div>
+            </div>
+            <div *ngIf = "currentMiniApp == 'chat'"
+                [style.width] = "panelApp.width + 'px'" 
+                class = "mainPanelApp PanelAppColor">
+                <div class="mainPanelAppTitle PanelAppTitleColor">Сообщения</div>
+                <div style = "width:100%; padding: 5px; display: flex; flex-direction: column; align-items: flex-start;">
+                    <div>
+                        <div style = "font-size: 12px;">Человек</div>
+                        <div class = "leftMenuTitleBColor" style = "border-radius: 5px; padding: 4px;">Привет!</div>
+                    </div>
+                    <div style = "align-self:flex-end;">
+                        <div style = "font-size: 12px; text-align: right;">Вы</div>
+                        <div class = "leftMenuTitleBColor" style = "border-radius: 5px; padding: 4px;">Привет!</div>
+                    </div>
+                </div>
+                <div style = "width:100%; padding: 5px;">
+                    <textarea placeholder = "Напишите текст" style = "width:100%;"></textarea>
                 </div>
             </div>
             <div *ngIf = "currentMiniApp == 'settings'"

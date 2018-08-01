@@ -33,55 +33,63 @@
         <button class = "mainButton" title = "Удалить" (click) = "removeObject()" [disabled] = "!selectRules.remove"><i class="fas fa-trash"></i></button>
         <button class = "mainButton" title = "Скачать" (click) = "downloadObject()" [disabled] = "!selectRules.download"><i class="fas fa-download"></i></button>
         <button class = "mainButton" title = "Обновить" (click) = "refresh(true)"><i class="fas fa-sync-alt"></i></button>
+        <button *ngIf = "viewType == 'list'" class = "mainButton" title = "Вид список" (click) = "changeViewType()"><i class="fas fa-th"></i></button>
+        <button *ngIf = "viewType == 'table'" class = "mainButton" title = "Вид таблица" (click) = "changeViewType()"><i class="fas fa-list"></i></button>
     </div>
     <div class = "col-md-12" style = "font-size:12px; color:#8f8f8f">
         <span *ngFor = "let path of allPath" (click) = "openObject({objectType: 'folder', id: path.id})" style = "cursor:pointer;">{{ path.name }}/</span>
     </div>
     <br>
-    <div [class.col-md-12] = "!listLink.visible" [class.col-md-8] = "listLink.visible" style = "display: flex; color: #456486; flex-wrap: wrap; font-size:12px;">
+    <div [class.col-md-12] = "!listLink.visible" 
+        [class.col-md-8] = "listLink.visible"
+        [class.explorerMain] = "viewType == 'table'"
+        [class.explorerMainList] = "viewType == 'list'">
         <span *ngFor = "let object of outFolders; let i = index;">
-            <div class = "elementExplorer" 
-                *ngIf = "object.visible !== false"
+            <div *ngIf = "object.visible !== false"
                 (click) = "selectObject(i)"
+                (dblclick) = "openObject(object)"
                 (contextmenu) = "getContextmenu($event, i)"
+                [class.elementExplorer] = "viewType == 'table'"
+                [class.elementExplorerList] = "viewType == 'list'"
                 [class.selectElementExplorer] = "i == selectObjectI"
                 [class.selectSearchElementExplorer] = "i != selectObjectI && i == searchObjectI"
                 [class.selectCopyElementExplorer] = "i != selectObjectI && object.id == selectObjectCopy.id"
                 [class.selectCopyElementExplorerOpacity] = "i != selectObjectI && object.id == selectObjectCopy.id && selectObjectCopy.type == 'cut'"
-                title = "{{ object.name }}" style = "text-align:center;">
-                <div *ngIf = "object.objectType == 'folder'" 
-                    (dblclick) = "openObject(object)">
-                    <i class="fas fa-folder" style = "font-size: 65px;"></i>
+                title = "{{ object.name }}">
+                <div *ngIf = "viewType == 'table'">
+                    <span *ngIf = "object.objectType == 'folder'"><i class="fas fa-folder" style = "font-size: 65px;"></i></span>
+                    <span *ngIf = "object.objectType == 'table'"><i class="fas fa-table colorIconTable" style = "font-size: 65px;"></i></span>
+                    <span *ngIf = "object.objectType == 'user'"><i class="fas fa-user colorIconRole" style = "font-size: 65px;"></i></span>
+                    <span *ngIf = "object.objectType == 'event'"><i class="fas fa-bolt colorIconEvent" style = "font-size: 65px;"></i></span>
+                    <span *ngIf = "object.objectType == 'role'"><i class="fas fa-address-book colorIconRole" style = "font-size: 65px;"></i></span>
+                    <span *ngIf = "object.objectType == 'value'"><i class="fas fa-superscript colorIconValue" style = "font-size: 65px;"></i></span>
+                    <span *ngIf = "object.objectType == 'file'">
+                        <i *ngIf = "object.fileType == 'img'" class="fas fa-file-image colorIconFile" style = "font-size: 65px;"></i>
+                        <i *ngIf = "object.fileType == 'xls'" class="fas fa-file-excel colorIconFile" style = "font-size: 65px;"></i>
+                        <i *ngIf = "object.fileType == 'doc'" class="fas fa-file-word colorIconFile" style = "font-size: 65px;"></i>
+                    </span>
+                    <span *ngIf = "object.objectType == 'tlist'"><i class="fas fa-list-ol colorIconValue" style = "font-size: 65px;"></i></span>
                 </div>
-                <div *ngIf = "object.objectType == 'table'"
-                    (dblclick) = "openObject(object)">
-                    <i class="fas fa-table colorIconTable" style = "font-size: 65px;"></i>
+                <div *ngIf = "viewType == 'list'" class = "listIcon">
+                    <span *ngIf = "object.objectType == 'folder'"><i class="fas fa-folder" style = "font-size: 16px;"></i></span>
+                    <span *ngIf = "object.objectType == 'table'"><i class="fas fa-table colorIconTable" style = "font-size: 16px;"></i></span>
+                    <span *ngIf = "object.objectType == 'user'"><i class="fas fa-user colorIconRole" style = "font-size: 16px;"></i></span>
+                    <span *ngIf = "object.objectType == 'event'"><i class="fas fa-bolt colorIconEvent" style = "font-size: 16px;"></i></span>
+                    <span *ngIf = "object.objectType == 'role'"><i class="fas fa-address-book colorIconRole" style = "font-size: 16px;"></i></span>
+                    <span *ngIf = "object.objectType == 'value'"><i class="fas fa-superscript colorIconValue" style = "font-size: 16px;"></i></span>
+                    <span *ngIf = "object.objectType == 'file'">
+                        <i *ngIf = "object.fileType == 'img'" class="fas fa-file-image colorIconFile" style = "font-size: 16px;"></i>
+                        <i *ngIf = "object.fileType == 'xls'" class="fas fa-file-excel colorIconFile" style = "font-size: 16px;"></i>
+                        <i *ngIf = "object.fileType == 'doc'" class="fas fa-file-word colorIconFile" style = "font-size: 16px;"></i>
+                    </span>
+                    <span *ngIf = "object.objectType == 'tlist'"><i class="fas fa-list-ol colorIconValue" style = "font-size: 16px;"></i></span>
                 </div>
-                <div *ngIf = "object.objectType == 'user'"
-                    (dblclick) = "openObject(object)">
-                    <i class="fas fa-user colorIconRole" style = "font-size: 65px;"></i>
-                </div>
-                <div *ngIf = "object.objectType == 'event'"
-                    (dblclick) = "openObject(object)">
-                    <i class="fas fa-bolt colorIconEvent" style = "font-size: 65px;"></i>
-                </div>
-                <div *ngIf = "object.objectType == 'role'"
-                    (dblclick) = "openObject(object)">
-                    <i class="fas fa-address-book colorIconRole" style = "font-size: 65px;"></i>
-                </div>
-                <div *ngIf = "object.objectType == 'value'"
-                    (dblclick) = "openObject(object)">
-                    <i class="fas fa-superscript colorIconValue" style = "font-size: 65px;"></i>
-                </div>
-                <div *ngIf = "object.objectType == 'file'">
-                    <i *ngIf = "object.fileType == 'img'" class="fas fa-file-image colorIconFile" style = "font-size: 65px;"></i>
-                    <i *ngIf = "object.fileType == 'xls'" class="fas fa-file-excel colorIconFile" style = "font-size: 65px;"></i>
-                    <i *ngIf = "object.fileType == 'doc'" class="fas fa-file-word colorIconFile" style = "font-size: 65px;"></i>
-                </div>
-                <div *ngIf = "object.bindId" style = "position:absolute; right:2px; bottom:17px;">
+                <div *ngIf = "object.bindId" 
+                    style = "position:absolute; right:2px; bottom:17px;" 
+                    [style.bottom] = "viewType == 'table' ? '17px' : '0px'">
                     <i class="fas fa-link" style = "font-size: 14px; color: #ec9b6c"></i>
                 </div>
-                <div *ngIf = "object.state > 0" style = "position:absolute; top:2px; left:2px;">
+                <div *ngIf = "object.state > 0" [class.listStateIcon] = "viewType == 'list'"  [class.tableStateIcon] = "viewType == 'table'">
                     <i *ngIf = "object.state < 50" class="fas fa-circle LowState" style = "font-size: 12px;"></i>
                     <i *ngIf = "object.state >= 50 && object.state < 100" class="fas fa-circle MiddleState" style = "font-size: 12px;"></i>
                     <i *ngIf = "object.state == 100" class="fas fa-circle HightState" style = "font-size: 12px;"></i>
@@ -135,9 +143,12 @@
         <span *ngIf = "!selectRules.rename"><i class="fas fa-lock" style = "font-size:10px;"></i></span>
          Переименовать</button>
     <button class = "contextMenuList" (click) = "getListLink()">Показать связи</button>
+    <button *ngIf = "createContextMenu.type == 'table'" class = "contextMenuList" (click) = "createListOfTable()" [disabled] = "!selectRules.cut">
+        <span *ngIf = "!selectRules.cut"><i class="fas fa-lock" style = "font-size:10px;"></i></span>
+        Создать список из столбца</button>
     <button class = "contextMenuList" (click) = "copyObject('cut')" [disabled] = "!selectRules.cut">
         <span *ngIf = "!selectRules.cut"><i class="fas fa-lock" style = "font-size:10px;"></i></span>
-         Вырезать</button>
+        Вырезать</button>
     <button class = "contextMenuList" (click) = "copyObject('copy')" [disabled] = "!selectRules.copy">
         <span *ngIf = "!selectRules.copy"><i class="fas fa-lock" style = "font-size:10px;"></i></span>
         Копировать</button>

@@ -333,6 +333,11 @@
                             }
                         echo json_encode(["fromInherit" => $fromInherit, "whoInherit" => $whoInherit, "whoRefes" => $whoRefes]);
                         break;
+                    case 126: // Получение имени элемента структуры
+                        $idElement = (int)$param[0];
+                        if((getRights($idElement) & 1) != 1) return; // Права на просмотр
+                        echo selectOne("SELECT name FROM structures WHERE id = %i", [ $idElement ]);
+                        break;
                 }
             if($nQuery >= 150 && $nQuery < 200) // Работа с Пользователями // Только admin
             {
@@ -452,7 +457,12 @@
                         $data = json_decode($param[1]);
                         $myTable->setCell($data, true);
                         break;
-                    case 253: // резерв
+                    case 253: // Запрос списка колонок
+                        if((getRights($idTable) & 1) != 1) return; // Права на просмотр
+                        $head = [];
+                        if($result = query("SELECT id, name_column FROM fields WHERE tableId = %i AND type = 'head' ORDER by i", [$idTable]))
+                            while ($row = $result->fetch_array(MYSQLI_NUM)) $head[] = $row;
+                        echo json_encode($head);
                         break;
                     case 254: // резерв
                         break;
@@ -501,16 +511,17 @@
                         $myTable->setStateForField($idTable, $idField, $param[2]);
                         break;
                     case 261: // Экспорт таблицы в excel с подгрузкой всех данных 
+                        if((getRights($idTable) & 1) != 1) return; // Права на просмотр
                         $myTable->export();
                         break;
                     case 262: // Добавление события из левого меню на ячейку
-                        $eventId = (int)$param[1];
-                        if((getRights($idElement) & 1) != 1) return; // Права на просмотр
+                        if((getRights($idTable) & 1) != 1) return; // Права на просмотр
                         $type = selectOne("SELECT type FROM events WHERE id = %i", [ $eventId ]);
                         if($type != "date") query("UPDATE fields SET eventId = %i WHERE id = %i", [$eventId, (int)$param[2]]);
                         else echo json_encode(false);
                         break;
                     case 263: // Удаление события с ячейки
+                        if((getRights($idTable) & 1) != 1) return; // Права на просмотр
                         query("UPDATE fields SET eventId = NULL WHERE id = %i", [(int)$param[1]]);
                         break;
                 }
@@ -538,7 +549,7 @@
                     case 301: // Изменить значение 
                         $idElement = (int)$param[0];
                         if((getRights($idElement) & 8) != 8) return; // Права на изменение
-                        $idValue = (int)query("SELECT objectId FROM structures WHERE id = %i", [ $idElement ])->fetch_array(MYSQLI_NUM)[0];
+                        $idValue = (int)selectOne("SELECT objectId FROM structures WHERE id = %i", [ $idElement ]);
                         $type = $param[1];
                         $value = $param[2];
                         query("UPDATE my_values SET value = %s WHERE id = %i", [$type == "array" ? "" : $value, $idValue]);
@@ -555,9 +566,7 @@
                     case 303: // Загрузить значение
                         $idElement = (int)$param[0];
                         if((getRights($idElement) & 1) != 1) return; // Права на просмотр
-                        $idValue = -1;
-                        if($result = query("SELECT objectId FROM structures WHERE id = %i", [ $idElement ]))
-                            while ($row = $result->fetch_array(MYSQLI_NUM)) $idValue = (int)$row[0];
+                        $idValue = (int)selectOne("SELECT objectId FROM structures WHERE id = %i", [ $idElement ]);
                         if($result = query("SELECT id, type, value FROM my_values WHERE id = %i", [ $idValue ]))
                         {
                             $row = $result->fetch_array(MYSQLI_NUM);
@@ -569,9 +578,38 @@
                         break;
                     case 304: // Загрузить список
                         $idValue = (int)$param[0]; // Добавить проверку наоборот
+                        if($result = query("SELECT type, value, tableId FROM my_values WHERE id = %i", [ $idValue ]))
+                        {
+                            $row = $result->fetch_array(MYSQLI_NUM);
+                            if($row[0] == "array") echo json_encode(getListValues($idValue));
+                            if($row[0] == "tlist") echo json_encode(getTableListValues((int)$row[2], (int)$row[1]));
+                        }
                         /* if($result = query("SELECT objectId FROM structures WHERE id = %i", [ $idElement ]))
-                            while ($row = $result->fetch_array(MYSQLI_NUM)) $idValue = (int)$row[0]; */
-                        echo json_encode(getListValues($idValue));
+                        while ($row = $result->fetch_array(MYSQLI_NUM)) $idValue = (int)$row[0]; */
+                        break;
+                    case 305: // Добавить значение нового типа список из таблицы
+                        $idElement = (int)$param[0]; // id из структуры
+                        if((getRights($idElement) & 8) != 8) return; // Права на изменение
+                        $type = $param[1];
+                        $value = $param[2];
+                        $tableId = $param[3];
+                        query("INSERT INTO my_values (type, value, tableId) VALUES(%s, %s, %i)", [ $type, $value, $tableId ]);
+                        $idValue = $mysqli->insert_id;
+                        query("UPDATE structures SET objectId = %i WHERE id = %i", [$idValue, $idElement]);
+                        break;
+                    case 306: // Изменить значение нового типа список из таблицы
+                        $idElement = (int)$param[0];
+                        if((getRights($idElement) & 8) != 8) return; // Права на изменение
+                        $idValue = (int)selectOne("SELECT objectId FROM structures WHERE id = %i", [ $idElement ]);
+                        $value = $param[1];
+                        query("UPDATE my_values SET value = %s WHERE id = %i", [ $value, $idValue ]);
+                        break;
+                    case 307: // Загрузить данные для нового типа список из таблицы
+                        $idElement = (int)$param[0];
+                        if((getRights($idElement) & 8) != 8) return; // Права на изменение
+                        $idValue = (int)selectOne("SELECT objectId FROM structures WHERE id = %i", [ $idElement ]);
+                        if($result = query("SELECT id, type, value, tableId FROM my_values WHERE id = %i", [ $idValue ]))
+                            echo json_encode($result->fetch_array(MYSQLI_NUM));
                         break;
                 }
             if($nQuery >= 350 && $nQuery < 400) // Работа с логом
@@ -584,7 +622,7 @@
                         $idFollowTable = array_key_exists(2, $param) ? $param[2] : [];
                         $update = false;
                         query("UPDATE main_log SET dateUpdate = NOW() WHERE type = 'table' AND operation = 'open' AND login = %s AND value = %i AND date = %s", [$login, $idTable, $param[1]]);
-                        if($result = query("SELECT date FROM main_log WHERE type = 'table' AND (operation = 'update' OR operation = 'updateState') AND login != %s AND value = %i AND date >= %s LIMIT 1", [ $login, $idTable, $param[1] ]))
+                        if($result = query("SELECT date FROM main_log WHERE type = 'table' AND (((operation = 'update' OR operation = 'updateState') AND login != %s) OR operation = 'updateScript') AND value = %i AND date >= %s LIMIT 1", [ $login, $idTable, $param[1] ]))
                             while ($row = $result->fetch_array(MYSQLI_NUM)) $update = true;
                         if(!$update)
                             if($result = query("SELECT DISTINCT value FROM main_log WHERE type = 'table' AND (operation = 'update' OR operation = 'updateState') AND date >= %s", [ $param[1] ]))
@@ -648,7 +686,12 @@
                 switch($nQuery)
                 {
                     case 410: // Создание события
-                        query("INSERT INTO events (id, type, param, code) VALUES(%i, %s, %s, 'end')", $param);
+                        if($param[1] == "date")
+                        {
+                            $param[3] = getNextDateForEvent($param[2])->format("Y-m-d H:i:s");
+                            query("INSERT INTO events (id, type, param, date, code) VALUES(%i, %s, %s, %s, 'end')", $param);
+                        }
+                        else query("INSERT INTO events (id, type, param, code) VALUES(%i, %s, %s, 'end')", $param);
                         break;
                     case 411: // Загрузить событие
                         $idElement = (int)$param[0];
@@ -663,12 +706,34 @@
                     case 412: // Обновить событие
                         $idElement = (int)$param[0];
                         if((getRights($idElement) & 8) != 8) return; // Права на изменение
-                        query("UPDATE events SET code = %s WHERE id = %i", [$param[1], $param[0]]);
+                        query("UPDATE events SET code = %s WHERE id = %i", [$param[1], $idElement]);
                         break;
                     case 413: // Выполнить код по id
-                        require_once("FASM.php"); // класс для работы с событиями
+                        /* require_once("FASM.php"); // класс для работы с событиями
                         $fasm = new FASM();
-                        $fasm->start(selectOne("SELECT code FROM events WHERE id = %i", $param));
+                        $fasm->start(selectOne("SELECT code FROM events WHERE id = %i", $param)); */
+                        break;
+                    case 414: // Проверка на временные события
+                        if($result = query("SELECT id, param, date, code FROM events WHERE ready = 0 AND type = 'date' AND date <= NOW()", []))
+                            while ($row = $result->fetch_array(MYSQLI_NUM)) 
+                            {
+                                require_once("FASM.php"); // класс для работы с событиями
+                                $fasm = new FASM();
+                                $fasm->start($row[3]);
+                                $nextDateTime = getNextDateForEvent($row[1])->format("Y-m-d H:i:s");
+                                if($nextDateTime == $row[2]) query("UPDATE events SET ready = 1 WHERE id = %i", [(int)$row[0]]);
+                                else query("UPDATE events SET date = %s WHERE id = %i", [$nextDateTime, (int)$row[0]]);
+                            }
+                        break;
+                    case 415: // Завершить событие досрочно
+                        $idElement = (int)$param[0];
+                        if((getRights($idElement) & 8) != 8) return; // Права на изменение
+                        query("UPDATE events SET ready = 1 WHERE id = %i", [ $idElement ]);
+                        break;
+                    case 416: // Восстановить событие
+                        $idElement = (int)$param[0];
+                        if((getRights($idElement) & 8) != 8) return; // Права на изменение
+                        query("UPDATE events SET ready = 0 WHERE id = %i", [ $idElement ]);
                         break;
                 }
         }
@@ -769,11 +834,19 @@
     }
     function getListValueByKey($id, $key) // Получить значение из списка
     {
-        if($result = query("SELECT value FROM my_list WHERE value_id = %i AND my_key = %s", [ $id, $key ]))
-        {
-            $row = $result->fetch_array(MYSQLI_NUM);
-            return $row[0];
-        }
+        return selectOne("SELECT value FROM my_list WHERE value_id = %i AND my_key = %s", [ $id, $key ]);
+    }
+    function getTableListValues($tableId, $idColumn) // Получить список значений из таблицы, только value
+    {
+        $out = [];
+        $name_column = selectOne("SELECT name_column FROM fields WHERE id = %i AND tableId = %i", [ $idColumn, $tableId ]);
+        if($result = query("SELECT id, value FROM fields WHERE name_column = %s AND tableId = %i AND type = 'value' AND value != ''", [ $name_column, $tableId ]))
+            while ($row = $result->fetch_array(MYSQLI_NUM)) $out[] = [ "id" => $row[0], "value" => $row[1]];
+        return $out;
+    }
+    function getTableListValueByKey($id, $tableId) // Получить значение из списка таблицы
+    {
+        return selectOne("SELECT value FROM fields WHERE id = %i AND tableId = %i", [ $id, $tableId ]);
     }
     function getRemoveElementbyStructure(&$out, $parent) // По id собирает все элементы для удаления
     {
@@ -800,11 +873,12 @@
                 /* if($row[1] == "value") return ["value" => $row[0], "state" => $row[5]]; */
                 if($row[1] == "link")
                 {
-                    if($row[3] == "value")
-                        if($value = query("SELECT value, type FROM my_values WHERE id = %i", [ (int)$row[2] ]))
+                    if($row[3] == "value" || $row[3] == "tlist")
+                        if($value = query("SELECT value, type, tableId FROM my_values WHERE id = %i", [ (int)$row[2] ]))
                         {
                             $valueData = $value->fetch_array(MYSQLI_NUM);
                             if($valueData[1] == "array") $out["value"] = getListValueByKey((int)$row[2], (int)$row[0]);
+                            else if($valueData[1] == "tlist") $out["value"] = getTableListValueByKey((int)$out["value"], (int)$valueData[2]);
                             else $out["value"] = $valueData[0];
                         }
                     if($row[3] == "table")
@@ -823,5 +897,31 @@
     {
         global $login;
         query("INSERT INTO main_log (type, operation, value, date, dateUpdate, login) VALUES(%s, %s, %s, NOW(), NOW(), %s)", [ $type, $operation, $value, $login ]);
+    }
+    function getNextDateForEvent($_dateTime)
+    {
+        $countX = substr_count($_dateTime, "xx");
+        $currentTime = selectOne("SELECT NOW()", []);
+        $dateTime = $_dateTime.":00";
+        $error = "";
+        switch($countX)
+        {
+            case 2: // Каждый год
+                $dateTime = str_replace("xxxx", mb_strcut($currentTime, 0, 4), $dateTime);
+                $error = "+1 year";
+                break;
+            case 3: // Каждый месяц
+                $dateTime = str_replace("xxxx-xx", mb_strcut($currentTime, 0, 7), $dateTime);
+                $error = "+1 month";
+                break;
+            case 4: // Каждый день
+                $dateTime = str_replace("xxxx-xx-xx", mb_strcut($currentTime, 0, 10), $dateTime);
+                $error = "+1 day";
+                break;
+        }
+        $currentTime = new DateTime($currentTime);
+        $date = new DateTime($dateTime);
+        if($currentTime > $date && $error != "") $date->modify($error);
+        return $date;
     }
 ?>

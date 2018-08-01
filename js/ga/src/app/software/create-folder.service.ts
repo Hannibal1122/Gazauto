@@ -42,7 +42,6 @@ export class CreateFolderService
             if(save)
                 this.query.protectionPost(112, { param: [id] }, (data) => 
                 { 
-                    trace(data)
                     update();
                 });
         });

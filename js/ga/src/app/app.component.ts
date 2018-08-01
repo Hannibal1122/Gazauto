@@ -27,7 +27,7 @@ export class AppComponent implements OnInit
     leftMenuData = [];
     tabs = [];
     Login = "";
-    
+
     currentSoftware = 0;
     constructor(private query: QueryService, private lib: FunctionsService) { }
     leftMenuScroll = 
@@ -132,12 +132,15 @@ export class AppComponent implements OnInit
     private getLastUpdateTime() // Запрос изменений таблицы
     {
         clearTimeout(this.lastUpdateTimer);
-        this.query.protectionPost(354, { param: [ this.lastUpdateTime ] }, (data) => 
-        { 
-            if(data === "") return;
-            this.lastUpdateTime = data[1];
-            if(data[0]) this.refreshLeftMenu();
-            else this.lastUpdateTimer = setTimeout(() => { this.getLastUpdateTime(); }, 10000);
+        this.query.protectionPost(414, { }, (data) => 
+        {
+            this.query.protectionPost(354, { param: [ this.lastUpdateTime ] }, (data) => 
+            { 
+                if(data === "") return;
+                this.lastUpdateTime = data[1];
+                if(data[0]) this.refreshLeftMenu();
+                else this.lastUpdateTimer = setTimeout(() => { this.getLastUpdateTime(); }, 10000);
+            });
         });
     }
     onChangeInLeftMenu(e) // События из левого меню

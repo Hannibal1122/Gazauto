@@ -258,6 +258,20 @@ export class TableEditorComponent implements OnInit
                         });
                     });
                     break;
+                case "tlist":
+                    // Проверка на вставку в себя (по tableId) 
+                    for(k = beginI; k <= endI; k++)
+                    {
+                        let ID = this.dataTable[k][nameColumn].id;
+                        ((i) =>{
+                            this.addToQueue(255, [ this.inputs.id, data.id, ID, nameColumn ], (data) =>
+                            {
+                                this.dataTable[i][nameColumn] = data;
+                                if(--length == 0) this.editTable.data = this.dataTable; // update edit table
+                            });
+                        })(k);
+                    }
+                    break;
                 case "file": 
                 case "table": 
                     for(k = beginI; k <= endI; k++)
@@ -274,13 +288,18 @@ export class TableEditorComponent implements OnInit
                     }
                     break;
                 case "event":
-                    let ID = this.dataTable[k][nameColumn].id;
                     let eventId = data.id;
-                    this.addToQueue(262, [ this.inputs.id, eventId, ID ], (data) => 
-                    { 
-                        if(data !== false) this.dataTable[k][nameColumn].eventId = eventId;
-                        if(--length == 0) this.editTable.data = this.dataTable; // update edit table
-                    });
+                    for(k = beginI; k <= endI; k++)
+                    {
+                        let ID = this.dataTable[k][nameColumn].id;
+                        ((i) =>{
+                            this.addToQueue(262, [ this.inputs.id, eventId, ID ], (data) => 
+                            { 
+                                if(data !== false) this.dataTable[i][nameColumn].eventId = eventId;
+                                if(--length == 0) this.editTable.data = this.dataTable; // update edit table
+                            });
+                        })(k);
+                    }
                     break;
             }
             /* trace(data) */
@@ -315,6 +334,8 @@ export class TableEditorComponent implements OnInit
                     else // Либо insert, либо update 
                     {
                         this.dataTable[property.i][property.nameColumn] = data;
+                        this.dataTable[property.i][property.nameColumn].state = property.state;
+                        this.dataTable[property.i][property.nameColumn].eventId = property.eventId;
                         this.editTable.setCell = { i: property.i, key: property.nameColumn, value: data };
                     }
                 });

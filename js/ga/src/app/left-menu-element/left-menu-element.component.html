@@ -40,9 +40,6 @@
                 <i *ngIf = "data.objectType == 'role'" class="fas fa-address-book colorIconRole"></i>
 
                 <i *ngIf = "data.objectType == 'value'" class="fas fa-superscript colorIconValue"></i>
-                <!-- <i *ngIf = "data.objectType == 'value' && data.type == 'var'" class="fas fa-superscript"></i>
-                <i *ngIf = "data.objectType == 'value' && data.type == 'array'" class="fas fa-clipboard-list"></i>
-                <i *ngIf = "data.objectType == 'value' && data.type == 'state'" class="fas fas fa-balance-scale" style = "color:#f1b0e8;"></i> -->
                 
                 <i *ngIf = "data.objectType == 'table'" class="fas fa-table colorIconTable"></i>
                 <i *ngIf = "data.objectType == 'event'" class="fas fa-bolt colorIconEvent"></i>
@@ -51,6 +48,7 @@
                 <i *ngIf = "data.fileType == 'img'" class="fas fa-file-image colorIconFile"></i>
                 <i *ngIf = "data.fileType == 'xls'" class="fas fa-file-excel colorIconFile"></i>
                 <i *ngIf = "data.fileType == 'doc'" class="fas fa-file-word colorIconFile"></i>
+                <i *ngIf = "data.objectType == 'tlist'" class="fas fa-list-ol colorIconValue"></i>
                 {{data.name}}
             </div>
         </div>

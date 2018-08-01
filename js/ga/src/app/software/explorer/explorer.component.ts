@@ -11,6 +11,7 @@ import { CreateFileService } from "../create-file.service";
 import { CreateInfoService } from "../create-info.service";
 import { RenameObjectService } from "../rename-object.service";
 import { CreateEventService } from "../create-event.service";
+import { CreateTableListService } from "../create-table-list.service";
 
 declare var $:any;
 declare var trace:any;
@@ -30,6 +31,7 @@ declare var trace:any;
         CreateFileService,
         CreateInfoService,
         RenameObjectService,
+        CreateTableListService,
         CreateEventService
     ]
 })
@@ -62,6 +64,7 @@ export class ExplorerComponent implements OnInit
         info: false,
         rename: false
     }
+    viewType = "table"; // Вид просмотра
     constructor(
         private injector: Injector, 
         private query: QueryService, 
@@ -76,6 +79,7 @@ export class ExplorerComponent implements OnInit
         private createInfo: CreateInfoService,
         private renameObject: RenameObjectService,
         private createEvent: CreateEventService,
+        private createTableList: CreateTableListService,
     ) {}
     ngOnInit() 
     { 
@@ -103,13 +107,18 @@ export class ExplorerComponent implements OnInit
         this.createInfo.modal = this.modal;
         this.renameObject.modal = this.modal;
         this.createEvent.modal = this.modal;
-
+        this.createTableList.modal = this.modal;
         this.globalClick = (e) => 
         { 
             if(e.target.className == "col-md-12" && this.selectObjectI != -1) this.refresh(); 
             this.createContextMenu.visible = false;
         }
         window.addEventListener("click", this.globalClick, false);
+    }
+    changeViewType()
+    {
+        if(this.viewType == "list") this.viewType = "table";
+        else this.viewType = "list";
     }
     openObjectById(type, id)
     {
@@ -158,6 +167,12 @@ export class ExplorerComponent implements OnInit
                 break;
             case "value":
                 this.createObject(null, 'Значение', object)
+                break;
+            case "tlist":
+                this.query.protectionPost(307, { param: [ object.id ] }, (data) => 
+                {
+                    this.createTableList.create(null, () => { this.refresh() }, data[3], { id: object.id, fieldId: Number(data[2]), name: object.name });
+                });
                 break;
         }
     }
@@ -249,6 +264,9 @@ export class ExplorerComponent implements OnInit
             case "file": 
                 this.createFile.remove(id, () => { this.refresh() });
                 break;
+            case "tlist":
+                this.createTableList.remove(id, () => { this.refresh() });
+                break;
         }
     }
     searchObjectI = -1;
@@ -276,7 +294,6 @@ export class ExplorerComponent implements OnInit
         this.selectObjectI = i;
         var id = this.outFolders[this.selectObjectI].id;
         var objectType = this.outFolders[this.selectObjectI].objectType;
-        var parent = this.outFolders[this.selectObjectI].parent;
         this.query.protectionPost(202, { param: [ id ] }, (data) =>
         {
             this.clearRules(false);
@@ -429,13 +446,21 @@ export class ExplorerComponent implements OnInit
     {
         this.onChange({ type: "openFromTable", value: { name: "cell", id: id }});
     }
+    createListOfTable()
+    {
+        if(this.selectObjectI == -1) return;
+        var id = this.outFolders[this.selectObjectI].id;
+        var name = this.outFolders[this.selectObjectI].name;
+        this.createTableList.create(this.parent, () => { this.refresh() }, id, null);
+    }
     /**************************************/
     createContextMenu = 
     {
         top: "", 
         left: "", 
         visible: false, 
-        i: -1
+        i: -1,
+        type: ""
     }
     getContextmenu(e, data)
     {
@@ -443,6 +468,7 @@ export class ExplorerComponent implements OnInit
         this.createContextMenu.top = e.clientY + "px";
         this.createContextMenu.visible = true;
         this.selectObject(data);
+        this.createContextMenu.type = this.outFolders[data].objectType;
         e.preventDefault();
     }
     ngOnDestroy() 

@@ -1,6 +1,7 @@
 import { Component, OnInit, Input, Output, EventEmitter, ViewChild, ElementRef } from '@angular/core';
 import { FunctionsService } from '../../lib/functions.service';
 import { QueryService } from '../../lib/query.service';
+import { isJsObject } from '@angular/core/src/change_detection/change_detection_util';
 declare var trace:any;
 declare var $:any;
 @Component({
@@ -117,6 +118,8 @@ export class ErrorTableComponent implements OnInit
         value: "",
         visible: false,
         values: [],
+        valueList: "",
+        typeValues: "",
         type: "",
         oldState: 0,
         state: 0,
@@ -136,20 +139,30 @@ export class ErrorTableComponent implements OnInit
             this.inputProperty.type = this.listTables[i][j] ? this.listTables[i][j].type : "value";
             this.inputProperty.visibleState = this.inputProperty.type == "value" || this.inputProperty.type == undefined;
             this.inputProperty.oldState = this.inputProperty.state = this.listTables[i][j] && this.listTables[i][j].state ? this.listTables[i][j].state : 0;
-            if(this.listTables[i][j] && this.listTables[i][j].listValue) 
+            if(this.listTables[i][j] && this.listTables[i][j].listValue != undefined) 
             {
                 let _i = 0;
                 if(this.cacheListValues[this.listTables[i][j].linkId])
                 {
                     this.inputProperty.values = this.cacheListValues[this.listTables[i][j].linkId];
-                    this.inputProperty.oldValue = this.inputProperty.value = this.inputProperty.values[Number(this.listTables[i][j].value)];
+                    this.inputProperty.typeValues = typeof this.inputProperty.values[0];
+                    let value = this.inputProperty.values[this.listTables[i][j].value];
+                    if(this.inputProperty.typeValues === "object") 
+                        value = this.getValueFromArrayById(this.inputProperty.values, this.listTables[i][j].value);
+                    this.inputProperty.oldValue = this.inputProperty.value = value;
+                    this.inputProperty.valueList = this.listTables[i][j].value;
                 }
                 else
                     this.query.protectionPost(304, { param: [this.listTables[i][j].linkId] }, (data) =>
                     {
+                        this.inputProperty.typeValues = typeof data[0];
                         this.cacheListValues[this.listTables[i][j].linkId] = data;
                         this.inputProperty.values = data;
-                        this.inputProperty.oldValue = this.inputProperty.value = this.inputProperty.values[Number(this.listTables[i][j].value)];
+                        let value = this.inputProperty.values[this.listTables[i][j].value];
+                        if(this.inputProperty.typeValues === "object") 
+                            value = this.getValueFromArrayById(this.inputProperty.values, this.listTables[i][j].value);
+                        this.inputProperty.oldValue = this.inputProperty.value = value;
+                        this.inputProperty.valueList = this.listTables[i][j].value;
                     });
             }
             else 
@@ -157,7 +170,6 @@ export class ErrorTableComponent implements OnInit
                 this.inputProperty.oldValue = this.inputProperty.value = this.listTables[i][j] ? this.listTables[i][j].value : undefined;
                 this.inputProperty.values = [];
             }
-
             //Проверка на возможность вставки
             let rules = { copy: true, cut: true, paste: false }
             if(this.inputProperty.oldValue == undefined) rules.copy = rules.cut = false;
@@ -168,6 +180,17 @@ export class ErrorTableComponent implements OnInit
             return true;
         }
         return false;
+    }
+    getValueFromArrayById(array, id)
+    {
+        let i = 0;
+        for(; i < array.length; i++) if(array[i].id == Number(id)) return array[i].value;
+    }
+    changeMainSelect()
+    {
+        if(this.inputProperty.typeValues === "object") 
+            this.inputProperty.value = this.getValueFromArrayById(this.inputProperty.values, this.inputProperty.valueList);
+        else this.inputProperty.value = this.inputProperty.values[Number(this.inputProperty.valueList)];
     }
     acceptEditField(e) // пропал фокус с выделенной ячейки
     {
@@ -182,17 +205,24 @@ export class ErrorTableComponent implements OnInit
         {
             let type = "value";
             let out:any = {  nameColumn: this.header[j].value, id: this.listTables[i][j].id }; // при обновлении достаточно знать id
-            let valuesLength = this.inputProperty.values.length;
-            let _i = 0;
-            if(valuesLength > 0)
+            let listValue = null;
+            let linkType = "value";
+            if(this.inputProperty.values.length > 0)
             {
-                for(; _i < valuesLength; _i++)
-                    if(this.inputProperty.values[_i] == this.inputProperty.value) break;
-                if(_i != valuesLength) type = "list";
+                let _i = 0;
+                listValue = this.inputProperty.value;
+                if(typeof this.inputProperty.values[0] === "object") // Проверка на наличие в списке значения
+                {
+                    linkType = "tlist";
+                    for(; _i < this.inputProperty.values.length; _i++) if(this.inputProperty.values[_i].value == listValue) break;
+                }
+                else 
+                    for(; _i < this.inputProperty.values.length; _i++) if(this.inputProperty.values[_i] == listValue) break;
+                if(_i != this.inputProperty.values.length) type = "list";
             }
             if(type == "value") out.value = this.inputProperty.value;
-            if(type == "list") out.value = { value:_i, linkId:this.listTables[i][j].linkId, type:"value", listValue: this.inputProperty.values[_i] };
-            this.onChange.emit({ type: "field", out: out, i: i, nameColumn: this.header[j].value, state: this.inputProperty.state });
+            if(type == "list") out.value = { value: this.inputProperty.valueList, linkId:this.listTables[i][j].linkId, type:linkType, listValue: listValue };
+            this.onChange.emit({ type: "field", out: out, i: i, nameColumn: this.header[j].value, state: this.inputProperty.state, eventId: this.inputProperty.eventId });
         }
         if(this.listTables[i][j] && this.inputProperty.oldState != this.inputProperty.state)
             this.onChange.emit({ type: "state", id: this.listTables[i][j].id, i: i, nameColumn: this.header[j].value, state: this.inputProperty.state });
