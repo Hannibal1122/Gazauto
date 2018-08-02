@@ -114,6 +114,9 @@ export class ExplorerComponent implements OnInit
             this.createContextMenu.visible = false;
         }
         window.addEventListener("click", this.globalClick, false);
+        this.resize();
+        this.functionResize = () => { this.resize(); };
+        window.addEventListener("resize", this.functionResize, false);
     }
     changeViewType()
     {
@@ -415,21 +418,22 @@ export class ExplorerComponent implements OnInit
         visible: false,
         fromInherit: [], // От кого наследует
         whoInherit: [], // Кто наследует
-        whoRefes: [] // Кто ссылается
+        whoRefer: [] // Кто ссылается
     }
     getListLink()
     {
         if(this.selectObjectI == -1) return;
         this.query.protectionPost(125, { param: [ this.outFolders[this.selectObjectI].id ]}, (data) =>
         {
+            trace(data)
             this.listLink.fromInherit = data.fromInherit;
             this.listLink.whoInherit = data.whoInherit;
-            this.listLink.whoRefes = [];
-            for(var key in data.whoRefes)
-                this.listLink.whoRefes.push({
+            this.listLink.whoRefer = [];
+            for(var key in data.whoRefer)
+                this.listLink.whoRefer.push({
                     id: key, 
-                    fields: data.whoRefes[key].fields, 
-                    name: data.whoRefes[key].name
+                    fields: data.whoRefer[key].fields, 
+                    name: data.whoRefer[key].name
                 });
             this.listLink.visible = true;
         });
@@ -454,6 +458,12 @@ export class ExplorerComponent implements OnInit
         this.createTableList.create(this.parent, () => { this.refresh() }, id, null);
     }
     /**************************************/
+    heightListElement = 0;
+    functionResize;
+    resize()
+    {
+        this.heightListElement = document.documentElement.clientHeight - 50 - 50 - 40 - 40 - 30;
+    }
     createContextMenu = 
     {
         top: "", 
@@ -474,5 +484,6 @@ export class ExplorerComponent implements OnInit
     ngOnDestroy() 
     {
         window.removeEventListener("click", this.globalClick, false);
+        window.removeEventListener("resize", this.functionResize, false);
     }
 }

@@ -41,6 +41,8 @@
     </div>
     <br>
     <div [class.col-md-12] = "!listLink.visible" 
+        style = "overflow: auto;"
+        [style.height] = "heightListElement + 'px'"
         [class.col-md-8] = "listLink.visible"
         [class.explorerMain] = "viewType == 'table'"
         [class.explorerMainList] = "viewType == 'list'">
@@ -100,7 +102,7 @@
     </div>
     <!-- Просмотр связей -->
     <div *ngIf = "listLink.visible" class = "col-md-4" style = "display: flex; color: #456486; flex-wrap: wrap; font-size:12px; border-left:1px solid #b8b8b8;"> 
-        <span *ngIf = "listLink.fromInherit.length == 0 && listLink.whoInherit.length == 0 && listLink.whoRefes.length == 0" 
+        <span *ngIf = "listLink.fromInherit.length == 0 && listLink.whoInherit.length == 0 && listLink.whoRefer.length == 0" 
             class = "col-md-12" 
             style = "color:#b8b8b8; font-size:24px; font-weight:bold"> Связи отсутсвуют</span>
         <div *ngIf = "listLink.fromInherit.length != 0" class = "col-md-12">
@@ -117,9 +119,9 @@
                 {{ data[2] }}
             </div>
         </div>
-        <div *ngIf = "listLink.whoRefes.length != 0" class = "col-md-12">
+        <div *ngIf = "listLink.whoRefer.length != 0" class = "col-md-12">
             <div style = "font-size:16px; font-weight:bold;">Объект используется:</div>
-            <div *ngFor = "let data of listLink.whoRefes">
+            <div *ngFor = "let data of listLink.whoRefer">
                 <div (click) = "openTable(data.id)" class = "linkTable">
                     <i class="fas fa-table colorIconTable"></i> {{ data.name }}
                 </div>
@@ -132,9 +134,8 @@
             <i class="fas fa-times-circle"></i>
         </button>
     </div>            
-
     <span class = "col-md-12" *ngIf = "outFolders.length == 0" style = "color:#b8b8b8; font-size:24px; font-weight:bold"> Папка пуста</span>
-    <div class = "col-md-12" style = "margin-bottom:5px; margin-top:25px; height:20px;background-color:#ececec; line-height:20px; padding-left:3px;">
+    <div class = "col-md-12" style = "margin-top:25px; height:20px;background-color:#ececec; line-height:20px; padding-left:3px;">
         <span *ngIf = "load" style = "color:#757575;font-size:12px;">Loading...</span>
     </div>
 </div>

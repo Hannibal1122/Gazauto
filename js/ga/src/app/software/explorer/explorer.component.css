@@ -1,6 +1,7 @@
 .explorerMain
 {
     display: flex; 
+    align-content: flex-start;
     color: #456486; 
     flex-wrap: wrap; 
     font-size:12px;

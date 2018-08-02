@@ -93,7 +93,7 @@
         {
             $idTable = $this->idTable; 
             $value = $data->value;
-            $idField = $data->id;
+            $idField = (int)$data->id;
 
             $typeField = is_object($value) ? "link" : "value";
             if($typeField == "value")
@@ -118,7 +118,7 @@
                 {
                     require_once("FASM.php"); // класс для работы с событиями
                     $fasm = new FASM();
-                    $fasm->start($typeAndCode[1]);
+                    $fasm->start($typeAndCode[1], $idField);
                 }
             }
             if($echo) 
@@ -328,7 +328,7 @@
                 {
                     require_once("FASM.php"); // класс для работы с событиями
                     $fasm = new FASM();
-                    $fasm->start($typeAndCode[1]);
+                    $fasm->start($typeAndCode[1], (int)$idField);
                 }
             }
             $this->calculateStateForTable($idTable);
@@ -374,11 +374,11 @@
             $headMap = [];
             if($result = query("SELECT name FROM structures WHERE id = %i", [$idTable]))
                 while ($row = $result->fetch_array(MYSQLI_NUM)) $nameTable = $row[0];
-            if($result = query("SELECT i, name_column FROM fields WHERE tableId = %i AND type = 'head' ORDER by i", [$idTable]))
+            if($result = query("SELECT i, name_column, id FROM fields WHERE tableId = %i AND type = 'head' ORDER by i", [$idTable]))
                 while ($row = $result->fetch_array(MYSQLI_NUM)) 
                 {
                     $headMap[$row[1]] = $row[0];
-                    $outData[0][(int)$row[0]] = $row[1];
+                    $outData[0][(int)$row[0]] = [ "type" => "head", "value" => $row[1], "id" => (int)$row[2] ];
                 }
             if($result = query("SELECT i, name_column, value, type, linkId, linkType, fields.id, state, next FROM fields LEFT JOIN line_ids ON line_ids.id = fields.i WHERE tableId = %i AND type != 'head'", [$idTable]))
                 while ($row = $result->fetch_array(MYSQLI_NUM)) 
@@ -389,6 +389,7 @@
                         $field["linkId"] = (int)$row[4];
                         switch($row[5])
                         {
+                            case "tlist": 
                             case "value": $myField->getValue($field); break;
                             case "file": $myField->getFile($field, $row[5]); break;
                             case "table": $myField->getTable($field, $row[5]); break;
@@ -402,12 +403,12 @@
             foreach($data as $key => $value) if(array_key_exists("__NEXT__", $value) && $value["__NEXT__"] == null) break; //Находим null
             for($i = $l - 1; $i >= 0; $i--) // Тут сортировка по next
             {
-                $outData[$i] = $data[$key];
-                unset($outData[$i]["__NEXT__"]);
+                $outData[$i + 1] = $data[$key];
+                unset($outData[$i + 1]["__NEXT__"]);
                 $key = $this->getNextI($data, $key);
             }
             $myArray = new MyArray($outData);
-            for($i = 0; $i < count($myArray->myArray); $i++)
+            for($i = 1; $i < count($myArray->myArray); $i++)
                 for($j = 0; $j < count($myArray->myArray[$i]); $j++)
                     if(!is_null($myArray->myArray[$i][$j]) && array_key_exists("type", $myArray->myArray[$i][$j]) && $myArray->myArray[$i][$j]["type"] == "table")
                     {
@@ -423,14 +424,27 @@
             require_once("myField.php");
             $data = $this->getArrayTable();
             $out = [];
+            $metaData = [];
             $i = 0;
             for($i = 0, $w = count($data); $i < $w; $i++)
             {
                 $out[$i] = [];
-                for($j = 0, $c = count($data[$i]); $j < $c; $j++) $out[$i][$j] = $data[$i][$j];
+                $metaData[$i] = [];
+                for($j = 0, $c = count($data[$i]); $j < $c; $j++) 
+                {
+                    $out[$i][$j] = $data[$i][$j];
+                    if(!is_null($data[$i][$j]))
+                    {
+                        $type = array_key_exists("type", $data[$i][$j]) ? $data[$i][$j]["type"] : "";
+                        $out[$i][$j]["type"] = $type;
+                        $metaData[$i][$j] = [ "id" => $data[$i][$j]["id"], "type" => $type];
+                    }
+                    else $metaData[$i][$j] = [ "type" => "null"];
+                }
             }
+            //echo json_encode($data);
             $excel = new ExportToExcel();
-            $excel->export($out);
+            $excel->export($out, $metaData);
         }
     }
     class Structures

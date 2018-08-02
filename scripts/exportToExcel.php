@@ -1,17 +1,39 @@
 <?php   
     class ExportToExcel
     {
-        function export($data)
+        function export($data, $meta)
         {
             require_once dirname(__FILE__).'/PHPExcel.php';
+            $styleArray = [
+                'fill' => [
+                    'type' => PHPExcel_Style_Fill::FILL_SOLID,
+                    'startcolor' => [ 'rgb' => "d6d6c5" ]
+                ]
+            ];
+            $styleArrayHeader = 
+            [
+                'fill' => [
+                    'type' => PHPExcel_Style_Fill::FILL_SOLID,
+                    'startcolor' => [ 'rgb' => "70C8FF" ]
+                ]
+            ];
             $objPHPExcel = new PHPExcel();
             $activeSheet = $objPHPExcel->setActiveSheetIndex(0);
+            $objPHPExcel->getProperties()->setDescription(json_encode($meta));
             for($i = 0, $h = count($data); $i < $h; $i++)
                 for($j = 0, $w = count($data[$i]); $j < $w; $j++)
                 {
+                    if($i == 0) $activeSheet->getColumnDimension(getExcelColumn($j))->setAutoSize(TRUE);
                     $value = "";
                     if(!is_null($data[$i][$j]))
-                        if(is_array($data[$i][$j])) $value = $data[$i][$j]["value"]; 
+                        if(is_array($data[$i][$j])) 
+                        {
+                            $value = $data[$i][$j]["value"]; 
+                            if($data[$i][$j]["type"] == "cell" || $data[$i][$j]["type"] == "tlist") 
+                                $objPHPExcel->getActiveSheet()->getStyle(getExcelColumn($j).($i + 1))->applyFromArray($styleArray);
+                            if($data[$i][$j]["type"] == "head") 
+                                $objPHPExcel->getActiveSheet()->getStyle(getExcelColumn($j).($i + 1))->applyFromArray($styleArrayHeader);
+                        }
                         else $value = $data[$i][$j]; 
                     $activeSheet->setCellValueByColumnAndRow($j, $i + 1, $value);
                 }
@@ -21,7 +43,6 @@
             echo json_encode(["http://localhost:8081/gazprom/export/$nameFile.xlsx", $nameFile]);
         }
     }
-
     /* $_param = json_decode($param);
     $_param[0] = (array)$_param[0]; // шаблоны
     $_param[1] = (array)$_param[1]; // заголовки

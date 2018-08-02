@@ -6,11 +6,12 @@
         }
         function getValue(&$field)
         {
-            if($value = query("SELECT value, type FROM my_values WHERE id = %i", [ $field["linkId"] ]))
+            if($value = query("SELECT value, type, tableId FROM my_values WHERE id = %i", [ $field["linkId"] ]))
             {
-                $field["type"] = "value";
                 $valueData = $value->fetch_array(MYSQLI_NUM);
-                if($valueData[1] == "array") $field["listValue"] = getListValueByKey($field["linkId"], $field["value"]);
+                $field["type"] = $valueData[1];
+                if($valueData[1] == "array") $field["value"] = getListValueByKey($field["linkId"], $field["value"]);
+                else if($valueData[1] == "tlist") $field["value"] = getTableListValueByKey((int)$field["value"], (int)$valueData[2]);
                 else $field["value"] = $valueData[0];
             }
         }

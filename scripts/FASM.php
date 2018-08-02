@@ -58,7 +58,7 @@ class FASM
 		}
 		return $code;
     }
-    function start($str)
+    function start($str, $_idField)
     {
         $code = $this->parse($str);
         $limit = 0;
@@ -76,7 +76,8 @@ class FASM
             $current = $code[$i];
             if(in_array($current["operator"], $changeOperator))
             {
-                $idField = (int)$current["operand"][0];
+                if($current["operand"][0] == "CURRENT") $idField = $_idField;
+                else $idField = (int)$current["operand"][0];
                 $value = $this->getField($idField);
             }
             switch($current["operator"])

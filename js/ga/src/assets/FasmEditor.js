@@ -19,6 +19,10 @@ class FasmEditor
 		{
 			words: ["end"],
 			color: "#E84A4F"
+        },
+        {
+			words: ["CURRENT"],
+			color: "#319638"
 		},
 		{
 			words: ["(\\d)+"],

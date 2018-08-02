@@ -133,7 +133,6 @@
             if($nQuery >= 40 && $nQuery < 100)
                 switch($nQuery)
                 {
-                    
                 }
             if($nQuery >= 100 && $nQuery < 150) // Работа со структурой
                 switch($nQuery)
@@ -312,9 +311,9 @@
                     case 125: // Получить список объектов которые ссылаются и на которые ссылается запрошенный объект
                         $idElement = (int)$param[0];
                         if((getRights($idElement) & 1) != 1) return; // Права на просмотр
-                        $fromInherit = [];
+                        $fromInherit = []; // откуда наследуется
                         $whoInherit = [];
-                        $whoRefes = [];
+                        $whoRefer = [];
                         if($result = query("SELECT id, objectType, name FROM structures WHERE id IN (SELECT bindId FROM structures WHERE id = %i)", [ $idElement ]))
                             while ($row = $result->fetch_array(MYSQLI_NUM)) $fromInherit[] = $row;
                         if($result = query("SELECT id, objectType, name FROM structures WHERE bindId = %i", [ $idElement ]))
@@ -322,16 +321,23 @@
 
                         $linkType = selectOne("SELECT objectType FROM structures WHERE id = %i", [ $idElement ]);
                         $linkId = $idElement;
-                        if($linkType == "value") $linkId = (int)selectOne("SELECT objectId FROM structures WHERE id = %i", [ $idElement ]);
-                        if($result = query("SELECT id, tableId FROM fields WHERE type = 'link' AND linkId = %i AND linkType = %s", [ $linkId, $linkType ]))
+                        $query = "SELECT id, tableId FROM fields WHERE type = 'link' AND linkId = %i AND linkType = %s";
+                        $queryArray = [ $idElement ];
+                        if($linkType == "event") $query = "SELECT id, tableId FROM fields WHERE eventId = %i";
+                        else
+                        {
+                            if($linkType == "value" || $linkType == "tlist") $linkId = (int)selectOne("SELECT objectId FROM structures WHERE id = %i", [ $idElement ]);
+                            $queryArray = [ $linkId, $linkType ];
+                        }
+                        if($result = query($query, $queryArray))
                             while ($row = $result->fetch_array(MYSQLI_NUM)) 
                             {
                                 $tableId = (int)$row[1];
-                                if(!array_key_exists($tableId, $whoRefes))
-                                    $whoRefes[$tableId] = ["fields" => [], "name" => selectOne("SELECT name FROM structures WHERE id = %i", [ $tableId ])];
-                                $whoRefes[$tableId]["fields"][] = (int)$row[0];
+                                if(!array_key_exists($tableId, $whoRefer))
+                                    $whoRefer[$tableId] = ["fields" => [], "name" => selectOne("SELECT name FROM structures WHERE id = %i", [ $tableId ])];
+                                $whoRefer[$tableId]["fields"][] = (int)$row[0];
                             }
-                        echo json_encode(["fromInherit" => $fromInherit, "whoInherit" => $whoInherit, "whoRefes" => $whoRefes]);
+                        echo json_encode(["fromInherit" => $fromInherit, "whoInherit" => $whoInherit, "whoRefer" => $whoRefer]);
                         break;
                     case 126: // Получение имени элемента структуры
                         $idElement = (int)$param[0];
