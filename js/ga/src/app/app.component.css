@@ -36,7 +36,24 @@
     top: 12px; 
     right:4px; 
 }
-
+.refreshIcon
+{
+    position:absolute; 
+    right:3px; 
+    top:3px; 
+    width:35px; 
+    height:35px; 
+    font-size: 14px; 
+    line-height: 35px;
+    text-align:center;
+    cursor: pointer;
+    transition: 0.3s;
+}
+.refreshIcon:hover
+{
+    color: #ffffff; 
+    transform: rotate(65deg);
+}
 .softwareIcon
 {
     color: #ffffff; 

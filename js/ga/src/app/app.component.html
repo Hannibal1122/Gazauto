@@ -8,15 +8,20 @@
                 [class.ButtonMiniAppActiveColor] = "!hideMenu && currentMiniApp == 'explorer'">
                 <i class="far fa-folder"></i>
             </div>
-            <div class = "miniButton ButtonMiniAppColor"
+            <!-- <div class = "miniButton ButtonMiniAppColor"
                 (click) = "openMiniApp('search')"
                 [class.ButtonMiniAppActiveColor] = "!hideMenu && currentMiniApp == 'search'">
                 <i class="fas fa-search"></i>
-            </div>
+            </div> -->
             <div class = "miniButton ButtonMiniAppColor"
                 (click) = "openMiniApp('app')"
                 [class.ButtonMiniAppActiveColor] = "!hideMenu && currentMiniApp == 'app'">
                 <i class="fas fa-cube"></i>
+            </div>
+            <div class = "miniButton ButtonMiniAppColor"
+                (click) = "openMiniApp('events')"
+                [class.ButtonMiniAppActiveColor] = "!hideMenu && currentMiniApp == 'events'">
+                <i class="fas fa-bell"></i>
             </div>
             <div class = "miniButton ButtonMiniAppColor"
                 (click) = "openMiniApp('chat')"
@@ -38,7 +43,7 @@
                 class = "mainPanelApp PanelAppColor">
                 <div class="mainPanelAppTitle PanelAppTitleColor">
                     Проводник
-                    <div class = "softwareIcon softwareTasks" style = "position:absolute; right:3px; top:3px; width:35px; height:35px; font-size: 18px; line-height: 35px;" title = "Обновить" (click) = "refreshLeftMenu()"><i class = "fas fa-sync-alt"></i></div>
+                    <div class = "refreshIcon" title = "Обновить проводник" (click) = "refreshLeftMenu()"><i class = "fas fa-sync-alt"></i></div>
                 </div>
                 <app-left-menu-element *ngFor = "let element of leftMenuData; let i = index" 
                     [config] = "leftMenuConfig[i]" 
@@ -49,10 +54,15 @@
                     [data] = "leftMenuData[0].childrens" 
                     (onChange) = "onChangeInLeftMenu($event)"></app-left-menu-element> -->
             </div>
-            <div *ngIf = "currentMiniApp == 'search'"
+            <!-- <div *ngIf = "currentMiniApp == 'search'"
                 [style.width] = "panelApp.width + 'px'" 
                 class = "mainPanelApp PanelAppColor">
                 <div class="mainPanelAppTitle PanelAppTitleColor">Поиск</div>
+            </div> -->
+            <div *ngIf = "currentMiniApp == 'events'"
+                [style.width] = "panelApp.width + 'px'" 
+                class = "mainPanelApp PanelAppColor">
+                <div class="mainPanelAppTitle PanelAppTitleColor">События</div>
             </div>
             <div *ngIf = "currentMiniApp == 'app'"
                 [style.width] = "panelApp.width + 'px'" 
@@ -68,7 +78,7 @@
             <div *ngIf = "currentMiniApp == 'chat'"
                 [style.width] = "panelApp.width + 'px'" 
                 class = "mainPanelApp PanelAppColor">
-                <div class="mainPanelAppTitle PanelAppTitleColor">Сообщения</div>
+                <div class="mainPanelAppTitle PanelAppTitleColor">Чат</div>
                 <div style = "width:100%; padding: 5px; display: flex; flex-direction: column; align-items: flex-start;">
                     <div>
                         <div style = "font-size: 12px;">Человек</div>
@@ -121,8 +131,10 @@
                 <vg-dynamic-view [componentData] = "app.software" (onChange) = "onChangeInSoftware($event)" [inputFromApp] = "app.inputFromApp"></vg-dynamic-view>
             </div> 
         </div>
-        <div *ngIf = "tabs.length == 0">
-            <span style="color:#b8b8b8; font-size:22px; font-weight:bold">Выберите объект из левого меню</span>
+        <div *ngIf = "tabs.length == 0" style = "text-align: center; line-height: 16px;">
+            <i class="fab fa-gripfire" style = "font-size: 150px; color:#d6e6fd;"></i><br>
+            <span style="color:#b8b8b8; font-size:25px; font-weight:bold">Добро пожаловать!<br
+                ><span style = "font-size:14px;">Выберите объект из левого меню</span></span>
         </div>
     </div>
 <div>
