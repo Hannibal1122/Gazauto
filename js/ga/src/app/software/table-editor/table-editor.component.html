@@ -13,7 +13,7 @@
         <button id = "tableCutButton"  class = "mainButton" title = "Вырезать" (click) = "copyField('cut')" [disabled] = "!rules.cut"><i class="fas fa-cut"></i></button>
         <button id = "tableCopyButton"  class = "mainButton" title = "Копировать" (click) = "copyField('copy')" [disabled] = "!rules.copy"><i class="fas fa-copy"></i></button>
         <button class = "mainButton" title = "Экспорт в Excel" (click) = "exportToExcel()" ><i class="fas fa-file-excel"></i></button>
-        <button class = "mainButton" title = "Импорт таблицы" (click) = "importToExcel()" [disabled] = "!rules.add"><i class="fas fa-download"></i></button>
+        <button class = "mainButton" title = "Импорт таблицы" (click) = "importFromExcel()" [disabled] = "!rules.add"><i class="fas fa-download"></i></button>
         <button class = "mainButton" title = "Добавить строку" (click) = "addRow()" [disabled] = "!rules.add"><i class="fas fa-plus"></i></button>
         <button class = "mainButton" (click) = "loadTable()" title = "Обновить"><i class="fas fa-sync-alt"></i></button>
     </div>

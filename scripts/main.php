@@ -71,8 +71,8 @@
             case 0: // Запрос версии
                 /* include("./version/versions.php"); */
                 $project = [];	
-                $project['main'] = "0.9.20";/* getVersion(		$_main["name"], 		$_main["data"]); */
-                $project['php'] = "0.9.65";/* getVersion(		$_php["name"], 			$_php["data"]); */
+                $project['main'] = "0.9.40";/* getVersion(		$_main["name"], 		$_main["data"]); */
+                $project['php'] = "0.9.80";/* getVersion(		$_php["name"], 			$_php["data"]); */
                 echo json_encode($project);
                 break;
             case 1: // Возвращает информацию о текущем пользователе
@@ -177,8 +177,9 @@
                             case "event":
                                 request("SELECT parent FROM structures WHERE id = %i", [$idElement]);
                                 break;
+                            case "tlist":
                             case "value":
-                                request("SELECT parent, id FROM structures WHERE objectType = 'value' AND objectId = %i ", [$idElement]);
+                                request("SELECT parent, id FROM structures WHERE objectType = %s AND objectId = %i ", [$typeElement, $idElement]);
                                 break;
                             case "cell":
                                 request("SELECT tableId FROM fields WHERE id = %i ", [$idElement]);
@@ -234,11 +235,13 @@
                             
                             $structures = new Structures($idElement, $idParent, $type);
                             $structures->copy();
+                            addLog("structure", "copy", $idParent);
                         }
                         if($type == "cut") // Вырезать(изменение)
                         {
                             if((getRights($idElement) & 8) != 8) continue; // Права на изменение
                             query("UPDATE structures SET parent = %i WHERE id = %i", [$idParent, $idElement]);
+                            addLog("structure", "cut", $idParent);
                         }
                             /* case "struct": 
                                 if((getRights($idElement) & 2) != 2) continue; // Права на копирование

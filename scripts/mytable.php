@@ -410,11 +410,14 @@
             $myArray = new MyArray($outData);
             for($i = 1; $i < count($myArray->myArray); $i++)
                 for($j = 0; $j < count($myArray->myArray[$i]); $j++)
+                {
+                    if(!array_key_exists($j, $myArray->myArray[$i])) $myArray->myArray[$i][$j] = null;
                     if(!is_null($myArray->myArray[$i][$j]) && array_key_exists("type", $myArray->myArray[$i][$j]) && $myArray->myArray[$i][$j]["type"] == "table")
                     {
                         $myTable = new MyTable((int)$myArray->myArray[$i][$j]["linkId"]);
                         $myArray->insertArrayInField($i, $j, $myTable->getArrayTable());
                     }
+                }
             return $myArray->myArray;
         }
         function getNextI($object, $next) { foreach($object as $key => $value) if($value["__NEXT__"] == $next) return $key; }
@@ -426,7 +429,7 @@
             $out = [];
             $metaData = [];
             $i = 0;
-            for($i = 0, $w = count($data); $i < $w; $i++)
+            for($i = 0, $h = count($data); $i < $h; $i++)
             {
                 $out[$i] = [];
                 $metaData[$i] = [];
@@ -439,10 +442,8 @@
                         $out[$i][$j]["type"] = $type;
                         $metaData[$i][$j] = [ "id" => $data[$i][$j]["id"], "type" => $type];
                     }
-                    else $metaData[$i][$j] = [ "type" => "null"];
                 }
             }
-            //echo json_encode($data);
             $excel = new ExportToExcel();
             $excel->export($out, $metaData);
         }

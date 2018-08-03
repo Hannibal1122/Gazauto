@@ -24,8 +24,10 @@ export class LeftMenuElementComponent implements OnInit
             if(config.filter) this._config.filter = config.filter;
         }
     }
+    saveOpen = {};
     @Input() set data(data)
     {
+        this.outData = [];
         for(var i = 0; i < data.length; i++)
             this.straighten(this.outData, data[i], 0, -1);
         for(i = 0; i < this.outData.length; i++)
@@ -52,8 +54,13 @@ export class LeftMenuElementComponent implements OnInit
                         break;
                 }
             }
+            if(this.saveOpen[this.outData[i].id]) this.openCollapse(i, this.outData[i].level); // Открывает сохраненные папки
         }
-        if(this.outData.length == 0) this.hide = true;
+        if(this.hide === null)
+        {
+            if(this.outData.length == 0) this.hide = true;
+            else this.hide = false;
+        }
     }
     _config = 
     {
@@ -63,12 +70,12 @@ export class LeftMenuElementComponent implements OnInit
         filter: []
     };
     outData = [];
-    hide = false;
+    hide = null;
     searchVisible = false;
     oldSearchVisible = false;
     search = '';
 
-    constructor(private query: QueryService) { }
+    constructor(private query: QueryService) {  }
     ngOnInit() 
     { 
         /* var self = this;
@@ -90,6 +97,7 @@ export class LeftMenuElementComponent implements OnInit
             case "table":
                 this.onChange.emit({ type: "open", value: { name: "table", id: data.id }});
                 break;
+            case "tlist":
             case "value":
                 this.query.protectionPost(111, { param: [ "folder", data.id ]}, // folder потому что id тут из структуры  
                 (idParent) => 
@@ -131,13 +139,14 @@ export class LeftMenuElementComponent implements OnInit
         var begin = level + 1;
         var open = !this.outData[i].open;
         this.outData[i].open = open; 
+        if(this.outData[i].level <= 0) this.saveOpen[this.outData[i].id] = open; // Сохраняем только папки верхнего уровня 
         for(var _i = i + 1; _i < this.outData.length; _i++)
             if(this.outData[_i].level < begin) break;
             else 
+            {
                 if(!open) this.outData[_i].hide = !open; // если закрываем
                 else this.outData[_i].hide = !this.outData[this.getParentI(this.outData[_i].parent)].open; // если открываем
-        this.onChange.emit({ type: "height" });
-        /* if(this._changeHeightForLeftMenu) this._changeHeightForLeftMenu(); */
+            }
     }
     getParentI(id)
     {
@@ -147,14 +156,12 @@ export class LeftMenuElementComponent implements OnInit
     hideAllMenu()
     {
         this.hide = !this.hide;
-        this.onChange.emit({ type: "height" });
     }
     visibleSearch()
     {
         this.searchVisible = !this.searchVisible;
         if(this.searchVisible) setTimeout(() => { this.inputSearch.nativeElement.focus(); }, 20);
         else this.search = "";
-        this.onChange.emit({ type: "height" });
     }
     OnChangeSearch()
     {
@@ -166,7 +173,6 @@ export class LeftMenuElementComponent implements OnInit
                     this.outData[i].searchHide = false;
                 else this.outData[i].searchHide = true;
             }
-        this.onChange.emit({ type: "height" });
     }
     dragEvents(data, e)
     {
@@ -174,10 +180,6 @@ export class LeftMenuElementComponent implements OnInit
         /* var img = document.createElement("img");
         img.src = 'http://cdn.habtium.com/furni/items/big/1.gif';
         e.dataTransfer.setDragImage(img, 10, 10); */
-        
         localStorage.setItem("dragElement", JSON.stringify(data));
-        /* trace("dragStart")
-        trace(e)
-        trace(data) */
     }
 }

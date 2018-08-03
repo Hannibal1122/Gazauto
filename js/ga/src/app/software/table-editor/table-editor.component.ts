@@ -473,8 +473,7 @@ export class TableEditorComponent implements OnInit
     {
         this.query.protectionPost(261, { param: [ this.inputs.id ] }, (data) =>
         {
-            trace(data)
-            /* function downloadURI(uri, name) 
+            function downloadURI(uri, name) 
             {
                 var link = document.createElement("a");
                 link.download = name;
@@ -482,7 +481,11 @@ export class TableEditorComponent implements OnInit
                 link.click();
             }
             downloadURI(data[0], data[1]);
-            $("#BlockLoaderPanel").fadeOut(400); */
+            $("#BlockLoaderPanel").fadeOut(400);
         })
+    }
+    importFromExcel()
+    {
+
     }
 }

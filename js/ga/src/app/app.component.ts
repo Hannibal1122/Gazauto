@@ -113,6 +113,7 @@ export class AppComponent implements OnInit
             else if(this.tabs[i - 1]) this.currentSoftware = i - 1;
         }
     }
+    leftMenuConfig = [];
     refreshLeftMenu() // обновить левое меню
     {
         this.query.protectionPost(353, { }, (data) =>
@@ -124,7 +125,20 @@ export class AppComponent implements OnInit
         this.query.protectionPost(113, { param: [] }, (data) => 
         { 
             if(data === "") return;
-            this.leftMenuData = data; 
+            this.leftMenuConfig = [];
+            if(data.length < this.leftMenuData.length) this.leftMenuData.splice(data.length - 1, this.leftMenuData.length);
+            for(var i = 0; i < data.length; i++)
+            {
+                this.leftMenuConfig[i] = 
+                {
+                    name: data[i].name,
+                    id: data[i].id,
+                    buttons: data[i].buttons,
+                    filter: data[i].filter
+                }
+                if(this.leftMenuData[i] == undefined) this.leftMenuData[i] = {};
+                for(var key in data[i]) this.leftMenuData[i][key] = data[i].childrens;
+            }
         });
     }
     private lastUpdateTimer = null;
@@ -132,7 +146,8 @@ export class AppComponent implements OnInit
     private getLastUpdateTime() // Запрос изменений таблицы
     {
         clearTimeout(this.lastUpdateTimer);
-        this.query.protectionPost(414, { }, (data) => 
+        // 414 - события по времени
+        this.query.protectionPost(414, { }, (data) =>  
         {
             this.query.protectionPost(354, { param: [ this.lastUpdateTime ] }, (data) => 
             { 
@@ -168,8 +183,9 @@ export class AppComponent implements OnInit
                         case "table":
                         case "file":
                         case "event":
+                        case "tlist":
                         case "value":
-                            this.openSoftware("explorer", { id: idParent[0][0], searchObjectId: e.value.name == "value" ? idParent[0][1] : e.value.id });
+                            this.openSoftware("explorer", { id: idParent[0][0], searchObjectId: e.value.name == "value" || e.value.name == "tlist" ? idParent[0][1] : e.value.id });
                             break;
                         case "cell":
                             this.openSoftware("table", { id: idParent[0][0], searchObjectId: e.value.id });
