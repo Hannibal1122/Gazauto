@@ -12,7 +12,8 @@
     z-index: 1000;
     overflow: auto; 
     overflow-x:hidden; 
-    height:100%; 
+    height:calc(100% - 40px); 
+    top:40px;
     left:60px;
 }
 .mainPanelAppTitle

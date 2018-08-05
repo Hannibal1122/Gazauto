@@ -27,9 +27,12 @@ export class AppComponent implements OnInit
     leftMenuData = [];
     tabs = [];
     Login = "";
-
+    Version = "";
     currentSoftware = 0;
-    constructor(private query: QueryService, private lib: FunctionsService) { }
+    constructor(private query: QueryService, private lib: FunctionsService) 
+    { 
+        query.post(0, {}, (data) => { this.Version = data.main });
+    }
     leftMenuScroll = 
     {
         height: "0px",

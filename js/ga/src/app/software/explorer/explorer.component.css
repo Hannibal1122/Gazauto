@@ -15,15 +15,17 @@
 .elementExplorer
 {
     text-align:center;
-    width:80px;
+    width:120px;
     overflow: hidden;
     margin: 5px; 
     cursor: pointer;
     text-overflow: ellipsis;
     white-space: nowrap;
     padding: 5px;
-    border: 2px solid #ffffff;
+    border: 2px solid #eeeeee;
+    border-radius: 5px;
     position: relative;
+    transition: 0.3s;
 }
 .elementExplorerList
 {
@@ -36,10 +38,12 @@
     position: relative;
     font-size: 16px;
     width: 320px;
+    transition: 0.3s;
 }
 .selectElementExplorer
 {
-    border: 2px solid #456486;
+    /* border: 2px solid #456486; */
+    background-color: #eeeeee;
     user-select: none;
 }
 .selectCopyElementExplorer
@@ -64,8 +68,8 @@
 .tableStateIcon
 {
     position:absolute; 
-    top:2px; 
-    left:2px;
+    top:5px; 
+    left:25px;
 }
 .listStateIcon
 {

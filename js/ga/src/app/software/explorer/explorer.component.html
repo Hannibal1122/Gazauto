@@ -58,19 +58,19 @@
                 [class.selectCopyElementExplorer] = "i != selectObjectI && object.id == selectObjectCopy.id"
                 [class.selectCopyElementExplorerOpacity] = "i != selectObjectI && object.id == selectObjectCopy.id && selectObjectCopy.type == 'cut'"
                 title = "{{ object.name }}">
-                <div *ngIf = "viewType == 'table'">
-                    <span *ngIf = "object.objectType == 'folder'"><i class="fas fa-folder" style = "font-size: 65px;"></i></span>
-                    <span *ngIf = "object.objectType == 'table'"><i class="fas fa-table colorIconTable" style = "font-size: 65px;"></i></span>
-                    <span *ngIf = "object.objectType == 'user'"><i class="fas fa-user colorIconRole" style = "font-size: 65px;"></i></span>
-                    <span *ngIf = "object.objectType == 'event'"><i class="fas fa-bolt colorIconEvent" style = "font-size: 65px;"></i></span>
-                    <span *ngIf = "object.objectType == 'role'"><i class="fas fa-address-book colorIconRole" style = "font-size: 65px;"></i></span>
-                    <span *ngIf = "object.objectType == 'value'"><i class="fas fa-superscript colorIconValue" style = "font-size: 65px;"></i></span>
+                <div *ngIf = "viewType == 'table'" style = "padding:5px;">
+                    <span *ngIf = "object.objectType == 'folder'"><i class="fas fa-folder" style = "font-size: 55px;"></i></span>
+                    <span *ngIf = "object.objectType == 'table'"><i class="fas fa-table colorIconTable" style = "font-size: 55px;"></i></span>
+                    <span *ngIf = "object.objectType == 'user'"><i class="fas fa-user colorIconRole" style = "font-size: 55px;"></i></span>
+                    <span *ngIf = "object.objectType == 'event'"><i class="fas fa-bolt colorIconEvent" style = "font-size: 55px;"></i></span>
+                    <span *ngIf = "object.objectType == 'role'"><i class="fas fa-address-book colorIconRole" style = "font-size: 55px;"></i></span>
+                    <span *ngIf = "object.objectType == 'value'"><i class="fas fa-superscript colorIconValue" style = "font-size: 55px;"></i></span>
                     <span *ngIf = "object.objectType == 'file'">
-                        <i *ngIf = "object.fileType == 'img'" class="fas fa-file-image colorIconFile" style = "font-size: 65px;"></i>
-                        <i *ngIf = "object.fileType == 'xls'" class="fas fa-file-excel colorIconFile" style = "font-size: 65px;"></i>
-                        <i *ngIf = "object.fileType == 'doc'" class="fas fa-file-word colorIconFile" style = "font-size: 65px;"></i>
+                        <i *ngIf = "object.fileType == 'img'" class="fas fa-file-image colorIconFile" style = "font-size: 55px;"></i>
+                        <i *ngIf = "object.fileType == 'xls'" class="fas fa-file-excel colorIconFile" style = "font-size: 55px;"></i>
+                        <i *ngIf = "object.fileType == 'doc'" class="fas fa-file-word colorIconFile" style = "font-size: 55px;"></i>
                     </span>
-                    <span *ngIf = "object.objectType == 'tlist'"><i class="fas fa-list-ol colorIconValue" style = "font-size: 65px;"></i></span>
+                    <span *ngIf = "object.objectType == 'tlist'"><i class="fas fa-list-ol colorIconValue" style = "font-size: 55px;"></i></span>
                 </div>
                 <div *ngIf = "viewType == 'list'" class = "listIcon">
                     <span *ngIf = "object.objectType == 'folder'"><i class="fas fa-folder" style = "font-size: 16px;"></i></span>
@@ -87,8 +87,9 @@
                     <span *ngIf = "object.objectType == 'tlist'"><i class="fas fa-list-ol colorIconValue" style = "font-size: 16px;"></i></span>
                 </div>
                 <div *ngIf = "object.bindId" 
-                    style = "position:absolute; right:2px; bottom:17px;" 
-                    [style.bottom] = "viewType == 'table' ? '17px' : '0px'">
+                    style = "position:absolute; right:25px; bottom:20px;" 
+                    [style.right] = "viewType == 'table' ? '25px' : '3px'"
+                    [style.bottom] = "viewType == 'table' ? '20px' : '2px'">
                     <i class="fas fa-link" style = "font-size: 14px; color: #ec9b6c"></i>
                 </div>
                 <div *ngIf = "object.state > 0" [class.listStateIcon] = "viewType == 'list'"  [class.tableStateIcon] = "viewType == 'table'">
@@ -96,9 +97,11 @@
                     <i *ngIf = "object.state >= 50 && object.state < 100" class="fas fa-circle MiddleState" style = "font-size: 12px;"></i>
                     <i *ngIf = "object.state == 100" class="fas fa-circle HightState" style = "font-size: 12px;"></i>
                 </div>
+                <div *ngIf = "viewType == 'table'" style = "border-top:1px solid #eeeeee; position: absolute; bottom:0px; width: calc(100% + 10px); left:-5px; height:24px;"></div>
                 {{ object.name }}
             </div>
         </span>
+        <span class = "col-md-12" *ngIf = "outFolders.length == 0" style = "color:#b8b8b8; font-size:24px; font-weight:bold"> Папка пуста</span>
     </div>
     <!-- Просмотр связей -->
     <div *ngIf = "listLink.visible" class = "col-md-4" style = "display: flex; color: #456486; flex-wrap: wrap; font-size:12px; border-left:1px solid #b8b8b8;"> 
@@ -134,7 +137,6 @@
             <i class="fas fa-times-circle"></i>
         </button>
     </div>            
-    <span class = "col-md-12" *ngIf = "outFolders.length == 0" style = "color:#b8b8b8; font-size:24px; font-weight:bold"> Папка пуста</span>
     <div class = "col-md-12" style = "margin-top:25px; height:20px;background-color:#ececec; line-height:20px; padding-left:3px;">
         <span *ngIf = "load" style = "color:#757575;font-size:12px;">Loading...</span>
     </div>

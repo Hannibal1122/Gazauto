@@ -2,7 +2,17 @@
 <app-enter *ngIf = "!enter && !load"></app-enter>
 <div [hidden] = "!enter || load">
     <div>
-        <div class = "PanelMiniAppBColor" style = "position:fixed; z-index:1000; width: 60px; height:100%;">
+        <div class = "PanelMiniAppBColor" style = "position:fixed; z-index:1000; width:60px; height:40px; left:0px; top:0px;">
+            <div class = "miniButton ButtonMiniAppColor ButtonMiniAppActiveColor" style = "cursor:default;">
+                <i class="fab fa-gripfire"></i>
+            </div>
+        </div>
+        <div *ngIf = "!hideMenu" class = "TabsPanelColor" style = "position:fixed; z-index:1000; width:320px; height:40px; left:60px; top:0px;">
+            <div class="mainPanelAppTitle MainTitleColor">
+                CAD <span style = "font-size:12px;">{{ Version }}</span>
+            </div>
+        </div>
+        <div class = "PanelMiniAppBColor" style = "position:fixed; z-index:1000; width: 60px; height:calc(100% - 40px); top:40px;">
             <div class = "miniButton ButtonMiniAppColor"  
                 (click) = "openMiniApp('explorer')"
                 [class.ButtonMiniAppActiveColor] = "!hideMenu && currentMiniApp == 'explorer'">
