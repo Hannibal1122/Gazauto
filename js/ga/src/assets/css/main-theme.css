@@ -1,5 +1,9 @@
 /*******************************************************/
 /*Main*/
+.MainTitleColor
+{
+    color:#ffffff;
+}
 .WorkspaceBColor /*Фон рабочей области*/
 {
     background-color: #ffffff;

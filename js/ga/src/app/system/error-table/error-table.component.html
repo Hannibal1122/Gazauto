@@ -25,10 +25,12 @@
                     <span *ngIf = "row[j].eventId" class = "eventClass linkCellClass" (dblclick) = "openEventToExplorer(row[j].eventId)">
                         <i class = "fa fa-bolt"></i>
                     </span>
-                    <div *ngIf = "row[j].state" [style.width] = "row[j].state + '%'" class = "tableStateLoading" 
-                        [class.tableCellStateGreen] = "row[j].state == 100"
-                        [class.tableCellStateYellow] = "row[j].state >= 50 && row[j].state < 100"
-                        [class.tableCellStateRed] = "row[j].state < 50">
+                    <div style = "position:absolute; pointer-events:none; width:100%; height:100%; top:0px; left:0px;">
+                        <div *ngIf = "row[j].state" [style.width] = "row[j].state + '%'" class = "tableStateLoading" 
+                            [class.tableCellStateGreen] = "row[j].state == 100"
+                            [class.tableCellStateYellow] = "row[j].state >= 50 && row[j].state < 100"
+                            [class.tableCellStateRed] = "row[j].state < 50">
+                        </div>
                     </div>
                 </td>
                 <td class = "lastTD"><button *ngIf = "change" (click) = "removeRow(i)" class = "mainButton"><i class="fas fa-trash"></i></button></td>

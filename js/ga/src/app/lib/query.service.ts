@@ -1,16 +1,14 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { HttpHeaders } from '@angular/common/http';
+import { environment } from '../../environments/environment';
 declare var $:any;
 declare var trace:any;
 
 @Injectable()
 export class QueryService 
 {
-    //url = 'http://localhost:8081/gazprom/scripts/main.php';
-    url = 'http://localhost/gazprom/scripts/main.php';
-    //url = 'http://localhost/scripts/main.php';
-    /* url = '/scripts/main.php'; */
+    private url = environment.URL;
     constructor() 
     { 
         /* $.ajaxSetup({ headers: {  'Access-Control-Allow-Origin': 'http://localhost:8081' } }); */

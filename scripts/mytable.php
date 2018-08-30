@@ -3,7 +3,7 @@
     {
         function __construct($idTable)
         {
-            $this->idTable = $idTable;
+            $this->idTable = (int)$idTable;
         }
         function getTable() // Запрос таблицы
         {
@@ -56,7 +56,21 @@
                     $data[(int)$row[0]][$row[1]] = $field;
                     $data[(int)$row[0]]["__NEXT__"] = $row[8];
                 }
-            echo json_encode(["head" => $head, "data" => $data, "name" => $nameTable, "change" => (getRights($idTable) & 8) == 8, "time" => $timeOpen, "changeHead" => $bindId, "state" => $stateTable]);
+                /* Сортировка */
+                $l = count((array)$data);
+                $outData = [];
+                $tableIds = [];
+                foreach($data as $key => $value) if($data[$key]["__NEXT__"] == null) break; //Находим null
+                for($i = $l - 1; $i >= 0; $i--) // Тут сортировка по next
+                {
+                    $outData[$i] = $data[$key];
+                    $outData[$i]["__ID__"] = $key;
+                    foreach($data[$key] as $_key => $_value)
+                        if($_key != "__NEXT__" && array_key_exists("tableId", $data[$key][$_key]) && $data[$key][$_key]["tableId"] != $idTable) 
+                            $tableIds[$data[$key][$_key]["tableId"]] = $data[$key][$_key]["tableId"];
+                    $key = $this->getNextI($data, $key);
+                }
+            echo json_encode(["head" => $head, "data" => $outData, "tableIds" => $tableIds, "name" => $nameTable, "change" => (getRights($idTable) & 8) == 8, "time" => $timeOpen, "changeHead" => $bindId, "state" => $stateTable]);
             addLog("table", "open", $idTable);
         }
         function setAndRemoveHeader($data, $changes) // Добавить/Удалить заголовок
@@ -292,26 +306,39 @@
             }
             $this->calculateStateForTable($idTableTo);
         }
-        function copyTable($idTableFrom, $link) // Копировать таблицу
+        function copy($idTableFrom, $link) // Копировать таблицу
         {
             global $mysqli;
             $idTable = $this->idTable;
             $idNewRow = -1;
-            $addI = [];
             if($result = query("SELECT i, name_column FROM fields WHERE tableId = %i AND type = 'head'", [ $idTableFrom ])) // Копирование заголовка
                 while ($row = $result->fetch_array(MYSQLI_NUM)) 
                     query("INSERT INTO fields (tableId, i, name_column, type) VALUES(%i, %i, %s, 'head') ", [ $idTable, $row[0], $row[1] ]);
-            if($result = query("SELECT i, id, name_column FROM fields WHERE tableId = %i AND type != 'head' ORDER BY i", [ $idTableFrom ]))
+        
+            $data = [];
+            if($result = query("SELECT i, fields.id, name_column, next FROM fields LEFT JOIN line_ids ON line_ids.id = fields.i WHERE tableId = %i AND type != 'head'", [$idTableFrom]))
                 while ($row = $result->fetch_array(MYSQLI_NUM)) 
                 {
-                    if(!in_array($row[0], $addI))
-                    {
-                        $newRow = $this->addRow($idNewRow, -1, false);
-                        $idNewRow = $newRow["__ID__"];
-                        $addI[] = $row[0];
-                    }
-                    $this->copyCell($newRow[$row[2]]["id"], $idTable, $row[1], $idTableFrom, "copy", "value", false);
+                    $data[(int)$row[0]][$row[2]] = (int)$row[1];
+                    $data[(int)$row[0]]["__NEXT__"] = $row[3];
                 }
+            $l = count((array)$data); //Сортировка
+            $outData = [];
+            foreach($data as $key => $value) if($data[$key]["__NEXT__"] == null) break; //Находим null
+            for($i = $l - 1; $i >= 0; $i--) // Тут сортировка по next
+            {
+                $outData[$i] = $data[$key];
+                $outData[$i]["__ID__"] = $key;
+                $key = $this->getNextI($data, $key);
+            }
+            for($i = 0; $i < $l; $i++)
+            {
+                $newRow = $this->addRow($idNewRow, -1, false);
+                $idNewRow = $newRow["__ID__"];
+                foreach($outData[$i] as $key => $value)
+                    if($key != "__ID__" && $key != "__NEXT__")
+                        $this->copyCell($newRow[$key]["id"], $idTable, $value, $idTableFrom, "copy", "value", false);
+            }
             if($link) query("UPDATE structures SET bindId = %i WHERE id = %i", [ $idTableFrom, $idTable ]);
         }
         function setStateForField($idTable, $idField, $state) // Выставить статус у ячейки
@@ -456,7 +483,7 @@
             $this->idParent = $idParent;
             $this->typeOperation = $typeOperation;
         }
-        function copy() // Скопировать элемент структуры, по типам
+        function copy($newName) // Скопировать элемент структуры, по типам
         {
             global $login, $mysqli;
             $idElement = $this->idElement;
@@ -465,6 +492,7 @@
             if($result = query("SELECT objectType, objectId, name, parent, priority, info, bindId FROM structures WHERE id = %i", [$idElement]))
                 $elem = $result->fetch_array(MYSQLI_NUM);
             if($this->typeOperation == "inherit" && $elem[6] != null) return; // Нельзя наследовать от наследуемой
+            if($newName != "") $elem[2] = $newName;
             $elem[3] = $idParent;// parent
             query("INSERT INTO structures (objectType, objectId, name, parent, priority, info, bindId) VALUES(%s, %i, %s, %i, %i, %s, %i)", $elem);
             $idNewElement = $mysqli->insert_id;
@@ -483,7 +511,7 @@
         {
             $idElement = $this->idElement;
             $myTable = new MyTable($idNewElement);
-            $myTable->copyTable($idElement, $this->typeOperation == "inherit");
+            $myTable->copy($idElement, $this->typeOperation == "inherit");
         }
         function copyFile($idNewElement, $name) // Скопировать файл
         {

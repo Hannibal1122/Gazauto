@@ -300,6 +300,9 @@ export class AppComponent implements OnInit
         localStorage.setItem("checkKey", "");
         localStorage.setItem("login", "");
         localStorage.setItem("name", "");
+        localStorage.removeItem("MiniApp");
+        localStorage.removeItem("Tabs");
+        localStorage.removeItem("CurrentTab");
     }
     hideMenu = true;
     currentMiniApp = "";

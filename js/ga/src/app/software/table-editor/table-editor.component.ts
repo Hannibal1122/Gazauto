@@ -59,7 +59,6 @@ export class TableEditorComponent implements OnInit
         /* let START = new Date().getTime(); */
         this.query.protectionPost(250, { param: [this.inputs.id]}, (data) => 
         {
-            /* trace(data) */
             if(data.head == undefined) 
             {
                 this.error = true;
@@ -76,20 +75,9 @@ export class TableEditorComponent implements OnInit
             this.firstData = data.data;
             for(var i = 0; i < data.head.length; i++)
                 this.dataHeader.push({ i: data.head[i][0], value: data.head[i][1] });
-            this.tableIds = {};
-
+            this.tableIds = data.tableIds;
             let l = Object.keys(data.data).length;
-            let key;
-            for(key in data.data) if(data.data[key].__NEXT__ == null) break; //Находим null
-            for(i = l - 1; i >= 0; i--) // Тут сортировка по next
-            {
-                this.dataTable[i] = data.data[key];
-                this.dataTable[i].__ID__ = key;
-                for(var _key in data.data[key])
-                    if(_key != "__NEXT__" && data.data[key][_key].tableId && data.data[key][_key].tableId != this.inputs.id) 
-                        this.tableIds[data.data[key][_key].tableId] = data.data[key][_key].tableId;
-                key = this.getNextI(data.data, key);
-            }
+            for(var key in data.data) this.dataTable.push(data.data[key]);
             if(this.inputs.searchObjectId) this.searchCell(this.inputs.searchObjectId);
             
             this.lastUpdateTime = data.time;
@@ -97,10 +85,6 @@ export class TableEditorComponent implements OnInit
             if(func) func();
             /* trace(new Date().getTime() - START); */
         });
-    }
-    getNextI(object, next)
-    {
-        for(var key in object) if(object[key].__NEXT__ == next) return key;
     }
     /*************************************************/
     private globalStop = false;

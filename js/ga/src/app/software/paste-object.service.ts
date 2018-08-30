@@ -12,7 +12,8 @@ export class PasteObjectService {
             {
                 this.modal.Data[1][1] = this.getInfo(value);
             }}],
-            ["Описание", "Копирует по значению", "html"]
+            ["Описание", "Копирует по значению", "html"],
+            ["Новое имя", "", "text"]
         ], 
         ok: "Копировать",
         cancel: "Отмена"
@@ -71,9 +72,8 @@ export class PasteObjectService {
                 case "Копировать структуру": type = "struct"; break;
                 case "Наследовать": type = "inherit"; break;
             }
-        this.query.protectionPost(114, { param: [ id, parent, type ] }, (data) =>
+        this.query.protectionPost(114, { param: [ id, parent, type, this.Data.data[2][1] ] }, (data) =>
         {
-            trace(data)
             if(data == "ERROR") this.modal.open({ title: "Ошибка! Конечная папка является дочерней для копируемой!", data: [], ok: "Ок", cancel: ""});
             if(func) func();
             localStorage.removeItem("copyExplorer");
