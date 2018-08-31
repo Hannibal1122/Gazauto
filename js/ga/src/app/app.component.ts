@@ -168,6 +168,10 @@ export class AppComponent implements OnInit
             case "open":
                 this.openSoftware(e.value.name, e.value);
                 break;
+            case "info":
+                if(this.tabs[this.currentSoftware].type == "info")
+                    this.tabs[this.currentSoftware].inputFromApp = e.value.id;
+                break;
         }
     }
     onChangeInSoftware(e) // Происходит из других приложений

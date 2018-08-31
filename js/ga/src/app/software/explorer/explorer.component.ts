@@ -222,7 +222,7 @@ export class ExplorerComponent implements OnInit
         iframe.style.display = "none";
         iframe.setAttribute("src", this.query.protectionGet(121, elem.id));
         document.body.appendChild(iframe);
-        iframe.onload = () => { document.body.removeChild(iframe); } // надо удалять!!!
+        iframe.onload = () => { document.body.removeChild(iframe); } // надо удалять!
         /* document.body.appendChild(iframe); */
     }
     getRenameObject() // Переименовать объект

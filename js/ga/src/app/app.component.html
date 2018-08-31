@@ -128,6 +128,7 @@
                 <span *ngIf = "tab.type == 'explorer'"> <i class = "fas fa-sitemap colorIconExplorer"></i> </span>
                 <span *ngIf = "tab.type == 'table'"> <i class = "fas fa-table colorIconTable"></i> </span>
                 <span *ngIf = "tab.type == 'event'"> <i class = "fas fa-bolt colorIconEvent"></i> </span>
+                <span *ngIf = "tab.type == 'info'"> <i class = "fas fa-info colorIconEvent"></i> </span>
                 {{tab.name}}
             </div>
             <span (click) = "closeTab(i)"><i class="fas fa-times-circle tubExitButton TabsButtonExitColor"></i></span>

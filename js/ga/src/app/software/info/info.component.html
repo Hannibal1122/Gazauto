@@ -1,3 +1,30 @@
-<p>
-  info works!
-</p>
+<div class = "row" style = "margin: 0px;">
+    <div *ngIf = "info == null" class="col-md-12">
+        <span style="color:#b8b8b8; font-size:24px; font-weight:bold"> Выберите элемент из левого меню</span>
+    </div>
+    <div *ngIf = "info != null" class="col-md-12" style = "padding: 0px; color:#566b86">
+        <div style = "width:100%; background-color: #f8f8f8; padding: 5px; font-size:20px; position:relative;">
+            <div style = "position:absolute; width:100%;height:100%; top:0px; left:0px;pointer-events: none;">
+                <div style = "position:absolute; height:4px; bottom:0px;"
+                    [style.width] = "info.state + '%'"
+                    [class.tableCellStateGreen] = "info.state == 100"
+                    [class.tableCellStateYellow] = "info.state >= 50 && info.state < 100"
+                    [class.tableCellStateRed] = "info.state < 50">
+                </div>
+            </div>
+            <span *ngIf = "info.objectType == 'folder'"><i class="fas fa-folder colorIconRole"></i></span>
+            <span *ngIf = "info.objectType == 'user'"><i class="fas fa-user colorIconRole"></i></span>
+            <span *ngIf = "info.objectType == 'role'"><i class="fas fa-address-book colorIconRole"></i></span>
+            <span *ngIf = "info.objectType == 'value'"><i class="fas fa-superscript colorIconValue"></i></span>
+            <span *ngIf = "info.objectType == 'table'"><i class="fas fa-table colorIconTable"></i></span>
+            <span *ngIf = "info.objectType == 'event'"><i class="fas fa-bolt colorIconEvent"></i></span>
+            <span *ngIf = "info.objectType == 'right'"><i class="fas fa-address-card"></i></span>
+            <span *ngIf = "info.objectType == 'tlist'"><i class="fas fa-list-ol colorIconValue"></i></span>
+            {{ info.name }}<span style = "font-size: 12px;">(id: {{ info.id }})</span>
+        </div>
+        <div style = "width:100%; background-color: #f8f8f8; padding: 5px; font-size:16px; margin-top:10px;">
+            <span *ngIf = "info.info">{{ info.info }}</span>
+            <span *ngIf = "!info.info" style = "color:#8ca2be;">Информация отсутствует!</span>
+        </div>   
+    </div>
+</div>

@@ -123,6 +123,10 @@ export class LeftMenuElementComponent implements OnInit
                 break;
         }
     }
+    getInfo(data)
+    {
+        this.onChange.emit({ type: "info", value: { id: data.id }});
+    }
     straighten(out, data, level, parent) // из объекта получаем одномерный массив со всеми полями дерева
     {
         let childrens = data.childrens;

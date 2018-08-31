@@ -239,6 +239,7 @@
             else query("UPDATE line_ids SET next = %s WHERE id = %i", [$idNext, $idPrevRow]); 
             query("DELETE FROM line_ids WHERE id = %i", [ $idRow ]);
             query("DELETE FROM fields WHERE tableId = %i AND i = %i AND type != 'head'", [ $idTable, $idRow ]);
+            $this->calculateStateForTable($idTable);
             addLog("table", "update", $idTable);
         }
         function copyCell($idCellTo, $idTableTo, $idCellFrom, $idTableFrom, $operation, $typePaste, $echo) // Копировать ячейку

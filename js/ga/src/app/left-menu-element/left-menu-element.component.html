@@ -26,6 +26,7 @@
     <div *ngFor = "let data of outData; let i = index;" [hidden] = "(search == '' && data.hide) || (search != '' && data.searchHide)">
         <div [style.marginLeft.px] = "search == '' ? (15 * data.level) : 0">
             <div class = "elementMenu" 
+                (click) = "getInfo(data)"
                 (dblclick) = "openElement(data)" 
                 draggable="true" style = "user-select:none;" 
                 (dragstart) = "dragEvents(data, $event)">

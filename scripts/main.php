@@ -347,6 +347,11 @@
                         if((getRights($idElement) & 1) != 1) return; // Права на просмотр
                         echo selectOne("SELECT name FROM structures WHERE id = %i", [ $idElement ]);
                         break;
+                    case 127: // запрос информации об элементе структуры для приложения справка
+                        $idElement = (int)$param[0];
+                        if((getRights($idElement) & 1) != 1) return; // Права на просмотр
+                        request("SELECT objectType, info, state, name FROM structures WHERE id = %i", [ $idElement ]);
+                        break;
                 }
             if($nQuery >= 150 && $nQuery < 200) // Работа с Пользователями // Только admin
             {

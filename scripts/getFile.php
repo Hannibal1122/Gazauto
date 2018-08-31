@@ -9,7 +9,7 @@
     Header("Connection: close");
     Header("Content-Type: application/octet-stream");
     Header("Accept-Ranges: bytes");
-    Header("Content-Disposition: Attachment; filename=".basename($filePathForDownload));
+    Header("Content-Disposition: Attachment; filename=".$name);
     Header("Content-Length: ".$fsize);
 
     // Открыть файл для чтения и отдавать его частями
@@ -22,7 +22,7 @@
             break;
         }
         echo fread($f, 10000);
-        sleep(1); // Пазуа в 1 секунду. Скорость отдачи 10000 байт/сек
+        usleep(400000); // Пазуа в 0.4 секунду. Скорость отдачи 40000 байт/сек
     }
     fclose($f);
 ?>				
