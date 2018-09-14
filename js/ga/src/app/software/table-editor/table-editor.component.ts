@@ -74,7 +74,7 @@ export class TableEditorComponent implements OnInit
             this.dataTable = [];
             this.firstData = data.data;
             for(var i = 0; i < data.head.length; i++)
-                this.dataHeader.push({ i: data.head[i][0], value: data.head[i][1] });
+                this.dataHeader.push({ i: data.head[i][0], value: data.head[i][1], id: data.head[i][2] });
             this.tableIds = data.tableIds;
             let l = Object.keys(data.data).length;
             for(var key in data.data) this.dataTable.push(data.data[key]);
@@ -195,7 +195,9 @@ export class TableEditorComponent implements OnInit
                             {
                                 if(selected == "по значению" && values.length != 0)
                                     this.modal.Data[1] = ["Значение:", {selected: 0, data: values, value: valuesI }, "select"];
-                                else this.modal.Data.splice(1, 1);
+                                else 
+                                    if(_nameColumn) this.modal.Data[1] = ["Назначить тип столбцу", false, "checkbox"];
+                                    else this.modal.Data.splice(1, 1);
                             }}]
                         ];
                         if(value[1] == "array")
@@ -213,6 +215,9 @@ export class TableEditorComponent implements OnInit
                         {
                             if(save)
                             {
+                                if(_nameColumn && this.modal.Data[1][0] == "Назначить тип столбцу" && this.modal.Data[1][1]) // Назначение типа столбцу сбросить/назначить
+                                    this.addToQueue(264, [ this.inputs.id, this.dataHeader[Number(_nameColumn)].id, data.id ], () => {});
+                                else this.addToQueue(265, [ this.inputs.id, this.dataHeader[Number(_nameColumn)].id ], () => {});
                                 if(this.modal.Data[0][1].selected == "по значению")
                                     for(k = beginI; k <= endI; k++)
                                     {
@@ -227,6 +232,7 @@ export class TableEditorComponent implements OnInit
                                         })(k);
                                      }
                                 if(this.modal.Data[0][1].selected == "по ссылке")
+                                {
                                     for(k = beginI; k <= endI; k++)
                                     {
                                         let ID = this.dataTable[k][nameColumn].id;
@@ -238,23 +244,40 @@ export class TableEditorComponent implements OnInit
                                             });
                                         })(k);
                                     }
+                                }
                             }
                         });
                     });
                     break;
                 case "tlist":
-                    // Проверка на вставку в себя (по tableId) 
-                    for(k = beginI; k <= endI; k++)
+                    // Проверка на вставку в себя (по tableId)
+                    let Data:any = [["Назначить тип столбцу", false, "checkbox"]];
+                    let addFunction = () =>
                     {
-                        let ID = this.dataTable[k][nameColumn].id;
-                        ((i) =>{
-                            this.addToQueue(255, [ this.inputs.id, data.id, ID, nameColumn ], (data) =>
-                            {
-                                this.dataTable[i][nameColumn] = data;
-                                if(--length == 0) this.editTable.data = this.dataTable; // update edit table
-                            });
-                        })(k);
+                        /* if(_nameColumn) // Назначение типа столбцу ПОКА НЕ рЕШЕНО КАК ДЕЛАТЬ
+                            this.addToQueue(264, [ this.inputs.id, this.dataHeader[Number(_nameColumn)].id, data.id ], () => {}); */
+                        for(k = beginI; k <= endI; k++)
+                        {
+                            let ID = this.dataTable[k][nameColumn].id;
+                            ((i) =>{
+                                this.addToQueue(255, [ this.inputs.id, data.id, ID, nameColumn ], (data) =>
+                                {
+                                    this.dataTable[i][nameColumn] = data;
+                                    if(--length == 0) this.editTable.data = this.dataTable; // update edit table
+                                });
+                            })(k);
+                        }
                     }
+                    if(_nameColumn)
+                        this.modal.open({ 
+                            title: "Как добавить элемент в таблицу", 
+                            data: Data, 
+                            ok: "Добавить", cancel: "Отмена"
+                        }, (save) =>
+                        {
+                            if(save) addFunction();
+                        }); 
+                    else addFunction();
                     break;
                 case "file": 
                 case "table": 
@@ -470,6 +493,49 @@ export class TableEditorComponent implements OnInit
     }
     importFromExcel()
     {
-
+        let Data:any = {
+            title: "Импорт файла",  
+            data: [
+                ["Файл", [], "uploader", 128, 118, 1]
+            ],
+            ok: "Загрузить",
+            cancel: "Отмена"
+        }
+        this.modal.open(Data, (save) =>
+        {
+            if(save)
+            {
+                if(Data.data[0][1].length == 0) return "Добавьте файл!";  
+                this.query.protectionPost(266, { param: [this.inputs.id, Data.data[0][1][0].fullName] }, (data) => 
+                { 
+                    this.modal.close(false);
+                    for(var i = 0; i < data.length; i++) data[i].checked = true;
+                    this.modal.open({
+                        title: "Импорт файла",  
+                        data: [
+                            ["Список", data, "import", true]
+                        ],
+                        ok: "Импорт",
+                        cancel: "Отмена"
+                    }, (save) =>
+                    {
+                        if(save)
+                        {
+                            let modalData = this.modal.Data[0][1];
+                            let out = {};
+                            for(var i = 0; i < modalData.length; i++)
+                                if(modalData[i].checked) 
+                                {
+                                    if(!out[modalData[i].tableId]) out[modalData[i].tableId] = [];
+                                    out[modalData[i].tableId].push({ id: modalData[i].id, value: modalData[i].value });
+                                }
+                            this.addToQueue(267, [JSON.stringify(out)], () => {});
+                            this.modal.close(false);
+                        }
+                    });
+                });
+                return "Загрузка";
+            }
+        });
     }
 }

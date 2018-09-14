@@ -100,6 +100,26 @@
                             </table>
                         </div>
                         <!-- ******************************************************************************** -->
+                        <div *ngIf = "data[2] === 'import'">
+                            <table class = "modal-table-right">
+                                <tbody>
+                                    <tr>
+                                        <td></td>
+                                        <td>Старое значение</td>
+                                        <td></td>
+                                        <td>Новое значение</td>
+                                    </tr>
+                                    <tr *ngFor = "let field of data[1]">
+                                        <td><input type = "checkbox" [checked]="field.checked" [(ngModel)] = "field.checked" (change) = "checkAll(data)"></td>
+                                        <td>{{ field.oldValue }}<sub>{{ field.id }}</sub></td>
+                                        <td><i class="fas fa-arrow-right"></i></td>
+                                        <td>{{ field.value }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <input type = "checkbox" [checked]="data[3]" [(ngModel)] = "data[3]" (change) = "selectAll(data)"> Выбрать все
+                        </div>
+                        <!-- ******************************************************************************** -->
                     </td>
                 </tr>
             </tbody>

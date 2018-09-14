@@ -15,7 +15,7 @@
             $data = [];
             if($result = query("SELECT name, NOW(), bindId, state FROM structures WHERE id = %i", [$idTable]))
                 while ($row = $result->fetch_array(MYSQLI_NUM)) { $nameTable = $row[0]; $timeOpen = $row[1]; $bindId = $row[2]; $stateTable = (int)$row[3]; }
-            if($result = query("SELECT i, name_column FROM fields WHERE tableId = %i AND type = 'head' ORDER by i", [$idTable]))
+            if($result = query("SELECT i, name_column, id FROM fields WHERE tableId = %i AND type = 'head' ORDER by i", [$idTable]))
                 while ($row = $result->fetch_array(MYSQLI_NUM)) 
                     $head[] = $row;
             if($result = query("SELECT i, name_column, value, type, linkId, linkType, fields.id, state, next, eventId FROM fields LEFT JOIN line_ids ON line_ids.id = fields.i WHERE tableId = %i AND type != 'head'", [$idTable]))
@@ -215,10 +215,16 @@
             $out = ["__ID__" => $idRow];
             if($idPrevRow != -1) query("UPDATE line_ids SET next = %i WHERE id = %i", [$idRow, $idPrevRow]); 
             if($idNextRow != -1) query("UPDATE line_ids SET next = %i WHERE id = %i", [$idNextRow, $idRow]); 
-            if($result = query("SELECT name_column FROM fields WHERE tableId = %i AND type = 'head'", [$idTable]))
+            if($result = query("SELECT name_column, value FROM fields WHERE tableId = %i AND type = 'head'", [$idTable]))
                 while ($row = $result->fetch_array(MYSQLI_NUM)) 
                 {
-                    query("INSERT INTO fields (tableId, i, name_column, type, value) VALUES(%i, %i, %s, %s, %s) ", [ $idTable, $idRow, $row[0], "value", "" ]);
+                    if($row[1] != "")
+                    {
+                        $idField = (int)selectOne("SELECT objectId FROM structures WHERE id = %i", [ (int)$row[1] ]);
+                        $type = selectOne("SELECT type FROM my_values WHERE id = %i", [ $idField ]) == "tlist" ? "tlist" : "value";
+                        query("INSERT INTO fields (tableId, i, name_column, type, value, linkId, linkType) VALUES(%i, %i, %s, 'link', '0', %i, %s)", [ $idTable, $idRow, $row[0], $idField, $type ]);
+                    }
+                    else query("INSERT INTO fields (tableId, i, name_column, type, value) VALUES(%i, %i, %s, 'value', '') ", [ $idTable, $idRow, $row[0] ]);
                     $out[$row[0]] = ["id" => $mysqli->insert_id, "value" => ""];
                 }
             if($echo)
@@ -411,7 +417,7 @@
             if($result = query("SELECT i, name_column, value, type, linkId, linkType, fields.id, state, next FROM fields LEFT JOIN line_ids ON line_ids.id = fields.i WHERE tableId = %i AND type != 'head'", [$idTable]))
                 while ($row = $result->fetch_array(MYSQLI_NUM)) 
                 {
-                    $field = [ "id" => (int)$row[6], "value" => $row[2], "state" => $row[7] ];
+                    $field = [ "id" => (int)$row[6], "value" => $row[2], "state" => $row[7], "tableId" => $idTable ];
                     if($row[3] == "link")
                     {
                         $field["linkId"] = (int)$row[4];
@@ -451,7 +457,7 @@
         function getNextI($object, $next) { foreach($object as $key => $value) if($value["__NEXT__"] == $next) return $key; }
         function export()
         {
-            require_once("exportToExcel.php");
+            require_once("WorkWithExcel.php");
             require_once("myField.php");
             $data = $this->getArrayTable();
             $out = [];
@@ -468,12 +474,19 @@
                     {
                         $type = array_key_exists("type", $data[$i][$j]) ? $data[$i][$j]["type"] : "";
                         $out[$i][$j]["type"] = $type;
-                        $metaData[$i][$j] = [ "id" => $data[$i][$j]["id"], "type" => $type];
+                        $metaData[$i][$j] = [ "id" => $data[$i][$j]["id"], "type" => $type ];
+                        if(array_key_exists("tableId", $data[$i][$j])) $metaData[$i][$j]["tableId"]= $data[$i][$j]["tableId"];
                     }
                 }
             }
-            $excel = new ExportToExcel();
+            $excel = new WorkWithExcel();
             $excel->export($out, $metaData);
+        }
+        function import($name)
+        {
+            require_once("WorkWithExcel.php");
+            $excel = new WorkWithExcel();
+            $excel->import($name, $this);
         }
     }
     class Structures

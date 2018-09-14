@@ -352,6 +352,18 @@
                         if((getRights($idElement) & 1) != 1) return; // Права на просмотр
                         request("SELECT objectType, info, state, name FROM structures WHERE id = %i", [ $idElement ]);
                         break;
+                    case 128: // Импорт таблицы на сервер
+                        echo loadFile(10, ['xls','xlsx']);
+                        break;
+                    case 129: // Получить тип элемента на который ссылается ярлык
+                        $idElement = (int)$param[0];
+                        if((getRights($idElement) & 1) != 1) return; // Права на просмотр
+                        $out = [];
+                        if($result = query("SELECT id, objectType, objectId, name, parent, priority, info, bindId, state FROM structures WHERE id = %i", [ $idElement ]))
+                            while ($row = $result->fetch_array(MYSQLI_NUM)) 
+                                $out = getObjectFromStructures($row);
+                        echo json_encode($out);
+                        break;
                 }
             if($nQuery >= 150 && $nQuery < 200) // Работа с Пользователями // Только admin
             {
@@ -449,8 +461,11 @@
             if($nQuery >= 250 && $nQuery < 300) // Работа с таблицой 
             {
                 require_once("myTable.php"); // $myTable класс для работы с таблицей
-                $idTable = (int)$param[0];
-                $myTable = new MyTable($idTable);
+                if($nQuery != 267) // В 267 id таблицы нужно получить по ячейке 
+                {
+                    $idTable = (int)$param[0];
+                    $myTable = new MyTable($idTable);
+                }
                 switch($nQuery)
                 {
                     case 250: // Запрос таблицы
@@ -530,6 +545,7 @@
                         break;
                     case 262: // Добавление события из левого меню на ячейку
                         if((getRights($idTable) & 1) != 1) return; // Права на просмотр
+                        $eventId = (int)$param[1];
                         $type = selectOne("SELECT type FROM events WHERE id = %i", [ $eventId ]);
                         if($type != "date") query("UPDATE fields SET eventId = %i WHERE id = %i", [$eventId, (int)$param[2]]);
                         else echo json_encode(false);
@@ -537,6 +553,30 @@
                     case 263: // Удаление события с ячейки
                         if((getRights($idTable) & 1) != 1) return; // Права на просмотр
                         query("UPDATE fields SET eventId = NULL WHERE id = %i", [(int)$param[1]]);
+                        break;
+                    case 264: // Назначить тип столбцу
+                        $idField = (int)$param[1];
+                        $idValue = (int)$param[2];
+                        // Пока тип может быть только из списка
+                        query("UPDATE fields SET value = %i WHERE id = %i AND type = 'head' AND tableId = %i", [ $idValue, $idField, $idTable ]);
+                        break;
+                    case 265: // Сбросить тип столбца
+                        $idField = (int)$param[1];
+                        query("UPDATE fields SET value = NULL WHERE id = %i AND type = 'head' AND tableId = %i", [ $idField, $idTable ]);
+                        break;
+                    case 266: // Импорт файла
+                        $nameFile = $param[1];
+                        if((getRights($idTable) & 8) != 8) return; // Права на изменение
+                        $myTable->import("../tmp/$nameFile");
+                        break;
+                    case 267: // Обновление ячейки по id для импорта
+                        $data = json_decode($param[0]);
+                        foreach($data as $idTable => $value)
+                        {
+                            $myTable = new MyTable($idTable);
+                            if((getRights($idTable) & 8) != 8) continue; // Права на изменение
+                            for($i = 0, $c = count($value); $i < $c; $i++) $myTable->setCell($value[$i], true);
+                        }
                         break;
                 }
             }
@@ -733,7 +773,7 @@
                             {
                                 require_once("FASM.php"); // класс для работы с событиями
                                 $fasm = new FASM();
-                                $fasm->start($row[3]);
+                                $fasm->start($row[3], -1);
                                 $nextDateTime = getNextDateForEvent($row[1])->format("Y-m-d H:i:s");
                                 if($nextDateTime == $row[2]) query("UPDATE events SET ready = 1 WHERE id = %i", [(int)$row[0]]);
                                 else query("UPDATE events SET date = %s WHERE id = %i", [$nextDateTime, (int)$row[0]]);
@@ -805,6 +845,10 @@
     function selectOne($_query, $param) // Запрос одного значения
     {
         return query($_query, $param)->fetch_array(MYSQLI_NUM)[0];
+    }
+    function selectArray($_query, $param) // Запрос одного значения
+    {
+        return query($_query, $param)->fetch_array(MYSQLI_NUM);
     }
     function getRights($objectId)
     {

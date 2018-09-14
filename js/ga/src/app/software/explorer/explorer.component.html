@@ -71,6 +71,7 @@
                         <i *ngIf = "object.fileType == 'doc'" class="fas fa-file-word colorIconFile" style = "font-size: 55px;"></i>
                     </span>
                     <span *ngIf = "object.objectType == 'tlist'"><i class="fas fa-list-ol colorIconValue" style = "font-size: 55px;"></i></span>
+                    <span *ngIf = "object.objectType == 'label'"><i class="fas fa-share-square colorIconRole" style = "font-size: 55px;"></i></span>
                 </div>
                 <div *ngIf = "viewType == 'list'" class = "listIcon">
                     <span *ngIf = "object.objectType == 'folder'"><i class="fas fa-folder" style = "font-size: 16px;"></i></span>
@@ -85,6 +86,7 @@
                         <i *ngIf = "object.fileType == 'doc'" class="fas fa-file-word colorIconFile" style = "font-size: 16px;"></i>
                     </span>
                     <span *ngIf = "object.objectType == 'tlist'"><i class="fas fa-list-ol colorIconValue" style = "font-size: 16px;"></i></span>
+                    <span *ngIf = "object.objectType == 'label'"><i class="fas fa-share-square colorIconRole" style = "font-size: 16px;"></i></span>
                 </div>
                 <div *ngIf = "object.bindId" 
                     style = "position:absolute; right:25px; bottom:20px;" 
@@ -164,6 +166,9 @@
     <button class = "contextMenuList" (click) = "removeObject()" [disabled] = "!selectRules.remove">
         <span *ngIf = "!selectRules.remove"><i class="fas fa-lock" style = "font-size:10px;"></i></span>
         Удалить</button>
+    <button class = "contextMenuList" (click) = "createLabel()">
+        <span><i class="fas fa-share-square" style = "font-size:10px;"></i></span>
+        Создать ярлык</button>
     <button class = "contextMenuList" (click) = "downloadObject()" [disabled] = "!selectRules.download">
         <span *ngIf = "!selectRules.download"><i class="fas fa-lock" style = "font-size:10px;"></i></span>
         Скачать</button>

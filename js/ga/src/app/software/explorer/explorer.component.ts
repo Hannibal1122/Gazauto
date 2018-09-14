@@ -177,6 +177,12 @@ export class ExplorerComponent implements OnInit
                     this.createTableList.create(null, () => { this.refresh() }, data[3], { id: object.id, fieldId: Number(data[2]), name: object.name });
                 });
                 break;
+            case "label":
+                this.query.protectionPost(129, { param: [ object.objectId ] }, (data) => 
+                {
+                    this.openObject(data);
+                });
+                break;
         }
     }
     createObject(id, type, data) // Создать объект
@@ -270,7 +276,22 @@ export class ExplorerComponent implements OnInit
             case "tlist":
                 this.createTableList.remove(id, () => { this.refresh() });
                 break;
+            case "label":
+                this.createFolder.remove(id, () => { this.refresh() }); // Используется элемент от папки тк алгоритм удаления одинаков
+                break;
         }
+    }
+    createLabel()
+    {
+        if(this.selectObjectI == -1) return;
+        var id = this.outFolders[this.selectObjectI].id;
+        var objectType = this.outFolders[this.selectObjectI].objectType;
+        var name = this.outFolders[this.selectObjectI].name;
+
+        this.query.protectionPost(100, { param: ["label", id, name, this.parent, 0, ""] }, (data) => 
+        {  
+            this.refresh();
+        });
     }
     searchObjectI = -1;
     searchTimeout = null

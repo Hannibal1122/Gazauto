@@ -177,4 +177,13 @@ export class ModalWindowComponent
         if(data.error != undefined && data.error != "")
             this.error = data.error;
     }
+    selectAll(data) // Для import снять/выбрать все
+    {
+        for(var i = 0; i < data[1].length; i++) data[1][i].checked = data[3];
+    }
+    checkAll(data) // Для import снять/установить selectAll
+    {
+        data[3] = true;
+        for(var i = 0; i < data[1].length; i++) data[3] &= data[1][i].checked;
+    }
 }

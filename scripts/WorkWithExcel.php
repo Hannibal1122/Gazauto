@@ -1,7 +1,7 @@
 <?php   
-    class ExportToExcel
+    class WorkWithExcel
     {
-        function export($data, $meta)
+        function export($data, $metaData)
         {
             require_once dirname(__FILE__).'/PHPExcel.php';
             $styleArray = [
@@ -19,7 +19,7 @@
             ];
             $objPHPExcel = new PHPExcel();
             $activeSheet = $objPHPExcel->setActiveSheetIndex(0);
-            $objPHPExcel->getProperties()->setDescription(json_encode($meta));
+            $objPHPExcel->getProperties()->setDescription(json_encode($metaData));
             for($i = 0, $h = count($data); $i < $h; $i++)
                 for($j = 0, $w = count($data[$i]); $j < $w; $j++)
                 {
@@ -42,6 +42,59 @@
             $objWriter->save("../export/$nameFile.xlsx");
             echo json_encode(["http://localhost:8081/gazprom/export/$nameFile.xlsx", $nameFile]);
             /* echo json_encode(["/export/$nameFile.xlsx", $nameFile]); */
+        }
+        function import($nameFile, $table)
+        {
+            require_once dirname(__FILE__) . '/PHPExcel.php';
+            $objReader = PHPExcel_IOFactory::createReader('Excel2007');
+            $objReader->setReadDataOnly(true);
+            $objPHPExcel = $objReader->load($nameFile);
+            $_metaData = json_decode($objPHPExcel->getProperties()->getDescription());
+            $out = [];
+            $fileData = $objPHPExcel->getActiveSheet()->toArray();
+            $metaData = [];
+            for($i = 0, $c = count($_metaData); $i < $c; $i++) // Выпрямление объекта из stdObject в Array
+            {
+                $metaData[$i] = [];
+                $j = 0;
+                foreach($_metaData[$i] as $key => $value)
+                {
+                    if($key != $j)
+                    {
+                        for($k = $j; $k < $key; $k++) $metaData[$i][$k] = null;
+                        $j = $k;
+                    }
+                    $metaData[$i][$j++] = $value;
+                }
+            }
+            require_once("myField.php");
+            $myField = new MyField();
+            for($i = 0, $c = count($metaData); $i < $c; $i++)
+                for($j = 0, $c2 = count($metaData[$i]); $j < $c2; $j ++)
+                {
+                    if(!isset($metaData[$i][$j])) continue;
+                    $id = $metaData[$i][$j]->id;
+                    $fieldData = selectArray("SELECT value, type, linkId, linkType, id FROM fields WHERE id = %i", [ $id ]);
+                    if($fieldData[1] == "head") continue;
+                    $field = [ "id" => (int)$fieldData[4], "value" => $fieldData[0] ];
+                    if($fieldData[1] == "link")
+                    {
+                        $field["linkId"] = (int)$fieldData[2];
+                        switch($fieldData[3])
+                        {
+                            case "tlist": 
+                            case "value": $myField->getValue($field); break;
+                            case "file": $myField->getFile($field, $fieldData[3]); break;
+                            case "table": $myField->getTable($field, $fieldData[3]); break;
+                            case "cell": $myField->getCell($field); break;
+                        }
+                    }
+                    $oldValue = $field["value"];
+                    if($fileData[$i][$j] != $oldValue)
+                        $out[] = [ "id" => $id, "value" => $fileData[$i][$j], "oldValue" => $oldValue, "tableId" => $metaData[$i][$j]->tableId ];
+                }
+            echo(json_encode($out));
+            unlink($nameFile); 
         }
     }
     /* $_param = json_decode($param);
