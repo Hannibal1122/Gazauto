@@ -73,6 +73,8 @@
                 [style.width] = "panelApp.width + 'px'" 
                 class = "mainPanelApp PanelAppColor">
                 <div class="mainPanelAppTitle PanelAppTitleColor">События</div>
+                <div style = "font-size: 32px; text-align: center;"><i class="fas fa-wrench"></i></div>
+                <div style = "font-size: 12px; text-align: center;">В разработке</div>
             </div>
             <div *ngIf = "currentMiniApp == 'app'"
                 [style.width] = "panelApp.width + 'px'" 
@@ -89,7 +91,9 @@
                 [style.width] = "panelApp.width + 'px'" 
                 class = "mainPanelApp PanelAppColor">
                 <div class="mainPanelAppTitle PanelAppTitleColor">Чат</div>
-                <div style = "width:100%; padding: 5px; display: flex; flex-direction: column; align-items: flex-start;">
+                <div style = "font-size: 32px; text-align: center;"><i class="fas fa-wrench"></i></div>
+                <div style = "font-size: 12px; text-align: center;">В разработке</div>
+                <!-- <div style = "width:100%; padding: 5px; display: flex; flex-direction: column; align-items: flex-start;">
                     <div>
                         <div style = "font-size: 12px;">Человек</div>
                         <div class = "leftMenuTitleBColor" style = "border-radius: 5px; padding: 4px;">Привет!</div>
@@ -101,7 +105,7 @@
                 </div>
                 <div style = "width:100%; padding: 5px;">
                     <textarea placeholder = "Напишите текст" style = "width:100%;"></textarea>
-                </div>
+                </div> -->
             </div>
             <div *ngIf = "currentMiniApp == 'settings'"
                 [style.width] = "panelApp.width + 'px'" 
@@ -115,6 +119,7 @@
                         <i class="fas fa-sign-out-alt"></i>
                     </span>
                 </div>
+                <user-settings></user-settings>
             </div>
         </div>
     </div>

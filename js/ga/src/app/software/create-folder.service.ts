@@ -25,7 +25,10 @@ export class CreateFolderService
             if(save)
             {
                 if(this.Data.data[0][1] == "") return "Введите имя!";
-                this.query.protectionPost(100, { param: ["folder", "NULL", this.Data.data[0][1], id, 0, ""] }, (data) => { update() });
+                this.query.protectionPost(100, { param: ["folder", "NULL", this.Data.data[0][1], id, 0, ""] }, (data) => 
+                { 
+                    update();
+                });
             }
         });
     }

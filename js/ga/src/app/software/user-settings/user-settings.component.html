@@ -1,0 +1,27 @@
+<div style = "padding-left: 10px; font-weight:bold; font-size:14px; position: relative;">
+    Язык: 
+    <select>
+        <option>Русский</option>
+        <option>Английский</option>
+    </select>
+</div>
+<hr style = "margin-top: 5px; margin-bottom: 5px;">
+<div class="mainPanelAppTitle PanelAppTitleColor" style="font-size:14px; height:20px; text-align: center;">Фильтры</div>
+<div style = "padding: 10px; font-weight:bold; font-size:14px; position: relative;">
+    Текущий: 
+    <select (change) = "saveFilter()" [(ngModel)] = "selectFilterSaveI">
+        <option>По умолчанию</option>
+        <option *ngFor = "let option of selectFilter">{{ option }}</option>
+    </select>
+</div>
+<div style = "padding: 10px; font-weight:bold; font-size:14px; position: relative;">
+    <select size = "5" style = "width:203px;" [(ngModel)] = "selectFilterI">
+        <option *ngFor = "let option of selectFilter">{{ option }}</option>
+    </select>
+    <br>
+    <input type = "text" style = "width:140px;" placeholder="имя" [(ngModel)] = "nameFilter">
+    <button (click) = "removeFilter()"><i class = "fa fa-minus"></i></button>
+    <button (click) = "addFilter()"><i class = "fa fa-plus"></i></button>
+</div>
+
+<hr style = "margin-top: 5px; margin-bottom: 5px;">

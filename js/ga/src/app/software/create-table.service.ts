@@ -42,6 +42,7 @@ export class CreateTableService
             if(save)
                 this.query.protectionPost(112, { param: [id] }, (data) => 
                 { 
+                    trace(data)
                     /* this.query.protectionPost(254, { param: [id] }, (data) => 
                     { */
                         update();

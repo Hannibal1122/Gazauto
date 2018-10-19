@@ -32,6 +32,9 @@ export class AppComponent implements OnInit
     constructor(private query: QueryService, private lib: FunctionsService) 
     { 
         query.post(0, {}, (data) => { this.Version = data.main });
+        if(location.search == "?set_type=install")
+            $.post('http://localhost:8081/gazprom/scripts/main.php', {nquery: -1}, (data)=>{ console.log(data) });
+        /* query.post(10, {}, (data) => { trace(data) }); */
     }
     leftMenuScroll = 
     {
@@ -252,6 +255,7 @@ export class AppComponent implements OnInit
                 software: software,
                 inputFromApp: null,
             };
+        this.tabs[i].software.inputs.updateHistory = (input) => { this.setSaveTab(i, type, input); } 
         return i;
     }
     /*******************************************************************/
@@ -340,4 +344,3 @@ export class AppComponent implements OnInit
         localStorage.setItem("Tabs", JSON.stringify(saveData));
     }
 }
-/* $.post('http://localhost:8081/gazprom/scripts/main.php', {nquery: -1}, (data)=>{console.log(data)}); */

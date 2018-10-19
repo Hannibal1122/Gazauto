@@ -22,6 +22,9 @@
             <span *ngIf = "info.objectType == 'tlist'"><i class="fas fa-list-ol colorIconValue"></i></span>
             {{ info.name }}<span style = "font-size: 12px;">(id: {{ info.id }})</span>
         </div>
+        <div class = "col-md-12" style = "font-size:12px; color:#8f8f8f">
+            <span *ngFor = "let path of allPath">{{ path.name }}/</span>
+        </div>
         <div style = "width:100%; background-color: #f8f8f8; padding: 5px; font-size:16px; margin-top:10px;">
             <span *ngIf = "info.info">{{ info.info }}</span>
             <span *ngIf = "!info.info" style = "color:#8ca2be;">Информация отсутствует!</span>

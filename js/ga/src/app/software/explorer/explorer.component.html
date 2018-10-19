@@ -25,8 +25,8 @@
     <div class = "col-md-12" style = "user-select:none; padding-right:5px; padding-left:5px;">
         <button class = "mainButton" title = "Назад" (click) = "openBackFolder()"><i class="fas fa-arrow-left"></i></button>
         <button class = "mainButton" title = "Добавить элемент" (click) = "newObject()" [disabled] = "!selectRules.new"><i class="fas fa-file"></i></button>
-        <button class = "mainButton" title = "Вставить" (click) = "_pasteObject()" [disabled] = "!selectRules.paste"><i class="fas fa-paste"></i></button>
-        <button class = "mainButton" title = "Вырезать" (click) = "copyObject('cut')" [disabled] = "!selectRules.cut"><i class="fas fa-cut"></i></button>
+        <button class = "mainButton" title = "Вставить" (click) = "_pasteObject()" [disabled] = "!selectRules.paste || inputs.parentBind"><i class="fas fa-paste"></i></button>
+        <button class = "mainButton" title = "Вырезать" (click) = "copyObject('cut')" [disabled] = "!selectRules.cut || inputs.parentBind"><i class="fas fa-cut"></i></button>
         <button class = "mainButton" title = "Копировать" (click) = "copyObject('copy')" [disabled] = "!selectRules.copy"><i class="fas fa-copy"></i></button>
         <button class = "mainButton" title = "Добавить права" (click) = "createObject(outFolders[selectObjectI].id, 'Права', null)" [disabled] = "!selectRules.rights"><i class="fas fa-address-card"></i></button>
         <button class = "mainButton" title = "Справка" (click) = "addInfo()" [disabled] = "!selectRules.info"><i class="fas fa-info"></i></button>

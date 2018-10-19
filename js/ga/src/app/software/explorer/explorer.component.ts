@@ -45,7 +45,10 @@ export class ExplorerComponent implements OnInit
             else if(value.element) this.openObjectById("element", value.element);
     }
     onChange = null;
-    inputs = { id: -1, element: null, searchObjectId: null };
+    inputs = { id: -1, element: null, searchObjectId: null, updateHistory: null, 
+        bind: false, // Если папка наследует
+        parentBind: false // Если папка наследуется кем-то
+    };
     allPath = [];
     parent = 0;
     outFolders = [];
@@ -330,6 +333,14 @@ export class ExplorerComponent implements OnInit
             this.selectRules.info = Boolean(right.change);
             this.selectRules.rename = Boolean(right.change) && objectType != "user" && objectType != "role" && objectType != "file";
             if(objectType == "file") this.selectRules.download = true;
+
+            if(this.inputs.bind)
+            {
+                this.selectRules.new = false;
+                this.selectRules.paste = false; 
+                this.selectRules.cut = false; 
+                this.selectRules.remove = false; 
+            }
         });
     }
     unSelectObject() // отпустить объект
@@ -342,6 +353,7 @@ export class ExplorerComponent implements OnInit
     {
         this.openStructure(id, () =>
         {
+            this.inputs.updateHistory({ id: id });
             this.unSelectObject();
             this.query.protectionPost(202, { param: [ id ] }, (data) =>
             {
@@ -350,10 +362,21 @@ export class ExplorerComponent implements OnInit
                     this.selectObjectCopy.id = JSON.parse(localStorage.getItem("copyExplorer")).id;
                     this.selectObjectCopy.type = localStorage.getItem("lastOperationExplorer");
                 }
-
                 let right = this.createRight.decodeRights(data[0]);
                 this.selectRules.paste = Boolean(right.change) && this.selectObjectCopy.id != -1;
                 this.selectRules.new = Boolean(right.change);
+                
+                this.inputs.bind = data[1] !== null; // Если это наследник
+                this.inputs.parentBind = data[2] > 0; // Если это родитель
+                if(this.inputs.bind)
+                {
+                    this.selectRules.new = false;
+                    this.selectRules.paste = false; 
+                    this.selectRules.cut = false; 
+                    this.selectRules.remove = false; 
+                }
+                if(this.inputs.parentBind) // Если основная папка кем-то наследуется
+                    this.selectRules.paste = false; 
                 if(func) func();
                 this.inputs.id = id;
             });
@@ -368,8 +391,7 @@ export class ExplorerComponent implements OnInit
     {
         this.query.protectionPost(111, { param: [ "folder", this.parent ] }, (data) =>
         {
-            if(data.length > 0)
-            this.openFolder(data[0][0]);
+            if(data.length > 0) this.openFolder(data[0][0]);
         });
     }
     openStructure(parent, func)
@@ -446,7 +468,6 @@ export class ExplorerComponent implements OnInit
         if(this.selectObjectI == -1) return;
         this.query.protectionPost(125, { param: [ this.outFolders[this.selectObjectI].id ]}, (data) =>
         {
-            trace(data)
             this.listLink.fromInherit = data.fromInherit;
             this.listLink.whoInherit = data.whoInherit;
             this.listLink.whoRefer = [];

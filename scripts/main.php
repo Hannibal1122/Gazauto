@@ -10,7 +10,6 @@
     $excelNumber = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"];
     $countExcelNumber = count($excelNumber);
 	$param = null;
-	$a = null;
     $Result = "";
     $paramL = $paramC = $paramI = null;
 	if (array_key_exists('nquery', $_GET) || array_key_exists('nquery', $_POST))
@@ -116,6 +115,18 @@
                         }
                 echo checkL($array, $login);
                 break;
+
+            case 10: // Проверка на целостность структуры
+                if($result = query("SELECT parent FROM structures", []))
+                    while ($row = $result->fetch_array(MYSQLI_NUM))
+                        if($row[0])
+                        {
+                            $error = true;
+                            if($result2 = query("SELECT name FROM structures WHERE id = %i", [ (int)$row[0] ]))
+                                while ($row2 = $result2->fetch_array(MYSQLI_NUM)) $error = false;
+                            if($error) echo $row[0]."\n";
+                        }
+                break;
         }
     if($nQuery >= 40) // Требуется логин
     {
@@ -144,8 +155,14 @@
                         if($login != "admin")
                         {
                             $right = [ $idElement , "user", $login, 255 ];
-                            query("INSERT INTO rights (objectId, type, login, rights) VALUES(%s, %i, %s, %s, %i) ", $right);
+                            query("INSERT INTO rights (objectId, type, login, rights) VALUES(%i, %s, %s, %i) ", $right);
                             addLog("right", "add", json_encode($right));
+                        }
+                        if($param[0] == "folder" || $param[0] == "table") // Проверка на то что объект наследуется
+                        {
+                            require_once("myObject.php");
+                            $myObject = new MyObject($idElement);
+                            $myObject->checkAdd();
                         }
                         echo json_encode(["Index", $idElement]);
                         addLog("structure", "add", $idElement);
@@ -188,15 +205,21 @@
                         break;
                     case 112: // Удаление элемента структуры // Права на изменение
                         require_once("myTable.php"); // $myTable класс для работы с таблицей и структурой
+                        require_once("myObject.php");
+                        
+                        $idElement = (int)$param[0];
                         $structures = new Structures(null, null, null);
-                        $out = [(int)$param[0]];
-                        getRemoveElementbyStructure($out, (int)$param[0]);
+                        $out = [ $idElement ];
+                        getRemoveElementbyStructure($out, $idElement);
+                        
+                        $myObject = new MyObject($idElement);
+                        $myObject->checkRemove($out);
                         for($i = 0, $c = count($out); $i < $c; $i++)
                         {
                             if((getRights($out[$i]) & 8) != 8) continue; // Права на изменение
                             $structures->remove($out[$i]);
                         }
-                        /* echo json_encode($out); */
+                        echo json_encode($out);
                         break;
                     case 113: // Загрузка структуры без выпрямления
                         $out = [];
@@ -210,7 +233,7 @@
                                 $elem["name"] = $row[3];
                                 $elem["state"] = $row[7];
                                 $elem["childrens"] = [];
-                                if((getRights($row[0]) & 1) == 1)
+                                if((getRights($row[0], true) & 1) == 1)
                                     if($row[4] == 0) $out[] = $elem;
                                     else searchParent($out, $row[4], $elem);
                             }
@@ -224,6 +247,9 @@
                         getRemoveElementbyStructure($out, $idElement);
                         for($i = 0, $c = count($out); $i < $c; $i++) 
                             if($out[$i] == $idParent) { echo "ERROR"; return; }
+                        
+                        if(!is_null(selectOne("SELECT bindId FROM structures WHERE id = %i", [ $idParent ])) || 
+                            selectOne("SELECT COUNT(*) FROM structures WHERE bindId = %i", [ $idParent ]) > 0) return; // Ограничение для копирования/вырезания в родителях/наследниках
 
                         require_once("myTable.php"); // $myTable класс для работы с таблицей и структурой
                         $type = $param[2]; // тип операции
@@ -243,13 +269,6 @@
                             query("UPDATE structures SET parent = %i WHERE id = %i", [$idParent, $idElement]);
                             addLog("structure", "cut", $idParent);
                         }
-                            /* case "struct": 
-                                if((getRights($idElement) & 2) != 2) continue; // Права на копирование
-                                break; // Копировать
-                            case "inherit": 
-                                if((getRights($idElement) & 4) != 4) continue; // Права на наследование
-                                break;  */
-                        /* print_r($param); */
                         break;
                     case 115: // Запрос приоритета
                         if((getRights($param[0]) & 1) != 1) continue; // Права на просмотр
@@ -455,7 +474,9 @@
                         echo json_encode($out);
                         break;
                     case 202: // Запросить права по логину
-                        echo json_encode([$paramL == "admin" ? 255 : getRights( $param[0] )]);
+                        echo json_encode([$paramL == "admin" ? 255 : getRights( (int)$param[0] ),
+                            selectOne("SELECT bindId FROM structures WHERE id = %i", [ (int)$param[0] ]), 
+                            selectOne("SELECT COUNT(*) FROM structures WHERE bindId = %i", [ (int)$param[0] ])]);
                         break;
                 }
             if($nQuery >= 250 && $nQuery < 300) // Работа с таблицой 
@@ -790,6 +811,49 @@
                         query("UPDATE events SET ready = 0 WHERE id = %i", [ $idElement ]);
                         break;
                 }
+            if($nQuery >= 450 && $nQuery < 470) // Работа с настройками пользователя
+                switch($nQuery)
+                {
+                    case 450: // Добавить фильтр
+                        $value = selectOne("SELECT value FROM user_settings WHERE login = %s AND value = %s AND type = 'name_filter'", [ $login, $param[0] ]);
+                        if(is_null($value))
+                            query("INSERT INTO user_settings (login, type, value) VALUES(%s, 'name_filter', %s)", [ $login, $param[0] ]);
+                        break;
+                    case 451: // Удалить фильтр
+                        query("DELETE FROM user_settings WHERE login = %s AND value = %s AND type = 'name_filter'", [ $login, $param[0] ]); 
+                        query("DELETE FROM filter WHERE login = %s AND name = %s", [ $login, $param[0] ]); 
+                        break;
+                    case 452: // Сохранить текущий фильтр
+                        if($param[0] == "По умолчанию")
+                        {
+                            query("DELETE FROM user_settings WHERE login = %s AND type = 'current_filter'", [ $login ]); 
+                            return;
+                        }
+                        $value = selectOne("SELECT value FROM user_settings WHERE login = %s AND type = 'current_filter'", [ $login ]);
+                        if(is_null($value))
+                            query("INSERT INTO user_settings (login, type, value) VALUES(%s, 'current_filter', %s)", [ $login, $param[0] ]);
+                        else query("UPDATE user_settings SET value = %s WHERE login = %s AND type = 'current_filter'", [ $param[0], $login ]);
+                        break;
+                    case 453: // Получить список фильтров
+                        request("SELECT value FROM user_settings WHERE login = %s AND type = 'name_filter'", [ $login ]);
+                        break;
+                    case 454: // Получить текущий фильтр
+                        echo selectOne("SELECT value FROM user_settings WHERE login = %s AND type = 'current_filter'", [ $login ]);
+                        break;
+                    case 455: // Добавить для фильтра (видно элемент)
+                        query("INSERT INTO filter (name, login, objectId) VALUES(%s, %s, %i)", [ $param[0], $login, $param[1] ]);
+                        break;
+                    case 456: // Скрыть для фильтра (элемент скрыт)
+                        query("DELETE FROM filter WHERE name = %s AND login = %s AND objectId = %i", [ $param[0], $login, $param[1] ]); 
+                        break;
+                    case 457: // Получить список по фильтрам используется/не используется
+                        $out = [];
+                        if($result = query("SELECT value FROM user_settings WHERE login = %s AND type = 'name_filter'", [ $login ]))
+                            while ($row = $result->fetch_array(MYSQLI_NUM)) 
+                                $out[$row[0]] = !is_null(selectOne("SELECT id FROM filter WHERE name = %s AND login = %s AND objectId = %i", [ $row[0], $login, $param[0] ]));
+                        echo json_encode($out);
+                        break;
+                }
         }
         /* else query("UPDATE signin SET checkkey = '', login = '' WHERE id = %s", [$paramI]); // Если пользователь послал не тот id  */
     }
@@ -850,18 +914,25 @@
     {
         return query($_query, $param)->fetch_array(MYSQLI_NUM);
     }
-    function getRights($objectId)
+    function getRights($objectId, $useFilter = false)
     {
         global $login, $role;
-        if($login == "admin") return 255;
         $rights = 0;
         $use_login = false;
-        if($result = query("SELECT type, rights FROM rights WHERE objectId = %i AND (login = %s OR login = %s)", [$objectId, $login, $role]))
-            while ($row = $result->fetch_array(MYSQLI_NUM)) 
-            {
-                if(!$use_login) $rights = (int)$row[1];
-                if($row[0] == "user") $use_login = true;
-            }
+        if($login == "admin") $rights = 255;
+        else 
+            if($result = query("SELECT type, rights FROM rights WHERE objectId = %i AND (login = %s OR login = %s)", [$objectId, $login, $role]))
+                while ($row = $result->fetch_array(MYSQLI_NUM)) 
+                {
+                    if(!$use_login) $rights = (int)$row[1];
+                    if($row[0] == "user") $use_login = true;
+                }
+        if($useFilter === true)
+        {
+            $currentFilter = selectOne("SELECT value FROM user_settings WHERE login = %s AND type = 'current_filter'", [ $login ]);
+            if(!is_null($currentFilter))
+                if(is_null(selectOne("SELECT id FROM filter WHERE name = %s AND login = %s AND objectId = %i", [ $currentFilter, $login, $objectId ]))) $rights = $rights & 254;
+        }
         return $rights;
     }
     function getFullPath(&$out, $parent)

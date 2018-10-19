@@ -519,7 +519,8 @@
                 case "value": $this->copyValue($idNewElement, $elem[1]); break;
                 case "folder": $this->copyFolder($idNewElement); break;
                 case "event": $this->copyEvent($idNewElement); break;
-            }    
+            }
+            return $idNewElement;
         }
         function copyTable($idNewElement) // Скопировать таблицу
         {
@@ -547,11 +548,12 @@
         {
             $idElement = $this->idElement;
             $typeOperation = $this->typeOperation;
+            if($this->typeOperation == "inherit") query("UPDATE structures SET bindId = %i WHERE id = %i", [ $idElement, $idNewElement ]);
             if($result = query("SELECT id FROM structures WHERE parent = %i", [$idElement]))
                 while($row = $result->fetch_array(MYSQLI_NUM))
                 {
                     $structures = new Structures((int)$row[0], $idNewElement, $typeOperation);
-                    $structures->copy();
+                    $structures->copy("");
                 }
         }
         function copyEvent($idNewElement) // Скопировать событие

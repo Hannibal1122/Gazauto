@@ -41,9 +41,10 @@ export class PasteObjectService {
         let selectValue = [];
         switch(copyExplorer.objectType)
         {
-            case "folder":
+            /* case "folder":
                 selectValue = ["Копировать", "Копировать структуру", "Наследовать"];
-                break;
+                break; */
+            case "folder":
             case "table":
                 selectValue = ["Копировать"];
                 if(copyExplorer.bindId == null) selectValue.push("Наследовать"); // Нельзя наследовать от наследуемой
