@@ -40,8 +40,8 @@
             $objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
             $nameFile = str_replace(" ", "_", "test".date("_m_d_y_H_i_s"));
             $objWriter->save("../export/$nameFile.xlsx");
-            echo json_encode(["http://localhost:8081/gazprom/export/$nameFile.xlsx", $nameFile]);
-            /* echo json_encode(["/export/$nameFile.xlsx", $nameFile]); */
+            /* echo json_encode(["http://localhost:8081/gazprom/export/$nameFile.xlsx", $nameFile]); */
+            echo json_encode(["/export/$nameFile.xlsx", $nameFile]);
         }
         function import($nameFile, $table)
         {

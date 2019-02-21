@@ -70,7 +70,7 @@
             case 0: // Запрос версии
                 /* include("./version/versions.php"); */
                 $project = [];	
-                $project['main'] = "0.9.51";/* getVersion(		$_main["name"], 		$_main["data"]); */
+                $project['main'] = "0.9.63";/* getVersion(		$_main["name"], 		$_main["data"]); */
                 $project['php'] = "0.9.80";/* getVersion(		$_php["name"], 			$_php["data"]); */
                 echo json_encode($project);
                 break;

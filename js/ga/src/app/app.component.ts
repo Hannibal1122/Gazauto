@@ -5,6 +5,7 @@ import { FunctionsService } from "./lib/functions.service";
 import { TableEditorComponent } from './software/table-editor/table-editor.component';
 import { EventEditorComponent } from './software/event-editor/event-editor.component';
 import { InfoComponent } from './software/info/info.component';
+import { environment } from '../environments/environment';
 
 declare var trace:any;
 declare var $: any;
@@ -33,7 +34,7 @@ export class AppComponent implements OnInit
     { 
         query.post(0, {}, (data) => { this.Version = data.main });
         if(location.search == "?set_type=install")
-            $.post('http://localhost:8081/gazprom/scripts/main.php', {nquery: -1}, (data)=>{ console.log(data) });
+            $.post(environment.URL, {nquery: -1}, (data)=>{ console.log(data) });
         /* query.post(10, {}, (data) => { trace(data) }); */
     }
     leftMenuScroll = 
