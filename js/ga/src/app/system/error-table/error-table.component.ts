@@ -26,6 +26,7 @@ export class ErrorTableComponent implements OnInit
     listTables = [];
     firstData = [];
     change = false;
+    mapFields = {};
     mainElementIds = 
     {
         mainInputElement: this.sys.getUnicName("m"),
@@ -62,6 +63,7 @@ export class ErrorTableComponent implements OnInit
             {
                 this.firstHeader[value[key].value] = value[key].i;
                 this.header[value[key].i] = value[key];
+                this.mapFields[value[key].id] = { name: key, header: true }
             }
         }
     }
@@ -77,15 +79,20 @@ export class ErrorTableComponent implements OnInit
                 this.listTables[i] = [];
                 for(var key in value[i])
                     if(this.firstHeader[key] != undefined)
+                    {
                         this.listTables[i][this.firstHeader[key]] = value[i][key];
+                        this.mapFields[value[i][key].id] = { i: i, j: this.firstHeader[key] }
+                    }
                 this.firstData[i] = value[i].__ID__; // id строки в бд
             }
         }
     }
-    setScroll(i) // Устанавливает скролл
+    setScroll(id) // Устанавливает скролл
     {
+        let td = document.getElementById(id);
         setTimeout(() => {
-            this.mainContainer.nativeElement.scrollTop = i * 30;
+            this.mainContainer.nativeElement.scrollTop = td.offsetTop;
+            this.mainContainer.nativeElement.scrollLeft = td.scrollLeft;
         }, 100);
     }
     searchCellId = -1; 
@@ -253,12 +260,11 @@ export class ErrorTableComponent implements OnInit
     {
         let i = -1;
         let j = -1;
-        let a = element.getAttribute("id") ? element.getAttribute("id").split("_") : [];
-        if(a.length == 2 && a[0] != "TH")
+        let id = element.getAttribute("id");
+        if(this.mapFields[id] && !this.mapFields[id].header)
         {
-            i = Number(a[0]);
-            j = Number(a[1]);
-
+            i = this.mapFields[id].i;
+            j = this.mapFields[id].j;
             let mainOffset = $(this.mainContainer.nativeElement).offset();
             /* let scrollTop = this.mainContainer.nativeElement.scrollTop; */
             let offset = $(element).offset();

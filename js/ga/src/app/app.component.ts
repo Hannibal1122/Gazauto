@@ -72,24 +72,22 @@ export class AppComponent implements OnInit
         document.addEventListener("dragenter", (e:any) => 
         {
             let id = e.target.getAttribute("id");
-            if(id && id.split("_").length == 2 && e.target.tagName != "TH")
-                e.target.style.background = "#aeec6c";//2px dotted 
+            if(id && e.target.tagName == "TD") e.target.style.background = "#aeec6c";//2px dotted 
         });
         document.addEventListener("dragleave", (e:any) => 
         {
             let id = e.target.getAttribute("id");
-            if(id && id.split("_").length == 2 && e.target.tagName != "TH") e.target.style.background = "none";
+            if(id && e.target.tagName == "TD") e.target.style.background = null;
         });
         document.addEventListener("drop", (e:any) => 
         {
             let id = e.target.getAttribute("id");
-            id = id ? id.split("_") : [];
-            if(id.length == 2) 
+            if(id) 
             {
-                if(e.target.tagName != "TH") e.target.style.background = "none";
+                if(e.target.tagName == "TD") e.target.style.background = null;
                 let data = JSON.parse(localStorage.getItem("dragElement"));
                 localStorage.removeItem("dragElement");
-                this.tabs[this.currentSoftware].software.appendFromLeftMenu(Number(id[0]), Number(id[1]), data, e.target.tagName == "TH" ? id[1] : null);
+                this.tabs[this.currentSoftware].software.appendFromLeftMenu(id, data);
             }
         });
         this.resizeWindow();

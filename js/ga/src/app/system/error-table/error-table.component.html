@@ -3,11 +3,13 @@
         <tbody (click) = "change ? editField($event) : null">
             <tr>
                 <th class = "TableCreatorHeadColor"></th>
-                <th *ngFor = "let head of header; let i = index;" class = "TableCreatorHeadColor TableCreatorHeadBColor" id = "{{'TH_' + i}}">{{ head.value }}</th>
+                <th *ngFor = "let head of header; let i = index;" class = "TableCreatorHeadColor TableCreatorHeadBColor" id = "{{ head.id }}">{{ head.value }}</th>
             </tr>
             <tr *ngFor = "let row of listTables; let i = index;">
                 <td (contextmenu) = "getContextmenu($event, i)" class = "TableCreatorHeadColor TableCreatorHeadBColor">{{ i + 1 }}</td>
-                <td *ngFor = "let void of header; let j = index;" id = "{{i + '_' + j}}" [style.background] = "row[j] == undefined ? '#fafafa' : (row[j].id == searchCellId ? '#e7f5c6' : none)">
+                <td *ngFor = "let void of header; let j = index;" 
+                    id = "{{ row[j].id }}" 
+                    [style.background] = "row[j] == undefined ? '#fafafa' : (row[j].id == searchCellId ? '#e7f5c6' : none)">
                     {{ row[j] != undefined && !row[j].listValue ? row[j].value : "" }}
                     {{ row[j] != undefined && row[j].listValue ? row[j].listValue : "" }}
                     <span *ngIf = "(row[j].type == 'value' || row[j].type == 'tlist')" class = "linkClass linkValueClass" (dblclick) = "openToExplorer(row[j])">
@@ -33,7 +35,6 @@
                         </div>
                     </div>
                 </td>
-                <td class = "lastTD"><button *ngIf = "change" (click) = "removeRow(i)" class = "mainButton"><i class="fas fa-trash"></i></button></td>
             </tr>
         </tbody>
     </table>

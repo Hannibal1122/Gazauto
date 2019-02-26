@@ -165,14 +165,16 @@ export class TableEditorComponent implements OnInit
     appendFromLeftMenu = 
     (() => 
     { // Добавление из левого меню
-        return (i, j, data, _nameColumn) =>
+        return (id, data) =>
         {
+            let i = this.editTable.mapFields[id].i;
+            let j = this.editTable.mapFields[id].j;
+            let _nameColumn = this.editTable.mapFields[id].name;
             let nameColumn = "";
             if(_nameColumn) nameColumn = this.dataHeader[Number(_nameColumn)].value;
             else
                 for(var _i = 0; _i < this.dataHeader.length; _i++)
                     if(this.dataHeader[_i].i == j) { nameColumn = this.dataHeader[_i].value; break; }
-            
             let beginI = i;
             let endI = i;
             let k = beginI;
@@ -459,7 +461,7 @@ export class TableEditorComponent implements OnInit
             for(var key in this.dataTable[i])
                 if(key != "__ID__" && key != "__NEXT__" && this.dataTable[i][key].id == id) 
                 {
-                    this.editTable.setScroll(i);
+                    this.editTable.setScroll(id);
                     break;
                 }
         let searchCellId = this.searchCellId;
