@@ -2,6 +2,7 @@ import { Component, ViewChild, ViewContainerRef, Input, ComponentFactoryResolver
 import { ExplorerComponent } from "../../software/explorer/explorer.component";
 import { TableEditorComponent } from "../../software/table-editor/table-editor.component";
 import { EventEditorComponent } from "../../software/event-editor/event-editor.component";
+import { PlanEditorComponent } from "../../software/plan-editor/plan-editor.component";
 
 import { InfoComponent } from "../../software/info/info.component";
 declare var trace: any;
@@ -9,7 +10,7 @@ declare var trace: any;
 @Component({
     selector: "vg-dynamic-view",
     template: "<div #container></div>",
-    entryComponents: [ExplorerComponent, TableEditorComponent, EventEditorComponent, InfoComponent],
+    entryComponents: [ExplorerComponent, TableEditorComponent, EventEditorComponent, PlanEditorComponent, InfoComponent],
 })
 export class DynamicComponent
 {

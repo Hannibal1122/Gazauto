@@ -9,6 +9,7 @@ import { EnterComponent } from './enter/enter.component';
 import { ModalWindowModule } from "./system/modalwindow/modalwindow.module";
 import { LoadingComponent } from './system/loading/loading.component';
 import { TableEditorComponent } from './software/table-editor/table-editor.component';
+import { PlanEditorComponent } from './software/plan-editor/plan-editor.component';
 import { ErrorTableComponent } from './system/error-table/error-table.component';
 import { InfoComponent } from './software/info/info.component';
 import { HttpClientModule } from '@angular/common/http';
@@ -22,7 +23,13 @@ import { UserSettingsComponent } from './software/user-settings/user-settings.co
         ExplorerComponent, 
         DynamicComponent, 
         UserSettingsComponent,
-        EnterComponent, LoadingComponent, TableEditorComponent, ErrorTableComponent, InfoComponent, EventEditorComponent
+        EnterComponent, 
+        LoadingComponent, 
+        TableEditorComponent,
+        ErrorTableComponent, 
+        InfoComponent, 
+        EventEditorComponent, 
+        PlanEditorComponent
     ],
     imports: [ BrowserModule, FormsModule, ModalWindowModule, HttpClientModule ],
     providers: [],

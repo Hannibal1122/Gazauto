@@ -4,6 +4,7 @@ import { QueryService } from "./lib/query.service";
 import { FunctionsService } from "./lib/functions.service";
 import { TableEditorComponent } from './software/table-editor/table-editor.component';
 import { EventEditorComponent } from './software/event-editor/event-editor.component';
+import { PlanEditorComponent } from './software/plan-editor/plan-editor.component';
 import { InfoComponent } from './software/info/info.component';
 import { environment } from '../environments/environment';
 
@@ -223,6 +224,7 @@ export class AppComponent implements OnInit
             case "table": i = this.checkRepeatSoftware(type, { component: TableEditorComponent, inputs: input, appendFromLeftMenu: {} }); break;
             case "info": i = this.checkRepeatSoftware(type, { component: InfoComponent, inputs: input }); break;
             case "event": i = this.checkRepeatSoftware(type, { component: EventEditorComponent, inputs: input }); break;
+            case "plan": i = this.checkRepeatSoftware(type, { component: PlanEditorComponent, inputs: input }); break;
         }
         if(length != this.tabs.length) this.setSaveTab(i, type, input) // Новая вкладка, нужно сохранить
         this.currentSoftware = i;
@@ -238,6 +240,7 @@ export class AppComponent implements OnInit
             case "table": name = "Редактор таблицы"; break;
             case "info": name = "Справка"; break;
             case "event": name = "Редактор событий"; break;
+            case "plan": name = "План-график"; break;
         }
         for(; i < this.tabs.length; i++) // Проверка на уже открытую вкладку
             if(this.tabs[i].type == type && this.tabs[i].software.inputs && this.tabs[i].software.inputs.id == input.id) break;
