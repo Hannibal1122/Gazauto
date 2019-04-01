@@ -130,7 +130,7 @@ export class AppComponent implements OnInit
         });
         this.query.protectionPost(113, { param: [] }, (data) => 
         { 
-            if(data === "") return;
+            if(data === "" || data === "None connection") return;
             this.leftMenuConfig = [];
             if(data.length < this.leftMenuData.length) this.leftMenuData.splice(data.length - 1, this.leftMenuData.length);
             for(var i = 0; i < data.length; i++)
