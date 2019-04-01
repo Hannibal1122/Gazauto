@@ -2,5 +2,5 @@
 	$hostname = "localhost"; 
 	$username = "root";     
 	$password = "";
-	$dbName = "gazauto";
+	$dbName = "gaz";
 ?>

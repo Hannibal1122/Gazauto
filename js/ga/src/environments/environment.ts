@@ -5,7 +5,7 @@
 
 export const environment = {
   production: false,
-  URL: 'http://localhost:8081/gazprom/scripts/main.php'
+  URL: 'http://localhost:80/gazprom/scripts/main.php'
   //url = 'http://localhost/gazprom/scripts/main.php';
   //url = 'http://localhost/scripts/main.php';
 };
