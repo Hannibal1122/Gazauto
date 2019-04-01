@@ -1,5 +1,7 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { QueryService } from '../../lib/query.service';
+//import { employees } from '../../employees';
+import { EMPLOYEES } from '../../list-employees';
 
 declare var trace:any;
 @Component({
@@ -11,7 +13,15 @@ export class PlanEditorComponent implements OnInit
 {
   @ViewChild('editPlan') public editPlan: any;
 
-    id: number;
+  employees = EMPLOYEES;
+  /*: Employees = {
+      tabel: 1,
+      surname: 'Петров',
+      name: 'Петр',
+      patronymic: 'Петрович'
+  };*/
+  
+  id: number;
     fio: string;
     //employees: Employee[] = [];
     inputs = { id: -1, searchObjectId: -1 };

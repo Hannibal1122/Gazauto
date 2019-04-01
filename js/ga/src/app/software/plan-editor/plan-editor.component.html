@@ -57,8 +57,8 @@
                 <th>30</th>
                 <th>31</th>
             </tr>
-            <tr>
-                <td>Петров Петр Петрович</td>
+            <tr *ngFor="let employee of employees"> 
+                <td> {{employees.surname}} {{employees.name}} {{employees.patronymic}} </td>
                 <td><select style = "height: 36px; border: 1px solid #eeeeee; border-radius:5px;" [(ngModel)] = "searchInputType">
                         <option value = "holiday">От</option>
                         <option value = "weekend">Вых</option>
@@ -117,6 +117,14 @@
                 <td>Текст 2</td>
             </tr>
         </tbody>
-        
     </table>
+</div>
+
+
+<div>
+    <ul>
+        <li *ngFor="let employee of employees"> 
+            <span> {{employees.tabel}} </span> {{employees.surname}} {{employees.name}} {{employees.patronymic}}
+        </li>
+    </ul>
 </div>
