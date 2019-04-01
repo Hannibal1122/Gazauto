@@ -59,6 +59,7 @@ export class TableEditorComponent implements OnInit
         /* let START = new Date().getTime(); */
         this.query.protectionPost(250, { param: [this.inputs.id]}, (data) => 
         {
+            trace(data)
             if(data.head == undefined) 
             {
                 this.error = true;

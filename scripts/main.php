@@ -2,7 +2,7 @@
     /* $start = microtime(true); */
     /* , round(microtime(true) - $start, 4) */
 
-    /* error_reporting(0); */
+    error_reporting(0);
     header('Access-Control-Allow-Origin: *');
     include("config.php");
 	include("query.php");
@@ -41,7 +41,7 @@
     }
             
     $mysqli = new mysqli('localhost', $username, $password, $dbName);
-    if (mysqli_connect_errno()) { echo("Не могу создать соединение"); exit(); }
+    if (mysqli_connect_errno()) { echo("None connection"); exit(); }
     $mysqli->set_charset("utf8");
     if($nQuery == -1) // Установка
     {
@@ -989,8 +989,8 @@
     $countCycle = 0; // необходимо обнулять для правильной работы
     function getCellLink($linkId, $first)
     {
-        if($first) $countCycle = 0;
         global $countCycle;
+        if($first) $countCycle = 0;
         if(++$countCycle > 50) return Null; // ограничение на зацикливание
         if($result = query("SELECT value, type, linkId, linkType, id, tableId FROM fields WHERE id = %i", [ (int)$linkId ]))
         {
