@@ -113,8 +113,9 @@ export class ExplorerComponent implements OnInit
         this.createTableList.modal = this.modal;
         this.globalClick = (e) => 
         { 
-            if(e.target.className == "col-md-12" && this.selectObjectI != -1) this.refresh(); 
+            if(e.target.classList[0] == "col-md-12"  && this.selectObjectI != -1) this.refresh(); 
             this.createContextMenu.visible = false;
+            this.createContextMenuMain.visible = false;
         }
         window.addEventListener("click", this.globalClick, false);
         this.resize();
@@ -411,8 +412,7 @@ export class ExplorerComponent implements OnInit
     }
     clearRules(_new)
     {
-        this.selectRules = 
-        {
+        this.selectRules = {
             new: _new ? false : this.selectRules.new, 
             copy: false, 
             paste: false, 
@@ -514,6 +514,12 @@ export class ExplorerComponent implements OnInit
         i: -1,
         type: ""
     }
+    createContextMenuMain = 
+    {
+        top: "", 
+        left: "", 
+        visible: false, 
+    }
     getContextmenu(e, data)
     {
         this.createContextMenu.left = e.clientX + "px";
@@ -521,6 +527,18 @@ export class ExplorerComponent implements OnInit
         this.createContextMenu.visible = true;
         this.selectObject(data);
         this.createContextMenu.type = this.outFolders[data].objectType;
+        e.preventDefault();
+    }
+    getContextmenuMain(e)
+    {
+        this.createContextMenuMain.left = e.clientX + "px";
+        this.createContextMenuMain.top = e.clientY + "px";
+        if(e.target.classList[0] == "col-md-12")
+        {
+            this.createContextMenu.visible = false;
+            this.createContextMenuMain.visible = true;
+        }
+        else this.createContextMenuMain.visible = false;
         e.preventDefault();
     }
     ngOnDestroy() 

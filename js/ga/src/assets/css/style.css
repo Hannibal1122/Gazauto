@@ -5,7 +5,7 @@
     position: fixed;
     padding-top: 2px;
     padding-bottom: 2px;
-    box-shadow: 0px 0px 7px 1px #0000006e;
+    box-shadow: 0px 0px 3px 1px #00000042;
     width:200px;
     z-index:10000;
 }
@@ -32,6 +32,10 @@
 {
     color:#9b9b9b;
 }
+.contextMenuList:disabled:hover
+{
+    background-color: #dadada;
+}
 /*******************************************************/
 .leftMenuTitle
 {
@@ -47,7 +51,8 @@
     color:#456486;
     width: 32px;
     height: 32px;
-    background-color: #e5e5e5;
+    /* background-color: #e5e5e5; */
+    background-color: #ffffff;
     border: 1px solid #456486;
     border-radius: 3px;
     cursor: pointer;

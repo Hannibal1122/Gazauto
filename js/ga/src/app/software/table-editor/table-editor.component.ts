@@ -344,7 +344,6 @@ export class TableEditorComponent implements OnInit
                     else // Либо insert, либо update 
                     {
                         this.dataTable[property.i][property.nameColumn] = data;
-                        this.dataTable[property.i][property.nameColumn].state = property.state;
                         this.dataTable[property.i][property.nameColumn].eventId = property.eventId;
                         this.editTable.setCell = { i: property.i, key: property.nameColumn, value: data };
                     }
@@ -368,7 +367,7 @@ export class TableEditorComponent implements OnInit
                 else this.onChange({ type: "openFromTable", value: { name: property.data.type, id: property.data.linkId }});
                 break;
             case "state": // Изменить состояние ячейки
-                this.addToQueue(260, [ this.inputs.id,  property.id, property.state ], (data) => 
+                this.addToQueue(260, [ this.inputs.id, property.id, property.state ], (data) => 
                 {
                     this.dataTable[property.i][property.nameColumn].state = property.state;
                     this.load = false;
@@ -381,6 +380,12 @@ export class TableEditorComponent implements OnInit
                 this.dataTable[property.i][property.nameColumn].eventId = null;
                 this.editTable.data = this.dataTable; // update edit table
                 this.addToQueue(263, [ this.inputs.id, property.id ], (data) => { });
+                break;
+            case "paste":
+                this.pasteField();
+                break;
+            case "copyOrCut":
+                this.copyField(property.copyOrCut);
                 break;
         }
     }

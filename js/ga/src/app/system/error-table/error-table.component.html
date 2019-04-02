@@ -6,22 +6,23 @@
                 <th *ngFor = "let head of header; let i = index;" class = "TableCreatorHeadColor TableCreatorHeadBColor" id = "{{ head.id }}">{{ head.value }}</th>
             </tr>
             <tr *ngFor = "let row of listTables; let i = index;">
-                <td (contextmenu) = "getContextmenu($event, i)" class = "TableCreatorHeadColor TableCreatorHeadBColor">{{ i + 1 }}</td>
+                <td (contextmenu) = "getContextmenu($event, i, 'row')" class = "TableCreatorHeadColor TableCreatorHeadBColor">{{ i + 1 }}</td>
                 <td *ngFor = "let void of header; let j = index;" 
-                    id = "{{ row[j].id }}" 
+                    id = "{{ row[j].id }}"
+                    (contextmenu) = "getContextmenu($event, i, 'cell')"
                     [style.background] = "row[j] == undefined ? '#fafafa' : (row[j].id == searchCellId ? '#e7f5c6' : none)">
                     {{ row[j] != undefined && !row[j].listValue ? row[j].value : "" }}
                     {{ row[j] != undefined && row[j].listValue ? row[j].listValue : "" }}
-                    <span *ngIf = "(row[j].type == 'value' || row[j].type == 'tlist')" class = "linkClass linkValueClass" (dblclick) = "openToExplorer(row[j])">
+                    <span *ngIf = "(row[j].type == 'value' || row[j].type == 'tlist')" class = "linkClass linkValueClass">
                         <i class = "fa fa-link"></i>
                     </span>
-                    <span *ngIf = "row[j].type == 'table'" class = "linkClass linkValueClass" (dblclick) = "openToExplorer(row[j])">
+                    <span *ngIf = "row[j].type == 'table'" class = "linkClass linkValueClass">
                         <i class = "fa fa-table"></i>
                     </span>
-                    <span *ngIf = "row[j].type == 'cell'" class = "linkClass linkCellClass" [class.linkErrorClass] = "row[j].value == null" (dblclick) = "openToExplorer(row[j])">
+                    <span *ngIf = "row[j].type == 'cell'" class = "linkClass linkCellClass" [class.linkErrorClass] = "row[j].value == null">
                         <i class = "fa fa-link"></i>
                     </span>
-                    <span *ngIf = "row[j].type == 'file'" class = "linkClass linkValueClass" (dblclick) = "openToExplorer(row[j])">
+                    <span *ngIf = "row[j].type == 'file'" class = "linkClass linkValueClass">
                         <i class = "fa fa-file"></i>
                     </span>
                     <span *ngIf = "row[j].eventId" class = "eventClass linkCellClass" (dblclick) = "openEventToExplorer(row[j].eventId)">
@@ -40,7 +41,10 @@
     </table>
 
     <div #mainEditElement style = "position:absolute;" [ngStyle] = "configInput" [hidden] = "!inputProperty.visible">
-        <textarea #mainInputElement class = "mainInputStyle TableCreatorInputColor" (blur) = "acceptEditField($event)" [(ngModel)] = "inputProperty.value" (keydown)="downEnter($event)"></textarea>
+        <textarea #mainInputElement class = "mainInputStyle TableCreatorInputColor" 
+            (blur) = "acceptEditField($event)" 
+            [(ngModel)] = "inputProperty.value" 
+            (keydown)="downEnter($event)"></textarea>
         <button #mainButtonElement [hidden] = "inputProperty.type != 'table'" 
             style = "position:absolute; right:0px; top: 0px; color:red; cursor:pointer; border:none; background:none; outline: none;"
             (click) = "inputProperty.value = ''; inputProperty.state = 0; acceptEditField($event)">
@@ -59,20 +63,34 @@
                 <option *ngFor = "let option of inputProperty.values; let i = index" value = "{{ i }}">{{ option }}</option>
             </ng-container>
         </select>
-        <div class = "mainStatusStyle TableCreatorStateColor" [hidden] = "!inputProperty.visibleState">
+        <!-- <div class = "mainStatusStyle TableCreatorStateColor" [hidden] = "!inputProperty.visibleState">
             Статус: <input #mainStatusElement type = "number" (blur) = "acceptEditField($event)" style = "width:45px;" step = "10" min = "0" max = "100" [(ngModel)] = "inputProperty.state"> %
             <button #mainButtonRemoveEvent [hidden] = "!inputProperty.eventId" title = "Удалить событие" (blur) = "acceptEditField($event)" (click) = "removeEvent()">
                 <span style = "color:#ca4242;">
                     <i class = "fa fa-bolt"></i>
                 </span>
             </button>
-        </div>
+        </div> -->
         <!-- <div class = "buttonAcceptEditing" title = "сохранить изменения"><i class="fas fa-check"></i></div> -->
     </div>
 </div>
 <div *ngIf = "inputProperty.visible" class = "TableCreatorHeadColor" style = "position:absolute; bottom:-22px; font-size:12px;">id: {{ inputProperty.id }}</div>
 <div class = "createContextMenu" [hidden] = "!createContextMenu.visible || !change" [style.top] = "createContextMenu.top" [style.left] = "createContextMenu.left">
-    <div class = "contextMenuList" (click) = "removeRow(createContextMenu.i)">Удалить строку</div>
-    <div class = "contextMenuList" (click) = "addRow(-1)">Вставить строку выше</div>
-    <div class = "contextMenuList" (click) = "addRow(0)">Вставить строку ниже</div>
+    <ng-container *ngIf = "createContextMenu.type == 'row'">
+        <div class = "contextMenuList" (click) = "removeRow(createContextMenu.i)">Удалить строку</div>
+        <div class = "contextMenuList" (click) = "addRow(-1)">Вставить строку выше</div>
+        <div class = "contextMenuList" (click) = "addRow(0)">Вставить строку ниже</div>
+    </ng-container>
+    <ng-container *ngIf = "createContextMenu.type == 'cell'">
+        <button class = "contextMenuList" (click) = "pasteField()" [disabled] = "!rules.paste">Вставить</button>
+        <button class = "contextMenuList" (click) = "copyOrCut('copy')" [disabled] = "!rules.copy">Копировать</button>
+        <button class = "contextMenuList" (click) = "copyOrCut('cut')" [disabled] = "!rules.cut">Вырезать</button>
+        <div class = "contextMenuList" (click) = "setState(0)">Статус - 0%</div>
+        <div class = "contextMenuList" (click) = "setState(10)">Статус - 10%</div>
+        <div class = "contextMenuList" (click) = "setState(50)">Статус - 50%</div>
+        <div class = "contextMenuList" (click) = "setState(100)">Статус - 100%</div>
+        <div *ngIf = "inputProperty.eventId" class = "contextMenuList" (click) = "removeEvent()">Удалить событие</div>
+        <div *ngIf = "inputProperty.type == 'cell'" class = "contextMenuList" (click) = "openToExplorer(inputProperty)">Показать в таблице</div>
+        <div *ngIf = "inputProperty.type == 'table' || inputProperty.type == 'file' || inputProperty.type == 'tlist'" class = "contextMenuList" (click) = "openToExplorer(inputProperty)">Показать в проводнике</div>
+    </ng-container>
 </div>

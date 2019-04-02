@@ -16,8 +16,8 @@ export class ErrorTableComponent implements OnInit
     @ViewChild("mainInputElement") mainInputElement:ElementRef;
     @ViewChild("mainButtonElement") mainButtonElement:ElementRef;
     @ViewChild("mainSelectElement") mainSelectElement:ElementRef;
-    @ViewChild("mainStatusElement") mainStatusElement:ElementRef;
-    @ViewChild("mainButtonRemoveEvent") mainButtonRemoveEvent:ElementRef;
+    /* @ViewChild("mainStatusElement") mainStatusElement:ElementRef;
+    @ViewChild("mainButtonRemoveEvent") mainButtonRemoveEvent:ElementRef; */
     
     @Output() onChange = new EventEmitter<any>();
     header = [];
@@ -32,8 +32,8 @@ export class ErrorTableComponent implements OnInit
         mainInputElement: this.sys.getUnicName("m"),
         mainButtonElement: this.sys.getUnicName("m"),
         mainSelectElement: this.sys.getUnicName("m"),
-        mainStatusElement: this.sys.getUnicName("m"),
-        mainButtonRemoveEvent: this.sys.getUnicName("m"),
+        /* mainStatusElement: this.sys.getUnicName("m"),
+        mainButtonRemoveEvent: this.sys.getUnicName("m"), */
     };
     constructor(private sys:FunctionsService, private query:QueryService) { }
     ngOnInit() 
@@ -128,10 +128,15 @@ export class ErrorTableComponent implements OnInit
         valueList: "",
         typeValues: "",
         type: "",
-        oldState: 0,
-        state: 0,
         visibleState: false,
-        eventId: -1
+        eventId: -1,
+        linkId: -1
+    }
+    rules = 
+    {
+        copy: false, 
+        cut: false, 
+        paste: false
     }
     cacheListValues = {};
     editField(e) // нажали на ячейку для редактирования
@@ -145,7 +150,7 @@ export class ErrorTableComponent implements OnInit
             this.inputProperty.eventId = this.listTables[i][j].eventId;
             this.inputProperty.type = this.listTables[i][j] ? this.listTables[i][j].type : "value";
             this.inputProperty.visibleState = this.inputProperty.type == "value" || this.inputProperty.type == undefined;
-            this.inputProperty.oldState = this.inputProperty.state = this.listTables[i][j] && this.listTables[i][j].state ? this.listTables[i][j].state : 0;
+            this.inputProperty.linkId = this.listTables[i][j].linkId;
             if(this.listTables[i][j] && this.listTables[i][j].listValue != undefined) 
             {
                 let _i = 0;
@@ -178,11 +183,11 @@ export class ErrorTableComponent implements OnInit
                 this.inputProperty.values = [];
             }
             //Проверка на возможность вставки
-            let rules = { copy: true, cut: true, paste: false }
-            if(this.inputProperty.oldValue == undefined) rules.copy = rules.cut = false;
+            this.rules = { copy: true, cut: true, paste: false }
+            if(this.inputProperty.oldValue == undefined) this.rules.copy = this.rules.cut = false;
             else
-                if(localStorage.getItem("copyTable") && this.listTables[i][j].id != localStorage.getItem("copyTable")) rules.paste = true;
-            this.onChange.emit({ type: "operation", rules: rules});
+                if(localStorage.getItem("copyTable") && this.listTables[i][j].id != localStorage.getItem("copyTable")) this.rules.paste = true;
+            this.onChange.emit({ type: "operation", rules: this.rules});
             setTimeout(() => { this.mainInputElement.nativeElement.focus(); }, 20);
             return true;
         }
@@ -229,11 +234,8 @@ export class ErrorTableComponent implements OnInit
             }
             if(type == "value") out.value = this.inputProperty.value;
             if(type == "list") out.value = { value: this.inputProperty.valueList, linkId:this.listTables[i][j].linkId, type:linkType, listValue: listValue };
-            this.onChange.emit({ type: "field", out: out, i: i, nameColumn: this.header[j].value, state: this.inputProperty.state, eventId: this.inputProperty.eventId });
+            this.onChange.emit({ type: "field", out: out, i: i, nameColumn: this.header[j].value, eventId: this.inputProperty.eventId });
         }
-        if(this.listTables[i][j] && this.inputProperty.oldState != this.inputProperty.state)
-            this.onChange.emit({ type: "state", id: this.listTables[i][j].id, i: i, nameColumn: this.header[j].value, state: this.inputProperty.state });
-        
         if(e.relatedTarget)
             if(e.relatedTarget.getAttribute("id") == "tableCutButton" ||
                 e.relatedTarget.getAttribute("id") == "tableCopyButton" ||
@@ -246,6 +248,7 @@ export class ErrorTableComponent implements OnInit
     }
     openToExplorer(data)
     {
+        trace(data)
         this.onChange.emit({ type: "explorer", data: data });
     }
     openEventToExplorer(eventId)
@@ -283,21 +286,39 @@ export class ErrorTableComponent implements OnInit
     {
         top: "", 
         left: "", 
-        visible: false, 
+        visible: false,
+        type: "",
         i: -1
     }
-    getContextmenu(e, data)
+    getContextmenu(e, data, type)
     {
+        if(type == "cell") this.editField(e);
         this.createContextMenu.left = e.clientX + "px";
         this.createContextMenu.top = e.clientY + "px";
         this.createContextMenu.visible = true;
         this.createContextMenu.i = data;
+        this.createContextMenu.type = type;
+        trace(this.inputProperty)
         e.preventDefault();
     }
     addRow(prevOrNext)
     {
         let idRow = this.firstData[this.createContextMenu.i + prevOrNext] ? this.firstData[this.createContextMenu.i + prevOrNext] : -1;
         this.onChange.emit({ type: "row", idRow: idRow, idNextRow: idRow == -1 ? this.firstData[this.createContextMenu.i] : -1 });
+    }
+    pasteField()
+    {
+        this.onChange.emit({ type: "paste" });
+    }
+    copyOrCut(type)
+    {
+        this.onChange.emit({ type: "copyOrCut", copyOrCut: type });
+    }
+    setState(value:number)
+    {
+        let i = this.configInput.i;
+        let j = this.configInput.j;
+        this.onChange.emit({ type: "state", id: this.inputProperty.id, i: i, nameColumn: this.header[j].value, state: value });
     }
     //////////////////////////////////
     height = "";

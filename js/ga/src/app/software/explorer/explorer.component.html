@@ -45,7 +45,8 @@
         [style.height] = "heightListElement + 'px'"
         [class.col-md-8] = "listLink.visible"
         [class.explorerMain] = "viewType == 'table'"
-        [class.explorerMainList] = "viewType == 'list'">
+        [class.explorerMainList] = "viewType == 'list'"
+        (contextmenu) = "getContextmenuMain($event)">
         <span *ngFor = "let object of outFolders; let i = index;">
             <div *ngIf = "object.visible !== false"
                 (click) = "selectObject(i)"
@@ -172,5 +173,14 @@
     <button class = "contextMenuList" (click) = "downloadObject()" [disabled] = "!selectRules.download">
         <span *ngIf = "!selectRules.download"><i class="fas fa-lock" style = "font-size:10px;"></i></span>
         Скачать</button>
+</div>
+<div class = "createContextMenu" [hidden] = "!createContextMenuMain.visible" [style.top] = "createContextMenuMain.top" [style.left] = "createContextMenuMain.left">
+    <button class = "contextMenuList" (click) = "newObject()" [disabled] = "!selectRules.new">
+        <span *ngIf = "!selectRules.new"><i class="fas fa-lock" style = "font-size:10px;"></i></span>
+        Создать</button>
+    <button class = "contextMenuList" (click) = "refresh(true)">
+        Обновить</button>
+    <button class = "contextMenuList" (click) = "openBackFolder()">
+        Назад</button>
 </div>
 <modalwindow #modal></modalwindow>
