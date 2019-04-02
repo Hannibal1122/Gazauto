@@ -1,7 +1,7 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { QueryService } from '../../lib/query.service';
 //import { employees } from '../../employees';
-import { EMPLOYEES } from '../../list-employees';
+import { EMPLOYEES, TABELDAYS } from '../../list-employees';
 
 declare var trace:any;
 @Component({
@@ -14,18 +14,12 @@ export class PlanEditorComponent implements OnInit
   @ViewChild('editPlan') public editPlan: any;
 
   employees = EMPLOYEES;
-  /*: Employees = {
-      tabel: 1,
-      surname: 'Петров',
-      name: 'Петр',
-      patronymic: 'Петрович'
-  };*/
-  
-  id: number;
-    fio: string;
-    //employees: Employee[] = [];
-    inputs = { id: -1, searchObjectId: -1 };
-    dataPlan = [];
+  tabeldays = TABELDAYS;
+  month: string;
+  coldays: number;
+
+  inputs = { id: -1, searchObjectId: -1 };
+  dataPlan = [];
 
 
     constructor(public query: QueryService) { }
@@ -34,9 +28,25 @@ export class PlanEditorComponent implements OnInit
       
     }
 
-    showPlan() //Показать план-график 
+    showPlan(month) //Показать план-график 
     {
+        if (month == "jan" || "mar" || "may" || "jul" || "aug" || "oct" || "dec")
+        {
+            this.coldays = 31;
+        }
+        if (month == "apr" || "jun" || "sep" || "nov")
+        {
+            this.coldays = 30;
+        }
+        if( month == "feb")
+        {
+            this.coldays = 28;
+        }
+        if( month == "all")
+        {
 
+        }
+        
     }
 
     addEmployee() //Добавить сотрудника 
