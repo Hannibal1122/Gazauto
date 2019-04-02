@@ -59,69 +59,19 @@
             </tr>
             <tr *ngFor="let employee of employees"> 
                 <td> {{employee.surname}} {{employee.name}} {{employee.patronymic}} </td>
-                <td> 
-                    <div *ngFor="let employee of employees">
-                        <div *ngFor="let day of days">
-                            {{day.value}}
-                        </div>
-                    </div> 
+                <td *ngFor="let day of employee.days">
+                    <div *ngIf = "day.value == 'К' || day.value == 'K'" style = "background:#ce2c2c"> {{day.value}} </div>
+                    <div *ngIf = "day.value == '8'" style = "background:#2cce6a"> {{day.value}} </div>
+                    <div *ngIf = "day.value == 'Вых'" style = "background:#5c606694"> {{day.value}} </div>
                 </td>
-                <td><select style = "height: 36px; border: 1px solid #eeeeee; border-radius:5px;" [(ngModel)] = "searchInputType">
-                        <option value = "holiday">От</option>
-                        <option value = "weekend">Вых</option>
-                        <option value = "trip">К</option>
-                    </select>
-                </td>
-                <td><select style = "height: 36px; border: 1px solid #eeeeee; border-radius:5px;" [(ngModel)] = "searchInputType">
-                        <option value = "holiday">От</option>
-                        <option value = "weekend">Вых</option>
-                        <option value = "trip">К</option>
-                    </select>
-                </td>
-                <td><select style = "height: 36px; border: 1px solid #eeeeee; border-radius:5px;" [(ngModel)] = "searchInputType">
-                        <option value = "holiday">От</option>
-                        <option value = "weekend">Вых</option>
-                        <option value = "trip">К</option>
-                    </select>
-                </td>
-                <td><select style = "height: 36px; border: 1px solid #eeeeee; border-radius:5px;" [(ngModel)] = "searchInputType">
-                        <option value = "holiday">От</option>
-                        <option value = "weekend">Вых</option>
-                        <option value = "trip">К</option>
-                    </select>
-                </td>
-                <td>Текст 3</td>
-                <td>Текст 2</td>
-                <td>Текст 3</td>
-                <td>Текст 2</td>
-                <td>Текст 3</td>
-                <td>Текст 2</td>
-                <td>Текст 3</td>
-                <td>Текст 2</td>
-                <td>Текст 3</td>
-                <td>Текст 2</td>
-                <td>Текст 3</td>
-                <td>Текст 2</td>
-                <td>Текст 3</td>
-                <td>Текст 2</td>
-                <td>Текст 3</td>
-                <td>Текст 2</td>
-                <td>Текст 3</td>
-                <td>Текст 2</td>
-                <td>Текст 3</td>
-                <td>Текст 2</td>
-                <td>Текст 3</td>
-                <td>Текст 2</td>
-                <td>Текст 3</td>
-                <td>Текст 2</td>
-                <td>Текст 3</td>
-                <td>Текст 2</td>
             </tr>
         </tbody>
     </table>
 </div>
 
-<!-- Тестовый вывод массива TabelDays -->
+<!-- Тестовый вывод массива TabelDays 
+<br>
+<br>
 <div>
     <table border="1" class = "PlanEditor">
         <tbody>
@@ -131,20 +81,18 @@
                 <th>2</th>
                 <th>3</th>
             </tr>
-            <tr *ngFor="let employee of employees">
+            <tr *ngFor="let e of employees">
                 <td> 
                     <div>
-                        {{employee.name}}
+                        {{e.name}}
                     </div>
                 </td>
-                <td>
-                    <div *ngFor="let employee of employees">
-                        <div *ngFor="let day of days">
+                <td *ngFor="let day of e.days">
+                    
                             {{day.value}}
-                        </div>
-                    </div>
                 </td>
             </tr>
         </tbody>               
     </table>
 </div>
+-->
