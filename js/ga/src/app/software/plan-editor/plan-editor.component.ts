@@ -1,7 +1,7 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { QueryService } from '../../lib/query.service';
 //import { employees } from '../../employees';
-import { EMPLOYEES, TABELDAYS } from '../../list-employees';
+import { EMPLOYEES} from '../../list-employees';
 
 declare var trace:any;
 @Component({
@@ -14,7 +14,6 @@ export class PlanEditorComponent implements OnInit
   @ViewChild('editPlan') public editPlan: any;
 
   employees = EMPLOYEES;
-  tabeldays = TABELDAYS;
   month: string;
   coldays: number;
 

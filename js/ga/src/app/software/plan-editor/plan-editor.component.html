@@ -59,11 +59,12 @@
             </tr>
             <tr *ngFor="let employee of employees"> 
                 <td> {{employee.surname}} {{employee.name}} {{employee.patronymic}} </td>
-                <td><select style = "height: 36px; border: 1px solid #eeeeee; border-radius:5px;" [(ngModel)] = "searchInputType">
-                        <option value = "holiday">От</option>
-                        <option value = "weekend">Вых</option>
-                        <option value = "trip">К</option>
-                    </select>
+                <td> 
+                    <div *ngFor="let employee of employees">
+                        <div *ngFor="let day of days">
+                            {{day.value}}
+                        </div>
+                    </div> 
                 </td>
                 <td><select style = "height: 36px; border: 1px solid #eeeeee; border-radius:5px;" [(ngModel)] = "searchInputType">
                         <option value = "holiday">От</option>
@@ -125,20 +126,24 @@
     <table border="1" class = "PlanEditor">
         <tbody>
             <tr>
-                <th>Табельный номер</th>
+                <th>Имя</th>
                 <th>1</th>
                 <th>2</th>
                 <th>3</th>
-                <th>4</th>
-                <th>5</th>
             </tr>
-            <tr *ngFor="let tabelday of tabeldays"> 
-                <td> {{tabelday.tabelnom}} </td>
-                <td> {{tabelday.day1}} </td> 
-                <td> {{tabelday.day2}} </td>
-                <td> {{tabelday.day3}} </td>
-                <td> {{tabelday.day4}} </td>
-                <td> {{tabelday.day5}} </td>
+            <tr *ngFor="let employee of employees">
+                <td> 
+                    <div>
+                        {{employee.name}}
+                    </div>
+                </td>
+                <td>
+                    <div *ngFor="let employee of employees">
+                        <div *ngFor="let day of days">
+                            {{day.value}}
+                        </div>
+                    </div>
+                </td>
             </tr>
         </tbody>               
     </table>
