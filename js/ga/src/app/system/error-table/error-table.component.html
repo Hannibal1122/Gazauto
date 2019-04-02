@@ -47,7 +47,7 @@
             (keydown)="downEnter($event)"></textarea>
         <button #mainButtonElement [hidden] = "inputProperty.type != 'table'" 
             style = "position:absolute; right:0px; top: 0px; color:red; cursor:pointer; border:none; background:none; outline: none;"
-            (click) = "inputProperty.value = ''; inputProperty.state = 0; acceptEditField($event)">
+            (click) = "inputProperty.value = ''; acceptEditField($event);">
             <i class = "fa fa-times-circle"></i>
         </button>
         <select #mainSelectElement 
