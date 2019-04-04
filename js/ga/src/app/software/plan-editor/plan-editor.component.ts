@@ -27,7 +27,8 @@ export class PlanEditorComponent implements OnInit
     {
       
     }
-
+    searchInputType;
+    height;
     showPlan(month) //Показать план-график 
     {
        /* if (month == "jan" || "mar" || "may" || "jul" || "aug" || "oct" || "dec")
