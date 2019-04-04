@@ -59,10 +59,11 @@
             </tr>
             <tr *ngFor="let employee of employees"> 
                 <td> {{employee.surname}} {{employee.name}} {{employee.patronymic}} </td>
-                <td *ngFor="let day of employee.days">
+                <td *ngFor="let day of employee.days" colspan="day.colspan">
                     <div *ngIf = "day.value == 'К' || day.value == 'K'" style = "background:#ce2c2c"> {{day.value}} </div>
                     <div *ngIf = "day.value == '8'" style = "background:#2cce6a"> {{day.value}} </div>
                     <div *ngIf = "day.value == 'Вых'" style = "background:#5c606694"> {{day.value}} </div>
+                    <div *ngIf = "day.value == 'От'" style = "background:#7be8f7c7"> {{day.value}} </div>
                 </td>
             </tr>
         </tbody>

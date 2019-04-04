@@ -13,7 +13,8 @@ export class PlanEditorComponent implements OnInit
 {
   @ViewChild('editPlan') public editPlan: any;
 
-  employees = EMPLOYEES;
+  employees = EMPLOYEES; //массив с данными о сотрудниках и их днях работы
+
   month: string;
   coldays: number;
 
@@ -29,7 +30,7 @@ export class PlanEditorComponent implements OnInit
 
     showPlan(month) //Показать план-график 
     {
-        if (month == "jan" || "mar" || "may" || "jul" || "aug" || "oct" || "dec")
+       /* if (month == "jan" || "mar" || "may" || "jul" || "aug" || "oct" || "dec")
         {
             this.coldays = 31;
         }
@@ -45,13 +46,14 @@ export class PlanEditorComponent implements OnInit
         {
 
         }
-        
+        */
     }
 
     addEmployee() //Добавить сотрудника 
     {
-      let l = this.dataPlan.length;
-      this.update({ type: "row", idRow: l > 0 ? this.dataPlan[l - 1].__ID__ : -1, idNextRow: -1 });
+      let l = this.employees;
+      
+      //this.update({ type: "row", idRow: l > 0 ? this.dataPlan[l - 1].__ID__ : -1, idNextRow: -1 });
     }
 
     update(property)

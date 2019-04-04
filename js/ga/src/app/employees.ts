@@ -10,4 +10,5 @@ export class MyDays
 {
     color: string;
     value: string;
+    colspan: number;
 }
