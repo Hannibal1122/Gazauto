@@ -178,12 +178,8 @@ export class LeftMenuElementComponent implements OnInit
                 else this.outData[i].searchHide = true;
             }
     }
-    dragEvents(data, e)
+    copyObject(data)
     {
-        /* e.target.style.cursor = "move" */
-        /* var img = document.createElement("img");
-        img.src = 'http://cdn.habtium.com/furni/items/big/1.gif';
-        e.dataTransfer.setDragImage(img, 10, 10); */
         localStorage.setItem("dragElement", JSON.stringify(data));
     }
 }

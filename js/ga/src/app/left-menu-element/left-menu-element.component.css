@@ -13,5 +13,15 @@
 }
 .elementMenu:hover
 {
-    margin-left:4px;
+    /* margin-left:4px; */
+    text-decoration: underline;
+}
+.elementMenu:hover .copyButton
+{
+    display: block;
+}
+.copyButton
+{
+    float:right;
+    display: none;
 }

@@ -70,7 +70,7 @@ export class AppComponent implements OnInit
             }
         });
         this.firstEnter(this);
-        document.addEventListener("dragenter", (e:any) => 
+        /* document.addEventListener("dragenter", (e:any) => 
         {
             let id = e.target.getAttribute("id");
             if(id && e.target.tagName == "TD") e.target.style.background = "#aeec6c";//2px dotted 
@@ -79,9 +79,10 @@ export class AppComponent implements OnInit
         {
             let id = e.target.getAttribute("id");
             if(id && e.target.tagName == "TD") e.target.style.background = null;
-        });
-        document.addEventListener("drop", (e:any) => 
+        }); */
+        /* document.addEventListener("drop", (e:any) => 
         {
+            trace(e)
             let id = e.target.getAttribute("id");
             if(id) 
             {
@@ -90,7 +91,7 @@ export class AppComponent implements OnInit
                 localStorage.removeItem("dragElement");
                 this.tabs[this.currentSoftware].software.appendFromLeftMenu(id, data);
             }
-        });
+        }); */
         this.resizeWindow();
         window.addEventListener("resize", () => { this.resizeWindow() });
         ////////////////////////////////////////////////////////////////////
@@ -172,7 +173,7 @@ export class AppComponent implements OnInit
                 this.openSoftware(e.value.name, e.value);
                 break;
             case "info":
-                if(this.tabs[this.currentSoftware].type == "info")
+                if(this.tabs[this.currentSoftware] && this.tabs[this.currentSoftware].type == "info")
                     this.tabs[this.currentSoftware].inputFromApp = e.value.id;
                 break;
         }
