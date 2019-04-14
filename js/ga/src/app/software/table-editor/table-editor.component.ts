@@ -59,7 +59,6 @@ export class TableEditorComponent implements OnInit
         /* let START = new Date().getTime(); */
         this.query.protectionPost(250, { param: [this.inputs.id]}, (data) => 
         {
-            trace(data)
             if(data.head == undefined) 
             {
                 this.error = true;
@@ -154,8 +153,6 @@ export class TableEditorComponent implements OnInit
                 }
                 let changes = Data.data[0][3];
                 this.load = true;
-                trace(out)
-                trace(changes)
                 this.query.protectionPost(251, { param: [ this.inputs.id, JSON.stringify(out), changes ]}, (data) => 
                 {
                     this.loadTable();
@@ -163,158 +160,91 @@ export class TableEditorComponent implements OnInit
             }
         });
     }
-    appendFromLeftMenu = 
-    (() => 
-    { // Добавление из левого меню
-        return (id, data) =>
+    appendFromLeftMenu(data) // Добавление из левого меню
+    {
+        let i = this.editTable.configInput.i;
+        let j = this.editTable.configInput.j;
+        let id = this.editTable.listTables[i][j].id;
+        let _nameColumn = this.editTable.mapFields[id].name;
+        let nameColumn = "";
+        if(_nameColumn) nameColumn = this.dataHeader[Number(_nameColumn)].value;
+        else
+            for(var _i = 0; _i < this.dataHeader.length; _i++)
+                if(this.dataHeader[_i].i == j) { nameColumn = this.dataHeader[_i].value; break; }
+        let beginI = i;
+        let endI = i;
+        let k = beginI;
+        let length = 1;
+        if(_nameColumn)
         {
-            let i = this.editTable.mapFields[id].i;
-            let j = this.editTable.mapFields[id].j;
-            let _nameColumn = this.editTable.mapFields[id].name;
-            let nameColumn = "";
-            if(_nameColumn) nameColumn = this.dataHeader[Number(_nameColumn)].value;
-            else
-                for(var _i = 0; _i < this.dataHeader.length; _i++)
-                    if(this.dataHeader[_i].i == j) { nameColumn = this.dataHeader[_i].value; break; }
-            let beginI = i;
-            let endI = i;
-            let k = beginI;
-            let length = 1;
-            if(_nameColumn)
-            {
-                beginI = 0;
-                endI = this.dataTable.length - 1;
-                length = this.dataTable.length;
-            }
-            switch(data.objectType)
-            {
-                case "value":
-                    this.query.protectionPost(303, { param: [data.id] }, (value) =>
-                    {
-                        let values = [];
-                        let valuesI = [];
-                        let Data:any = [
-                            ["Тип:", {selected: "по значению", data: ["по значению", "по ссылке"]}, "select", { onselect: (selected) =>
-                            {
-                                if(selected == "по значению" && values.length != 0)
-                                    this.modal.Data[1] = ["Значение:", {selected: 0, data: values, value: valuesI }, "select"];
-                                else 
-                                    if(_nameColumn) this.modal.Data[1] = ["Назначить тип столбцу", false, "checkbox"];
-                                    else this.modal.Data.splice(1, 1);
-                            }}]
-                        ];
-                        if(value[1] == "array")
-                        {   
-                            let i = 0;
-                            values = value[2];
-                            for(; i < values.length; i++) valuesI[i] = i; 
-                            Data[1] = ["Значение:", {selected: 0, data: values, value: valuesI }, "select"];
-                        }
-                        this.modal.open({ 
-                            title: "Как добавить элемент в таблицу", 
-                            data: Data, 
-                            ok: "Добавить", cancel: "Отмена"
-                        }, (save) =>
-                        {
-                            if(save)
-                            {
-                                if(_nameColumn && this.modal.Data[1][0] == "Назначить тип столбцу" && this.modal.Data[1][1]) // Назначение типа столбцу сбросить/назначить
-                                    this.addToQueue(264, [ this.inputs.id, this.dataHeader[Number(_nameColumn)].id, data.id ], () => {});
-                                else this.addToQueue(265, [ this.inputs.id, this.dataHeader[Number(_nameColumn)].id ], () => {});
-                                if(this.modal.Data[0][1].selected == "по значению")
-                                    for(k = beginI; k <= endI; k++)
-                                    {
-                                        let ID = this.dataTable[k][nameColumn].id;
-                                        ((i) =>{
-                                            this.addToQueue(256, [ this.inputs.id, data.id, ID, nameColumn, 
-                                                this.modal.Data[1] ? this.modal.Data[1][1].selected : null ], (data) =>
-                                                {
-                                                    this.dataTable[i][nameColumn] = data;
-                                                    if(--length == 0) this.editTable.data = this.dataTable; // update edit table
-                                                });
-                                        })(k);
-                                     }
-                                if(this.modal.Data[0][1].selected == "по ссылке")
-                                {
-                                    for(k = beginI; k <= endI; k++)
-                                    {
-                                        let ID = this.dataTable[k][nameColumn].id;
-                                        ((i) =>{
-                                            this.addToQueue(255, [ this.inputs.id, data.id, ID, nameColumn ], (data) =>
-                                            {
-                                                this.dataTable[i][nameColumn] = data;
-                                                if(--length == 0) this.editTable.data = this.dataTable; // update edit table
-                                            });
-                                        })(k);
-                                    }
-                                }
-                            }
-                        });
-                    });
-                    break;
-                case "tlist":
-                    // Проверка на вставку в себя (по tableId)
-                    let Data:any = [["Назначить тип столбцу", false, "checkbox"]];
-                    let addFunction = () =>
-                    {
-                        /* if(_nameColumn) // Назначение типа столбцу ПОКА НЕ рЕШЕНО КАК ДЕЛАТЬ
-                            this.addToQueue(264, [ this.inputs.id, this.dataHeader[Number(_nameColumn)].id, data.id ], () => {}); */
-                        for(k = beginI; k <= endI; k++)
-                        {
-                            let ID = this.dataTable[k][nameColumn].id;
-                            ((i) =>{
-                                this.addToQueue(255, [ this.inputs.id, data.id, ID, nameColumn ], (data) =>
-                                {
-                                    this.dataTable[i][nameColumn] = data;
-                                    if(--length == 0) this.editTable.data = this.dataTable; // update edit table
-                                });
-                            })(k);
-                        }
-                    }
-                    if(_nameColumn)
-                        this.modal.open({ 
-                            title: "Как добавить элемент в таблицу", 
-                            data: Data, 
-                            ok: "Добавить", cancel: "Отмена"
-                        }, (save) =>
-                        {
-                            if(save) addFunction();
-                        }); 
-                    else addFunction();
-                    break;
-                case "file": 
-                case "table": 
+            beginI = 0;
+            endI = this.dataTable.length - 1;
+            length = this.dataTable.length;
+        }
+        switch(data.objectType)
+        {
+            case "tlist":
+                // Проверка на вставку в себя (по tableId)
+                let Data:any = [["Назначить тип столбцу", false, "checkbox"]];
+                let addFunction = () =>
+                {
+                    /* if(_nameColumn) // Назначение типа столбцу ПОКА НЕ рЕШЕНО КАК ДЕЛАТЬ
+                        this.addToQueue(264, [ this.inputs.id, this.dataHeader[Number(_nameColumn)].id, data.id ], () => {}); */
                     for(k = beginI; k <= endI; k++)
                     {
                         let ID = this.dataTable[k][nameColumn].id;
                         ((i) =>{
-                            this.addToQueue(255, [ this.inputs.id, data.id, ID, nameColumn], (data) =>
+                            this.addToQueue(255, [ this.inputs.id, data.id, ID, nameColumn ], (data) =>
                             {
-                                if(data == "ERROR") { this.modal.open({ title: "Ошибка! Вы пытаетесь вставить ссылку на текущую таблицу!", data: [], ok: "Ок", cancel: ""}); return;}
                                 this.dataTable[i][nameColumn] = data;
                                 if(--length == 0) this.editTable.data = this.dataTable; // update edit table
                             });
                         })(k);
                     }
-                    break;
-                case "event":
-                    let eventId = data.id;
-                    for(k = beginI; k <= endI; k++)
+                }
+                if(_nameColumn)
+                    this.modal.open({ 
+                        title: "Как добавить элемент в таблицу", 
+                        data: Data, 
+                        ok: "Добавить", cancel: "Отмена"
+                    }, (save) =>
                     {
-                        let ID = this.dataTable[k][nameColumn].id;
-                        ((i) =>{
-                            this.addToQueue(262, [ this.inputs.id, eventId, ID ], (data) => 
-                            { 
-                                if(data !== false) this.dataTable[i][nameColumn].eventId = eventId;
-                                if(--length == 0) this.editTable.data = this.dataTable; // update edit table
-                            });
-                        })(k);
-                    }
-                    break;
-            }
-            /* trace(data) */
+                        if(save) addFunction();
+                    }); 
+                else addFunction();
+                break;
+            case "file": 
+            case "table": 
+                for(k = beginI; k <= endI; k++)
+                {
+                    let ID = this.dataTable[k][nameColumn].id;
+                    ((i) =>{
+                        this.addToQueue(255, [ this.inputs.id, data.id, ID, nameColumn], (data) =>
+                        {
+                            if(data == "ERROR") { this.modal.open({ title: "Ошибка! Вы пытаетесь вставить ссылку на текущую таблицу!", data: [], ok: "Ок", cancel: ""}); return;}
+                            this.dataTable[i][nameColumn] = data;
+                            if(--length == 0) this.editTable.data = this.dataTable; // update edit table
+                        });
+                    })(k);
+                }
+                break;
+            case "event":
+                let eventId = data.id;
+                for(k = beginI; k <= endI; k++)
+                {
+                    let ID = this.dataTable[k][nameColumn].id;
+                    ((i) =>{
+                        this.addToQueue(262, [ this.inputs.id, eventId, ID ], (data) => 
+                        { 
+                            if(data !== false) this.dataTable[i][nameColumn].eventId = eventId;
+                            if(--length == 0) this.editTable.data = this.dataTable; // update edit table
+                        });
+                    })(k);
+                }
+                break;
         }
-    })();
+        /* trace(data) */
+    }
     addRow()
     {
         if(this.dataHeader.length == 0) 
@@ -384,6 +314,11 @@ export class TableEditorComponent implements OnInit
             case "paste":
                 this.pasteField();
                 break;
+            case "pasteObject":
+                let data = JSON.parse(localStorage.getItem("copyExplorer"));
+                this.appendFromLeftMenu(data);
+                localStorage.removeItem("copyExplorer");
+                break;
             case "copyOrCut":
                 this.copyField(property.copyOrCut);
                 break;
@@ -413,7 +348,6 @@ export class TableEditorComponent implements OnInit
         let j = this.editTable.configInput.j;
         localStorage.setItem("copyTable", this.editTable.listTables[i][j].id);
         localStorage.setItem("lastOperationTable", copyOrCut);
-
         this.rules.copy = this.rules.cut = this.rules.paste = false;
     }
     pasteField() // вставить ячейку

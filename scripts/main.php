@@ -605,59 +605,20 @@
                 switch($nQuery)
                 {
                     // /,"a12354fasda","a12355fasda","a12356fasda","a12357fasda","a12358fasda","a
-                    case 300: // Добавить значение
-                        $idElement = (int)$param[0]; // id из структуры
-                        if((getRights($idElement) & 8) != 8) return; // Права на изменение
-                        $type = $param[1];
-                        $value = $param[2];
-                        query("INSERT INTO my_values (type, value) VALUES(%s, %s)", [ $type, $type == "array" ? "" : $value ]);
-                        $idValue = $mysqli->insert_id;
-                        if($type == "array")
-                        {
-                            $c = count($value);
-                            for($i = 0; $i < $c; $i++)
-                                query("INSERT INTO my_list (value_id, my_key, value) VALUES(%i, %s, %s)", [ $idValue, $i, $value[$i] ]);
-                        }
-                        query("UPDATE structures SET objectId = %i WHERE id = %i", [$idValue, $idElement]);
-                        /* request("SELECT * FROM fields WHERE tableId = %i", [$idTable]); */
+                    case 300: // резерв
                         break;
-                    case 301: // Изменить значение 
-                        $idElement = (int)$param[0];
-                        if((getRights($idElement) & 8) != 8) return; // Права на изменение
-                        $idValue = (int)selectOne("SELECT objectId FROM structures WHERE id = %i", [ $idElement ]);
-                        $type = $param[1];
-                        $value = $param[2];
-                        query("UPDATE my_values SET value = %s WHERE id = %i", [$type == "array" ? "" : $value, $idValue]);
-                        if($type == "array")
-                        {
-                            query("DELETE FROM my_list WHERE value_id = %i", [ $idValue ]);
-                            $c = count($value);
-                            for($i = 0; $i < $c; $i++)
-                                query("INSERT INTO my_list (value_id, my_key, value) VALUES(%i, %s, %s)", [ $idValue, $i, $value[$i] ]);
-                        }
+                    case 301: // резерв
                         break;
                     case 302: // резерв
                         break;
-                    case 303: // Загрузить значение
-                        $idElement = (int)$param[0];
-                        if((getRights($idElement) & 1) != 1) return; // Права на просмотр
-                        $idValue = (int)selectOne("SELECT objectId FROM structures WHERE id = %i", [ $idElement ]);
-                        if($result = query("SELECT id, type, value FROM my_values WHERE id = %i", [ $idValue ]))
-                        {
-                            $row = $result->fetch_array(MYSQLI_NUM);
-                            $type = $row[1];
-                            $value = $row[2];
-                            if($type == "array") $value = getListValues($idValue);
-                            echo json_encode([$row[0], $type, $value]);
-                        }
+                    case 303: // резерв
                         break;
                     case 304: // Загрузить список
                         $idValue = (int)$param[0]; // Добавить проверку наоборот
                         if($result = query("SELECT type, value, tableId FROM my_values WHERE id = %i", [ $idValue ]))
                         {
                             $row = $result->fetch_array(MYSQLI_NUM);
-                            if($row[0] == "array") echo json_encode(getListValues($idValue));
-                            if($row[0] == "tlist") echo json_encode(getTableListValues((int)$row[2], (int)$row[1]));
+                            echo json_encode(getTableListValues((int)$row[2], (int)$row[1]));
                         }
                         /* if($result = query("SELECT objectId FROM structures WHERE id = %i", [ $idElement ]))
                         while ($row = $result->fetch_array(MYSQLI_NUM)) $idValue = (int)$row[0]; */
@@ -954,17 +915,6 @@
                 if(searchParent($out[$i]["childrens"], $parent, $elem)) return true;
         return false;
     }
-    function getListValues($id) // Получить список значений
-    {
-        $out = [];
-        if($result = query("SELECT my_key, value FROM my_list WHERE value_id = %i", [ $id ]))
-            while ($row = $result->fetch_array(MYSQLI_NUM)) $out[$row[0]] = $row[1];
-        return $out;
-    }
-    function getListValueByKey($id, $key) // Получить значение из списка
-    {
-        return selectOne("SELECT value FROM my_list WHERE value_id = %i AND my_key = %s", [ $id, $key ]);
-    }
     function getTableListValues($tableId, $idColumn) // Получить список значений из таблицы, только value
     {
         $out = [];
@@ -1002,13 +952,11 @@
                 /* if($row[1] == "value") return ["value" => $row[0], "state" => $row[5]]; */
                 if($row[1] == "link")
                 {
-                    if($row[3] == "value" || $row[3] == "tlist")
+                    if($row[3] == "tlist")
                         if($value = query("SELECT value, type, tableId FROM my_values WHERE id = %i", [ (int)$row[2] ]))
                         {
                             $valueData = $value->fetch_array(MYSQLI_NUM);
-                            if($valueData[1] == "array") $out["value"] = getListValueByKey((int)$row[2], (int)$row[0]);
-                            else if($valueData[1] == "tlist") $out["value"] = getTableListValueByKey((int)$out["value"], (int)$valueData[2]);
-                            else $out["value"] = $valueData[0];
+                            $out["value"] = getTableListValueByKey((int)$out["value"], (int)$valueData[2]);
                         }
                     if($row[3] == "table")
                     {

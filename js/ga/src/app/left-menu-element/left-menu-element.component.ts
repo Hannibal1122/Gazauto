@@ -28,6 +28,7 @@ export class LeftMenuElementComponent implements OnInit
     @Input() set data(data)
     {
         this.outData = [];
+        if(!data) return;
         for(var i = 0; i < data.length; i++)
             this.straighten(this.outData, data[i], 0, -1);
         for(i = 0; i < this.outData.length; i++)
@@ -98,7 +99,6 @@ export class LeftMenuElementComponent implements OnInit
                 this.onChange.emit({ type: "open", value: { name: "table", id: data.id }});
                 break;
             case "tlist":
-            case "value":
                 this.query.protectionPost(111, { param: [ "folder", data.id ]}, // folder потому что id тут из структуры  
                 (idParent) => 
                 {
@@ -178,8 +178,15 @@ export class LeftMenuElementComponent implements OnInit
                 else this.outData[i].searchHide = true;
             }
     }
+
+    /* var widgetEvent = new CustomEvent("select", {
+        bubbles: true,
+        // detail - стандартное свойство CustomEvent для произвольных данных
+        detail: link.getAttribute('href').slice(1)
+      });
+      elem.dispatchEvent(widgetEvent); */
     copyObject(data)
     {
-        localStorage.setItem("dragElement", JSON.stringify(data));
+        localStorage.setItem("copyExplorer", JSON.stringify(data));
     }
 }

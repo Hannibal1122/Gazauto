@@ -136,7 +136,8 @@ export class ErrorTableComponent implements OnInit
     {
         copy: false, 
         cut: false, 
-        paste: false
+        paste: false,
+        pasteObject: false
     }
     cacheListValues = {};
     editField(e) // нажали на ячейку для редактирования
@@ -183,10 +184,14 @@ export class ErrorTableComponent implements OnInit
                 this.inputProperty.values = [];
             }
             //Проверка на возможность вставки
-            this.rules = { copy: true, cut: true, paste: false }
+            this.rules = { copy: true, cut: true, paste: false, pasteObject: false }
             if(this.inputProperty.oldValue == undefined) this.rules.copy = this.rules.cut = false;
-            else
-                if(localStorage.getItem("copyTable") && this.listTables[i][j].id != localStorage.getItem("copyTable")) this.rules.paste = true;
+            if(localStorage.getItem("copyTable") 
+                && this.listTables[i][j].id != localStorage.getItem("copyTable")) //Ячейку нельзя вставить саму в себя
+                    this.rules.paste = true;
+            if(localStorage.getItem("copyExplorer")) this.rules.pasteObject = true; 
+                /* let data = JSON.parse(localStorage.getItem("dragElement"));
+                localStorage.removeItem("dragElement"); */
             this.onChange.emit({ type: "operation", rules: this.rules});
             setTimeout(() => { this.mainInputElement.nativeElement.focus(); }, 20);
             return true;
@@ -248,7 +253,6 @@ export class ErrorTableComponent implements OnInit
     }
     openToExplorer(data)
     {
-        trace(data)
         this.onChange.emit({ type: "explorer", data: data });
     }
     openEventToExplorer(eventId)
@@ -298,7 +302,6 @@ export class ErrorTableComponent implements OnInit
         this.createContextMenu.visible = true;
         this.createContextMenu.i = data;
         this.createContextMenu.type = type;
-        trace(this.inputProperty)
         e.preventDefault();
     }
     addRow(prevOrNext)
@@ -309,6 +312,10 @@ export class ErrorTableComponent implements OnInit
     pasteField()
     {
         this.onChange.emit({ type: "paste" });
+    }
+    pasteObject()
+    {
+        this.onChange.emit({ type: "pasteObject" });
     }
     copyOrCut(type)
     {

@@ -131,13 +131,12 @@ export class AppComponent implements OnInit
         });
         this.query.protectionPost(113, { param: [] }, (data) => 
         { 
-            if(data === "" || data === "None connection") return;
+            if(data === "" || data === "None connection" || !Array.isArray(data)) return;
             this.leftMenuConfig = [];
             if(data.length < this.leftMenuData.length) this.leftMenuData.splice(data.length - 1, this.leftMenuData.length);
             for(var i = 0; i < data.length; i++)
             {
-                this.leftMenuConfig[i] = 
-                {
+                this.leftMenuConfig[i] = {
                     name: data[i].name,
                     id: data[i].id,
                     buttons: data[i].buttons,
@@ -222,7 +221,7 @@ export class AppComponent implements OnInit
         switch(type)
         {
             case "explorer": i = this.checkRepeatSoftware(type, { component: ExplorerComponent, inputs: input }); break;
-            case "table": i = this.checkRepeatSoftware(type, { component: TableEditorComponent, inputs: input, appendFromLeftMenu: {} }); break;
+            case "table": i = this.checkRepeatSoftware(type, { component: TableEditorComponent, inputs: input }); break;
             case "info": i = this.checkRepeatSoftware(type, { component: InfoComponent, inputs: input }); break;
             case "event": i = this.checkRepeatSoftware(type, { component: EventEditorComponent, inputs: input }); break;
             case "plan": i = this.checkRepeatSoftware(type, { component: PlanEditorComponent, inputs: input }); break;

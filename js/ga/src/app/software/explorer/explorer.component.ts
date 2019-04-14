@@ -5,7 +5,6 @@ import { CreateUserService } from "../create-user.service";
 import { CreateRoleService } from "../create-role.service";
 import { CreateFolderService } from "../create-folder.service";
 import { CreateRightService } from "../create-right.service";
-import { CreateValueService } from "../create-value.service";
 import { PasteObjectService } from "../paste-object.service";
 import { CreateFileService } from "../create-file.service";
 import { CreateInfoService } from "../create-info.service";
@@ -26,7 +25,6 @@ declare var trace:any;
         CreateRoleService,
         CreateFolderService,
         CreateRightService,
-        CreateValueService,
         PasteObjectService,
         CreateFileService,
         CreateInfoService,
@@ -76,7 +74,6 @@ export class ExplorerComponent implements OnInit
         private createRole: CreateRoleService,
         private createFolder: CreateFolderService,
         private createRight: CreateRightService,
-        private createValue: CreateValueService,
         private pasteObject: PasteObjectService,
         private createFile: CreateFileService,
         private createInfo: CreateInfoService,
@@ -104,7 +101,6 @@ export class ExplorerComponent implements OnInit
         this.createRole.modal = this.modal;
         this.createFolder.modal = this.modal;
         this.createRight.modal = this.modal;
-        this.createValue.modal = this.modal;
         this.pasteObject.modal = this.modal;
         this.createFile.modal = this.modal;
         this.createInfo.modal = this.modal;
@@ -172,9 +168,6 @@ export class ExplorerComponent implements OnInit
             case "role":
                 this.createObject(null, 'Роль', object)
                 break;
-            case "value":
-                this.createObject(null, 'Значение', object)
-                break;
             case "tlist":
                 this.query.protectionPost(307, { param: [ object.id ] }, (data) => 
                 {
@@ -198,9 +191,6 @@ export class ExplorerComponent implements OnInit
                 break;
             case "Таблица": 
                 this.createTable.create(id, () => { this.refresh() });
-                break;
-            case "Значение":
-                this.createValue.create(id, () => { this.refresh() }, data);
                 break;
             case "Событие": 
                 this.createEvent.create(id, () => { this.refresh() });
@@ -267,9 +257,6 @@ export class ExplorerComponent implements OnInit
                 break;
             case "role": 
                 this.createRole.remove(name, () => { this.refresh() });
-                break;
-            case "value": 
-                this.createValue.remove(id, () => { this.refresh() });
                 break;
             case "event": 
                 this.createEvent.remove(id, () => { this.refresh() });

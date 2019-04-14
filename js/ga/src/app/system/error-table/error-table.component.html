@@ -83,6 +83,7 @@
     </ng-container>
     <ng-container *ngIf = "createContextMenu.type == 'cell'">
         <button class = "contextMenuList" (click) = "pasteField()" [disabled] = "!rules.paste">Вставить</button>
+        <button class = "contextMenuList" (click) = "pasteObject()" [disabled] = "!rules.pasteObject">Вставить объект</button>
         <button class = "contextMenuList" (click) = "copyOrCut('copy')" [disabled] = "!rules.copy">Копировать</button>
         <button class = "contextMenuList" (click) = "copyOrCut('cut')" [disabled] = "!rules.cut">Вырезать</button>
         <div class = "contextMenuList" (click) = "setState(0)">Статус - 0%</div>
