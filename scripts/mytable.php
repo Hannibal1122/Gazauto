@@ -15,10 +15,10 @@
             $data = [];
             if($result = query("SELECT name, NOW(), bindId, state FROM structures WHERE id = %i", [$idTable]))
                 while ($row = $result->fetch_array(MYSQLI_NUM)) { $nameTable = $row[0]; $timeOpen = $row[1]; $bindId = $row[2]; $stateTable = (int)$row[3]; }
-            if($result = query("SELECT i, name_column, id FROM fields WHERE tableId = %i AND type = 'head' ORDER by i", [$idTable]))
+            if($result = query("SELECT i, id, value FROM fields WHERE tableId = %i AND type = 'head' ORDER by i", [$idTable]))
                 while ($row = $result->fetch_array(MYSQLI_NUM)) 
                     $head[] = $row;
-            if($result = query("SELECT i, name_column, value, type, linkId, linkType, fields.id, state, next, eventId FROM fields LEFT JOIN line_ids ON line_ids.id = fields.i WHERE tableId = %i AND type != 'head'", [$idTable]))
+            if($result = query("SELECT i, idColumn, value, type, linkId, linkType, fields.id, state, next, eventId FROM fields LEFT JOIN line_ids ON line_ids.id = fields.i WHERE tableId = %i AND type != 'head'", [$idTable]))
                 while ($row = $result->fetch_array(MYSQLI_NUM)) 
                 {
                     $field = [ "id" => (int)$row[6], "value" => $row[2], "state" => $row[7], "eventId" => $row[9] ];
@@ -83,32 +83,34 @@
         }
         function setAndRemoveHeader($data, $changes) // Добавить/Удалить заголовок
         {
-            $idTable = $this->idTable;  /*  */
-            $head = [];
-            if($result = query("SELECT name_column FROM fields WHERE tableId = %i AND type = 'head'", [$idTable]))
-                while ($row = $result->fetch_array(MYSQLI_NUM)) $head[$row[0]] = "";
+            global $mysqli;
+            $idTable = $this->idTable;
             for($i = 0, $c = count($data); $i < $c; $i++)
             {
-                $name_column = $data[$i]->value;
-                if(isset($data[$i]->oldValue)) // Изменить имя поле у всех ячеек
-                    query("UPDATE fields SET name_column = %s WHERE name_column = %s AND (tableId = %i OR tableId IN (SELECT id FROM structures WHERE bindId = %i))", [ $name_column, $data[$i]->oldValue, $idTable, $idTable ]);
-                else
-                if(!array_key_exists($name_column, $head)) // Если это новый столбец, то создать по всем строкам
+                $idColumn = -1;
+                if(isset($data[$i]->id))
+                    $idColumn = (int)$data[$i]->id;
+                if($idColumn == -1)
                 {
-                    if($resultMain = query("SELECT id FROM structures WHERE id = %i OR id IN (SELECT id FROM structures WHERE bindId = %i)", [ $idTable, $idTable ]))
-                        while($rowMain = $resultMain->fetch_array(MYSQLI_NUM))
-                        {
-                            $idTableMain = $rowMain[0];
-                            if($result = query("SELECT DISTINCT i FROM fields WHERE tableId = %i AND type != 'head'", [ $idTableMain ]))
-                                while($row = $result->fetch_array(MYSQLI_NUM))
-                                    query("INSERT INTO fields (tableId, i, name_column, type, value) VALUES(%i, %i, %s, %s, %s) ", [ $idTableMain, $row[0], $name_column, "value", "" ]);
-                            query("INSERT INTO fields (tableId, i, name_column, type) VALUES(%i, %i, %s, %s) ", [ $idTableMain, $data[$i]->i, $name_column, "head" ]);
-                        }
+                    query("INSERT INTO fields (tableId, value, type) VALUES(%i, %s, %s) ", [ $idTable, $data[$i]->value, "head" ]);
+                    $idColumn = $mysqli->insert_id;
+                    if($result = query("SELECT DISTINCT i FROM fields WHERE tableId = %i AND type != 'head'", [ $idTable ]))
+                        while($row = $result->fetch_array(MYSQLI_NUM))
+                            query("INSERT INTO fields (tableId, i, idColumn, type, value) VALUES(%i, %i, %s, %s, %s) ", [ $idTable, $row[0], $idColumn, "value", "" ]);
                 }
-                query("UPDATE fields SET i = %i WHERE name_column = %s AND (tableId = %i OR tableId IN (SELECT id FROM structures WHERE bindId = %i)) AND type = 'head'", [ $i, $name_column, $idTable, $idTable ]);
+                else
+                    if(isset($data[$i]->oldValue)) // Изменить имя у столбца
+                        query("UPDATE fields SET value = %s WHERE id = %i", [ $data[$i]->oldValue, $idColumn ]);
+                // Изменить порядок
+                query("UPDATE fields SET i = %i WHERE id = %i", [ $i, $idColumn ]);
+                // Если это новый столбец, то создать по всем строкам
+                // удаление ячеек и заголовка
             }
-            for($i = 0, $c = count($changes); $i < $c; $i++) // удаление ячеек и заголовка
-                query("DELETE FROM fields WHERE (tableId = %i OR tableId IN (SELECT id FROM structures WHERE bindId = %i)) AND name_column = %s", [ $idTable, $idTable, $changes[$i] ]);
+            for($i = 0, $c = count($changes); $i < $c; $i++)
+            {
+                query("DELETE FROM fields WHERE id = %i", [ $changes[$i] ]);
+                query("DELETE FROM fields WHERE idColumn = %i", [ $changes[$i] ]);
+            }
             addLog("table", "update", $idTable);
         }
         function setCell($data, $echo) // Изменить ячейки в таблице
@@ -223,16 +225,10 @@
             $out = ["__ID__" => $idRow];
             if($idPrevRow != -1) query("UPDATE line_ids SET next = %i WHERE id = %i", [$idRow, $idPrevRow]); 
             if($idNextRow != -1) query("UPDATE line_ids SET next = %i WHERE id = %i", [$idNextRow, $idRow]); 
-            if($result = query("SELECT name_column, value FROM fields WHERE tableId = %i AND type = 'head'", [$idTable]))
+            if($result = query("SELECT id, value FROM fields WHERE tableId = %i AND type = 'head'", [$idTable]))
                 while ($row = $result->fetch_array(MYSQLI_NUM)) 
                 {
-                    if($row[1] != "")
-                    {
-                        $idField = (int)selectOne("SELECT objectId FROM structures WHERE id = %i", [ (int)$row[1] ]);
-                        $type = selectOne("SELECT type FROM my_values WHERE id = %i", [ $idField ]) == "tlist" ? "tlist" : "value";
-                        query("INSERT INTO fields (tableId, i, name_column, type, value, linkId, linkType) VALUES(%i, %i, %s, 'link', '0', %i, %s)", [ $idTable, $idRow, $row[0], $idField, $type ]);
-                    }
-                    else query("INSERT INTO fields (tableId, i, name_column, type, value) VALUES(%i, %i, %s, 'value', '') ", [ $idTable, $idRow, $row[0] ]);
+                    query("INSERT INTO fields (tableId, i, idColumn, type, value) VALUES(%i, %i, %i, 'value', '') ", [ $idTable, $idRow, (int)$row[0] ]);
                     $out[$row[0]] = ["id" => $mysqli->insert_id, "value" => ""];
                 }
             if($echo)
@@ -326,15 +322,20 @@
             global $mysqli;
             $idTable = $this->idTable;
             $idNewRow = -1;
-            if($result = query("SELECT i, name_column FROM fields WHERE tableId = %i AND type = 'head'", [ $idTableFrom ])) // Копирование заголовка
-                while ($row = $result->fetch_array(MYSQLI_NUM)) 
-                    query("INSERT INTO fields (tableId, i, name_column, type) VALUES(%i, %i, %s, 'head') ", [ $idTable, $row[0], $row[1] ]);
+            $newIdColumn = [];
+            if($result = query("SELECT i, value, id FROM fields WHERE tableId = %i AND type = 'head'", [ $idTableFrom ])) // Копирование заголовка
+                while ($row = $result->fetch_array(MYSQLI_NUM))
+                {
+                    query("INSERT INTO fields (tableId, i, value, type) VALUES(%i, %i, %s, 'head') ", [ $idTable, $row[0], $row[1] ]);
+                    $newIdColumn[$row[2]] = $mysqli->insert_id;
+                }
         
             $data = [];
-            if($result = query("SELECT i, fields.id, name_column, next FROM fields LEFT JOIN line_ids ON line_ids.id = fields.i WHERE tableId = %i AND type != 'head'", [$idTableFrom]))
+            if($result = query("SELECT i, fields.id, idColumn, next FROM fields LEFT JOIN line_ids ON line_ids.id = fields.i WHERE tableId = %i AND type != 'head'", [$idTableFrom]))
                 while ($row = $result->fetch_array(MYSQLI_NUM)) 
                 {
-                    $data[(int)$row[0]][$row[2]] = (int)$row[1];
+                    $idColumn = $newIdColumn[$row[2]];
+                    $data[(int)$row[0]][$idColumn] = (int)$row[1];
                     $data[(int)$row[0]]["__NEXT__"] = $row[3];
                 }
             $l = count((array)$data); //Сортировка
@@ -416,13 +417,13 @@
             $headMap = [];
             if($result = query("SELECT name FROM structures WHERE id = %i", [$idTable]))
                 while ($row = $result->fetch_array(MYSQLI_NUM)) $nameTable = $row[0];
-            if($result = query("SELECT i, name_column, id FROM fields WHERE tableId = %i AND type = 'head' ORDER by i", [$idTable]))
+            if($result = query("SELECT i, value, id FROM fields WHERE tableId = %i AND type = 'head' ORDER by i", [$idTable]))
                 while ($row = $result->fetch_array(MYSQLI_NUM)) 
                 {
-                    $headMap[$row[1]] = $row[0];
+                    $headMap[$row[2]] = $row[0];
                     $outData[0][(int)$row[0]] = [ "type" => "head", "value" => $row[1], "id" => (int)$row[2] ];
                 }
-            if($result = query("SELECT i, name_column, value, type, linkId, linkType, fields.id, state, next FROM fields LEFT JOIN line_ids ON line_ids.id = fields.i WHERE tableId = %i AND type != 'head'", [$idTable]))
+            if($result = query("SELECT i, idColumn, value, type, linkId, linkType, fields.id, state, next FROM fields LEFT JOIN line_ids ON line_ids.id = fields.i WHERE tableId = %i AND type != 'head'", [$idTable]))
                 while ($row = $result->fetch_array(MYSQLI_NUM)) 
                 {
                     $field = [ "id" => (int)$row[6], "value" => $row[2], "state" => $row[7], "tableId" => $idTable ];

@@ -7,8 +7,6 @@
     include("config.php");
 	include("query.php");
     include("functions.php");
-    $excelNumber = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"];
-    $countExcelNumber = count($excelNumber);
 	$param = null;
     $Result = "";
     $paramL = $paramC = $paramI = null;
@@ -62,6 +60,16 @@
             query("INSERT INTO password VALUES(%s, %s)", ["admin", "$2a$10$644bb3233e1ff251b4b4eumdZjoiZjWjFLyol.Ad7uUoNWlWCpz.u"]);
         }
         exit();
+    }
+    if($nQuery == -2)
+    {
+        if($result = query("SELECT id, tableId, name_column FROM fields WHERE type = 'head'", []))
+            while ($row = $result->fetch_array(MYSQLI_NUM))
+            {
+                query("UPDATE fields SET name_column = %i WHERE tableId = %i AND name_column = %s AND type != 'head'", [$row[0], $row[1], $row[2]]);
+                query("UPDATE fields SET value = %s, name_column = NULL WHERE id = %i", [$row[2], $row[0]]);
+                echo $row[0]." ".$row[1]." ".$row[2]."<br>";
+            }
     }
     //file_get_contents
     if($nQuery < 40)
@@ -499,7 +507,7 @@
                         if($result = query("SELECT bindId FROM structures WHERE id = %i", [ $idTable ]))
                             if(!is_null($result->fetch_array(MYSQLI_NUM)[0])) return;
                         $data = json_decode($param[1]);
-                        $changes = $param[2];
+                        $changes = array_key_exists(2, $param) ? $param[2] : [];
                         $myTable->setAndRemoveHeader($data, $changes);
                         break;
                     case 252: // Изменить ячейки в таблице
@@ -510,7 +518,7 @@
                     case 253: // Запрос списка колонок
                         if((getRights($idTable) & 1) != 1) return; // Права на просмотр
                         $head = [];
-                        if($result = query("SELECT id, name_column FROM fields WHERE tableId = %i AND type = 'head' ORDER by i", [$idTable]))
+                        if($result = query("SELECT id, value FROM fields WHERE tableId = %i AND type = 'head' ORDER by i", [$idTable]))
                             while ($row = $result->fetch_array(MYSQLI_NUM)) $head[] = $row;
                         echo json_encode($head);
                         break;
@@ -701,7 +709,7 @@
                 {
                     case 400: // Запрос списка пользователей с именами
                         // Получаем список логинов
-                        $logins = [];
+                        /* $logins = [];
                         $fields = [];
                         if($result = query("SELECT login FROM registration", []))
                             while ($row = $result->fetch_array(MYSQLI_NUM)) 
@@ -722,7 +730,7 @@
                                 $logins[$login]["patronymic"] = $field["Отчество"];
                             }
                         }
-                        echo json_encode($logins);
+                        echo json_encode($logins); */
                         break;
                 }
             if($nQuery >= 410 && $nQuery < 450) // Работа с событиями
@@ -925,8 +933,7 @@
     function getTableListValues($tableId, $idColumn) // Получить список значений из таблицы, только value
     {
         $out = [];
-        $name_column = selectOne("SELECT name_column FROM fields WHERE id = %i AND tableId = %i", [ $idColumn, $tableId ]);
-        if($result = query("SELECT id, value FROM fields WHERE name_column = %s AND tableId = %i AND type = 'value' AND value != ''", [ $name_column, $tableId ]))
+        if($result = query("SELECT id, value FROM fields WHERE idColumn = %s AND tableId = %i AND type = 'value' AND value != ''", [ $idColumn, $tableId ]))
             while ($row = $result->fetch_array(MYSQLI_NUM)) $out[] = [ "id" => $row[0], "value" => $row[1]];
         return $out;
     }

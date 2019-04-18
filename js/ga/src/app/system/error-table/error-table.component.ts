@@ -63,7 +63,7 @@ export class ErrorTableComponent implements OnInit
             {
                 this.firstHeader[value[key].value] = value[key].i;
                 this.header[value[key].i] = value[key];
-                this.mapFields[value[key].id] = { name: key, header: true }
+                this.mapFields[value[key].value] = { name: key, header: true };
             }
         }
     }

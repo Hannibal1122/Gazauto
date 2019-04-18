@@ -55,6 +55,24 @@ export class GlobalEvent
                 break;
         }
     }
+    unsubscribe(type:String, id:Number)
+    {
+        switch(type)
+        {
+            case "structure":
+                this.subscribeData.structure = null;
+                break;
+            case "table":
+                delete this.subscribeData.tableEvent[String(id)];
+                for(let i = 0; i < this.subscribeData.tables.length; i++)
+                    if(this.subscribeData.tables[i].id == id)
+                    {
+                        this.subscribeData.tables.splice(i, 1);
+                        break;
+                    }
+                break;
+        }
+    }
     appendTableIds(id, tableIds, idLogTableOpen) // tableIds может быть известен только после загрузки таблицы поэтому отдельно
     {
         for(let i = 0; i < this.subscribeData.tables.length; i++)

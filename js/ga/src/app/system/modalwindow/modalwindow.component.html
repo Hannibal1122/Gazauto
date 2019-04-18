@@ -39,8 +39,8 @@
                         <textarea *ngIf = "data[2] === 'textarea'" style = "width: 100%;" [(ngModel)] = "data[1]">{{ data[1] }}</textarea>
                         <!-- ******************************************************************************** -->
                         <div *ngIf = "data[2] === 'listTable'" >
-                            <select size = 7 style = "min-width:280px;" [(ngModel)] = "selectInListTable" (change) = "selectFromListTable()">
-                                <option *ngFor = "let option of data[1]" value = "{{ option.value }}">
+                            <select size = 7 style = "min-width:280px;" [(ngModel)] = "selectInListTable" (change) = "selectFromListTable(i)">
+                                <option *ngFor = "let option of data[1]" value = "{{ option.id }}">
                                     {{ option.value }}
                                 </option>
                             </select>
@@ -59,7 +59,7 @@
                             <button class = "btn btn-primary btn-sm" 
                                 (click) = "refreshFromListTable()">
                                 <i class="fas fa-sync-alt"></i></button>
-                            <br><input type = "text" style = "margin-top:4px;" [(ngModel)] = "inputInListTable">
+                            <br><input type = "text" style = "margin-top:4px;" [(ngModel)] = "inputInListTable.value">
                             <button class = "btn btn-primary btn-sm" (click) = "addToListTable(i)">{{changeInListTable ? 'изменить' : 'добавить' }}</button>
                         </div>
                         <!-- ******************************************************************************** -->

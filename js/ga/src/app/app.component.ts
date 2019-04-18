@@ -93,6 +93,8 @@ export class AppComponent implements OnInit
     closeTab(i) // Закрыть вкладку
     {
         this.removeSaveTab(i);
+        if(this.tabs[i].type == "table")
+            this.globalEvent.unsubscribe("table", this.tabs[i].software.inputs.id);
         this.tabs.splice(i, 1);
         if(i < this.currentSoftware) this.currentSoftware--;
         else if(i == this.currentSoftware)

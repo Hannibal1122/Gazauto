@@ -3,7 +3,7 @@
         <tbody (click) = "change ? editField($event) : null">
             <tr>
                 <th class = "TableCreatorHeadColor"></th>
-                <th *ngFor = "let head of header; let i = index;" class = "TableCreatorHeadColor TableCreatorHeadBColor" id = "{{ head.id }}">{{ head.value }}</th>
+                <th *ngFor = "let head of header; let i = index;" class = "TableCreatorHeadColor TableCreatorHeadBColor" id = "{{ head.value }}">{{ head.name }}</th>
             </tr>
             <tr *ngFor = "let row of listTables; let i = index;">
                 <td (contextmenu) = "getContextmenu($event, i, 'row')" class = "TableCreatorHeadColor TableCreatorHeadBColor">{{ i + 1 }}</td>

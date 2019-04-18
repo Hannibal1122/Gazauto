@@ -78,14 +78,13 @@ export class TableEditorComponent implements OnInit
             this.dataTable = [];
             this.firstData = data.data;
             for(var i = 0; i < data.head.length; i++)
-                this.dataHeader.push({ i: data.head[i][0], value: data.head[i][1], id: data.head[i][2] });
+                this.dataHeader.push({ i: data.head[i][0], value: data.head[i][1], name: data.head[i][2] });
             this.tableIds = data.tableIds;
             this.onChange({ type: "updateTableIds", id: this.inputs.id, tableIds: this.tableIds, idLogTableOpen: data.idLogTableOpen });
 
             let l = Object.keys(data.data).length;
             for(var key in data.data) this.dataTable.push(data.data[key]);
             if(this.inputs.searchObjectId) this.searchCell(this.inputs.searchObjectId);
-            
             this.load = false;
             if(func) func();
             /* trace(new Date().getTime() - START); */
@@ -117,7 +116,7 @@ export class TableEditorComponent implements OnInit
     changeHeader() // изменить заголовок таблицы
     {
         var header = [];
-        for(var i = 0; i < this.dataHeader.length; i++) header[i] = { value: this.dataHeader[i].value };
+        for(var i = 0; i < this.dataHeader.length; i++) header[i] = { id: this.dataHeader[i].value, value: this.dataHeader[i].name };
         var Data:any = {
             title: "Редактор заголовка",  
             data: [
@@ -131,17 +130,12 @@ export class TableEditorComponent implements OnInit
             if(save)
             {
                 let out = [];
+                trace(this.dataTable)
                 for(var i = 0; i < Data.data[0][1].length; i++)
-                {
-                    if(Data.data[0][1][i].oldValue)
-                        for(var j = 0; j < this.dataTable.length; j++)
-                        {
-                            this.dataTable[j][Data.data[0][1][i].value] = this.dataTable[j][Data.data[0][1][i].oldValue];
-                            delete this.dataTable[j][Data.data[0][1][i].oldValue];
-                        }
-                    out.push({ value: Data.data[0][1][i].value, oldValue: Data.data[0][1][i].oldValue, i: i});
-                }
+                out.push({ id: Data.data[0][1][i].id, value: Data.data[0][1][i].value, oldValue: Data.data[0][1][i].oldValue, i: i});
                 let changes = Data.data[0][3];
+                trace(out)
+                trace(changes)
                 this.load = true;
                 this.query.protectionPost(251, { param: [ this.inputs.id, JSON.stringify(out), changes ]}, (data) => 
                 {
