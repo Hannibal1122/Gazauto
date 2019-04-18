@@ -1,6 +1,7 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { ExplorerComponent } from './software/explorer/explorer.component';
 import { QueryService } from "./lib/query.service";
+import { GlobalEvent } from "./system/global-event.service";
 import { FunctionsService } from "./lib/functions.service";
 import { TableEditorComponent } from './software/table-editor/table-editor.component';
 import { EventEditorComponent } from './software/event-editor/event-editor.component';
@@ -16,7 +17,7 @@ declare var $: any;
     selector: 'app-root',
     templateUrl: './app.component.html',
     styleUrls: ['./app.component.css'],
-    providers: [QueryService, FunctionsService]
+    providers: [ QueryService, FunctionsService, GlobalEvent ]
 })
 export class AppComponent implements OnInit
 {
@@ -31,12 +32,12 @@ export class AppComponent implements OnInit
     Login = "";
     Version = "";
     currentSoftware = 0;
-    constructor(private query: QueryService, private lib: FunctionsService) 
+    constructor(private query: QueryService, private lib: FunctionsService, private globalEvent:GlobalEvent) 
     { 
         query.post(0, {}, (data) => { this.Version = data.main });
         if(location.search == "?set_type=install")
             $.post(environment.URL, {nquery: -1}, (data)=>{ console.log(data) });
-        /* query.post(10, {}, (data) => { trace(data) }); */
+        globalEvent.subscribe("structure", -1, () => { this.refreshLeftMenu(); });
     }
     leftMenuScroll = 
     {
@@ -56,7 +57,9 @@ export class AppComponent implements OnInit
             this.Login = localStorage.getItem("login");
             this.refreshLeftMenu();
             let saveTabs = this.getSaveTabs();
-            for(var i = 0; i < saveTabs.length; i++) this.openSoftware(saveTabs[i][0], saveTabs[i][1]);
+            for(var i = 0; i < saveTabs.length; i++) 
+                if(saveTabs[i]) 
+                    this.openSoftware(saveTabs[i][0], saveTabs[i][1]);
 
             let currentTab = localStorage.getItem("CurrentTab");
             if(currentTab !== null) this.currentSoftware = Number(currentTab);
@@ -70,28 +73,6 @@ export class AppComponent implements OnInit
             }
         });
         this.firstEnter(this);
-        /* document.addEventListener("dragenter", (e:any) => 
-        {
-            let id = e.target.getAttribute("id");
-            if(id && e.target.tagName == "TD") e.target.style.background = "#aeec6c";//2px dotted 
-        });
-        document.addEventListener("dragleave", (e:any) => 
-        {
-            let id = e.target.getAttribute("id");
-            if(id && e.target.tagName == "TD") e.target.style.background = null;
-        }); */
-        /* document.addEventListener("drop", (e:any) => 
-        {
-            trace(e)
-            let id = e.target.getAttribute("id");
-            if(id) 
-            {
-                if(e.target.tagName == "TD") e.target.style.background = null;
-                let data = JSON.parse(localStorage.getItem("dragElement"));
-                localStorage.removeItem("dragElement");
-                this.tabs[this.currentSoftware].software.appendFromLeftMenu(id, data);
-            }
-        }); */
         this.resizeWindow();
         window.addEventListener("resize", () => { this.resizeWindow() });
         ////////////////////////////////////////////////////////////////////
@@ -123,15 +104,9 @@ export class AppComponent implements OnInit
     leftMenuConfig = [];
     refreshLeftMenu() // обновить левое меню
     {
-        this.query.protectionPost(353, { }, (data) =>
-        {
-            if(data === "") return;
-            this.lastUpdateTime = data[0][0];
-            this.getLastUpdateTime();
-        });
         this.query.protectionPost(113, { param: [] }, (data) => 
         { 
-            if(data === "" || data === "None connection" || !Array.isArray(data)) return;
+            if(!Array.isArray(data)) return;
             this.leftMenuConfig = [];
             if(data.length < this.leftMenuData.length) this.leftMenuData.splice(data.length - 1, this.leftMenuData.length);
             for(var i = 0; i < data.length; i++)
@@ -145,23 +120,6 @@ export class AppComponent implements OnInit
                 if(this.leftMenuData[i] == undefined) this.leftMenuData[i] = {};
                 for(var key in data[i]) this.leftMenuData[i][key] = data[i].childrens;
             }
-        });
-    }
-    private lastUpdateTimer = null;
-    private lastUpdateTime = "";
-    private getLastUpdateTime() // Запрос изменений таблицы
-    {
-        clearTimeout(this.lastUpdateTimer);
-        // 414 - события по времени
-        this.query.protectionPost(414, { }, (data) =>  
-        {
-            this.query.protectionPost(354, { param: [ this.lastUpdateTime ] }, (data) => 
-            { 
-                if(data === "") return;
-                this.lastUpdateTime = data[1];
-                if(data[0]) this.refreshLeftMenu();
-                else this.lastUpdateTimer = setTimeout(() => { this.getLastUpdateTime(); }, 10000);
-            });
         });
     }
     onChangeInLeftMenu(e) // События из левого меню
@@ -212,6 +170,9 @@ export class AppComponent implements OnInit
                         break;
                     }
                 break;
+            case "updateTableIds":
+                this.globalEvent.appendTableIds(e.id, e.tableIds, e.idLogTableOpen);
+                break;
         }
     }
     openSoftware(type, input) // Открыть приложение
@@ -221,7 +182,14 @@ export class AppComponent implements OnInit
         switch(type)
         {
             case "explorer": i = this.checkRepeatSoftware(type, { component: ExplorerComponent, inputs: input }); break;
-            case "table": i = this.checkRepeatSoftware(type, { component: TableEditorComponent, inputs: input }); break;
+            case "table": 
+                i = this.checkRepeatSoftware(type, { component: TableEditorComponent, inputs: input }); 
+                this.globalEvent.subscribe("table", input.id, (event) =>
+                {
+                    if(event.update) this.tabs[i].inputFromApp = { update: true, logins: event.logins };
+                    else this.tabs[i].inputFromApp = { logins: event.logins };
+                });
+                break;
             case "info": i = this.checkRepeatSoftware(type, { component: InfoComponent, inputs: input }); break;
             case "event": i = this.checkRepeatSoftware(type, { component: EventEditorComponent, inputs: input }); break;
             case "plan": i = this.checkRepeatSoftware(type, { component: PlanEditorComponent, inputs: input }); break;
@@ -250,8 +218,7 @@ export class AppComponent implements OnInit
             if(input.element) this.tabs[i].inputFromApp = { element: input.element };
         }
         else
-            this.tabs[i] = 
-            {
+            this.tabs[i] = {
                 name: name,
                 type: type,
                 software: software,
@@ -266,7 +233,7 @@ export class AppComponent implements OnInit
         this.load = true;
         this.query.protectionPost(6, {}, (data) =>
         {
-            if(data === "") return;
+            if(typeof data !== "object") return;
             if(data[0] == -1)
             {
                 this.query.post(7, { paramI: localStorage.getItem("ID") }, (data) => { });

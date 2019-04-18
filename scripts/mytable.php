@@ -70,8 +70,16 @@
                             $tableIds[$data[$key][$_key]["tableId"]] = $data[$key][$_key]["tableId"];
                     $key = $this->getNextI($data, $key);
                 }
-            echo json_encode(["head" => $head, "data" => $outData, "tableIds" => $tableIds, "name" => $nameTable, "change" => (getRights($idTable) & 8) == 8, "time" => $timeOpen, "changeHead" => $bindId, "state" => $stateTable]);
-            addLog("table", "open", $idTable);
+            echo json_encode([
+                "head" => $head, 
+                "data" => $outData, 
+                "tableIds" => $tableIds, 
+                "name" => $nameTable, 
+                "change" => (getRights($idTable) & 8) == 8, 
+                "idLogTableOpen" => addLog("table", "open", $idTable), 
+                "changeHead" => $bindId, 
+                "state" => $stateTable
+            ]);
         }
         function setAndRemoveHeader($data, $changes) // Добавить/Удалить заголовок
         {

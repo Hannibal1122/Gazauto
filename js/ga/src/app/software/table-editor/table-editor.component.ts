@@ -17,6 +17,11 @@ export class TableEditorComponent implements OnInit
     set inputFromApp(value)
     {
         if(value && value.search) this.searchCell(value.search);
+        if(value && value.logins)
+        {
+            this.listLogin = [];
+            for(var key in value.logins) this.listLogin.push(key);
+        }
         if(value && value.update) this.loadTable();
     }
 
@@ -29,7 +34,6 @@ export class TableEditorComponent implements OnInit
     stateTable = 0;
     error = false;
     load = false;
-    lastUpdateTime = "";
     needUpdate = false;
     rules = 
     {
@@ -45,10 +49,10 @@ export class TableEditorComponent implements OnInit
     {
         this.loadTable(() =>
         {
-            this.getLastUpdateTime(() => 
+            /* this.getLastUpdateTime(() => 
             { 
                 this.getListLogin(); 
-            });
+            }); */
         });
     }
     tableIds = {}; // для контроля изменений
@@ -76,40 +80,26 @@ export class TableEditorComponent implements OnInit
             for(var i = 0; i < data.head.length; i++)
                 this.dataHeader.push({ i: data.head[i][0], value: data.head[i][1], id: data.head[i][2] });
             this.tableIds = data.tableIds;
+            this.onChange({ type: "updateTableIds", id: this.inputs.id, tableIds: this.tableIds, idLogTableOpen: data.idLogTableOpen });
+
             let l = Object.keys(data.data).length;
             for(var key in data.data) this.dataTable.push(data.data[key]);
             if(this.inputs.searchObjectId) this.searchCell(this.inputs.searchObjectId);
             
-            this.lastUpdateTime = data.time;
             this.load = false;
             if(func) func();
             /* trace(new Date().getTime() - START); */
         });
     }
     /*************************************************/
-    private globalStop = false;
+    /* private globalStop = false;
     private Timer = 
     {
         lastUpdate: null, 
         listLogin: null
-    };
-    private getLastUpdateTime(func?) // Запрос изменений таблицы
-    {
-        clearTimeout(this.Timer.lastUpdate);
-        this.query.protectionPost(351, { param: [this.inputs.id, this.lastUpdateTime, this.tableIds] }, (data) => 
-        { 
-            if(data[0] && !this.editTable.inputProperty.visible) 
-            {
-                this.loadTable();
-                this.needUpdate = false;
-            }
-            else this.needUpdate = data[0];
-            if(!this.globalStop) this.Timer.lastUpdate = setTimeout(() => { this.getLastUpdateTime(); }, 10000);
-            if(func) func();
-        });
-    }
+    }; */
     listLogin = [];
-    private getListLogin() // Получить список пользователей работающих с таблицей
+    /* private getListLogin() // Получить список пользователей работающих с таблицей
     {
         clearTimeout(this.Timer.listLogin);
         this.query.protectionPost(352, { param: [ this.inputs.id ] }, (data) => 
@@ -118,11 +108,11 @@ export class TableEditorComponent implements OnInit
             for(var key in data) this.listLogin.push(key);
             if(!this.globalStop) this.Timer.listLogin = setTimeout(() => { this.getListLogin(); }, 30000);
         });
-    }
+    } */
     /*************************************************/
     ngOnDestroy() 
     {
-        this.globalStop = true;
+        /* this.globalStop = true; */
     }
     changeHeader() // изменить заголовок таблицы
     {
@@ -366,7 +356,8 @@ export class TableEditorComponent implements OnInit
                     if(operation == "cut")
                     {
                         this.loadTable();
-                        this.onChange({ type: "updateTable", id: data.idTableFrom});
+                        if(this.inputs.id != data.idTableFrom)
+                            this.onChange({ type: "updateTable", id: data.idTableFrom}); // Чтобы таблица с вырезанной ячейкой обновилась
                     }
                     else this.editTable.listTables[i][j] = data;
                 this.load = false;            

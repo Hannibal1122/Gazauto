@@ -292,11 +292,14 @@ export class ErrorTableComponent implements OnInit
         left: "", 
         visible: false,
         type: "",
-        i: -1
+        i: -1,
+        transform: ""
     }
     getContextmenu(e, data, type)
     {
         if(type == "cell") this.editField(e);
+        if(e.clientY > Number(this.height.replace("px", "")) / 2) this.createContextMenu.transform = "translate(0, -100%)";
+        else this.createContextMenu.transform = null;
         this.createContextMenu.left = e.clientX + "px";
         this.createContextMenu.top = e.clientY + "px";
         this.createContextMenu.visible = true;

@@ -2,7 +2,7 @@
     /* $start = microtime(true); */
     /* , round(microtime(true) - $start, 4) */
 
-    error_reporting(0);
+    /* error_reporting(0); */
     header('Access-Control-Allow-Origin: *');
     include("config.php");
 	include("query.php");
@@ -653,40 +653,47 @@
                 {
                     case 350: // резерв
                         break;
-                    case 351: // Проверка необходимости синхронизации
-                        $idTable = (int)$param[0];
-                        $idFollowTable = array_key_exists(2, $param) ? $param[2] : [];
-                        $update = false;
-                        query("UPDATE main_log SET dateUpdate = NOW() WHERE type = 'table' AND operation = 'open' AND login = %s AND value = %i AND date = %s", [$login, $idTable, $param[1]]);
-                        if($result = query("SELECT date FROM main_log WHERE type = 'table' AND (((operation = 'update' OR operation = 'updateState') AND login != %s) OR operation = 'updateScript') AND value = %i AND date >= %s LIMIT 1", [ $login, $idTable, $param[1] ]))
-                            while ($row = $result->fetch_array(MYSQLI_NUM)) $update = true;
-                        if(!$update)
-                            if($result = query("SELECT DISTINCT value FROM main_log WHERE type = 'table' AND (operation = 'update' OR operation = 'updateState') AND date >= %s", [ $param[1] ]))
-                                while ($row = $result->fetch_array(MYSQLI_NUM))
-                                    if(array_key_exists($row[0], $idFollowTable)) { $update = true; break; }
-                        echo json_encode([$update]);
+                    case 351: // Проверка необходимости синхронизации таблицы
+                        
                         break; 
                     case 352: // Получить список пользователей работающих с таблицей
                         $idTable = (int)$param[0];
-                        $logins = [];
-                        if($result = query("SELECT login FROM main_log WHERE type = 'table' AND value = %s AND dateUpdate >= DATE_SUB(NOW(), INTERVAL 2 MINUTE)", [ $idTable ]))
-                            while ($row = $result->fetch_array(MYSQLI_NUM)) 
-                                $logins[$row[0]] = "";
-                        echo json_encode($logins);
+                        
                         break; 
                     case 353: // Запрос текущего времени
                         request("SELECT NOW()", []);
                         break; 
-                    case 354: // Проверка необходимости синхронизации структуры
+                    case 354: // Проверка необходимости синхронизации структуры и таблиц
                         $update = false;
                         $time = $param[0];
+                        $tables = [];
                         if($result = query("SELECT NOW() FROM main_log WHERE type = 'structure' AND operation != 'open' AND date >= %s LIMIT 1", [ $time ]))
                             while ($row = $result->fetch_array(MYSQLI_NUM)) 
                             {
                                 $update = true;
                                 $time = $row[0];
                             }
-                        echo json_encode([$update, $time]);
+                        for($i = 0, $l = count($param[1]); $i < $l; $i++)
+                        {
+                            $idTable = (int)$param[1][$i]["id"];
+                            $idFollowTable = array_key_exists("tableIds", $param[1][$i]) ? $param[1][$i]["tableIds"] : [];
+                            $idLogTableOpen = (int)$param[1][$i]["idLogTableOpen"];
+                            $update = false;
+                            query("UPDATE main_log SET dateUpdate = NOW() WHERE id = %i", [ $idLogTableOpen ]);
+                            if($result = query("SELECT date FROM main_log WHERE type = 'table' AND (((operation = 'update' OR operation = 'updateState') AND login != %s) OR operation = 'updateScript') AND value = %i AND date >= %s LIMIT 1", [ $login, $idTable, $time ]))
+                                while ($row = $result->fetch_array(MYSQLI_NUM)) $update = true;
+                            if(!$update)
+                                if($result = query("SELECT DISTINCT value FROM main_log WHERE type = 'table' AND (operation = 'update' OR operation = 'updateState') AND date >= %s", [ $time ]))
+                                    while ($row = $result->fetch_array(MYSQLI_NUM))
+                                        if(array_key_exists($row[0], $idFollowTable)) { $update = true; break; }
+                            $logins = [];
+                            if($result = query("SELECT login FROM main_log WHERE type = 'table' AND value = %s AND dateUpdate >= DATE_SUB(NOW(), INTERVAL 2 MINUTE)", [ $idTable ]))
+                                while ($row = $result->fetch_array(MYSQLI_NUM)) 
+                                    $logins[$row[0]] = "";
+                        
+                            $tables[$idTable] = [ "update" => $update, "logins" => $logins ];
+                        }
+                        echo json_encode([ "structure" => $update, "table" => $tables, "time" => $time ]);
                         break; 
                 }
             if($nQuery >= 400 && $nQuery < 410) // Работа с задачами
@@ -750,7 +757,7 @@
                         $fasm->start(selectOne("SELECT code FROM events WHERE id = %i", $param)); */
                         break;
                     case 414: // Проверка на временные события
-                        if($result = query("SELECT id, param, date, code FROM events WHERE ready = 0 AND type = 'date' AND date <= NOW()", []))
+                        /* if($result = query("SELECT id, param, date, code FROM events WHERE ready = 0 AND type = 'date' AND date <= NOW()", []))
                             while ($row = $result->fetch_array(MYSQLI_NUM)) 
                             {
                                 require_once("FASM.php"); // класс для работы с событиями
@@ -759,7 +766,7 @@
                                 $nextDateTime = getNextDateForEvent($row[1])->format("Y-m-d H:i:s");
                                 if($nextDateTime == $row[2]) query("UPDATE events SET ready = 1 WHERE id = %i", [(int)$row[0]]);
                                 else query("UPDATE events SET date = %s WHERE id = %i", [$nextDateTime, (int)$row[0]]);
-                            }
+                            } */
                         break;
                     case 415: // Завершить событие досрочно
                         $idElement = (int)$param[0];
@@ -972,8 +979,9 @@
     }
     function addLog($type, $operation, $value)
     {
-        global $login;
+        global $login, $mysqli;
         query("INSERT INTO main_log (type, operation, value, date, dateUpdate, login) VALUES(%s, %s, %s, NOW(), NOW(), %s)", [ $type, $operation, $value, $login ]);
+        return $mysqli->insert_id;
     }
     function getNextDateForEvent($_dateTime)
     {

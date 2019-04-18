@@ -75,7 +75,11 @@
     </div>
 </div>
 <div *ngIf = "inputProperty.visible" class = "TableCreatorHeadColor" style = "position:absolute; bottom:-22px; font-size:12px;">id: {{ inputProperty.id }}</div>
-<div class = "createContextMenu" [hidden] = "!createContextMenu.visible || !change" [style.top] = "createContextMenu.top" [style.left] = "createContextMenu.left">
+<div class = "createContextMenu" 
+    [hidden] = "!createContextMenu.visible || !change" 
+    [style.top] = "createContextMenu.top" 
+    [style.left] = "createContextMenu.left"
+    [style.transform] = "createContextMenu.transform">
     <ng-container *ngIf = "createContextMenu.type == 'row'">
         <div class = "contextMenuList" (click) = "removeRow(createContextMenu.i)">Удалить строку</div>
         <div class = "contextMenuList" (click) = "addRow(-1)">Вставить строку выше</div>

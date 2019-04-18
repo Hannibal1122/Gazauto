@@ -387,6 +387,7 @@ export class ExplorerComponent implements OnInit
         this.load = true;
         this.query.protectionPost(110, { param: [parent] }, (data) => 
         { 
+            if(typeof data !== "object") return;
             this.outFolders = data.folder;
             this.allPath = data.path;
             this.allPath.push({id: 0, name: "Root"});
