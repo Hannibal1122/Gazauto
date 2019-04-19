@@ -82,7 +82,6 @@ export class TableEditorComponent implements OnInit
             this.tableIds = data.tableIds;
             this.onChange({ type: "updateTableIds", id: this.inputs.id, tableIds: this.tableIds, idLogTableOpen: data.idLogTableOpen });
 
-            let l = Object.keys(data.data).length;
             for(var key in data.data) this.dataTable.push(data.data[key]);
             if(this.inputs.searchObjectId) this.searchCell(this.inputs.searchObjectId);
             this.load = false;

@@ -1,0 +1,13 @@
+.filterClass
+{
+    display:flex;
+}
+.filterClass select
+{
+    height: 30px;
+}
+.filterClass input
+{
+    height: 30px;
+    width: 100px;
+}

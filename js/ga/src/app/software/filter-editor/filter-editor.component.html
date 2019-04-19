@@ -1,0 +1,23 @@
+<div class = "filterClass">
+    <div *ngFor = "let e of expression">
+        <ng-container *ngIf = "e.type == 'field'">
+            <select [(ngModel)] = "e.value">
+                <option *ngFor = "let o of field" [value] = "o.id">{{ o.value }}</option>
+            </select>
+        </ng-container>
+        <ng-container *ngIf = "e.type == 'operand'">
+            <select [(ngModel)] = "e.value">
+                <option *ngFor = "let o of operand" [value] = "o">{{ o }}</option>
+            </select>
+        </ng-container>
+        <ng-container *ngIf = "e.type == 'value'">
+            <input type = "text" [(ngModel)] = "e.value">
+        </ng-container>
+        <ng-container *ngIf = "e.type == 'operator'">
+            <select [(ngModel)] = "e.value">
+                <option *ngFor = "let o of operator" [value] = "o">{{ o }}</option>
+            </select>
+        </ng-container>
+    </div>
+    <div><button>+</button></div>
+</div>

@@ -9,19 +9,33 @@
         {
             $idTable = $this->idTable; 
             $nameTable = "";
-            $timeOpen = "";
             $stateTable = 0;
             $head = [];
             $data = [];
-            if($result = query("SELECT name, NOW(), bindId, state FROM structures WHERE id = %i", [$idTable]))
-                while ($row = $result->fetch_array(MYSQLI_NUM)) { $nameTable = $row[0]; $timeOpen = $row[1]; $bindId = $row[2]; $stateTable = (int)$row[3]; }
+            $enableLines = "";
+            if($result = query("SELECT name, bindId, state FROM structures WHERE id = %i", [$idTable]))
+                while ($row = $result->fetch_array(MYSQLI_NUM)) { $nameTable = $row[0]; $bindId = $row[1]; $stateTable = (int)$row[2]; }
             if($result = query("SELECT i, id, value FROM fields WHERE tableId = %i AND type = 'head' ORDER by i", [$idTable]))
                 while ($row = $result->fetch_array(MYSQLI_NUM)) 
                     $head[] = $row;
-            if($result = query("SELECT i, idColumn, value, type, linkId, linkType, fields.id, state, next, eventId FROM fields LEFT JOIN line_ids ON line_ids.id = fields.i WHERE tableId = %i AND type != 'head'", [$idTable]))
+            /* Применить фильтр и узнать набор строк которые надо включить */
+            /* if($result = query("SELECT DISTINCT i FROM fields WHERE tableId = %i AND type != 'head' AND value LIKE '%разр%'", [$idTable]))
                 while ($row = $result->fetch_array(MYSQLI_NUM)) 
                 {
-                    $field = [ "id" => (int)$row[6], "value" => $row[2], "state" => $row[7], "eventId" => $row[9] ];
+                    if($enableLines != "") $enableLines .= ",";
+                    $enableLines .= $row[0];
+                } */
+            /* Подготавливаем массив со строками без данных */
+            if($result = query("SELECT i, next FROM fields LEFT JOIN line_ids ON line_ids.id = fields.i WHERE tableId = %i AND type != 'head'", [$idTable]))
+                while ($row = $result->fetch_array(MYSQLI_NUM))
+                    $data[(int)$row[0]]["__NEXT__"] = $row[1]; 
+            $queryStr = "SELECT i, idColumn, value, type, linkId, linkType, fields.id, state, eventId FROM fields WHERE tableId = %i AND type != 'head'";
+            if($enableLines != "") $queryStr .= "AND i IN ($enableLines)";
+
+            if($result = query($queryStr, [$idTable]))
+                while ($row = $result->fetch_array(MYSQLI_NUM)) 
+                {
+                    $field = [ "id" => (int)$row[6], "value" => $row[2], "state" => $row[7], "eventId" => $row[8] ];
                     if($row[3] == "link")
                     {
                         $field["linkId"] = (int)$row[4];
@@ -54,11 +68,11 @@
                         }
                     }
                     $data[(int)$row[0]][$row[1]] = $field;
-                    $data[(int)$row[0]]["__NEXT__"] = $row[8];
                 }
                 /* Сортировка */
                 $l = count((array)$data);
                 $outData = [];
+                $outData2 = [];
                 $tableIds = [];
                 foreach($data as $key => $value) if($data[$key]["__NEXT__"] == null) break; //Находим null
                 for($i = $l - 1; $i >= 0; $i--) // Тут сортировка по next
@@ -70,9 +84,11 @@
                             $tableIds[$data[$key][$_key]["tableId"]] = $data[$key][$_key]["tableId"];
                     $key = $this->getNextI($data, $key);
                 }
+                for($i = 0, $l = count($outData); $i < $l; $i++) // Проверяем на пустые строки
+                    if(count($outData[$i]) > 2) $outData2[] = $outData[$i];
             echo json_encode([
                 "head" => $head, 
-                "data" => $outData, 
+                "data" => $outData2, 
                 "tableIds" => $tableIds, 
                 "name" => $nameTable, 
                 "change" => (getRights($idTable) & 8) == 8, 
