@@ -13,6 +13,7 @@ export class TableEditorComponent implements OnInit
 {
     @ViewChild('modal') public modal: any;
     @ViewChild('editTable') public editTable: any;
+    
     onChange = null;
     set inputFromApp(value)
     {

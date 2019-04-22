@@ -10,6 +10,7 @@ declare var trace:any;
 })
 export class FilterEditorComponent implements OnInit 
 {
+    private _open = false;
     operator = [{id: "И", value: "И"}, { id: "ИЛИ", value: "ИЛИ" }];
     operand = [
         { id: "содержит", value: "содержит"}, 
@@ -19,17 +20,68 @@ export class FilterEditorComponent implements OnInit
         { id: "равно", value: "равно"},
         { id: "не равно", value: "не равно"}
     ];
-    field = [{id: 0, value: "test 1"}, {id: 1, value: "test 2"}];
-    mapField = {
-        0: "test 1",
-        1: "test 2"
-    };
+    fields = [];
+    mapField = {};
     expression = [];
-    constructor()
+    parentId = -1;
+    id = -1;
+    name = "";
+    updateExplorer;
+    constructor(private query:QueryService)
     {
     }
     ngOnInit()
     {
+    }
+    create(parentId, fields, updateExplorer)
+    {
+        this.id = -1;
+        this.parentId = parentId;
+        this.updateExplorer = updateExplorer;
+        this.open(fields, []);
+    }
+    update(id, fields, expression)
+    {
+        this.id = id;
+        this.open(fields, expression);
+    }
+    save()
+    {
+        if(this.id == -1)
+        {
+            this.query.protectionPost(470, { param: [this.parentId, this.getCondition()] }, (data) => 
+            { 
+                this.query.protectionPost(100, { param: ["filter", data[0], this.name, this.parentId, 0, ""] }, (data) => 
+                { 
+                    if(this.updateExplorer) this.updateExplorer();
+                });
+            });
+        }
+        else
+            this.query.protectionPost(471, { param: [this.id, this.getCondition()] }, () => 
+            { 
+                this.cancel();
+            });
+    }
+    open(fields, expression)
+    {
+        this._open = true;
+        this.fields = [];
+        this.mapField = {};
+        for(let i = 0; i < fields.length; i++)
+        {
+            this.fields.push(fields[i]);
+            this.mapField[fields[i].id] = fields[i].value;
+        }
+        this.expression = Array.isArray(expression) ? expression : this.parseExpression(expression);
+    }
+    cancel()
+    {
+        this._open = false;
+    }
+    parseExpression(str)
+    {
+        return [];
     }
     addCondition(i?)
     {
@@ -66,7 +118,7 @@ export class FilterEditorComponent implements OnInit
     {
         e[type + "_edit"] = false;
     }
-    saveCondition()
+    getCondition()
     {
         let str = "";
         for(let i = 0; i < this.expression.length; i++)
@@ -91,7 +143,7 @@ export class FilterEditorComponent implements OnInit
                 }
             }
         }
-        trace(str);
+        return str;
     }
     getOperand(operand, value)
     {

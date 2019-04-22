@@ -11,6 +11,7 @@ import { CreateInfoService } from "../create-info.service";
 import { RenameObjectService } from "../rename-object.service";
 import { CreateEventService } from "../create-event.service";
 import { CreateTableListService } from "../create-table-list.service";
+import { FilterEditorComponent } from '../filter-editor/filter-editor.component';
 
 declare var $:any;
 declare var trace:any;
@@ -36,6 +37,7 @@ declare var trace:any;
 export class ExplorerComponent implements OnInit 
 {
     @ViewChild('modal') public modal: any;
+    @ViewChild('filterEditor') public filterEditor:FilterEditorComponent;
     set inputFromApp(value)
     {
         if(value) 
@@ -180,6 +182,17 @@ export class ExplorerComponent implements OnInit
                     this.openObject(data);
                 });
                 break;
+            case "filter":
+                this.query.protectionPost(253, { param: [ this.inputs.id ] }, (head) => 
+                {
+                    let fields = [];
+                    for(let i = 0; i < head.length; i++) fields.push({ id: head[i][0], value: head[i][1] });
+                    this.query.protectionPost(472, { param: [ object.objectId ] }, (data) => 
+                    {
+                        this.filterEditor.update(object.objectId, fields, data[0][0]);
+                    });
+                });
+                break;
         }
     }
     createObject(id, type, data) // Создать объект
@@ -206,6 +219,9 @@ export class ExplorerComponent implements OnInit
                 break;
             case "Файл": 
                 this.createFile.create(id, () => { this.refresh() });
+                break;
+            case "Фильтр":
+                this.filterEditor.create(id, [], () => { this.refresh() });
                 break;
         }
     }
@@ -486,6 +502,10 @@ export class ExplorerComponent implements OnInit
         var id = this.outFolders[this.selectObjectI].id;
         var name = this.outFolders[this.selectObjectI].name;
         this.createTableList.create(this.parent, () => { this.refresh() }, id, null);
+    }
+    openTableFilter() // Открыть таблицу как папку для просмотра фильтров
+    {
+        this.openFolder(this.outFolders[this.selectObjectI].id);
     }
     /**************************************/
     heightListElement = 0;

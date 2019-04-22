@@ -1,11 +1,12 @@
 <?php
     class MyTable
     {
-        function __construct($idTable)
+        function __construct($idTable, $myLog)
         {
             $this->idTable = (int)$idTable;
+            $this->myLog = $myLog;
         }
-        function getTable() // Запрос таблицы
+        function getTable($myRight) // Запрос таблицы
         {
             $idTable = $this->idTable; 
             $nameTable = "";
@@ -91,8 +92,8 @@
                 "data" => $outData2, 
                 "tableIds" => $tableIds, 
                 "name" => $nameTable, 
-                "change" => (getRights($idTable) & 8) == 8, 
-                "idLogTableOpen" => addLog("table", "open", $idTable), 
+                "change" => ($myRight->get($idTable) & 8) == 8, 
+                "idLogTableOpen" => $this->myLog->add("table", "open", $idTable), 
                 "changeHead" => $bindId, 
                 "state" => $stateTable
             ]);
@@ -127,7 +128,7 @@
                 query("DELETE FROM fields WHERE id = %i", [ $changes[$i] ]);
                 query("DELETE FROM fields WHERE idColumn = %i", [ $changes[$i] ]);
             }
-            addLog("table", "update", $idTable);
+            $this->myLog->add("table", "update", $idTable);
         }
         function setCell($data, $echo) // Изменить ячейки в таблице
         {
@@ -164,9 +165,9 @@
             if($echo) 
             {
                 echo json_encode([ "id" => $idField, "value" => $value ]);
-                addLog("table", "update", $idTable);
+                $this->myLog->add("table", "update", $idTable);
             }
-            else addLog("table", "updateScript", $idTable);
+            else $this->myLog->add("table", "updateScript", $idTable);
             $this->calculateStateForTable($idTable);
         }
         function setCellByLink($idObject, $idFields) // Добавление элемента из левого меню в таблицу по ссылке
@@ -204,7 +205,7 @@
                 query("UPDATE fields SET value = %s, linkId = %i, linkType = %s, type = 'link', state = %i WHERE tableId = %i AND id = %i", [ $fieldValue, $linkId, $linkType, $fieldState, $idTable, $idFields ]);
                 echo json_encode([ "id" => $idFields, "linkId" => $linkId, "type" => $linkType, "value" => $fieldValue, "state" => $fieldState, "listValue" => $fieldList ]);
             }
-            addLog("table", "update", $idTable);
+            $this->myLog->add("table", "update", $idTable);
         }
         function setCellByValue($idObject, $idFields, $key) // Добавление элемента из левого меню в таблицу по значению
         {
@@ -226,7 +227,7 @@
                         break;
                 }
             }
-            addLog("table", "update", $idTable);
+            $this->myLog->add("table", "update", $idTable);
         }
         function addRow($idPrevRow, $idNextRow, $echo) // Добавить строку в таблицу
         {
@@ -250,7 +251,7 @@
             if($echo)
             {
                 echo json_encode($out);
-                addLog("table", "update", $idTable);
+                $this->myLog->add("table", "update", $idTable);
             }
             else return $out;
         }
@@ -266,7 +267,7 @@
             query("DELETE FROM line_ids WHERE id = %i", [ $idRow ]);
             query("DELETE FROM fields WHERE tableId = %i AND i = %i AND type != 'head'", [ $idTable, $idRow ]);
             $this->calculateStateForTable($idTable);
-            addLog("table", "update", $idTable);
+            $this->myLog->add("table", "update", $idTable);
         }
         function copyCell($idCellTo, $idTableTo, $idCellFrom, $idTableFrom, $operation, $typePaste, $echo) // Копировать ячейку
         {
@@ -314,7 +315,7 @@
                         $valueData[0], $valueData[1], $valueData[2], $valueData[3], $valueData[4], $valueData[5], $idCellTo ]);
                 }
                 if($echo) echo json_encode($out);
-                addLog("table", "update", $idTableTo); // изменение основной таблицы
+                $this->myLog->add("table", "update", $idTableTo); // изменение основной таблицы
             }
             if($operation == "cut") 
             {
@@ -327,7 +328,7 @@
                 if($echo)
                 {
                     echo json_encode([ "idTableFrom" => $idTableFrom ]);
-                    addLog("table", "update", $idTableFrom); // изменение таблицы из которой вырезали
+                    $this->myLog->add("table", "update", $idTableFrom); // изменение таблицы из которой вырезали
                 }
                 $this->calculateStateForTable($idTableFrom);
             }
@@ -399,7 +400,7 @@
             if($result = query("SELECT avg(state) FROM fields WHERE tableId = %i AND type != 'head' AND state > 0", [ (int)$idTable ]))
                 $state = (int)$result->fetch_array(MYSQLI_NUM)[0];
             query("UPDATE structures SET state = %i WHERE id = %i", [ $state, (int)$idTable ]);
-            addLog("table", "updateState", $idTable);
+            $this->myLog->add("table", "updateState", $idTable);
             if($result = query("SELECT tableId, id FROM fields WHERE type = 'link' AND linkId = %i AND linkType = 'table'", [ (int)$idTable ]))
                 while ($row = $result->fetch_array(MYSQLI_NUM))
                     $this->setStateForField($row[0], $row[1], $state);
@@ -473,7 +474,7 @@
                     if(!array_key_exists($j, $myArray->myArray[$i])) $myArray->myArray[$i][$j] = null;
                     if(!is_null($myArray->myArray[$i][$j]) && array_key_exists("type", $myArray->myArray[$i][$j]) && $myArray->myArray[$i][$j]["type"] == "table")
                     {
-                        $myTable = new MyTable((int)$myArray->myArray[$i][$j]["linkId"]);
+                        $myTable = new MyTable((int)$myArray->myArray[$i][$j]["linkId"], $this->myLog);
                         $myArray->insertArrayInField($i, $j, $myTable->getArrayTable());
                     }
                 }
@@ -512,120 +513,6 @@
             require_once("WorkWithExcel.php");
             $excel = new WorkWithExcel();
             $excel->import($name, $this);
-        }
-    }
-    class Structures
-    {
-        function __construct($idElement, $idParent, $typeOperation)
-        {
-            $this->idElement = $idElement;
-            $this->idParent = $idParent;
-            $this->typeOperation = $typeOperation;
-        }
-        function copy($newName) // Скопировать элемент структуры, по типам
-        {
-            global $login, $mysqli;
-            $idElement = $this->idElement;
-            $idParent = $this->idParent;
-            $elem = [];
-            if($result = query("SELECT objectType, objectId, name, parent, priority, info, bindId FROM structures WHERE id = %i", [$idElement]))
-                $elem = $result->fetch_array(MYSQLI_NUM);
-            if($this->typeOperation == "inherit" && $elem[6] != null) return; // Нельзя наследовать от наследуемой
-            if($newName != "") $elem[2] = $newName;
-            $elem[3] = $idParent;// parent
-            query("INSERT INTO structures (objectType, objectId, name, parent, priority, info, bindId) VALUES(%s, %i, %s, %i, %i, %s, %i)", $elem);
-            $idNewElement = $mysqli->insert_id;
-            if($login != "admin")
-                query("INSERT INTO rights (objectId, type, login, rights) VALUES(%s, %i, %s, %s, %i) ", [ $idNewElement, "user", $login, 255 ]);
-            switch($elem[0])
-            {
-                case "table": $this->copyTable($idNewElement); break;
-                case "file": $this->copyFile($idNewElement, $elem[2]); break;
-                case "value": $this->copyValue($idNewElement, $elem[1]); break;
-                case "folder": $this->copyFolder($idNewElement); break;
-                case "event": $this->copyEvent($idNewElement); break;
-            }
-            return $idNewElement;
-        }
-        function copyTable($idNewElement) // Скопировать таблицу
-        {
-            $idElement = $this->idElement;
-            $myTable = new MyTable($idNewElement);
-            $myTable->copy($idElement, $this->typeOperation == "inherit");
-        }
-        function copyFile($idNewElement, $name) // Скопировать файл
-        {
-            $idElement = $this->idElement;
-            if (!file_exists("../files/$idNewElement")) mkdir("../files/$idNewElement", 0700);
-            copy("../files/$idElement/".$name, "../files/$idNewElement/".$name);
-        }
-        function copyValue($idNewElement, $objectId) // Скопировать значение
-        {
-            global $mysqli;
-            $value = [];
-            if($result = query("SELECT type, value FROM my_values WHERE id = %i", [ (int)$objectId ]))
-                $value = $result->fetch_array(MYSQLI_NUM);
-            query("INSERT INTO my_values (type, value) VALUES(%s, %s)", [ $value[0], $value[1] ]);
-            $idValue = $mysqli->insert_id;
-            query("UPDATE structures SET objectId = %i WHERE id = %i", [$idValue, $idNewElement]);
-        }
-        function copyFolder($idNewElement) // Скопировать папку
-        {
-            $idElement = $this->idElement;
-            $typeOperation = $this->typeOperation;
-            if($this->typeOperation == "inherit") query("UPDATE structures SET bindId = %i WHERE id = %i", [ $idElement, $idNewElement ]);
-            if($result = query("SELECT id FROM structures WHERE parent = %i", [$idElement]))
-                while($row = $result->fetch_array(MYSQLI_NUM))
-                {
-                    $structures = new Structures((int)$row[0], $idNewElement, $typeOperation);
-                    $structures->copy("");
-                }
-        }
-        function copyEvent($idNewElement) // Скопировать событие
-        {
-            $idElement = $this->idElement;
-            $typeOperation = $this->typeOperation;
-            if($result = query("SELECT type, param, date, code FROM events WHERE id = %i", [ $idElement ]))
-                while($row = $result->fetch_array(MYSQLI_NUM))
-                    query("INSERT INTO events (id, type, param, date, code) VALUES(%i, %s, %s, %s, %s)", [ (int)$idNewElement, $row[0], $row[1], $row[2], $row[3] ]);
-        }
-        function remove($idElement) // Удалить элемент структуры, по типам
-        {
-            $element = query("SELECT objectType, name, objectId FROM structures WHERE id = %i", [ $idElement ])->fetch_array(MYSQLI_NUM);
-            if($idElement < 6) return;
-            switch($element[0])
-            {
-                case "role": query("DELETE FROM roles WHERE role = %s", [ $element[1] ]); break;
-                case "user": 
-                    if($element[1] == "admin") return;
-                    query("DELETE FROM registration WHERE login = %s", [ $element[1] ]);
-                    query("DELETE FROM password WHERE login = %s", [ $element[1] ]);
-                    addLog("user", "remove", json_encode([ $element[1] ]));
-                    break;
-                case "folder": break;
-                case "table":
-                    $myTable = new MyTable($idElement);
-                    $myTable->remove();
-                    addLog("table", "remove", $idElement);
-                    break;
-                case "file":
-                    unlink("../files/$idElement/".scandir("../files/$idElement")[2]); 
-                    rmdir("../files/$idElement"); 
-                    break;
-                case "value":
-                    query("DELETE FROM my_values WHERE id = %i", [ (int)$element[2] ]);
-                    query("DELETE FROM my_list WHERE value_id = %i", [ (int)$element[2] ]);
-                    break;
-                case "event":
-                    query("DELETE FROM events WHERE id = %i", [ (int)$idElement ]);
-                    break;
-                case "tlist":
-                    query("DELETE FROM my_values WHERE id = %i", [ (int)$element[2] ]);
-                    break;
-            }
-            query("DELETE FROM structures WHERE id = %i", [ (int)$idElement ]);
-            query("DELETE FROM rights WHERE objectId = %i", [ (int)$idElement ]);
-            addLog("structure", "remove", $idElement);
         }
     }
 ?>

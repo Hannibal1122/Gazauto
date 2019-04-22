@@ -1,8 +1,8 @@
 <?php
     /* $start = microtime(true); */
     /* , round(microtime(true) - $start, 4) */
-
     /* error_reporting(0); */
+
     header('Access-Control-Allow-Origin: *');
     include("config.php");
 	include("query.php");
@@ -37,11 +37,12 @@
 				$paramI = $_POST['paramI']; 
         }
     }
-            
+    /* Работа с БД */
     $mysqli = new mysqli('localhost', $username, $password, $dbName);
     if (mysqli_connect_errno()) { echo("None connection"); exit(); }
     $mysqli->set_charset("utf8");
-    if($nQuery == -1) // Установка
+    /* Установка */
+    if($nQuery == -1)
     {
         $checkTable = false;
         $checkLogin = false;
@@ -61,6 +62,7 @@
         }
         exit();
     }
+    /* Переход со старой версии таблиц */
     if($nQuery == -2)
     {
         if($result = query("SELECT id, tableId, name_column FROM fields WHERE type = 'head'", []))
@@ -72,6 +74,7 @@
             }
     }
     //file_get_contents
+    /* Запросы не требующие логин */
     if($nQuery < 40)
         switch($nQuery)
         {
@@ -93,7 +96,7 @@
                 break;
             case 4: // вход
                 require_once("enter.php");
-                addLog("user", "enter", "");
+                $myLog->add("user", "enter", "");
                 break;
             case 5: // выход
                 break;
@@ -136,13 +139,21 @@
                         }
                 break;
         }
-    if($nQuery >= 40) // Требуется логин
+    /* Запросы требующие логин */
+    if($nQuery >= 40)
     {
         $checkKey = "";
         $rights = -1;
         $out_rights = [];
         $login = $paramL;
         $role = "";
+        /* Работа с логом */
+        require_once("myLog.php");
+        $myLog = new MyLog($login);
+        /* Работа с правами */
+        require_once("myRight.php");
+        $myRight = new MyRight($login, $myLog);
+
         if($result = query("SELECT checkkey FROM signin WHERE id = %s AND login = %s", [$paramI, $paramL]))
             while ($row = $result->fetch_array(MYSQLI_NUM)) $checkKey = $row[0];
         if ($checkKey != "" && $checkKey == $paramC) 
@@ -154,26 +165,14 @@
                 {
                 }
             if($nQuery >= 100 && $nQuery < 150) // Работа со структурой
+            {
+                require_once("myStructures.php");
+                $myStructures = new MyStructures($myRight, $myLog);
                 switch($nQuery)
                 {
                     case 100: // Создать элемент структуры 
-                        if((getRights($param[3]) & 8) != 8) return; // Права на изменение
-                        query("INSERT INTO structures (objectType, objectId, name, parent, priority, info) VALUES(%s, %i, %s, %i, %i, %s)", $param);
-                        $idElement = $mysqli->insert_id;
-                        if($login != "admin")
-                        {
-                            $right = [ $idElement , "user", $login, 255 ];
-                            query("INSERT INTO rights (objectId, type, login, rights) VALUES(%i, %s, %s, %i) ", $right);
-                            addLog("right", "add", json_encode($right));
-                        }
-                        if($param[0] == "folder" || $param[0] == "table") // Проверка на то что объект наследуется
-                        {
-                            require_once("myObject.php");
-                            $myObject = new MyObject($idElement);
-                            $myObject->checkAdd();
-                        }
-                        echo json_encode(["Index", $idElement]);
-                        addLog("structure", "add", $idElement);
+                        if(($myRight->get($param[3]) & 8) != 8) return; // Права на изменение
+                        $myStructures->create($param);
                         break;
                     case 110: // Загрузка структуры // Права на просмотр
                         $out = ["folder" => [], "path" => []];
@@ -187,7 +186,7 @@
                                 $out["folder"][] = getObjectFromStructures($row);
                         getFullPath($out["path"], $param[0]);
                         echo json_encode($out);
-                        addLog("structure", "open", $idParent);
+                        $myLog->add("structure", "open", $idParent);
                         break;
                     case 111: // Получение родителя
                         $typeElement = $param[0];
@@ -212,11 +211,11 @@
                         }
                         break;
                     case 112: // Удаление элемента структуры // Права на изменение
-                        require_once("myTable.php"); // $myTable класс для работы с таблицей и структурой
                         require_once("myObject.php");
+                        require_once("copyAndRemove.php");
                         
                         $idElement = (int)$param[0];
-                        $structures = new Structures(null, null, null);
+                        $structures = new CopyAndRemove(null, null, null, $myLog);
                         $out = [ $idElement ];
                         getRemoveElementbyStructure($out, $idElement);
                         
@@ -224,7 +223,7 @@
                         $myObject->checkRemove($out);
                         for($i = 0, $c = count($out); $i < $c; $i++)
                         {
-                            if((getRights($out[$i]) & 8) != 8) continue; // Права на изменение
+                            if(($myRight->get($out[$i]) & 8) != 8) continue; // Права на изменение
                             $structures->remove($out[$i]);
                         }
                         echo json_encode($out);
@@ -241,7 +240,7 @@
                                 $elem["name"] = $row[3];
                                 $elem["state"] = $row[7];
                                 $elem["childrens"] = [];
-                                if((getRights($row[0], true) & 1) == 1)
+                                if(($myRight->get($row[0], true) & 1) == 1)
                                     if($row[4] == 0) $out[] = $elem;
                                     else searchParent($out, $row[4], $elem);
                             }
@@ -259,31 +258,31 @@
                         if(!is_null(selectOne("SELECT bindId FROM structures WHERE id = %i", [ $idParent ])) || 
                             selectOne("SELECT COUNT(*) FROM structures WHERE bindId = %i", [ $idParent ]) > 0) return; // Ограничение для копирования/вырезания в родителях/наследниках
 
-                        require_once("myTable.php"); // $myTable класс для работы с таблицей и структурой
+                        require_once("copyAndRemove.php");
                         $type = $param[2]; // тип операции
-                        if((getRights($idParent) & 8) != 8) continue; // Права на изменение
+                        if(($myRight->get($idParent) & 8) != 8) continue; // Права на изменение
                         if($type == "copy" || $type == "inherit") // Копирование или Наследование
                         {
-                            if($type == "copy" && (getRights($idElement) & 2) != 2) continue; // Права на копирование
-                            if($type == "inherit" && (getRights($idElement) & 4) != 4) continue; // Права на наследование
+                            if($type == "copy" && ($myRight->get($idElement) & 2) != 2) continue; // Права на копирование
+                            if($type == "inherit" && ($myRight->get($idElement) & 4) != 4) continue; // Права на наследование
                             
-                            $structures = new Structures($idElement, $idParent, $type);
+                            $structures = new CopyAndRemove($idElement, $idParent, $type, $myLog);
                             $structures->copy($newName);
-                            addLog("structure", "copy", $idParent);
+                            $myLog->add("structure", "copy", $idParent);
                         }
                         if($type == "cut") // Вырезать(изменение)
                         {
-                            if((getRights($idElement) & 8) != 8) continue; // Права на изменение
+                            if(($myRight->get($idElement) & 8) != 8) continue; // Права на изменение
                             query("UPDATE structures SET parent = %i WHERE id = %i", [$idParent, $idElement]);
-                            addLog("structure", "cut", $idParent);
+                            $myLog->add("structure", "cut", $idParent);
                         }
                         break;
                     case 115: // Запрос приоритета
-                        if((getRights($param[0]) & 1) != 1) continue; // Права на просмотр
+                        if(($myRight->get($param[0]) & 1) != 1) continue; // Права на просмотр
                         request("SELECT priority FROM structures WHERE id = %i", $param);
                         break;
                     case 116: // Изменение приоритета
-                        if((getRights($param[1]) & 8) != 8) continue; // Права на просмотр
+                        if(($myRight->get($param[1]) & 8) != 8) continue; // Права на просмотр
                         query("UPDATE structures SET priority = %i WHERE id = %i", $param);
                         break;
                     case 117: // Загрузка файлов на сервер
@@ -295,34 +294,34 @@
                     case 119: // Загрузка файла с клиента
                         $idElement = (int)$param[0];
                         $file = $param[1];
-                        if((getRights($idElement) & 8) != 8) return; // Права на изменение
+                        if(($myRight->get($idElement) & 8) != 8) return; // Права на изменение
                         if (!file_exists("../files/$idElement")) mkdir("../files/$idElement", 0700);
                         rename("../tmp/$file", "../files/$idElement/$file"); 
                         break;
                     case 120: // Изменение имени объекта
                         $idElement = (int)$param[0];
-                        if((getRights($idElement) & 8) != 8) return; // Права на изменение
+                        if(($myRight->get($idElement) & 8) != 8) return; // Права на изменение
                         query("UPDATE structures SET name = %s WHERE id = %i", [ $param[1], $idElement ]);
-                        addLog(selectOne("SELECT objectType FROM structures WHERE id = %i", [ $idElement ]), "update", $idElement);
+                        $myLog->add(selectOne("SELECT objectType FROM structures WHERE id = %i", [ $idElement ]), "update", $idElement);
                         break;
                     case 121: // Запрос файла с правами
                         $idElement = (int)$param;
-                        if((getRights($idElement) & 8) != 8) return; // Права на изменение
+                        if(($myRight->get($idElement) & 8) != 8) return; // Права на изменение
                         $name = "";
                         if($result = query("SELECT name FROM structures WHERE id = %i", [ $idElement ])) 
                             $name = $result->fetch_array(MYSQLI_NUM)[0];
                         $filePathForDownload = "../files/$idElement/$name";
                         require_once("getFile.php");
-                        addLog("file", "download", $idElement);
+                        $myLog->add("file", "download", $idElement);
                         break;
                     case 122: // запрос информации об элементе структуры
                         $idElement = (int)$param[0];
-                        if((getRights($idElement) & 1) != 1) return; // Права на просмотр
+                        if(($myRight->get($idElement) & 1) != 1) return; // Права на просмотр
                         request("SELECT info FROM structures WHERE id = %i", [ $idElement ]);
                         break;
                     case 123: // выставление информации в структуре
                         $idElement = (int)$param[0];
-                        if((getRights($idElement) & 8) != 8) return; // Права на изменение
+                        if(($myRight->get($idElement) & 8) != 8) return; // Права на изменение
                         query("UPDATE structures SET info = %s WHERE id = %i", [ $param[1], $idElement ]);
                         break;
                     case 124: // Поиск в структуре элементов
@@ -340,7 +339,7 @@
                         break;
                     case 125: // Получить список объектов которые ссылаются и на которые ссылается запрошенный объект
                         $idElement = (int)$param[0];
-                        if((getRights($idElement) & 1) != 1) return; // Права на просмотр
+                        if(($myRight->get($idElement) & 1) != 1) return; // Права на просмотр
                         $fromInherit = []; // откуда наследуется
                         $whoInherit = [];
                         $whoRefer = [];
@@ -371,12 +370,12 @@
                         break;
                     case 126: // Получение имени элемента структуры
                         $idElement = (int)$param[0];
-                        if((getRights($idElement) & 1) != 1) return; // Права на просмотр
+                        if(($myRight->get($idElement) & 1) != 1) return; // Права на просмотр
                         echo selectOne("SELECT name FROM structures WHERE id = %i", [ $idElement ]);
                         break;
                     case 127: // запрос информации об элементе структуры для приложения справка
                         $idElement = (int)$param[0];
-                        if((getRights($idElement) & 1) != 1) return; // Права на просмотр
+                        if(($myRight->get($idElement) & 1) != 1) return; // Права на просмотр
                         request("SELECT objectType, info, state, name FROM structures WHERE id = %i", [ $idElement ]);
                         break;
                     case 128: // Импорт таблицы на сервер
@@ -384,7 +383,7 @@
                         break;
                     case 129: // Получить тип элемента на который ссылается ярлык
                         $idElement = (int)$param[0];
-                        if((getRights($idElement) & 1) != 1) return; // Права на просмотр
+                        if(($myRight->get($idElement) & 1) != 1) return; // Права на просмотр
                         $out = [];
                         if($result = query("SELECT id, objectType, objectId, name, parent, priority, info, bindId, state FROM structures WHERE id = %i", [ $idElement ]))
                             while ($row = $result->fetch_array(MYSQLI_NUM)) 
@@ -392,6 +391,7 @@
                         echo json_encode($out);
                         break;
                 }
+            }
             if($nQuery >= 150 && $nQuery < 200) // Работа с Пользователями // Только admin
             {
                 if($login != "admin" && $nQuery != 150 && $nQuery != 151) return;
@@ -404,22 +404,22 @@
                         request("SELECT role FROM roles", []);
                         break;
                     case 152: // Добавление пользователя 
-                        if((getRights($param[3]) & 8) != 8) return; // Права на изменение структуры
+                        if(($myRight->get($param[3]) & 8) != 8) return; // Права на изменение структуры
                         if(require_once("registration.php"))
                         {
                             query("INSERT INTO structures (objectType, objectId, name, parent) VALUES('user', NULL, %s, %i)", [$param[0], $param[3]]);
-                            addLog("user", "add", json_encode([$param[0], $param[1]]));
+                            $myLog->add("user", "add", json_encode([$param[0], $param[1]]));
                         }
                         break;
                     case 153: // Добавление роли
-                        if((getRights($param[1]) & 8) != 8) return; // Права на изменение структуры
+                        if(($myRight->get($param[1]) & 8) != 8) return; // Права на изменение структуры
                         query("DELETE FROM roles WHERE role = %s", [$param[0]]); // Проверка на повторяющиеся значения
                         query("INSERT INTO roles (role) VALUES(%s)", [$param[0]]);
                         query("INSERT INTO structures (objectType, objectId, name, parent) VALUES('role', NULL, %s, %i)", [$param[0], $param[1]]);
                         break;
                     case 154: // Изменение пользователя
                         query("UPDATE registration SET role = %s WHERE login = %s", [$param[1], $param[0]]);
-                        addLog("user", "update", json_encode([$param[0], $param[1]]));
+                        $myLog->add("user", "update", json_encode([$param[0], $param[1]]));
                         if($param[2] != "")
                         {
                             $sult = unique_md5();
@@ -439,7 +439,7 @@
                         query("DELETE FROM registration WHERE login = %s", $param);
                         query("DELETE FROM password WHERE login = %s", $param);
                         query("DELETE FROM structures WHERE objectType = 'user' AND name = %s", $param);
-                        addLog("user", "remove", json_encode($param));
+                        $myLog->add("user", "remove", json_encode($param));
                         break;
                     case 157: // Удаление роли
                         query("DELETE FROM roles WHERE role = %s", $param);
@@ -451,23 +451,20 @@
                 switch($nQuery)
                 {
                     case 200: // Добавить права
-                        if((getRights((int)$param[0]) & 8) != 8) return; // Права на изменение
+                        if(($myRight->get((int)$param[0]) & 8) != 8) return; // Права на изменение
                         $id = (int)$param[0];
+                        $myRight->remove($id);
                         $rights = json_decode($param[1]);
-                        $c = count($rights);
-                        query("DELETE FROM rights WHERE objectId = %i", [ $id ]);
-                        for($i = 0; $i < $c; $i++)
+                        for($i = 0, $c = count($rights); $i < $c; $i++)
                         {
                             $login = $rights[$i]->login;
                             $type = $rights[$i]->type;
                             $_rights = (int)($rights[$i]->rights);
-                            $_param = [ $id, $type, $login, $_rights ];
-                            query("INSERT INTO rights (objectId, type, login, rights) VALUES(%i, %s, %s, %i) ", $_param);
-                            addLog("right", "add", json_encode($_param));
+                            $myRight->create($id, $type, $login, $_rights);
                         }
                         break;
                     case 201: // Запросить права
-                        if((getRights((int)$param[0]) & 1) != 1) return; // Права на просмотр
+                        if(($myRight->get((int)$param[0]) & 1) != 1) return; // Права на просмотр
 
                         $out = [];
                         if($result = query("SELECT type, login, rights FROM rights WHERE objectId = %i", $param))
@@ -482,7 +479,7 @@
                         echo json_encode($out);
                         break;
                     case 202: // Запросить права по логину
-                        echo json_encode([$paramL == "admin" ? 255 : getRights( (int)$param[0] ),
+                        echo json_encode([$paramL == "admin" ? 255 : $myRight->get( (int)$param[0] ),
                             selectOne("SELECT bindId FROM structures WHERE id = %i", [ (int)$param[0] ]), 
                             selectOne("SELECT COUNT(*) FROM structures WHERE bindId = %i", [ (int)$param[0] ])]);
                         break;
@@ -493,17 +490,17 @@
                 if($nQuery != 267) // В 267 id таблицы нужно получить по ячейке 
                 {
                     $idTable = (int)$param[0];
-                    $myTable = new MyTable($idTable);
+                    $myTable = new MyTable($idTable, $myLog);
                 }
                 switch($nQuery)
                 {
                     case 250: // Запрос таблицы
-                        if((getRights($idTable) & 1) != 1) return; // Права на просмотр
-                        $myTable->getTable();
+                        if(($myRight->get($idTable) & 1) != 1) return; // Права на просмотр
+                        $myTable->getTable($myRight);
                         /* request("SELECT * FROM fields WHERE tableId = %i", [$idTable]); */
                         break;
                     case 251: // Добавить/Удалить заголовок
-                        if((getRights($idTable) & 8) != 8) return; // Права на изменение
+                        if(($myRight->get($idTable) & 8) != 8) return; // Права на изменение
                         if($result = query("SELECT bindId FROM structures WHERE id = %i", [ $idTable ]))
                             if(!is_null($result->fetch_array(MYSQLI_NUM)[0])) return;
                         $data = json_decode($param[1]);
@@ -511,12 +508,12 @@
                         $myTable->setAndRemoveHeader($data, $changes);
                         break;
                     case 252: // Изменить ячейки в таблице
-                        if((getRights($idTable) & 8) != 8) return; // Права на изменение
+                        if(($myRight->get($idTable) & 8) != 8) return; // Права на изменение
                         $data = json_decode($param[1]);
                         $myTable->setCell($data, true);
                         break;
                     case 253: // Запрос списка колонок
-                        if((getRights($idTable) & 1) != 1) return; // Права на просмотр
+                        if(($myRight->get($idTable) & 1) != 1) return; // Права на просмотр
                         $head = [];
                         if($result = query("SELECT id, value FROM fields WHERE tableId = %i AND type = 'head' ORDER by i", [$idTable]))
                             while ($row = $result->fetch_array(MYSQLI_NUM)) $head[] = $row;
@@ -526,27 +523,27 @@
                         break;
                     case 255: // Добавление элемента из левого меню в таблицу по ссылке
                         $idObject = (int)$param[1];
-                        if((getRights($idTable) & 8) != 8) return; // Права на изменение
-                        if((getRights($idObject) & 4) != 4) return; // Права на наследование
+                        if(($myRight->get($idTable) & 8) != 8) return; // Права на изменение
+                        if(($myRight->get($idObject) & 4) != 4) return; // Права на наследование
                         $idFields = (int)$param[2];
                         $myTable->setCellByLink($idObject, $idFields);
                         break;
                     case 256: // Добавление элемента из левого меню в таблицу по значению
                         $idObject = (int)$param[1];
-                        if((getRights($idTable) & 8) != 8) return; // Права на изменение
-                        if((getRights($idObject) & 1) != 1) return; // Права на просмотр
+                        if(($myRight->get($idTable) & 8) != 8) return; // Права на изменение
+                        if(($myRight->get($idObject) & 1) != 1) return; // Права на просмотр
                         $idFields = (int)$param[2];
                         $key = (int)$param[4];
                         $myTable->setCellByValue($idObject, $idFields, $key);
                         break;
                     case 257: // Добавить строку в таблицу
-                        if((getRights($idTable) & 8) != 8) return; // Права на изменение
+                        if(($myRight->get($idTable) & 8) != 8) return; // Права на изменение
                         $idPrevRow = (int)$param[1]; // id предыдущей строки
                         $idNextRow = (int)$param[2]; // id следующей строки
                         $myTable->addRow($idPrevRow, $idNextRow, true);
                         break;
                     case 258: // Удалить строку из таблицы
-                        if((getRights($idTable) & 8) != 8) return; // Права на изменение
+                        if(($myRight->get($idTable) & 8) != 8) return; // Права на изменение
                         $idRow = (int)$param[1];
                         $myTable->removeRow($idRow);
                         break;
@@ -558,29 +555,29 @@
                         if($idCellTo == $idCellFrom) return; // нельзя скопировать в ту же ячейку
                         if($result = query("SELECT tableId FROM fields WHERE id = %i", [$idCellTo])) $idTableTo = (int)($result->fetch_array(MYSQLI_NUM)[0]);
                         if($result = query("SELECT tableId FROM fields WHERE id = %i", [$idCellFrom])) $idTableFrom = (int)($result->fetch_array(MYSQLI_NUM)[0]);
-                        if((getRights($idTableTo) & 8) != 8) return; // Права на изменение
-                        if($operation == "copy" && (getRights($idTableFrom) & 4) != 4) return; // Права на наследование
-                        if($operation == "cut" && (getRights($idTableFrom) & 8) != 8) return; // Права на изменение
+                        if(($myRight->get($idTableTo) & 8) != 8) return; // Права на изменение
+                        if($operation == "copy" && ($myRight->get($idTableFrom) & 4) != 4) return; // Права на наследование
+                        if($operation == "cut" && ($myRight->get($idTableFrom) & 8) != 8) return; // Права на изменение
                         $myTable->copyCell($idCellTo, $idTableTo, $idCellFrom, $idTableFrom, $operation, $typePaste, true);
                         break;
                     case 260: // Выставить статус
                         $idField = (int)$param[1];
-                        if((getRights($idTable) & 8) != 8) return; // Права на изменение
+                        if(($myRight->get($idTable) & 8) != 8) return; // Права на изменение
                         $myTable->setStateForField($idTable, $idField, $param[2]);
                         break;
                     case 261: // Экспорт таблицы в excel с подгрузкой всех данных 
-                        if((getRights($idTable) & 1) != 1) return; // Права на просмотр
+                        if(($myRight->get($idTable) & 1) != 1) return; // Права на просмотр
                         $myTable->export();
                         break;
                     case 262: // Добавление события из левого меню на ячейку
-                        if((getRights($idTable) & 1) != 1) return; // Права на просмотр
+                        if(($myRight->get($idTable) & 1) != 1) return; // Права на просмотр
                         $eventId = (int)$param[1];
                         $type = selectOne("SELECT type FROM events WHERE id = %i", [ $eventId ]);
                         if($type != "date") query("UPDATE fields SET eventId = %i WHERE id = %i", [$eventId, (int)$param[2]]);
                         else echo json_encode(false);
                         break;
                     case 263: // Удаление события с ячейки
-                        if((getRights($idTable) & 1) != 1) return; // Права на просмотр
+                        if(($myRight->get($idTable) & 1) != 1) return; // Права на просмотр
                         query("UPDATE fields SET eventId = NULL WHERE id = %i", [(int)$param[1]]);
                         break;
                     case 264: // Назначить тип столбцу
@@ -595,15 +592,15 @@
                         break;
                     case 266: // Импорт файла
                         $nameFile = $param[1];
-                        if((getRights($idTable) & 8) != 8) return; // Права на изменение
+                        if(($myRight->get($idTable) & 8) != 8) return; // Права на изменение
                         $myTable->import("../tmp/$nameFile");
                         break;
                     case 267: // Обновление ячейки по id для импорта
                         $data = json_decode($param[0]);
                         foreach($data as $idTable => $value)
                         {
-                            $myTable = new MyTable($idTable);
-                            if((getRights($idTable) & 8) != 8) continue; // Права на изменение
+                            $myTable = new MyTable($idTable, $myLog);
+                            if(($myRight->get($idTable) & 8) != 8) continue; // Права на изменение
                             for($i = 0, $c = count($value); $i < $c; $i++) $myTable->setCell($value[$i], true);
                         }
                         break;
@@ -633,7 +630,7 @@
                         break;
                     case 305: // Добавить значение нового типа список из таблицы
                         $idElement = (int)$param[0]; // id из структуры
-                        if((getRights($idElement) & 8) != 8) return; // Права на изменение
+                        if(($myRight->get($idElement) & 8) != 8) return; // Права на изменение
                         $type = $param[1];
                         $value = $param[2];
                         $tableId = $param[3];
@@ -643,14 +640,14 @@
                         break;
                     case 306: // Изменить значение нового типа список из таблицы
                         $idElement = (int)$param[0];
-                        if((getRights($idElement) & 8) != 8) return; // Права на изменение
+                        if(($myRight->get($idElement) & 8) != 8) return; // Права на изменение
                         $idValue = (int)selectOne("SELECT objectId FROM structures WHERE id = %i", [ $idElement ]);
                         $value = $param[1];
                         query("UPDATE my_values SET value = %s WHERE id = %i", [ $value, $idValue ]);
                         break;
                     case 307: // Загрузить данные для нового типа список из таблицы
                         $idElement = (int)$param[0];
-                        if((getRights($idElement) & 8) != 8) return; // Права на изменение
+                        if(($myRight->get($idElement) & 8) != 8) return; // Права на изменение
                         $idValue = (int)selectOne("SELECT objectId FROM structures WHERE id = %i", [ $idElement ]);
                         if($result = query("SELECT id, type, value, tableId FROM my_values WHERE id = %i", [ $idValue ]))
                             echo json_encode($result->fetch_array(MYSQLI_NUM));
@@ -661,12 +658,9 @@
                 {
                     case 350: // резерв
                         break;
-                    case 351: // Проверка необходимости синхронизации таблицы
-                        
+                    case 351: // резерв
                         break; 
-                    case 352: // Получить список пользователей работающих с таблицей
-                        $idTable = (int)$param[0];
-                        
+                    case 352: // резерв
                         break; 
                     case 353: // Запрос текущего времени
                         request("SELECT NOW()", []);
@@ -681,26 +675,27 @@
                                 $update = true;
                                 $time = $row[0];
                             }
-                        for($i = 0, $l = count($param[1]); $i < $l; $i++)
-                        {
-                            $idTable = (int)$param[1][$i]["id"];
-                            $idFollowTable = array_key_exists("tableIds", $param[1][$i]) ? $param[1][$i]["tableIds"] : [];
-                            $idLogTableOpen = (int)$param[1][$i]["idLogTableOpen"];
-                            $update = false;
-                            query("UPDATE main_log SET dateUpdate = NOW() WHERE id = %i", [ $idLogTableOpen ]);
-                            if($result = query("SELECT date FROM main_log WHERE type = 'table' AND (((operation = 'update' OR operation = 'updateState') AND login != %s) OR operation = 'updateScript') AND value = %i AND date >= %s LIMIT 1", [ $login, $idTable, $time ]))
-                                while ($row = $result->fetch_array(MYSQLI_NUM)) $update = true;
-                            if(!$update)
-                                if($result = query("SELECT DISTINCT value FROM main_log WHERE type = 'table' AND (operation = 'update' OR operation = 'updateState') AND date >= %s", [ $time ]))
-                                    while ($row = $result->fetch_array(MYSQLI_NUM))
-                                        if(array_key_exists($row[0], $idFollowTable)) { $update = true; break; }
-                            $logins = [];
-                            if($result = query("SELECT login FROM main_log WHERE type = 'table' AND value = %s AND dateUpdate >= DATE_SUB(NOW(), INTERVAL 2 MINUTE)", [ $idTable ]))
-                                while ($row = $result->fetch_array(MYSQLI_NUM)) 
-                                    $logins[$row[0]] = "";
-                        
-                            $tables[$idTable] = [ "update" => $update, "logins" => $logins ];
-                        }
+                        if(array_key_exists(1, $param))
+                            for($i = 0, $l = count($param[1]); $i < $l; $i++)
+                            {
+                                $idTable = (int)$param[1][$i]["id"];
+                                $idFollowTable = array_key_exists("tableIds", $param[1][$i]) ? $param[1][$i]["tableIds"] : [];
+                                $idLogTableOpen = (int)$param[1][$i]["idLogTableOpen"];
+                                $update = false;
+                                query("UPDATE main_log SET dateUpdate = NOW() WHERE id = %i", [ $idLogTableOpen ]);
+                                if($result = query("SELECT date FROM main_log WHERE type = 'table' AND (((operation = 'update' OR operation = 'updateState') AND login != %s) OR operation = 'updateScript') AND value = %i AND date >= %s LIMIT 1", [ $login, $idTable, $time ]))
+                                    while ($row = $result->fetch_array(MYSQLI_NUM)) $update = true;
+                                if(!$update)
+                                    if($result = query("SELECT DISTINCT value FROM main_log WHERE type = 'table' AND (operation = 'update' OR operation = 'updateState') AND date >= %s", [ $time ]))
+                                        while ($row = $result->fetch_array(MYSQLI_NUM))
+                                            if(array_key_exists($row[0], $idFollowTable)) { $update = true; break; }
+                                $logins = [];
+                                if($result = query("SELECT login FROM main_log WHERE type = 'table' AND value = %s AND dateUpdate >= DATE_SUB(NOW(), INTERVAL 2 MINUTE)", [ $idTable ]))
+                                    while ($row = $result->fetch_array(MYSQLI_NUM)) 
+                                        $logins[$row[0]] = "";
+                            
+                                $tables[$idTable] = [ "update" => $update, "logins" => $logins ];
+                            }
                         echo json_encode([ "structure" => $update, "table" => $tables, "time" => $time ]);
                         break; 
                 }
@@ -746,17 +741,17 @@
                         break;
                     case 411: // Загрузить событие
                         $idElement = (int)$param[0];
-                        if((getRights($idElement) & 1) != 1) return; // Права на просмотр
+                        if(($myRight->get($idElement) & 1) != 1) return; // Права на просмотр
                         $out = [];
                         if($result = query("SELECT type, param, date, code, ready FROM events WHERE id = %i", $param))
                             $out = $result->fetch_array(MYSQLI_NUM);
                         $out[] = selectOne("SELECT name FROM structures WHERE id = %i", $param);
-                        $out[] = (getRights($idElement) & 8) != 8; // 6 - readonly
+                        $out[] = ($myRight->get($idElement) & 8) != 8; // 6 - readonly
                         echo json_encode($out);
                         break;
                     case 412: // Обновить событие
                         $idElement = (int)$param[0];
-                        if((getRights($idElement) & 8) != 8) return; // Права на изменение
+                        if(($myRight->get($idElement) & 8) != 8) return; // Права на изменение
                         query("UPDATE events SET code = %s WHERE id = %i", [$param[1], $idElement]);
                         break;
                     case 413: // Выполнить код по id
@@ -778,58 +773,44 @@
                         break;
                     case 415: // Завершить событие досрочно
                         $idElement = (int)$param[0];
-                        if((getRights($idElement) & 8) != 8) return; // Права на изменение
+                        if(($myRight->get($idElement) & 8) != 8) return; // Права на изменение
                         query("UPDATE events SET ready = 1 WHERE id = %i", [ $idElement ]);
                         break;
                     case 416: // Восстановить событие
                         $idElement = (int)$param[0];
-                        if((getRights($idElement) & 8) != 8) return; // Права на изменение
+                        if(($myRight->get($idElement) & 8) != 8) return; // Права на изменение
                         query("UPDATE events SET ready = 0 WHERE id = %i", [ $idElement ]);
                         break;
                 }
             if($nQuery >= 450 && $nQuery < 470) // Работа с настройками пользователя
+            {
+            }
+            if($nQuery >= 470 && $nQuery < 480) // Работа с фильтрами
+            {
+                require_once("myFilter.php");
+                if($nQuery > 470)
+                {
+                    $idFilter = (int)$param[0];
+                    $myFilter = new MyFilter();
+                }
                 switch($nQuery)
                 {
-                    case 450: // Добавить фильтр
-                        $value = selectOne("SELECT value FROM user_settings WHERE login = %s AND value = %s AND type = 'name_filter'", [ $login, $param[0] ]);
-                        if(is_null($value))
-                            query("INSERT INTO user_settings (login, type, value) VALUES(%s, 'name_filter', %s)", [ $login, $param[0] ]);
+                    case 470: // Создать фильтр
+                        $idParent = (int)$param[0];
+                        if(($myRight->get($idParent) & 8) != 8) return; // Права на изменение
+                        $myFilter = new MyFilter();
+                        echo json_encode([ $myFilter->create($param[1]) ]);
                         break;
-                    case 451: // Удалить фильтр
-                        query("DELETE FROM user_settings WHERE login = %s AND value = %s AND type = 'name_filter'", [ $login, $param[0] ]); 
-                        query("DELETE FROM filter WHERE login = %s AND name = %s", [ $login, $param[0] ]); 
+                    case 471: // Обновить фильтр
+                        if(($myRight->get($idFilter) & 8) != 8) return; // Права на изменение
+                        $myFilter->update($idFilter, $param[1]);
                         break;
-                    case 452: // Сохранить текущий фильтр
-                        if($param[0] == "По умолчанию")
-                        {
-                            query("DELETE FROM user_settings WHERE login = %s AND type = 'current_filter'", [ $login ]); 
-                            return;
-                        }
-                        $value = selectOne("SELECT value FROM user_settings WHERE login = %s AND type = 'current_filter'", [ $login ]);
-                        if(is_null($value))
-                            query("INSERT INTO user_settings (login, type, value) VALUES(%s, 'current_filter', %s)", [ $login, $param[0] ]);
-                        else query("UPDATE user_settings SET value = %s WHERE login = %s AND type = 'current_filter'", [ $param[0], $login ]);
-                        break;
-                    case 453: // Получить список фильтров
-                        request("SELECT value FROM user_settings WHERE login = %s AND type = 'name_filter'", [ $login ]);
-                        break;
-                    case 454: // Получить текущий фильтр
-                        echo selectOne("SELECT value FROM user_settings WHERE login = %s AND type = 'current_filter'", [ $login ]);
-                        break;
-                    case 455: // Добавить для фильтра (видно элемент)
-                        query("INSERT INTO filter (name, login, objectId) VALUES(%s, %s, %i)", [ $param[0], $login, $param[1] ]);
-                        break;
-                    case 456: // Скрыть для фильтра (элемент скрыт)
-                        query("DELETE FROM filter WHERE name = %s AND login = %s AND objectId = %i", [ $param[0], $login, $param[1] ]); 
-                        break;
-                    case 457: // Получить список по фильтрам используется/не используется
-                        $out = [];
-                        if($result = query("SELECT value FROM user_settings WHERE login = %s AND type = 'name_filter'", [ $login ]))
-                            while ($row = $result->fetch_array(MYSQLI_NUM)) 
-                                $out[$row[0]] = !is_null(selectOne("SELECT id FROM filter WHERE name = %s AND login = %s AND objectId = %i", [ $row[0], $login, $param[0] ]));
-                        echo json_encode($out);
+                    case 472: // Запрос значения фильтра
+                        if(($myRight->get($idFilter) & 1) != 1) return; // Права на просмотр
+                        $myFilter->get($idFilter);
                         break;
                 }
+            }
         }
         /* else query("UPDATE signin SET checkkey = '', login = '' WHERE id = %s", [$paramI]); // Если пользователь послал не тот id  */
     }
@@ -889,27 +870,6 @@
     function selectArray($_query, $param) // Запрос одного значения
     {
         return query($_query, $param)->fetch_array(MYSQLI_NUM);
-    }
-    function getRights($objectId, $useFilter = false)
-    {
-        global $login, $role;
-        $rights = 0;
-        $use_login = false;
-        if($login == "admin") $rights = 255;
-        else 
-            if($result = query("SELECT type, rights FROM rights WHERE objectId = %i AND (login = %s OR login = %s)", [$objectId, $login, $role]))
-                while ($row = $result->fetch_array(MYSQLI_NUM)) 
-                {
-                    if(!$use_login) $rights = (int)$row[1];
-                    if($row[0] == "user") $use_login = true;
-                }
-        if($useFilter === true)
-        {
-            $currentFilter = selectOne("SELECT value FROM user_settings WHERE login = %s AND type = 'current_filter'", [ $login ]);
-            if(!is_null($currentFilter))
-                if(is_null(selectOne("SELECT id FROM filter WHERE name = %s AND login = %s AND objectId = %i", [ $currentFilter, $login, $objectId ]))) $rights = $rights & 254;
-        }
-        return $rights;
     }
     function getFullPath(&$out, $parent)
     {
@@ -983,12 +943,6 @@
                 return $out;
             }
         }
-    }
-    function addLog($type, $operation, $value)
-    {
-        global $login, $mysqli;
-        query("INSERT INTO main_log (type, operation, value, date, dateUpdate, login) VALUES(%s, %s, %s, NOW(), NOW(), %s)", [ $type, $operation, $value, $login ]);
-        return $mysqli->insert_id;
     }
     function getNextDateForEvent($_dateTime)
     {

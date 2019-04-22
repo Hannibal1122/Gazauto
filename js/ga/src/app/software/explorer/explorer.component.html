@@ -60,6 +60,7 @@
                 title = "{{ object.name }}">
                 <div *ngIf = "viewType == 'table'" style = "padding:5px;">
                     <span *ngIf = "object.objectType == 'folder'"><i class="fas fa-folder" style = "font-size: 55px;"></i></span>
+                    <span *ngIf = "object.objectType == 'filter'"><i class="fas fa-filter colorIconTable" style = "font-size: 55px;"></i></span>
                     <span *ngIf = "object.objectType == 'table'"><i class="fas fa-table colorIconTable" style = "font-size: 55px;"></i></span>
                     <span *ngIf = "object.objectType == 'user'"><i class="fas fa-user colorIconRole" style = "font-size: 55px;"></i></span>
                     <span *ngIf = "object.objectType == 'event'"><i class="fas fa-bolt colorIconEvent" style = "font-size: 55px;"></i></span>
@@ -74,6 +75,7 @@
                 </div>
                 <div *ngIf = "viewType == 'list'" class = "listIcon">
                     <span *ngIf = "object.objectType == 'folder'"><i class="fas fa-folder" style = "font-size: 16px;"></i></span>
+                    <span *ngIf = "object.objectType == 'filter'"><i class="fas fa-filter colorIconTable" style = "font-size: 16px;"></i></span>
                     <span *ngIf = "object.objectType == 'table'"><i class="fas fa-table colorIconTable" style = "font-size: 16px;"></i></span>
                     <span *ngIf = "object.objectType == 'user'"><i class="fas fa-user colorIconRole" style = "font-size: 16px;"></i></span>
                     <span *ngIf = "object.objectType == 'event'"><i class="fas fa-bolt colorIconEvent" style = "font-size: 16px;"></i></span>
@@ -146,9 +148,13 @@
         <span *ngIf = "!selectRules.rename"><i class="fas fa-lock" style = "font-size:10px;"></i></span>
          Переименовать</button>
     <button class = "contextMenuList" (click) = "getListLink()">Показать связи</button>
-    <button *ngIf = "createContextMenu.type == 'table'" class = "contextMenuList" (click) = "createListOfTable()" [disabled] = "!selectRules.cut">
-        <span *ngIf = "!selectRules.cut"><i class="fas fa-lock" style = "font-size:10px;"></i></span>
-        Создать список из столбца</button>
+    <ng-container *ngIf = "createContextMenu.type == 'table'">
+        <button class = "contextMenuList" (click) = "openTableFilter()">
+            Открыть фильтры</button>
+        <button class = "contextMenuList" (click) = "createListOfTable()" [disabled] = "!selectRules.cut">
+            <span *ngIf = "!selectRules.cut"><i class="fas fa-lock" style = "font-size:10px;"></i></span>
+            Создать список из столбца</button>
+    </ng-container>
     <button class = "contextMenuList" (click) = "copyObject('cut')" [disabled] = "!selectRules.cut">
         <span *ngIf = "!selectRules.cut"><i class="fas fa-lock" style = "font-size:10px;"></i></span>
         Вырезать</button>
@@ -184,3 +190,4 @@
         Назад</button>
 </div>
 <modalwindow #modal></modalwindow>
+<app-filter-editor #filterEditor></app-filter-editor>
