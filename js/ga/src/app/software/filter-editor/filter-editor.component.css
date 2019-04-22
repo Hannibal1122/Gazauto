@@ -1,6 +1,10 @@
 .filterClass
 {
     display:flex;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    height: 450px;
+    overflow:auto; 
 }
 .filterClass select
 {
@@ -10,4 +14,64 @@
 {
     height: 30px;
     width: 100px;
+}
+.condition
+{
+    border-radius: 5px;
+    height:30px;
+    text-align: center;
+    float:left;
+    line-height: 20px;
+    padding:5px;
+    margin-right:5px;
+    margin-bottom:5px;
+    cursor: pointer;
+}
+.field
+{
+    background-color: rgb(174, 238, 183);
+}
+.operand
+{
+    background-color: rgb(223, 166, 166);
+}
+.value
+{
+    padding:0px;
+}
+.value input
+{
+    border:1px solid #cccccc;
+    border-radius: 5px;
+}
+.operator
+{
+    background-color: rgb(147, 197, 226);
+}
+.button
+{
+    background-color: rgb(226, 147, 215);
+}
+.group
+{
+    background-color: rgb(225, 226, 147);
+}
+.remove
+{
+    background-color: white;
+    color:#aaaaaa;
+}
+.filterPanel
+{
+    position: absolute; 
+    top:10px;
+    left:50%;
+    transform: translate(-50%, 0);
+    background-color: white;
+    width:600px; 
+    height:500px; 
+    padding:10px; 
+    box-shadow: 0 0 5px 2px #bfd5f5; 
+    border: 1px solid #cccccc; 
+    border-radius: 5px;
 }

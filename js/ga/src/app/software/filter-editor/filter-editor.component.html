@@ -1,23 +1,46 @@
-<div class = "filterClass">
-    <div *ngFor = "let e of expression">
-        <ng-container *ngIf = "e.type == 'field'">
-            <select [(ngModel)] = "e.value">
-                <option *ngFor = "let o of field" [value] = "o.id">{{ o.value }}</option>
-            </select>
+<div style = "position:fixed; width:100%; height:100%; background-color:rgba(255, 255, 255, 0.3); top:0px; left:0px; overflow:auto; z-index:1001;">
+<div class = "filterPanel">
+    <div class = "filterClass">
+        <ng-container *ngFor = "let e of expression; let i = index">
+            <ng-container *ngIf = "e.type !== 'group'">
+                <div *ngIf = "e.field_edit !== true" class = "condition field" (click) = "setEdit(e, 'field')">{{ mapField[e.field] }}</div>
+                <div *ngIf = "e.field_edit === true" class = "condition" style = "padding-top: 0px">
+                    <select [(ngModel)] = "e.field" (change) = "endEdit(e, 'field')">
+                        <option *ngFor = "let o of field" [value] = "o.id">{{ o.value }}</option>
+                    </select>
+                </div>
+                <div *ngIf = "e.operand_edit !== true" class = "condition operand" (click) = "setEdit(e, 'operand')">{{ e.operand }}</div>
+                <div *ngIf = "e.operand_edit === true" class = "condition" style = "padding-top: 0px">
+                    <select [(ngModel)] = "e.operand" (change) = "endEdit(e, 'operand')">
+                        <option *ngFor = "let o of operand" [value] = "o.id">{{ o.value }}</option>
+                    </select>
+                </div>
+                <div class = "condition value"><input type = "text" [(ngModel)] = "e.value" placeholder="значение"></div>
+                <div *ngIf = "e.operator_edit !== true" class = "condition operator" (click) = "setEdit(e, 'operator')">{{ e.operator }}</div>
+                <div *ngIf = "e.operator_edit === true" class = "condition" style = "padding-top: 0px">
+                    <select [(ngModel)] = "e.operator" (change) = "endEdit(e, 'operator')">
+                        <option *ngFor = "let o of operator" [value] = "o.id">{{ o.value }}</option>
+                    </select>
+                </div>
+                <div *ngIf = "expression.length > 0" class = "condition remove" (click) = "removeCondition(i)" title = "Удалить условие">x</div>
+            </ng-container>
+            <ng-container *ngIf = "e.type === 'group'">
+                <div *ngIf = "e.begin" class = "condition group">(</div>
+                <div *ngIf = "!e.begin"class = "condition button" (click) = "addCondition(i)">+</div>
+                <div *ngIf = "!e.begin" class = "condition button" (click) = "addGroup(i)">group</div>
+                <div *ngIf = "!e.begin" class = "condition group">)</div>
+                <div *ngIf = "!e.begin && e.operator_edit !== true" class = "condition operator" (click) = "setEdit(e, 'operator')">{{ e.operator }}</div>
+                <div *ngIf = "!e.begin && e.operator_edit === true" class = "condition" style = "padding-top: 0px">
+                    <select [(ngModel)] = "e.operator" (change) = "endEdit(e, 'operator')">
+                        <option *ngFor = "let o of operator" [value] = "o.id">{{ o.value }}</option>
+                    </select>
+                </div>
+                <div *ngIf = "!e.begin" class = "condition remove" (click) = "removeCondition(i, 'group')" title = "Удалить группу">x</div>
+            </ng-container>
         </ng-container>
-        <ng-container *ngIf = "e.type == 'operand'">
-            <select [(ngModel)] = "e.value">
-                <option *ngFor = "let o of operand" [value] = "o">{{ o }}</option>
-            </select>
-        </ng-container>
-        <ng-container *ngIf = "e.type == 'value'">
-            <input type = "text" [(ngModel)] = "e.value">
-        </ng-container>
-        <ng-container *ngIf = "e.type == 'operator'">
-            <select [(ngModel)] = "e.value">
-                <option *ngFor = "let o of operator" [value] = "o">{{ o }}</option>
-            </select>
-        </ng-container>
+        <div class = "condition button" (click) = "addCondition()">+</div>
+        <div class = "condition button" (click) = "addGroup()">group</div>
     </div>
-    <div><button>+</button></div>
+    <button (click) = "saveCondition()">Сохранить</button>
+</div>
 </div>
