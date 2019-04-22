@@ -11,9 +11,11 @@ declare var trace:any;
 })
 export class PlanEditorComponent implements OnInit 
 {
+  @ViewChild('modal') public modal: any;
   @ViewChild('editPlan') public editPlan: any;
 
   employees = EMPLOYEES; //массив с данными о сотрудниках и их днях работы
+  proba=0;
 
   month: string;
   coldays: number;
@@ -31,34 +33,27 @@ export class PlanEditorComponent implements OnInit
     height;
     showPlan(month) //Показать план-график 
     {
-       /* if (month == "jan" || "mar" || "may" || "jul" || "aug" || "oct" || "dec")
-        {
-            this.coldays = 31;
-        }
-        if (month == "apr" || "jun" || "sep" || "nov")
-        {
-            this.coldays = 30;
-        }
-        if( month == "feb")
-        {
-            this.coldays = 28;
-        }
-        if( month == "all")
-        {
-
-        }
-        */
+      
     }
 
     addEmployee() //Добавить сотрудника 
     {
-      let l = this.employees;
-      
-      //this.update({ type: "row", idRow: l > 0 ? this.dataPlan[l - 1].__ID__ : -1, idNextRow: -1 });
+      //alert("Добавление");
+
+      var fio = [];
+      var Data:any = {
+        title: "Добавление сотрудника",  
+        data: [
+            ["Фамилия сотрудника", fio, "listFio", []]
+        ],
+        ok: "Изменить",
+        cancel: "Отмена"
+      };
+      this.modal.open(Data, (save) =>
+        {
+           
+        });
+
     }
 
-    update(property)
-    {
-       
-    }
 }
