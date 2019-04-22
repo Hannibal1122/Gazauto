@@ -262,6 +262,8 @@ export class ExplorerComponent implements OnInit
         var name = this.outFolders[this.selectObjectI].name;
         switch(objectType)
         {
+            case "filter":
+            case "label": // Используется элемент от папки тк алгоритм удаления одинаков
             case "folder":
                 this.createFolder.remove(id, () => { this.refresh() });
                 break;
@@ -282,9 +284,6 @@ export class ExplorerComponent implements OnInit
                 break;
             case "tlist":
                 this.createTableList.remove(id, () => { this.refresh() });
-                break;
-            case "label":
-                this.createFolder.remove(id, () => { this.refresh() }); // Используется элемент от папки тк алгоритм удаления одинаков
                 break;
         }
     }

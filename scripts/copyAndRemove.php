@@ -109,6 +109,9 @@
                 case "tlist":
                     query("DELETE FROM my_values WHERE id = %i", [ (int)$element[2] ]);
                     break;
+                case "filter":
+                    query("DELETE FROM filter WHERE id = %i", [ (int)$element[2] ]);
+                    break;
             }
             query("DELETE FROM structures WHERE id = %i", [ (int)$idElement ]);
             query("DELETE FROM rights WHERE objectId = %i", [ (int)$idElement ]);

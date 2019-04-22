@@ -54,6 +54,7 @@ export class FilterEditorComponent implements OnInit
                 this.query.protectionPost(100, { param: ["filter", data[0], this.name, this.parentId, 0, ""] }, (data) => 
                 { 
                     if(this.updateExplorer) this.updateExplorer();
+                    this.cancel();
                 });
             });
         }
@@ -125,10 +126,10 @@ export class FilterEditorComponent implements OnInit
         {
             if(this.expression[i].type === "group")
             {
-                if(this.expression[i].begin) str += " (";
+                if(this.expression[i].begin) str += "(";
                 if(!this.expression[i].begin) 
                 {
-                    str += ") ";
+                    str += ")";
                     if(this.expression[i + 1])
                         str += this.getOperator(this.expression[i].operator);
                 }
@@ -137,7 +138,7 @@ export class FilterEditorComponent implements OnInit
             {
                 if(this.expression[i].value !== "")
                 {
-                    str += this.expression[i].field + this.getOperand(this.expression[i].operand, this.expression[i].value);
+                    str += "idColumn = " + this.expression[i].field + " AND value " + this.getOperand(this.expression[i].operand, this.expression[i].value);
                     if(this.expression[i + 1] && (this.expression[i + 1].type === "condition" || this.expression[i + 1].begin))
                         str += this.getOperator(this.expression[i].operator);
                 }
@@ -149,12 +150,12 @@ export class FilterEditorComponent implements OnInit
     {
         switch(operand)
         {
-            case "содержит": return " LIKE %" + value + "%";
-            case "не содержит": return " NOT LIKE %" + value + "%";
-            case "начинается": return " LIKE " + value + "%";
-            case "заканчивается": return " LIKE %" + value + "";
-            case "равно": return " LIKE " + value + "";
-            case "не равно": return " NOT LIKE " + value + "";
+            case "содержит": return "LIKE %" + value + "%";
+            case "не содержит": return "NOT LIKE %" + value + "%";
+            case "начинается": return "LIKE " + value + "%";
+            case "заканчивается": return "LIKE %" + value + "";
+            case "равно": return "LIKE " + value + "";
+            case "не равно": return "NOT LIKE " + value + "";
         }
     }
     getOperator(operator)
