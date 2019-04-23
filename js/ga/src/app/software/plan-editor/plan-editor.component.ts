@@ -29,8 +29,7 @@ export class PlanEditorComponent implements OnInit
     {
       
     }
-    searchInputType;
-    height;
+
     showPlan(month) //Показать план-график 
     {
       
@@ -38,17 +37,20 @@ export class PlanEditorComponent implements OnInit
 
     addEmployee() //Добавить сотрудника 
     {
-      //alert("Добавление");
-
       var fio = [];
+      for(var i = 0; i < this.employees.length; i++) fio[i] = { id: this.employees[i].tabelnom, value: this.employees[i].surname };
       var Data:any = {
         title: "Добавление сотрудника",  
         data: [
-            ["Фамилия сотрудника", fio, "listFio", []]
+          ["Сотрудник", fio[0].id, "select", fio],
+          ["От", "", "datetime"],
+          ["До", "", "datetime"],
+          ["Значение", "", "text"]
         ],
         ok: "Изменить",
         cancel: "Отмена"
       };
+
       this.modal.open(Data, (save) =>
         {
            
