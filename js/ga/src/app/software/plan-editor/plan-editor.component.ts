@@ -37,31 +37,33 @@ export class PlanEditorComponent implements OnInit
 
     addEmployee() //Добавить сотрудника 
     {
-        var fio = [];
-        var fioId = [];
+      var fio = [];
+      var fioId = [];
         for(var i = 0; i < this.employees.length; i++) 
         {
-            fio[i] = this.employees[i].surname;
-            fioId[i] = this.employees[i].tabelnom;
+          fio[i] = this.employees[i].surname+' '+this.employees[i].name+' '+this.employees[i].patronymic;
+          fioId[i] = this.employees[i].tabelnom;
         }
         var Data:any = {
-            title: "Добавление сотрудника",  
-            data: [
-                ["Сотрудник", { selected: fio[0].id, data: fio, value: fioId }, "select"],
-                ["От", "", "datetime"],
-                ["До", "", "datetime"],
-                ["Значение", "", "text"]
-            ],
-            ok: "Изменить",
-            cancel: "Отмена"
-        };
+          title: "Добавление сотрудника",  
+          data: [
+              ["Сотрудник", { selected: fio[0].id, data: fio, value: fioId }, "select"],
+              ["От", "", "datetime"],
+              ["До", "", "datetime"],
+              ["Значение", "", "text"]
+          ],
+          ok: "Изменить",
+          cancel: "Отмена"
+      };
 
-        this.modal.open(Data, (save) =>
-        {
-            trace(Data.data[0][1].selected) // id Сотрудника
-            trace(Data.data[1][1]) // От (миллисекунды)
-            trace(Data.data[2][1]) // До (миллисекунды)
-            trace(Data.data[3][1]) // Значение
-        });
+      this.modal.open(Data, (save) =>
+      {
+          trace(Data.data[0][1].selected) // id Сотрудника
+          trace(Data.data[1][1]) // От (миллисекунды)
+          trace(Data.data[2][1]) // До (миллисекунды)
+          trace(Data.data[3][1]) // Значение
+      });
+
     }
+
 }
