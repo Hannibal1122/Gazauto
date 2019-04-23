@@ -1,8 +1,9 @@
 <?php
 class FASM
 {
-    function __construct()
+    function __construct($myLog)
     {
+        $this->myLog = $myLog;
     }
 	function parse($str)
 	{
@@ -87,8 +88,8 @@ class FASM
                     break; 
                 case "set": // выставить значение
                     require_once("myTable.php");
-                    $myTable = new MyTable($value["tableId"]);
-                    $myTable->setCell((object) ["id" => $idField, "value" => $current["operand"][1]], false);
+                    $myTable = new MyTable($value["tableId"], $this->myLog);
+                    $myTable->setCell((object) ["id" => $idField, "value" => $current["operand"][1]], false, false);
                     $i++;
                     break; 
                 case "eq": // сравнить на равенство значение

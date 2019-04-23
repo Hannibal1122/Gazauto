@@ -10,7 +10,7 @@ declare var trace:any;
 })
 export class FilterEditorComponent implements OnInit 
 {
-    private _open = false;
+    _open = false;
     operator = [{id: "И", value: "И"}, { id: "ИЛИ", value: "ИЛИ" }];
     operand = [
         { id: "содержит", value: "содержит"}, 
@@ -82,7 +82,7 @@ export class FilterEditorComponent implements OnInit
     }
     parseExpression(str)
     {
-        return [];
+        return str ? JSON.parse(str) : [];
     }
     addCondition(i?)
     {
@@ -121,49 +121,6 @@ export class FilterEditorComponent implements OnInit
     }
     getCondition()
     {
-        let str = "";
-        for(let i = 0; i < this.expression.length; i++)
-        {
-            if(this.expression[i].type === "group")
-            {
-                if(this.expression[i].begin) str += "(";
-                if(!this.expression[i].begin) 
-                {
-                    str += ")";
-                    if(this.expression[i + 1])
-                        str += this.getOperator(this.expression[i].operator);
-                }
-            }
-            else
-            {
-                if(this.expression[i].value !== "")
-                {
-                    str += "idColumn = " + this.expression[i].field + " AND value " + this.getOperand(this.expression[i].operand, this.expression[i].value);
-                    if(this.expression[i + 1] && (this.expression[i + 1].type === "condition" || this.expression[i + 1].begin))
-                        str += this.getOperator(this.expression[i].operator);
-                }
-            }
-        }
-        return str;
-    }
-    getOperand(operand, value)
-    {
-        switch(operand)
-        {
-            case "содержит": return "LIKE %" + value + "%";
-            case "не содержит": return "NOT LIKE %" + value + "%";
-            case "начинается": return "LIKE " + value + "%";
-            case "заканчивается": return "LIKE %" + value + "";
-            case "равно": return "LIKE " + value + "";
-            case "не равно": return "NOT LIKE " + value + "";
-        }
-    }
-    getOperator(operator)
-    {
-        switch(operator)
-        {
-            case "И": return " AND ";
-            case "ИЛИ": return " OR ";
-        }
+        return JSON.stringify(this.expression);
     }
 }

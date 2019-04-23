@@ -96,7 +96,9 @@
                 break;
             case 4: // вход
                 require_once("enter.php");
-                $myLog->add("user", "enter", "");
+                require_once("myLog.php");
+                $myLog = new MyLog($paramL);
+                $myLog->add("user", "enter", $paramL);
                 break;
             case 5: // выход
                 break;
@@ -126,7 +128,6 @@
                         }
                 echo checkL($array, $login);
                 break;
-
             case 10: // Проверка на целостность структуры
                 if($result = query("SELECT parent FROM structures", []))
                     while ($row = $result->fetch_array(MYSQLI_NUM))
@@ -495,8 +496,36 @@
                 switch($nQuery)
                 {
                     case 250: // Запрос таблицы
-                        if(($myRight->get($idTable) & 1) != 1) return; // Права на просмотр
-                        $myTable->getTable($myRight);
+                        $right = $myRight->get($idTable);
+                        if(($right & 1) != 1) return; // Права на просмотр
+                        $read_only = ($right & 8) != 8;
+                        $filters = [];
+                        $filterStr = "";
+                        /* Доступные фильтры*/
+                        require_once("myFilter.php");
+                        $filterSelected = -1;
+                        $myFilter = new MyFilter();
+                        $userFilter = $myFilter->getUserFilter($login, $idTable);
+                        if($login == "admin") $query = "SELECT id, objectId, name FROM structures WHERE parent = %i ORDER by parent, priority";
+                        else $query = "SELECT id, objectId, name FROM structures WHERE parent = %i AND
+                            id IN (SELECT objectId FROM rights WHERE (login = %s OR login = %s) AND rights & 1 
+                                AND objectId NOT IN (SELECT objectId FROM rights WHERE login = %s AND (rights & 1) = 0)) ORDER by parent, priority";
+                        if($result = query($query, $login == "admin" ? [ $idTable ] : [ $idTable, $login, $role, $login ]))
+                            while ($row = $result->fetch_array(MYSQLI_NUM))
+                            {
+                                if($userFilter == "" && count($filters) == 0)
+                                {
+                                    $filterStr = $myFilter->getFilterStr((int)$row[1]);
+                                    $filterSelected = (int)$row[0];
+                                }
+                                if($userFilter != "" && $userFilter == $row[0])
+                                {
+                                    $filterStr = $myFilter->getFilterStr((int)$row[1]);
+                                    $filterSelected = (int)$row[0];
+                                }
+                                $filters[] = $row;
+                            }
+                        $myTable->getTable($read_only, $filters, $filterSelected, $filterStr);
                         /* request("SELECT * FROM fields WHERE tableId = %i", [$idTable]); */
                         break;
                     case 251: // Добавить/Удалить заголовок
@@ -669,13 +698,14 @@
                         $update = false;
                         $time = $param[0];
                         $tables = [];
-                        if($result = query("SELECT NOW() FROM main_log WHERE type = 'structure' AND operation != 'open' AND date >= %s LIMIT 1", [ $time ]))
-                            while ($row = $result->fetch_array(MYSQLI_NUM)) 
-                            {
+                        $NOW = selectOne("SELECT NOW()", []);
+                        if($result = query("SELECT id FROM main_log WHERE type = 'structure' AND operation != 'open' AND date >= %s LIMIT 1", [ $time ]))
+                            while ($row = $result->fetch_array(MYSQLI_NUM)) {
                                 $update = true;
-                                $time = $row[0];
+                                $time = $NOW;
                             }
                         if(array_key_exists(1, $param))
+                        {
                             for($i = 0, $l = count($param[1]); $i < $l; $i++)
                             {
                                 $idTable = (int)$param[1][$i]["id"];
@@ -684,11 +714,20 @@
                                 $update = false;
                                 query("UPDATE main_log SET dateUpdate = NOW() WHERE id = %i", [ $idLogTableOpen ]);
                                 if($result = query("SELECT date FROM main_log WHERE type = 'table' AND (((operation = 'update' OR operation = 'updateState') AND login != %s) OR operation = 'updateScript') AND value = %i AND date >= %s LIMIT 1", [ $login, $idTable, $time ]))
-                                    while ($row = $result->fetch_array(MYSQLI_NUM)) $update = true;
+                                    while ($row = $result->fetch_array(MYSQLI_NUM)) 
+                                    {
+                                        $update = true;
+                                        $time = $NOW;
+                                    }
                                 if(!$update)
                                     if($result = query("SELECT DISTINCT value FROM main_log WHERE type = 'table' AND (operation = 'update' OR operation = 'updateState') AND date >= %s", [ $time ]))
                                         while ($row = $result->fetch_array(MYSQLI_NUM))
-                                            if(array_key_exists($row[0], $idFollowTable)) { $update = true; break; }
+                                            if(array_key_exists($row[0], $idFollowTable)) 
+                                            {
+                                                $update = true; 
+                                                $time = $NOW;
+                                                break; 
+                                            }
                                 $logins = [];
                                 if($result = query("SELECT login FROM main_log WHERE type = 'table' AND value = %s AND dateUpdate >= DATE_SUB(NOW(), INTERVAL 2 MINUTE)", [ $idTable ]))
                                     while ($row = $result->fetch_array(MYSQLI_NUM)) 
@@ -696,6 +735,7 @@
                             
                                 $tables[$idTable] = [ "update" => $update, "logins" => $logins ];
                             }
+                        }
                         echo json_encode([ "structure" => $update, "table" => $tables, "time" => $time ]);
                         break; 
                 }
@@ -788,17 +828,13 @@
             if($nQuery >= 470 && $nQuery < 480) // Работа с фильтрами
             {
                 require_once("myFilter.php");
-                if($nQuery > 470)
-                {
-                    $idFilter = (int)$param[0];
-                    $myFilter = new MyFilter();
-                }
+                $idFilter = (int)$param[0];
+                $myFilter = new MyFilter();
                 switch($nQuery)
                 {
                     case 470: // Создать фильтр
                         $idParent = (int)$param[0];
                         if(($myRight->get($idParent) & 8) != 8) return; // Права на изменение
-                        $myFilter = new MyFilter();
                         echo json_encode([ $myFilter->create($param[1]) ]);
                         break;
                     case 471: // Обновить фильтр
@@ -808,6 +844,15 @@
                     case 472: // Запрос значения фильтра
                         if(($myRight->get($idFilter) & 1) != 1) return; // Права на просмотр
                         $myFilter->get($idFilter);
+                        break;
+                    case 473:
+                        echo $myFilter->getFilterStr($idFilter);
+                        break;
+                    case 474: // Обновить / создать настройки фильтра для таблицы
+                        $idTable = (int)$param[1];
+                        $q = $myFilter->getUserFilter($login, $idTable);
+                        if($q == "") query("INSERT INTO user_settings (login, id, type, value) VALUES(%s, %i, %s, %s)", [$login, $idTable, 'filter', $idFilter]);
+                        else query("UPDATE user_settings SET value = %s WHERE login = %s AND id = %i AND type = %s", [$idFilter, $login, $idTable, 'filter']);
                         break;
                 }
             }

@@ -39,9 +39,8 @@
 /*******************************************************/
 .leftMenuTitle
 {
-    height: 34px;
-    padding: 6px;
-    font-weight: bold;
+    height: 28px;
+    padding: 3px;
     font-size: 16px;
     position: relative;
 }

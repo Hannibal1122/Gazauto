@@ -45,18 +45,18 @@ export class TableEditorComponent implements OnInit
         paste: false,
         add: true,
     }
+    tableIds = {}; // для контроля изменений
+    filter = 
+    {
+        selected: -1,
+        list: []
+    };
+    listLogin = [];
     constructor(private query:QueryService) { }
     ngOnInit() 
     {
-        this.loadTable(() =>
-        {
-            /* this.getLastUpdateTime(() => 
-            { 
-                this.getListLogin(); 
-            }); */
-        });
+        this.loadTable();
     }
-    tableIds = {}; // для контроля изменений
     loadTable(func?)
     {
         /* trace("update " + this.inputs.id) */
@@ -85,33 +85,28 @@ export class TableEditorComponent implements OnInit
 
             for(var key in data.data) this.dataTable.push(data.data[key]);
             if(this.inputs.searchObjectId) this.searchCell(this.inputs.searchObjectId);
+
+            /* Заполнение фильтров */
+            this.filter.selected = data.filter;
+            this.filter.list = [];
+            for(i = 0; i < data.filters.length; i++)
+                this.filter.list.push({ id: data.filters[i][0], value: data.filters[i][2]});
+
             this.load = false;
             if(func) func();
             /* trace(new Date().getTime() - START); */
         });
     }
-    /*************************************************/
-    /* private globalStop = false;
-    private Timer = 
+    onFilterChange() // Обновить фильтр
     {
-        lastUpdate: null, 
-        listLogin: null
-    }; */
-    listLogin = [];
-    /* private getListLogin() // Получить список пользователей работающих с таблицей
-    {
-        clearTimeout(this.Timer.listLogin);
-        this.query.protectionPost(352, { param: [ this.inputs.id ] }, (data) => 
+        this.query.protectionPost(474, { param: [this.filter.selected, this.inputs.id] }, (data) => 
         { 
-            this.listLogin = [];
-            for(var key in data) this.listLogin.push(key);
-            if(!this.globalStop) this.Timer.listLogin = setTimeout(() => { this.getListLogin(); }, 30000);
+            this.loadTable();
         });
-    } */
+    }
     /*************************************************/
     ngOnDestroy() 
     {
-        /* this.globalStop = true; */
     }
     changeHeader() // изменить заголовок таблицы
     {
@@ -308,6 +303,7 @@ export class TableEditorComponent implements OnInit
                 break;
         }
     }
+    /*************************************************/
     queue = [];
     addToQueue(nquery, param, func) // Добавить запрос в очередь
     {
@@ -376,6 +372,7 @@ export class TableEditorComponent implements OnInit
             });
         else queryFunction("");
     }
+    /*************************************************/
     searchCellId = -1; // Для отображения ячейки в таблице
     searchTimeout = null
     searchCell(id) // Поиск ячейки и моргание

@@ -46,6 +46,7 @@ export class GlobalEvent
                 this.subscribeData.structure = event;
                 break;
             case "table":
+                if(this.subscribeData.tableEvent[String(id)]) return;
                 this.subscribeData.tableEvent[String(id)] = event;
                 this.subscribeData.tables.push({
                     id: id,

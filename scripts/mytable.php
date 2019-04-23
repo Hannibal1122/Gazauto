@@ -6,7 +6,7 @@
             $this->idTable = (int)$idTable;
             $this->myLog = $myLog;
         }
-        function getTable($myRight) // Запрос таблицы
+        function getTable($read_only, $filters, $filterSelected, $filterStr) // Запрос таблицы
         {
             $idTable = $this->idTable; 
             $nameTable = "";
@@ -20,19 +20,21 @@
                 while ($row = $result->fetch_array(MYSQLI_NUM)) 
                     $head[] = $row;
             /* Применить фильтр и узнать набор строк которые надо включить */
-            /* if($result = query("SELECT DISTINCT i FROM fields WHERE tableId = %i AND type != 'head' AND value LIKE '%разр%'", [$idTable]))
-                while ($row = $result->fetch_array(MYSQLI_NUM)) 
-                {
-                    if($enableLines != "") $enableLines .= ",";
-                    $enableLines .= $row[0];
-                } */
+            /* Должны найти первый доступный фильтр */
+            if($filterStr != "")
+                if($result = query("SELECT DISTINCT i FROM fields WHERE tableId = %i AND type != 'head' AND ($filterStr)", [$idTable]))
+                    while ($row = $result->fetch_array(MYSQLI_NUM)) 
+                    {
+                        if($enableLines != "") $enableLines .= ",";
+                        $enableLines .= $row[0];
+                    }
             /* Подготавливаем массив со строками без данных */
             if($result = query("SELECT i, next FROM fields LEFT JOIN line_ids ON line_ids.id = fields.i WHERE tableId = %i AND type != 'head'", [$idTable]))
                 while ($row = $result->fetch_array(MYSQLI_NUM))
                     $data[(int)$row[0]]["__NEXT__"] = $row[1]; 
             $queryStr = "SELECT i, idColumn, value, type, linkId, linkType, fields.id, state, eventId FROM fields WHERE tableId = %i AND type != 'head'";
             if($enableLines != "") $queryStr .= "AND i IN ($enableLines)";
-
+            else if(count($filters) == 0) $queryStr .= "AND i IN (-1)";
             if($result = query($queryStr, [$idTable]))
                 while ($row = $result->fetch_array(MYSQLI_NUM)) 
                 {
@@ -92,10 +94,12 @@
                 "data" => $outData2, 
                 "tableIds" => $tableIds, 
                 "name" => $nameTable, 
-                "change" => ($myRight->get($idTable) & 8) == 8, 
+                "change" => !$read_only,
                 "idLogTableOpen" => $this->myLog->add("table", "open", $idTable), 
                 "changeHead" => $bindId, 
-                "state" => $stateTable
+                "state" => $stateTable,
+                "filters" => $filters,
+                "filter" => $filterSelected
             ]);
         }
         function setAndRemoveHeader($data, $changes) // Добавить/Удалить заголовок
@@ -130,7 +134,7 @@
             }
             $this->myLog->add("table", "update", $idTable);
         }
-        function setCell($data, $echo) // Изменить ячейки в таблице
+        function setCell($data, $echo, $event = true) // Изменить ячейки в таблице
         {
             $idTable = $this->idTable; 
             $value = $data->value;
@@ -152,13 +156,13 @@
                     $idField
                 ]);
             $idEvent = (int)selectOne("SELECT eventId FROM fields WHERE id = %i", [ $idField ]);
-            if(!is_null($idEvent))
+            if(!is_null($idEvent) && $event)
             {
                 $typeAndCode = query("SELECT type, code FROM events WHERE id = %i", [ $idEvent ])->fetch_array(MYSQLI_NUM);
                 if($typeAndCode[0] == "value")
                 {
                     require_once("FASM.php"); // класс для работы с событиями
-                    $fasm = new FASM();
+                    $fasm = new FASM($this->myLog);
                     $fasm->start($typeAndCode[1], $idField);
                 }
             }
@@ -387,7 +391,7 @@
                 if($typeAndCode[0] == "state")
                 {
                     require_once("FASM.php"); // класс для работы с событиями
-                    $fasm = new FASM();
+                    $fasm = new FASM($this->myLog);
                     $fasm->start($typeAndCode[1], (int)$idField);
                 }
             }
