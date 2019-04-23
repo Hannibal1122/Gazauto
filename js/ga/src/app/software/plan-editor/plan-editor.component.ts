@@ -37,25 +37,31 @@ export class PlanEditorComponent implements OnInit
 
     addEmployee() //Добавить сотрудника 
     {
-      var fio = [];
-      for(var i = 0; i < this.employees.length; i++) fio[i] = { id: this.employees[i].tabelnom, value: this.employees[i].surname };
-      var Data:any = {
-        title: "Добавление сотрудника",  
-        data: [
-          ["Сотрудник", fio[0].id, "select", fio],
-          ["От", "", "datetime"],
-          ["До", "", "datetime"],
-          ["Значение", "", "text"]
-        ],
-        ok: "Изменить",
-        cancel: "Отмена"
-      };
-
-      this.modal.open(Data, (save) =>
+        var fio = [];
+        var fioId = [];
+        for(var i = 0; i < this.employees.length; i++) 
         {
-           
+            fio[i] = this.employees[i].surname;
+            fioId[i] = this.employees[i].tabelnom;
+        }
+        var Data:any = {
+            title: "Добавление сотрудника",  
+            data: [
+                ["Сотрудник", { selected: fio[0].id, data: fio, value: fioId }, "select"],
+                ["От", "", "datetime"],
+                ["До", "", "datetime"],
+                ["Значение", "", "text"]
+            ],
+            ok: "Изменить",
+            cancel: "Отмена"
+        };
+
+        this.modal.open(Data, (save) =>
+        {
+            trace(Data.data[0][1].selected) // id Сотрудника
+            trace(Data.data[1][1]) // От (миллисекунды)
+            trace(Data.data[2][1]) // До (миллисекунды)
+            trace(Data.data[3][1]) // Значение
         });
-
     }
-
 }
