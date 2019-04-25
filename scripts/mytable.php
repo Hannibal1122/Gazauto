@@ -45,13 +45,11 @@
                         switch($row[5])
                         {
                             case "tlist":
-                            case "value":
                                 if($value = query("SELECT value, type, tableId FROM my_values WHERE id = %i", [ $field["linkId"] ]))
                                 {
                                     $field["type"] = $row[5];
                                     $valueData = $value->fetch_array(MYSQLI_NUM);
-                                    if($valueData[1] == "array") $field["listValue"] = getListValueByKey($field["linkId"], $field["value"]);
-                                    else if($valueData[1] == "tlist") $field["listValue"] = getTableListValueByKey((int)$field["value"], (int)$valueData[2]);
+                                    if($valueData[1] == "tlist") $field["listValue"] = (int)$field["value"] == (int)$valueData[0] ? "" : getTableListValueByKey((int)$field["value"], (int)$valueData[2]);
                                     else $field["value"] = $valueData[0];
                                 }
                                 break;
@@ -184,16 +182,16 @@
                 $linkType = $row[1];
                 $fieldList = null;
                 $fieldState = 0;
-                if(($linkType == "value" || $linkType == "tlist") && $value = query("SELECT id, value, type, tableId FROM my_values WHERE id = %i", [ (int)$row[2] ]))
+                if($linkType == "tlist" && $value = query("SELECT id, value, type, tableId FROM my_values WHERE id = %i", [ (int)$row[2] ]))
                 {
                     $valueData = $value->fetch_array(MYSQLI_NUM);
-                    $fieldValue = $valueData[2] == "array" ? 0 : $valueData[1];
-                    if($valueData[2] == "array") $fieldList = getListValueByKey((int)$row[2], $fieldValue);
-                    if($valueData[2] == "tlist") 
+                    $fieldValue = $valueData[1];
+                    $fieldList = "";
+                    /*     if($valueData[2] == "tlist") 
                     {
                         $fieldValue = selectOne("SELECT id FROM fields WHERE type = 'value' AND tableId = %i", [ (int)$valueData[3] ]);
-                        $fieldList = getTableListValueByKey($fieldValue, (int)$valueData[3]);
-                    }
+                        $fieldList = "";
+                    } */
                 }
                 else 
                 {
@@ -246,10 +244,17 @@
             $out = ["__ID__" => $idRow];
             if($idPrevRow != -1) query("UPDATE line_ids SET next = %i WHERE id = %i", [$idRow, $idPrevRow]); 
             if($idNextRow != -1) query("UPDATE line_ids SET next = %i WHERE id = %i", [$idNextRow, $idRow]); 
-            if($result = query("SELECT id, value FROM fields WHERE tableId = %i AND type = 'head'", [$idTable]))
+            if($result = query("SELECT id, value, dataType FROM fields WHERE tableId = %i AND type = 'head'", [$idTable]))
                 while ($row = $result->fetch_array(MYSQLI_NUM)) 
                 {
-                    query("INSERT INTO fields (tableId, i, idColumn, type, value) VALUES(%i, %i, %i, 'value', '') ", [ $idTable, $idRow, (int)$row[0] ]);
+                    if($row[2])
+                        query("INSERT INTO fields (tableId, i, idColumn, type, value, linkId, linkType) VALUES(%i, %i, %i, 'link', '', %i, 'tlist') ", [ 
+                            $idTable, 
+                            $idRow, 
+                            (int)$row[0], 
+                            (int)$row[2]
+                        ]);
+                    else query("INSERT INTO fields (tableId, i, idColumn, type, value) VALUES(%i, %i, %i, 'value', '') ", [ $idTable, $idRow, (int)$row[0] ]);
                     $out[$row[0]] = ["id" => $mysqli->insert_id, "value" => ""];
                 }
             if($echo)
@@ -275,7 +280,7 @@
         }
         function copyCell($idCellTo, $idTableTo, $idCellFrom, $idTableFrom, $operation, $typePaste, $echo) // Копировать ячейку
         {
-            if($result = query("SELECT type, value, linkId, linkType, state, info FROM fields WHERE id = %i", [$idCellFrom])) 
+            if($result = query("SELECT type, value, linkId, linkType, state FROM fields WHERE id = %i", [$idCellFrom])) 
                 $valueData = $result->fetch_array(MYSQLI_NUM);
             if($operation == "copy") 
             {
@@ -292,7 +297,7 @@
                 }
                 else
                 {
-                    if($valueData[3] == "value" || $valueData[3] == "tlist")
+                    if($valueData[3] == "tlist")
                     {
                         $out["type"] = $valueData[3];
                         $out["linkId"] = (int)$valueData[2];
@@ -300,8 +305,7 @@
                         {
                             $_valueData = $value->fetch_array(MYSQLI_NUM);
                             $out["value"] = $valueData[1];
-                            if($_valueData[1] == "array") $out["listValue"] = getListValueByKey($out["linkId"], $out["value"]);
-                            else if($_valueData[1] == "tlist") $out["listValue"] = getTableListValueByKey((int)$out["value"], (int)$_valueData[2]);
+                            if($_valueData[1] == "tlist") $out["listValue"] = getTableListValueByKey((int)$out["value"], (int)$_valueData[2]);
                             else $out["value"] = $_valueData[0];
 
                         }
@@ -315,8 +319,8 @@
                         if($valueData[3] == "table") if((int)$value["tableId"] == (int)$idTableTo) { echo "ERROR"; return; } // Нельзя вставить ссылку в таблицу на себя
                     }
                     
-                    query("UPDATE fields SET type=%s, value=%s, linkId=%i, linkType=%s, state=%i, info=%s WHERE id = %i", [ 
-                        $valueData[0], $valueData[1], $valueData[2], $valueData[3], $valueData[4], $valueData[5], $idCellTo ]);
+                    query("UPDATE fields SET type=%s, value=%s, linkId=%i, linkType=%s, state=%i WHERE id = %i", [ 
+                        $valueData[0], $valueData[1], $valueData[2], $valueData[3], $valueData[4], $idCellTo ]);
                 }
                 if($echo) echo json_encode($out);
                 $this->myLog->add("table", "update", $idTableTo); // изменение основной таблицы
@@ -326,9 +330,9 @@
                 if($valueData[3] == "table")
                     if((int)getCellLink($idCellFrom, true)["tableId"] == (int)$idTableTo) { echo "ERROR"; return; } // Нельзя вставить ссылку в таблицу на себя
 
-                query("UPDATE fields SET type=%s, value=%s, linkId=%i, linkType=%s, state=%i, info=%s WHERE id = %i", [ 
-                    $valueData[0], $valueData[1], $valueData[2], $valueData[3], $valueData[4], $valueData[5], $idCellTo ]);
-                query("UPDATE fields SET type='value', value='', linkId=NULL, linkType=NULL, state=0, info=NULL WHERE id = %i", [ $idCellFrom ]);
+                query("UPDATE fields SET type=%s, value=%s, linkId=%i, linkType=%s, state=%i WHERE id = %i", [ 
+                    $valueData[0], $valueData[1], $valueData[2], $valueData[3], $valueData[4], $idCellTo ]);
+                query("UPDATE fields SET type='value', value='', linkId=NULL, linkType=NULL, state=0 WHERE id = %i", [ $idCellFrom ]);
                 if($echo)
                 {
                     echo json_encode([ "idTableFrom" => $idTableFrom ]);

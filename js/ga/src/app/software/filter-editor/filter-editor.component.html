@@ -1,8 +1,6 @@
-<div *ngIf = "_open" style = "position:fixed; width:100%; height:100%; background-color: rgba(0, 0, 0, 0.6); top:0px; left:0px; overflow:auto; z-index:1001;">
-</div>
-<div *ngIf = "_open" class = "filterPanel">
-    <input *ngIf = "id == -1" type = "text" [(ngModel)] = "name" placeholder="имя фильтра">
-    <div *ngIf = "id > 0" style = "height:30px;">{{ name }}</div>
+<!-- <div *ngIf = "_open" style = "position:fixed; width:100%; height:100%; background-color: rgba(0, 0, 0, 0.6); top:0px; left:0px; overflow:auto; z-index:1001;">
+</div> -->
+<div class = "filterPanel">
     <div class = "filterClass">
         <ng-container *ngFor = "let e of expression; let i = index">
             <ng-container *ngIf = "e.type !== 'group'">
@@ -44,6 +42,4 @@
         <div class = "condition button" (click) = "addCondition()">+</div>
         <div class = "condition button" (click) = "addGroup()">group</div>
     </div>
-    <button class = "btn btn-primary transition" style = "float:right; margin-left:5px;" (click) = "save()">{{ id == -1 ? "Создать" : "Сохранить" }}</button>
-    <button class = "btn btn-default transition" style = "float:right;" (click) = "cancel()">Отмена</button>
 </div>

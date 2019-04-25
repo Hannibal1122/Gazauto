@@ -13,16 +13,16 @@ export class QueryService
     { 
         /* $.ajaxSetup({ headers: {  'Access-Control-Allow-Origin': 'http://localhost:8081' } }); */
     }
-    post(n, data, func)
+    post(n, data, func?)
     {
         var dataQuery = {nquery: n};
         for(var key in data) dataQuery[key] = data[key];
         $.post(this.url, dataQuery, (data) =>
         {
-            func(this.recode(data));
+            if(func) func(this.recode(data));
         });
     }
-    protectionPost(n, data, func)
+    protectionPost(n, data, func?)
     {
         var dataQuery = {nquery: n};
         for(var key in data) dataQuery[key] = data[key];
@@ -31,7 +31,7 @@ export class QueryService
         dataQuery["paramC"] = localStorage.getItem("checkKey");
         $.post(this.url, dataQuery, (data) =>
         {
-            func(this.recode(data));
+            if(func) func(this.recode(data));
         });
     }
     protectionGet(n, data)
@@ -68,14 +68,8 @@ export class QueryService
     private recode(data)
     {
         var a;
-        try
-        {
-            a = JSON.parse(data);
-        }
-        catch(e)
-        {
-            a = data;
-        }
+        try { a = JSON.parse(data); }
+        catch(e) { a = data; }
         return a
     }
 }

@@ -86,13 +86,13 @@
                 echo json_encode($project);
                 break;
             case 1: // Возвращает информацию о текущем пользователе
-                request("SELECT * FROM signin WHERE id = %s", [$paramI]);
+                $request = selectOne("SELECT login FROM signin WHERE id = %s", [$paramI]);
+                if($request == "") query("INSERT INTO signin VALUES(%s, %s, %s, NOW())", [$paramI, '', '']); // Фиксирует вход на сайт нового пользователя
+                else query("UPDATE signin SET date = NOW() WHERE id = %s", [$paramI]); // Обновление времени нахождения пользователя на сайте
                 break;
-            case 2: // Фиксирует вход на сайт нового пользователя
-                query("INSERT INTO signin VALUES(%s, %s, %s, NOW())", $param);
+            case 2: // резерв
                 break;
-            case 3: // Обновление времени нахождения пользователя на сайте
-                query("UPDATE signin SET date = NOW() WHERE id = %s", $param);
+            case 3: // резерв
                 break;
             case 4: // вход
                 require_once("enter.php");
@@ -610,14 +610,17 @@
                         query("UPDATE fields SET eventId = NULL WHERE id = %i", [(int)$param[1]]);
                         break;
                     case 264: // Назначить тип столбцу
-                        $idField = (int)$param[1];
-                        $idValue = (int)$param[2];
+                        if(($myRight->get($idTable) & 8) != 8) return; // Права на изменение
+                        $idField = (int)$param[1]; // id ячейки
+                        $idValue = (int)$param[2]; // id из структуры
                         // Пока тип может быть только из списка
-                        query("UPDATE fields SET value = %i WHERE id = %i AND type = 'head' AND tableId = %i", [ $idValue, $idField, $idTable ]);
+                        $idTlist = selectOne("SELECT id FROM my_values WHERE id = (SELECT objectId FROM structures WHERE id = %i)", [ $idValue ]); // id из my_values
+                        query("UPDATE fields SET dataType = %i WHERE id = %i AND type = 'head' AND tableId = %i", [ $idTlist, $idField, $idTable ]);
+                        query("UPDATE fields SET type = 'link', linkId = %i, linkType = 'tlist', value = '' WHERE idColumn = %i AND tableId = %i", [ $idTlist, $idField, $idTable ]);
                         break;
                     case 265: // Сбросить тип столбца
                         $idField = (int)$param[1];
-                        query("UPDATE fields SET value = NULL WHERE id = %i AND type = 'head' AND tableId = %i", [ $idField, $idTable ]);
+                        query("UPDATE fields SET dataType = NULL WHERE id = %i AND type = 'head' AND tableId = %i", [ $idField, $idTable ]);
                         break;
                     case 266: // Импорт файла
                         $nameFile = $param[1];
@@ -729,7 +732,7 @@
                                                 break; 
                                             }
                                 $logins = [];
-                                if($result = query("SELECT login FROM main_log WHERE type = 'table' AND value = %s AND dateUpdate >= DATE_SUB(NOW(), INTERVAL 2 MINUTE)", [ $idTable ]))
+                                if($result = query("SELECT login FROM main_log WHERE type = 'table' AND value = %s AND dateUpdate >= DATE_SUB(NOW(), INTERVAL 0.5 MINUTE)", [ $idTable ]))
                                     while ($row = $result->fetch_array(MYSQLI_NUM)) 
                                         $logins[$row[0]] = "";
                             
@@ -780,6 +783,7 @@
                         else query("INSERT INTO events (id, type, param, code) VALUES(%i, %s, %s, 'end')", $param);
                         break;
                     case 411: // Загрузить событие
+                        if(count($param) == 0) return;
                         $idElement = (int)$param[0];
                         if(($myRight->get($idElement) & 1) != 1) return; // Права на просмотр
                         $out = [];

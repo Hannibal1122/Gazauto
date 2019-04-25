@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, Input } from '@angular/core';
 import { QueryService } from '../../lib/query.service';
 
 declare var trace:any;
@@ -10,7 +10,6 @@ declare var trace:any;
 })
 export class FilterEditorComponent implements OnInit 
 {
-    _open = false;
     operator = [{id: "И", value: "И"}, { id: "ИЛИ", value: "ИЛИ" }];
     operand = [
         { id: "содержит", value: "содержит"}, 
@@ -23,50 +22,19 @@ export class FilterEditorComponent implements OnInit
     fields = [];
     mapField = {};
     expression = [];
-    parentId = -1;
-    id = -1;
-    name = "";
-    updateExplorer;
+    @Input() set config(value)
+    {
+        if(value)
+            this.open(value.fields, value.expression);
+    }
     constructor(private query:QueryService)
     {
     }
     ngOnInit()
     {
     }
-    create(parentId, fields, updateExplorer)
-    {
-        this.id = -1;
-        this.parentId = parentId;
-        this.updateExplorer = updateExplorer;
-        this.open(fields, []);
-    }
-    update(id, fields, expression)
-    {
-        this.id = id;
-        this.open(fields, expression);
-    }
-    save()
-    {
-        if(this.id == -1)
-        {
-            this.query.protectionPost(470, { param: [this.parentId, this.getCondition()] }, (data) => 
-            { 
-                this.query.protectionPost(100, { param: ["filter", data[0], this.name, this.parentId, 0, ""] }, (data) => 
-                { 
-                    if(this.updateExplorer) this.updateExplorer();
-                    this.cancel();
-                });
-            });
-        }
-        else
-            this.query.protectionPost(471, { param: [this.id, this.getCondition()] }, () => 
-            { 
-                this.cancel();
-            });
-    }
     open(fields, expression)
     {
-        this._open = true;
         this.fields = [];
         this.mapField = {};
         for(let i = 0; i < fields.length; i++)
@@ -75,10 +43,6 @@ export class FilterEditorComponent implements OnInit
             this.mapField[fields[i].id] = fields[i].value;
         }
         this.expression = Array.isArray(expression) ? expression : this.parseExpression(expression);
-    }
-    cancel()
-    {
-        this._open = false;
     }
     parseExpression(str)
     {

@@ -120,6 +120,9 @@
                             <input type = "checkbox" [checked]="data[3]" [(ngModel)] = "data[3]" (change) = "selectAll(data)"> Выбрать все
                         </div>
                         <!-- ******************************************************************************** -->
+                        <div *ngIf = "data[2] === 'filterEditor'">
+                            <app-filter-editor #filterEditor [config] = "data[1]"></app-filter-editor>
+                        </div>
                     </td>
                 </tr>
             </tbody>

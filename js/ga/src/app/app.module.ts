@@ -13,9 +13,8 @@ import { PlanEditorComponent } from './software/plan-editor/plan-editor.componen
 import { ErrorTableComponent } from './system/error-table/error-table.component';
 import { InfoComponent } from './software/info/info.component';
 import { HttpClientModule } from '@angular/common/http';
-import { EventEditorComponent } from './software/event-editor/event-editor.component';
 import { UserSettingsComponent } from './software/user-settings/user-settings.component';
-import { FilterEditorComponent } from './software/filter-editor/filter-editor.component';
+import { EventEditorComponent } from './software/event-editor/event-editor.component';
 
 @NgModule({
     declarations: [ 
@@ -28,10 +27,9 @@ import { FilterEditorComponent } from './software/filter-editor/filter-editor.co
         LoadingComponent, 
         TableEditorComponent,
         ErrorTableComponent, 
-        InfoComponent, 
-        EventEditorComponent, 
-        PlanEditorComponent,
-        FilterEditorComponent
+        InfoComponent,
+        EventEditorComponent,
+        PlanEditorComponent
     ],
     imports: [ BrowserModule, FormsModule, ModalWindowModule, HttpClientModule ],
     providers: [],

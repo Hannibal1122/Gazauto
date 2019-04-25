@@ -6,9 +6,9 @@
      <span style = "font-size:12px;">{{ info.length > 0 ? "(" + info + ")" : "" }}{{ ready ? " - завершено" : "" }}</span>
 </div>
 <div style = "font-size:12px; margin-top:-8px; color:#aaaaaa;">{{ type }}</div>
-<div #editor>
+<div #editor style = "width:100%; height:600px;">
 </div>
 <!-- <button class = "btn btn-primary" style = "position:absolute; top: 600px; left:280px;" (click) = "execCode()">Выполнить</button> -->
-<button *ngIf = "type == 'по дате' && ready" class = "btn btn-primary" style = "position:absolute; top: 600px; left:260px;" (click) = "returnEvent()">Восстановить</button>
-<button *ngIf = "type == 'по дате' && !ready" class = "btn btn-primary" style = "position:absolute; top: 600px; left:280px;" (click) = "stopEvent()">Завершить</button>
-<button *ngIf = "!readonly" class = "btn btn-primary" style = "position:absolute; top: 600px; left:400px;" (click) = "saveCode()">Сохранить</button>
+<button *ngIf = "type == 'по дате' && ready" class = "btn btn-primary" style = "position:absolute; top: 5px; right:120px;" (click) = "returnEvent()">Восстановить</button>
+<button *ngIf = "type == 'по дате' && !ready" class = "btn btn-primary" style = "position:absolute; top: 5px; right:120px;" (click) = "stopEvent()">Завершить</button>
+<button *ngIf = "!readonly" class = "btn btn-primary" style = "position:absolute; top: 5px; right:10px;" (click) = "saveCode()">Сохранить</button>

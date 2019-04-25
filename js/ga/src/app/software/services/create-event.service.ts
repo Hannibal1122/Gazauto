@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { QueryService } from '../lib/query.service';
-import { FunctionsService } from '../lib/functions.service';
+import { QueryService } from '../../lib/query.service';
+import { FunctionsService } from '../../lib/functions.service';
 declare var trace:any;
 
 @Injectable()

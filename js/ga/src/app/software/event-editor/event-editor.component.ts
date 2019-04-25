@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, Input } from '@angular/core';
 import { QueryService } from '../../lib/query.service';
 
 declare var FasmEditor:any;
@@ -26,7 +26,7 @@ export class EventEditorComponent implements OnInit
             this.name = data[5];
             this.ready = data[4] == 1;
             this.readonly = data[6];
-            this.fasmEditor = new FasmEditor(10, 50, 500, 540, "#2E2E2E", null, null, this.readonly);
+            this.fasmEditor = new FasmEditor("#2E2E2E", null, null, this.readonly);
             this.editor.nativeElement.appendChild(this.fasmEditor.create());
             switch(data[0])
             {

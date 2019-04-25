@@ -72,7 +72,7 @@ export class AppComponent implements OnInit
                 this.currentMiniApp = miniApp.current;
             }
         });
-        this.firstEnter(this);
+        this.firstEnter();
         this.resizeWindow();
         window.addEventListener("resize", () => { this.resizeWindow() });
         ////////////////////////////////////////////////////////////////////
@@ -183,25 +183,26 @@ export class AppComponent implements OnInit
         let length = this.tabs.length;
         switch(type)
         {
-            case "explorer": i = this.checkRepeatSoftware(type, { component: ExplorerComponent, inputs: input }); break;
+            case "explorer": i = this.getNewTab(type, { component: ExplorerComponent, inputs: input }); break;
             case "table": 
-                i = this.checkRepeatSoftware(type, { component: TableEditorComponent, inputs: input }); 
-                this.globalEvent.subscribe("table", input.id, (event) =>
+                i = this.getNewTab(type, { component: TableEditorComponent, inputs: input });
+                let tableId = input.id;
+                this.globalEvent.subscribe("table", tableId, (event) =>
                 {
+                    let i = this.checkRepeatSoftware(type, tableId);
                     if(event.update) this.tabs[i].inputFromApp = { update: true, logins: event.logins };
                     else this.tabs[i].inputFromApp = { logins: event.logins };
                 });
                 break;
-            case "info": i = this.checkRepeatSoftware(type, { component: InfoComponent, inputs: input }); break;
-            case "event": i = this.checkRepeatSoftware(type, { component: EventEditorComponent, inputs: input }); break;
-            case "plan": i = this.checkRepeatSoftware(type, { component: PlanEditorComponent, inputs: input }); break;
+            case "info": i = this.getNewTab(type, { component: InfoComponent, inputs: input }); break;
+            case "event": i = this.getNewTab(type, { component: EventEditorComponent, inputs: input }); break;
+            case "plan": i = this.getNewTab(type, { component: PlanEditorComponent, inputs: input }); break;
         }
         if(length != this.tabs.length) this.setSaveTab(i, type, input) // Новая вкладка, нужно сохранить
         this.currentSoftware = i;
     }
-    checkRepeatSoftware(type, software)
+    getNewTab(type, software)
     {
-        var i = 0;
         var input = software.inputs;
         var name = "";
         switch(type)
@@ -212,8 +213,7 @@ export class AppComponent implements OnInit
             case "event": name = "Редактор событий"; break;
             case "plan": name = "План-график"; break;
         }
-        for(; i < this.tabs.length; i++) // Проверка на уже открытую вкладку
-            if(this.tabs[i].type == type && this.tabs[i].software.inputs && this.tabs[i].software.inputs.id == input.id) break;
+        let i = this.checkRepeatSoftware(type, input.id);
         if(i != this.tabs.length) 
         {
             if(input.searchObjectId) this.tabs[i].inputFromApp = { search: input.searchObjectId };
@@ -229,6 +229,13 @@ export class AppComponent implements OnInit
         this.tabs[i].software.inputs.updateHistory = (input) => { this.setSaveTab(i, type, input); } 
         return i;
     }
+    checkRepeatSoftware(type, id)
+    {
+        let i = 0;
+        for(; i < this.tabs.length; i++) // Проверка на уже открытую вкладку
+            if(this.tabs[i].type == type && this.tabs[i].software.inputs && this.tabs[i].software.inputs.id == id) break;
+        return i;
+    }
     /*******************************************************************/
     autoLogin(func) // Автовход
     {
@@ -238,7 +245,7 @@ export class AppComponent implements OnInit
             if(typeof data !== "object") return;
             if(data[0] == -1)
             {
-                this.query.post(7, { paramI: localStorage.getItem("ID") }, (data) => { });
+                this.query.post(7, { paramI: localStorage.getItem("ID") });
                 localStorage.setItem("checkKey", "");
                 localStorage.setItem("login", "");
                 localStorage.setItem("name", "");
@@ -248,27 +255,14 @@ export class AppComponent implements OnInit
             this.load = false;
         });
     }
-    firstEnter(self) // Первый запуск и проверка на наличие ключа
+    firstEnter() // Первый запуск и проверка на наличие ключа
     {
-        if(localStorage.getItem("ID") === null)
-            localStorage.setItem("ID", self.lib.getUnicName("G"));
-        if(localStorage.getItem("timeSend") === null || Number(localStorage.getItem("timeSend")) < self.lib.getTimer() || !self.firstEnterBool)
+        if(localStorage.getItem("ID") === null || localStorage.getItem("ID") == "")
+            localStorage.setItem("ID", this.lib.getUnicName("G"));
+        this.globalEvent.subscribe("online", null, () =>
         {
-            self.query.post(1, { paramI: localStorage.getItem("ID") }, (data) =>
-            {
-                if(data.length == 0)
-                    self.query.post(2, {param: [localStorage.getItem("ID"), '', '']}, function(data)
-                    {
-                    });
-                else
-                    self.query.post(3, {param: [localStorage.getItem("ID")]}, function(data)
-                    {
-                    });
-            });	
-            localStorage.setItem("timeSend", self.lib.getTimer() + self.timeSend);
-            self.firstEnterBool = true;
-        }
-        setTimeout(() => { self.firstEnter(self) }, self.timeSend);
+            this.query.post(1, { paramI: localStorage.getItem("ID") });	
+        });
     }
     exitLogin() // Выход пользователя
     {

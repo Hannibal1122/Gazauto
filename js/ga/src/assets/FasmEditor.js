@@ -3,12 +3,8 @@
 //document.getElementById(id).appendChild(fasmEditor.create());
 class FasmEditor
 {
-	constructor(x, y, width, height, backColor, color, data, readonly) // инициализация
+	constructor(backColor, color, data, readonly) // инициализация
 	{
-		this.x = x || 0;
-		this.y = y || 0;
-		this.width = width || 490;
-		this.height = height || 650;
 		this.backColor = backColor || "#2E2E2E";
 		this.color = color || "#ffffff";
 		this.data = data || 
@@ -45,13 +41,13 @@ class FasmEditor
 		this.backPanel.appendChild(this.numberLines);
 		this.backPanel.appendChild(this.mainText);
 		this.backPanel.appendChild(this.colorText);
-		this.fasmEditor.setAttribute("style", "position: absolute; width: " + this.width + "px; height: " + this.height + "px; top: " + this.y + "px; left: " + this.x + "px; font: 12px Lucida Console;");
-		this.backPanel.setAttribute("style", "position: absolute; width: " + this.width + "px; height: " + this.height + "px; top: 0px; left: 0px; overflow: auto; background-color: " + this.backColor + ";");
+		this.fasmEditor.setAttribute("style", "position: relative; width: 100%; height: 100%; font: 12px Lucida Console;");
+		this.backPanel.setAttribute("style", "position: absolute; width: 100%; height: 100%; top: 0px; left: 0px; overflow: auto; background-color: " + this.backColor + ";");
 		this.numberLines.setAttribute("style", "position: absolute; width: 15px; height: 100%; top: 0px; left: 0px; background-color: " + this.backColor + "; color: white; padding: 5px;");
 		this.numberLines2.setAttribute("style", "position: absolute; width: 5px; height: 100%; top: 0px; left: 25px; background-color: #111111;");
-		this.mainText.setAttribute("style", "position: absolute; width: " + (this.width - 60) + "px; height: 100%; top: 0px; left: 30px; color: #E7E981; opacity: 0.3; outline: none; word-wrap: break-word; padding: 5px;");
+		this.mainText.setAttribute("style", "position: absolute; width: calc(100% - 60px); height: 100%; top: 0px; left: 30px; color: #E7E981; opacity: 0.3; outline: none; word-wrap: break-word; padding: 5px;");
 		this.mainText.setAttribute("contentEditable", !this.readonly);
-		this.colorText.setAttribute("style", "position: absolute; width: " + (this.width - 60) + "px; height: 100%; top: 0px; left: 30px; pointer-events: none; color: white; word-wrap: break-word; padding: 5px;");
+		this.colorText.setAttribute("style", "position: absolute; width: calc(100% - 60px); height: 100%; top: 0px; left: 30px; pointer-events: none; color: white; word-wrap: break-word; padding: 5px;");
 		this.regexp = "";
 		for(var i = 0; i < this.data.length; i++)
 		{

@@ -125,12 +125,9 @@ export class TableEditorComponent implements OnInit
             if(save)
             {
                 let out = [];
-                trace(this.dataTable)
                 for(var i = 0; i < Data.data[0][1].length; i++)
                 out.push({ id: Data.data[0][1][i].id, value: Data.data[0][1][i].value, oldValue: Data.data[0][1][i].oldValue, i: i});
                 let changes = Data.data[0][3];
-                trace(out)
-                trace(changes)
                 this.load = true;
                 this.query.protectionPost(251, { param: [ this.inputs.id, JSON.stringify(out), changes ]}, (data) => 
                 {
@@ -141,15 +138,27 @@ export class TableEditorComponent implements OnInit
     }
     appendFromLeftMenu(data) // Добавление из левого меню
     {
-        let i = this.editTable.configInput.i;
-        let j = this.editTable.configInput.j;
-        let id = this.editTable.listTables[i][j].id;
-        let _nameColumn = this.editTable.mapFields[id].name;
+        let i, j;
         let nameColumn = "";
-        if(_nameColumn) nameColumn = this.dataHeader[Number(_nameColumn)].value;
-        else
-            for(var _i = 0; _i < this.dataHeader.length; _i++)
-                if(this.dataHeader[_i].i == j) { nameColumn = this.dataHeader[_i].value; break; }
+        let _nameColumn = "";
+
+        switch(this.editTable.createContextMenu.type)
+        {
+            case "cell":
+                i = this.editTable.configInput.i;
+                j = this.editTable.configInput.j;
+                for(var _i = 0; _i < this.dataHeader.length; _i++)
+                    if(this.dataHeader[_i].i == j) 
+                    { 
+                        nameColumn = this.dataHeader[_i].value; 
+                        break; 
+                    }
+                break;
+            case "head":
+                _nameColumn = this.editTable.createContextMenu.i;
+                nameColumn = this.dataHeader[Number(_nameColumn)].value;
+                break;
+        }
         let beginI = i;
         let endI = i;
         let k = beginI;
@@ -164,11 +173,12 @@ export class TableEditorComponent implements OnInit
         {
             case "tlist":
                 // Проверка на вставку в себя (по tableId)
-                let Data:any = [["Назначить тип столбцу", false, "checkbox"]];
-                let addFunction = () =>
+                if(_nameColumn && data.setType) // Назначение типа столбцу ПОКА НЕ рЕШЕНО КАК ДЕЛАТЬ
+                    this.addToQueue(264, [ this.inputs.id, this.dataHeader[Number(_nameColumn)].value, data.id ], () => {
+                        this.loadTable();
+                    });
+                else
                 {
-                    /* if(_nameColumn) // Назначение типа столбцу ПОКА НЕ рЕШЕНО КАК ДЕЛАТЬ
-                        this.addToQueue(264, [ this.inputs.id, this.dataHeader[Number(_nameColumn)].id, data.id ], () => {}); */
                     for(k = beginI; k <= endI; k++)
                     {
                         let ID = this.dataTable[k][nameColumn].id;
@@ -181,16 +191,6 @@ export class TableEditorComponent implements OnInit
                         })(k);
                     }
                 }
-                if(_nameColumn)
-                    this.modal.open({ 
-                        title: "Как добавить элемент в таблицу", 
-                        data: Data, 
-                        ok: "Добавить", cancel: "Отмена"
-                    }, (save) =>
-                    {
-                        if(save) addFunction();
-                    }); 
-                else addFunction();
                 break;
             case "file": 
             case "table": 
@@ -252,8 +252,9 @@ export class TableEditorComponent implements OnInit
                     }
                     else // Либо insert, либо update 
                     {
+                        data.state = this.dataTable[property.i][property.nameColumn].state; // Костыль чтобы не терялись параметры
+                        data.eventId = property.eventId;
                         this.dataTable[property.i][property.nameColumn] = data;
-                        this.dataTable[property.i][property.nameColumn].eventId = property.eventId;
                         this.editTable.setCell = { i: property.i, key: property.nameColumn, value: data };
                     }
                 });
@@ -295,6 +296,7 @@ export class TableEditorComponent implements OnInit
                 break;
             case "pasteObject":
                 let data = JSON.parse(localStorage.getItem("copyExplorer"));
+                data.setType = property.setType;
                 this.appendFromLeftMenu(data);
                 localStorage.removeItem("copyExplorer");
                 break;

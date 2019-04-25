@@ -22,6 +22,8 @@ export class ErrorTableComponent implements OnInit
     @Output() onChange = new EventEmitter<any>();
     header = [];
     firstHeader = {};
+    filterHeader = [];
+    mapHideRows = {}; // По этому объекту скрываются строки не подходящие по фильтру
     mainData;
     listTables = [];
     firstData = [];
@@ -63,6 +65,7 @@ export class ErrorTableComponent implements OnInit
             {
                 this.firstHeader[value[key].value] = value[key].i;
                 this.header[value[key].i] = value[key];
+                this.filterHeader[value[key].i] = { value: "" };
                 this.mapFields[value[key].value] = { name: key, header: true };
             }
         }
@@ -72,19 +75,7 @@ export class ErrorTableComponent implements OnInit
         if(value)
         {
             this.mainData = value;
-            this.firstData = [];
-            this.listTables = [];
-            for(var i = 0; i < value.length; i++)
-            {
-                this.listTables[i] = [];
-                for(var key in value[i])
-                    if(this.firstHeader[key] != undefined)
-                    {
-                        this.listTables[i][this.firstHeader[key]] = value[i][key];
-                        this.mapFields[value[i][key].id] = { i: i, j: this.firstHeader[key] }
-                    }
-                this.firstData[i] = value[i].__ID__; // id строки в бд
-            }
+            this.updateData();
         }
     }
     setScroll(id) // Устанавливает скролл
@@ -140,6 +131,37 @@ export class ErrorTableComponent implements OnInit
         pasteObject: false
     }
     cacheListValues = {};
+    updateData()
+    {
+        this.firstData = [];
+        this.listTables = [];
+        this.mapHideRows = {};
+        let rowHide;
+        for(var i = 0; i < this.mainData.length; i++)
+        {
+            this.listTables[i] = [];
+            rowHide = false;
+            for(var key in this.mainData[i])
+            {
+                if(this.firstHeader[key] != undefined)
+                {
+                    let cell = this.mainData[i][key];
+                    this.listTables[i][this.firstHeader[key]] = cell;
+                    this.mapFields[cell.id] = { i: i, j: this.firstHeader[key] };
+                    if(cell && this.filterHeader[this.firstHeader[key]].value != "")
+                    {
+                        let str = (cell.listValue || cell.value).toLowerCase();
+                        let substr = this.filterHeader[this.firstHeader[key]].value.toLowerCase();
+                        trace(str + " == " + substr)
+                        if(str.indexOf(substr) !== -1) rowHide = false; // содержит
+                        else rowHide = true; // не содержит
+                    }
+                }
+            }
+            this.mapHideRows[i] = rowHide;
+            this.firstData[i] = this.mainData[i].__ID__; // id строки в бд
+        }
+    }
     editField(e) // нажали на ячейку для редактирования
     {
         if(this.getPositionInTable(e.target, this.configInput))
@@ -152,7 +174,7 @@ export class ErrorTableComponent implements OnInit
             this.inputProperty.type = this.listTables[i][j] ? this.listTables[i][j].type : "value";
             this.inputProperty.visibleState = this.inputProperty.type == "value" || this.inputProperty.type == undefined;
             this.inputProperty.linkId = this.listTables[i][j].linkId;
-            if(this.listTables[i][j] && this.listTables[i][j].listValue != undefined) 
+            if(this.listTables[i][j] && this.listTables[i][j].listValue !== undefined) 
             {
                 let _i = 0;
                 if(this.cacheListValues[this.listTables[i][j].linkId])
@@ -190,13 +212,17 @@ export class ErrorTableComponent implements OnInit
                 && this.listTables[i][j].id != localStorage.getItem("copyTable")) //Ячейку нельзя вставить саму в себя
                     this.rules.paste = true;
             if(localStorage.getItem("copyExplorer")) this.rules.pasteObject = true; 
-                /* let data = JSON.parse(localStorage.getItem("dragElement"));
-                localStorage.removeItem("dragElement"); */
             this.onChange.emit({ type: "operation", rules: this.rules});
             setTimeout(() => { this.mainInputElement.nativeElement.focus(); }, 20);
             return true;
         }
         return false;
+    }
+    onChangeFilter(i, value)
+    {
+        this.filterHeader[i].value = value;
+        trace(this.filterHeader[i].value)
+        this.updateData();
     }
     getValueFromArrayById(array, id)
     {
@@ -298,6 +324,7 @@ export class ErrorTableComponent implements OnInit
     getContextmenu(e, data, type)
     {
         if(type == "cell") this.editField(e);
+        if(type == "head") this.rules.pasteObject = localStorage.getItem("copyExplorer") !== null;
         if(e.clientY > Number(this.height.replace("px", "")) / 2) this.createContextMenu.transform = "translate(0, -100%)";
         else this.createContextMenu.transform = null;
         this.createContextMenu.left = e.clientX + "px";
@@ -316,9 +343,9 @@ export class ErrorTableComponent implements OnInit
     {
         this.onChange.emit({ type: "paste" });
     }
-    pasteObject()
+    pasteObject(setType?)
     {
-        this.onChange.emit({ type: "pasteObject" });
+        this.onChange.emit({ type: "pasteObject", setType: setType });
     }
     copyOrCut(type)
     {

@@ -8,9 +8,11 @@ declare var trace:any;
 export class GlobalEvent
 {
     autoUpdate:AutoUpdate;
+    autoUpdateOnline:AutoUpdate;
     subscribeData = {
         time: "",
         structure: null,
+        online: null,
         tableEvent: {},
         tables: []
     }
@@ -18,7 +20,10 @@ export class GlobalEvent
     {
         this.autoUpdate = new AutoUpdate(() => {
             this.update()
-        }, 10000); 
+        }, 10000);
+        this.autoUpdateOnline = new AutoUpdate(() => {
+            if(this.subscribeData.online) this.subscribeData.online();
+        }, 60000); // Раз в минуту обновляются данные о пользователе
         this.query.protectionPost(353, { }, (data) =>
         {
             if(!Array.isArray(data)) return;
@@ -26,6 +31,7 @@ export class GlobalEvent
             this.update();
             this.autoUpdate.start();
         });
+        this.autoUpdateOnline.start();
     }
     update()
     {
@@ -54,6 +60,10 @@ export class GlobalEvent
                     idLogTableOpen: -1 // id записи в логе для подтверждения что таблица открыта на клиенте
                 });
                 break;
+            case "online":
+                this.subscribeData.online = event;
+                event();
+                break;
         }
     }
     unsubscribe(type:String, id:Number)
@@ -71,6 +81,9 @@ export class GlobalEvent
                         this.subscribeData.tables.splice(i, 1);
                         break;
                     }
+                break;
+            case "online":
+                this.subscribeData.online = null;
                 break;
         }
     }

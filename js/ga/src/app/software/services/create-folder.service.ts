@@ -1,31 +1,34 @@
 import { Injectable } from '@angular/core';
-import { QueryService } from '../lib/query.service';
+import { QueryService } from '../../lib/query.service';
 declare var trace:any;
+
 @Injectable()
-export class CreateTableService
+export class CreateFolderService 
 {
     Data:any = {
-        title: "Создание таблицы",  
+        title: "Создание папки",  
         data: [
             ["Имя", "", "text"]
         ],
         ok: "Создать",
         cancel: "Отмена"
     };
-
     constructor(public query: QueryService) 
     { 
     }
     modal;
     create(id, update)
     {
-        this.Data.data[0][1] = "Новая таблица";
+        this.Data.data[0][1] = "Новая папка";
         this.modal.open(this.Data, (save) =>
         {
             if(save)
             {
                 if(this.Data.data[0][1] == "") return "Введите имя!";
-                this.query.protectionPost(100, { param: ["table", "NULL", this.Data.data[0][1], id, 0, ""] }, (data) => { update() });
+                this.query.protectionPost(100, { param: ["folder", "NULL", this.Data.data[0][1], id, 0, ""] }, (data) => 
+                { 
+                    update();
+                });
             }
         });
     }
@@ -42,11 +45,7 @@ export class CreateTableService
             if(save)
                 this.query.protectionPost(112, { param: [id] }, (data) => 
                 { 
-                    trace(data)
-                    /* this.query.protectionPost(254, { param: [id] }, (data) => 
-                    { */
-                        update();
-                    /* }); */
+                    update();
                 });
         });
     }

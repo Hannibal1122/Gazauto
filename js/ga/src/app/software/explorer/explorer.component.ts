@@ -1,17 +1,17 @@
 import { Component, OnInit, Injector, ViewChild } from '@angular/core';
 import { QueryService } from "../../lib/query.service";
-import { CreateTableService } from "../create-table.service";
-import { CreateUserService } from "../create-user.service";
-import { CreateRoleService } from "../create-role.service";
-import { CreateFolderService } from "../create-folder.service";
-import { CreateRightService } from "../create-right.service";
-import { PasteObjectService } from "../paste-object.service";
-import { CreateFileService } from "../create-file.service";
-import { CreateInfoService } from "../create-info.service";
-import { RenameObjectService } from "../rename-object.service";
-import { CreateEventService } from "../create-event.service";
-import { CreateTableListService } from "../create-table-list.service";
-import { FilterEditorComponent } from '../filter-editor/filter-editor.component';
+import { CreateTableService } from "../services/create-table.service";
+import { CreateUserService } from "../services/create-user.service";
+import { CreateRoleService } from "../services/create-role.service";
+import { CreateFolderService } from "../services/create-folder.service";
+import { CreateRightService } from "../services/create-right.service";
+import { PasteObjectService } from "../services/paste-object.service";
+import { CreateFileService } from "../services/create-file.service";
+import { CreateInfoService } from "../services/create-info.service";
+import { RenameObjectService } from "../services/rename-object.service";
+import { CreateEventService } from "../services/create-event.service";
+import { CreateTableListService } from "../services/create-table-list.service";
+import { CreateFilterService } from "../services/create-filter.service";
 
 declare var $:any;
 declare var trace:any;
@@ -31,13 +31,13 @@ declare var trace:any;
         CreateInfoService,
         RenameObjectService,
         CreateTableListService,
-        CreateEventService
+        CreateEventService,
+        CreateFilterService
     ]
 })
 export class ExplorerComponent implements OnInit 
 {
     @ViewChild('modal') public modal: any;
-    @ViewChild('filterEditor') public filterEditor:FilterEditorComponent;
     set inputFromApp(value)
     {
         if(value) 
@@ -82,6 +82,7 @@ export class ExplorerComponent implements OnInit
         private renameObject: RenameObjectService,
         private createEvent: CreateEventService,
         private createTableList: CreateTableListService,
+        private createFilter: CreateFilterService,
     ) {}
     ngOnInit() 
     { 
@@ -109,6 +110,7 @@ export class ExplorerComponent implements OnInit
         this.renameObject.modal = this.modal;
         this.createEvent.modal = this.modal;
         this.createTableList.modal = this.modal;
+        this.createFilter.modal = this.modal;
         this.globalClick = (e) => 
         { 
             if(e.target.classList[0] == "col-md-12"  && this.selectObjectI != -1) this.refresh(); 
@@ -183,15 +185,7 @@ export class ExplorerComponent implements OnInit
                 });
                 break;
             case "filter":
-                this.query.protectionPost(253, { param: [ this.inputs.id ] }, (head) => 
-                {
-                    let fields = [];
-                    for(let i = 0; i < head.length; i++) fields.push({ id: head[i][0], value: head[i][1] });
-                    this.query.protectionPost(472, { param: [ object.objectId ] }, (data) => 
-                    {
-                        this.filterEditor.update(object.objectId, fields, data[0][0]);
-                    });
-                });
+                this.createFilter.update(object.objectId, this.inputs.id, object.name);
                 break;
         }
     }
@@ -221,7 +215,7 @@ export class ExplorerComponent implements OnInit
                 this.createFile.create(id, () => { this.refresh() });
                 break;
             case "Фильтр":
-                this.filterEditor.create(id, [], () => { this.refresh() });
+                this.createFilter.create(id, () => { this.refresh() });
                 break;
         }
     }

@@ -3,40 +3,57 @@
         <tbody (click) = "change ? editField($event) : null">
             <tr>
                 <th class = "TableCreatorHeadColor"></th>
-                <th *ngFor = "let head of header; let i = index;" class = "TableCreatorHeadColor TableCreatorHeadBColor" id = "{{ head.value }}">{{ head.name }}</th>
+                <th *ngFor = "let head of header; let i = index;" 
+                    class = "TableCreatorHeadColor TableCreatorHeadBColor" 
+                    id = "{{ head.value }}"
+                    (contextmenu) = "getContextmenu($event, i, 'head')">
+                    {{ head.name }}
+                </th>
             </tr>
-            <tr *ngFor = "let row of listTables; let i = index;">
-                <td (contextmenu) = "getContextmenu($event, i, 'row')" class = "TableCreatorHeadColor TableCreatorHeadBColor">{{ i + 1 }}</td>
-                <td *ngFor = "let void of header; let j = index;" 
-                    id = "{{ row[j].id }}"
-                    (contextmenu) = "getContextmenu($event, i, 'cell')"
-                    [style.background] = "row[j] == undefined ? '#fafafa' : (row[j].id == searchCellId ? '#e7f5c6' : none)">
-                    {{ row[j] != undefined && !row[j].listValue ? row[j].value : "" }}
-                    {{ row[j] != undefined && row[j].listValue ? row[j].listValue : "" }}
-                    <span *ngIf = "(row[j].type == 'value' || row[j].type == 'tlist')" class = "linkClass linkValueClass">
-                        <i class = "fa fa-link"></i>
-                    </span>
-                    <span *ngIf = "row[j].type == 'table'" class = "linkClass linkValueClass">
-                        <i class = "fa fa-table"></i>
-                    </span>
-                    <span *ngIf = "row[j].type == 'cell'" class = "linkClass linkCellClass" [class.linkErrorClass] = "row[j].value == null">
-                        <i class = "fa fa-link"></i>
-                    </span>
-                    <span *ngIf = "row[j].type == 'file'" class = "linkClass linkValueClass">
-                        <i class = "fa fa-file"></i>
-                    </span>
-                    <span *ngIf = "row[j].eventId" class = "eventClass linkCellClass" (dblclick) = "openEventToExplorer(row[j].eventId)">
-                        <i class = "fa fa-bolt"></i>
-                    </span>
-                    <div style = "position:absolute; pointer-events:none; width:100%; height:100%; top:0px; left:0px;">
-                        <div *ngIf = "row[j].state" [style.width] = "row[j].state + '%'" class = "tableStateLoading" 
-                            [class.tableCellStateGreen] = "row[j].state == 100"
-                            [class.tableCellStateYellow] = "row[j].state >= 50 && row[j].state < 100"
-                            [class.tableCellStateRed] = "row[j].state < 50">
-                        </div>
-                    </div>
+            <tr>
+                <td style = "padding:0px;"></td>
+                <td *ngFor = "let filter of filterHeader; let i = index;" style = "padding:0px;">
+                    <input type = "text" 
+                        style = "width:100%; height:22px; border:1px solid transparent; padding:5px; color:#aaaaaa;" 
+                        placeholder="Поиск"
+                        (input) = "onChangeFilter(i, $event.target.value)">
                 </td>
             </tr>
+            <ng-container *ngFor = "let row of listTables; let i = index;">
+                <tr *ngIf = "!mapHideRows[i]">
+                    <td (contextmenu) = "getContextmenu($event, i, 'row')" class = "TableCreatorHeadColor TableCreatorHeadBColor">{{ i + 1 }}</td>
+                    <td *ngFor = "let void of header; let j = index;" 
+                        id = "{{ row[j].id }}"
+                        (contextmenu) = "getContextmenu($event, i, 'cell')"
+                        [style.background] = "row[j] == undefined ? '#fafafa' : (row[j].id == searchCellId ? '#e7f5c6' : none)">
+                        {{ row[j] != undefined && row[j].listValue !== undefined ? row[j].listValue : row[j].value }}
+                        <div class="linkClass">
+                            <span *ngIf = "(row[j].type == 'tlist')" class = "linkValueClass">
+                                <i class = "fa fa-link"></i>
+                            </span>
+                            <span *ngIf = "row[j].type == 'table'" class = "linkValueClass">
+                                <i class = "fa fa-table"></i>
+                            </span>
+                            <span *ngIf = "row[j].type == 'cell'" class = "linkCellClass" [class.linkErrorClass] = "row[j].value == null">
+                                <i class = "fa fa-link"></i>
+                            </span>
+                            <span *ngIf = "row[j].type == 'file'" class = "linkValueClass">
+                                <i class = "fa fa-file"></i>
+                            </span>
+                            <span *ngIf = "row[j].eventId" class = "linkCellClass" (dblclick) = "openEventToExplorer(row[j].eventId)">
+                                <i class = "fa fa-bolt"></i>
+                            </span>
+                        </div>
+                        <div style = "position:absolute; pointer-events:none; width:100%; height:100%; top:0px; left:0px;">
+                            <div *ngIf = "row[j].state" [style.width] = "row[j].state + '%'" class = "tableStateLoading" 
+                                [class.tableCellStateGreen] = "row[j].state == 100"
+                                [class.tableCellStateYellow] = "row[j].state >= 50 && row[j].state < 100"
+                                [class.tableCellStateRed] = "row[j].state < 50">
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            </ng-container>
         </tbody>
     </table>
 
@@ -80,6 +97,11 @@
     [style.top] = "createContextMenu.top" 
     [style.left] = "createContextMenu.left"
     [style.transform] = "createContextMenu.transform">
+    <ng-container *ngIf = "createContextMenu.type == 'head'">
+        <button class = "contextMenuList" (click) = "pasteObject(true)" [disabled] = "!rules.pasteObject">Назначить тип</button>
+        <button class = "contextMenuList" (click) = "pasteObject()" [disabled] = "!rules.pasteObject">Выставить всем</button>
+        <button class = "contextMenuList" (click) = "pasteObject()" [disabled] = "!rules.pasteObject">Добавить событие</button>
+    </ng-container>
     <ng-container *ngIf = "createContextMenu.type == 'row'">
         <div class = "contextMenuList" (click) = "removeRow(createContextMenu.i)">Удалить строку</div>
         <div class = "contextMenuList" (click) = "addRow(-1)">Вставить строку выше</div>

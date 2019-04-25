@@ -1,5 +1,6 @@
 import { Component, ViewChild, ElementRef } from '@angular/core';
 import { FunctionsService } from "../../lib/functions.service";
+import { FilterEditorComponent } from '../../software/filter-editor/filter-editor.component';
 
 declare var trace:any;
 declare var $: any;
@@ -12,6 +13,8 @@ declare var $: any;
 export class ModalWindowComponent
 {
     @ViewChild('modal') public modal: ElementRef;
+    @ViewChild('filterEditor') public filterEditor: FilterEditorComponent;
+    
     closeFunction = null;
     title = "Модальное окно";
     textButtonOK = "Да";
@@ -119,11 +122,14 @@ export class ModalWindowComponent
         var out;
         if(save)
             for(var i = 0; i < this.Data.length; i++)
+            {
                 if(this.Data[i][1] !== null) 
                 {
                     if(!this.BeginData[i]) this.BeginData[i] = [];
                     this.BeginData[i][1] = this.Data[i][1];
+                    if(this.Data[i][2] == "filterEditor") this.BeginData[i][1] = this.filterEditor.getCondition();
                 }
+            }
         if(this.closeFunction) 
             out = this.closeFunction(save);
         if(out === undefined || out === true)
