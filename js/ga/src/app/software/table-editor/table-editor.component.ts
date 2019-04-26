@@ -36,14 +36,11 @@ export class TableEditorComponent implements OnInit
     error = false;
     load = false;
     needUpdate = false;
-    rules = 
+    right = 
     {
-        save: false,
-        head: true, 
+        change: false, 
         cut: false, 
-        copy: false, 
-        paste: false,
-        add: true,
+        copy: false
     }
     tableIds = {}; // для контроля изменений
     filter = 
@@ -59,9 +56,7 @@ export class TableEditorComponent implements OnInit
     }
     loadTable(func?)
     {
-        /* trace("update " + this.inputs.id) */
         this.load = true;
-        /* let START = new Date().getTime(); */
         this.query.protectionPost(250, { param: [this.inputs.id]}, (data) => 
         {
             if(data.head == undefined) 
@@ -70,16 +65,21 @@ export class TableEditorComponent implements OnInit
                 return;
             }
             this.error = false;
-            this.rules.head = data.changeHead ? false : true;
-            if(this.rules.head && !data.change) this.rules.head = false;
-            this.rules.add = this.editTable.change = data.change;
+            this.right = data.right;
+            this.editTable.right = data.right;
             this.nameTable = data.name;
             this.stateTable = data.state;
             this.dataHeader = [];
             this.dataTable = [];
             this.firstData = data.data;
             for(var i = 0; i < data.head.length; i++)
-                this.dataHeader.push({ i: data.head[i][0], value: data.head[i][1], name: data.head[i][2] });
+                this.dataHeader.push({ 
+                    i: data.head[i][0], 
+                    value: data.head[i][1], 
+                    name: data.head[i][2],
+                    eventId: data.head[i][3],
+                    dataType: data.head[i][4]
+                });
             this.tableIds = data.tableIds;
             this.onChange({ type: "updateTableIds", id: this.inputs.id, tableIds: this.tableIds, idLogTableOpen: data.idLogTableOpen });
 
@@ -94,7 +94,6 @@ export class TableEditorComponent implements OnInit
 
             this.load = false;
             if(func) func();
-            /* trace(new Date().getTime() - START); */
         });
     }
     onFilterChange() // Обновить фильтр
@@ -171,14 +170,18 @@ export class TableEditorComponent implements OnInit
         }
         switch(data.objectType)
         {
+            case "primitive":
+                this.addToQueue(268, [ this.inputs.id, this.dataHeader[Number(_nameColumn)].value, data.primitive ], () => {
+                    this.loadTable();
+                });
+                break;
             case "tlist":
                 // Проверка на вставку в себя (по tableId)
-                if(_nameColumn && data.setType) // Назначение типа столбцу ПОКА НЕ рЕШЕНО КАК ДЕЛАТЬ
+                if(_nameColumn && data.setType) // Назначение типа столбцу
                     this.addToQueue(264, [ this.inputs.id, this.dataHeader[Number(_nameColumn)].value, data.id ], () => {
                         this.loadTable();
                     });
                 else
-                {
                     for(k = beginI; k <= endI; k++)
                     {
                         let ID = this.dataTable[k][nameColumn].id;
@@ -190,7 +193,6 @@ export class TableEditorComponent implements OnInit
                             });
                         })(k);
                     }
-                }
                 break;
             case "file": 
             case "table": 
@@ -209,17 +211,22 @@ export class TableEditorComponent implements OnInit
                 break;
             case "event":
                 let eventId = data.id;
-                for(k = beginI; k <= endI; k++)
-                {
-                    let ID = this.dataTable[k][nameColumn].id;
-                    ((i) =>{
-                        this.addToQueue(262, [ this.inputs.id, eventId, ID ], (data) => 
-                        { 
-                            if(data !== false) this.dataTable[i][nameColumn].eventId = eventId;
-                            if(--length == 0) this.editTable.data = this.dataTable; // update edit table
-                        });
-                    })(k);
-                }
+                if(_nameColumn && data.setType) // Назначение типа столбцу
+                    this.addToQueue(262, [ this.inputs.id, eventId, this.dataHeader[Number(_nameColumn)].value ], () => {
+                        this.loadTable();
+                    });
+                else
+                    for(k = beginI; k <= endI; k++)
+                    {
+                        let ID = this.dataTable[k][nameColumn].id;
+                        ((i) =>{
+                            this.addToQueue(262, [ this.inputs.id, eventId, ID ], (data) => 
+                            { 
+                                if(data !== false) this.dataTable[i][nameColumn].eventId = eventId;
+                                if(--length == 0) this.editTable.data = this.dataTable; // update edit table
+                            });
+                        })(k);
+                    }
                 break;
         }
         /* trace(data) */
@@ -262,11 +269,11 @@ export class TableEditorComponent implements OnInit
             case "remove": // Удаление строки
                 this.addToQueue(258, [ this.inputs.id, this.dataTable[property.i].__ID__ ], (data) => { this.loadTable(); });
                 break;
-            case "operation": // Обновление возможных операций с ячейкой
+            /* case "operation": // Обновление возможных операций с ячейкой
                 this.rules.copy = property.rules.copy;
                 this.rules.cut = property.rules.cut;
                 this.rules.paste = property.rules.paste;
-                break;
+                break; */
             case "explorer": // Открыть значение в проводнике
                 if(property.data.type == "cell")
                     this.query.protectionPost(111, { param: [ "cell", property.data.linkId ]}, (idParent) => 
@@ -287,16 +294,28 @@ export class TableEditorComponent implements OnInit
                 this.onChange({ type: "openFromTable", value: { name: "event", id: property.eventId }});
                 break;
             case "removeEvent":
-                this.dataTable[property.i][property.nameColumn].eventId = null;
-                this.editTable.data = this.dataTable; // update edit table
+                if(property.head === undefined)
+                {
+                    this.dataTable[property.i][property.nameColumn].eventId = null;
+                    this.editTable.data = this.dataTable; // update edit table
+                }
                 this.addToQueue(263, [ this.inputs.id, property.id ], (data) => { });
                 break;
             case "paste":
-                this.pasteField();
+                this.pasteField(property.typePaste);
                 break;
             case "pasteObject":
-                let data = JSON.parse(localStorage.getItem("copyExplorer"));
-                data.setType = property.setType;
+                let data:any = {};
+                if(!property.primitive)
+                {
+                    data = JSON.parse(localStorage.getItem("copyExplorer"));
+                    data.setType = property.setType;
+                }
+                else 
+                {
+                    data.objectType = "primitive";
+                    data.primitive = property.primitive;
+                }
                 this.appendFromLeftMenu(data);
                 localStorage.removeItem("copyExplorer");
                 break;
@@ -330,9 +349,9 @@ export class TableEditorComponent implements OnInit
         let j = this.editTable.configInput.j;
         localStorage.setItem("copyTable", this.editTable.listTables[i][j].id);
         localStorage.setItem("lastOperationTable", copyOrCut);
-        this.rules.copy = this.rules.cut = this.rules.paste = false;
+        /* this.rules.copy = this.rules.cut = this.rules.paste = false; */
     }
-    pasteField() // вставить ячейку
+    pasteField(typePaste) // вставить ячейку
     {
         let i = this.editTable.configInput.i;
         let j = this.editTable.configInput.j;
@@ -355,23 +374,8 @@ export class TableEditorComponent implements OnInit
                 this.load = false;            
             });   
             localStorage.removeItem("copyTable");
-            localStorage.removeItem("copyTableValue");
-            this.rules.copy = this.rules.cut = this.rules.paste = false;
         }
-        if(operation == 'copy')
-            this.modal.open({ 
-                title: "Как добавить элемент в таблицу", 
-                data: [["Тип:", {selected: "по значению", data: ["по значению", "по ссылке"]}, "select"]], 
-                ok: "Добавить", cancel: "Отмена"
-            }, (save) =>
-            {
-                if(save)
-                {
-                    let typePaste = "cell";
-                    if(this.modal.Data[0][1].selected == "по значению") typePaste = "value";
-                    queryFunction(typePaste);
-                }
-            });
+        if(operation == 'copy') queryFunction(typePaste);
         else queryFunction("");
     }
     /*************************************************/

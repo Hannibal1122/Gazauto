@@ -1,6 +1,6 @@
 <div #mainContainer style = "overflow:auto;" [style.height] = "height">
-    <table class = "errorTable TableCreatorBorderColor" (dragover)="dragoverHandler($event);">  <!--  -->
-        <tbody (click) = "change ? editField($event) : null">
+    <table class = "errorTable TableCreatorBorderColor">  <!--  -->
+        <tbody (click) = "editField($event)">
             <tr>
                 <th class = "TableCreatorHeadColor"></th>
                 <th *ngFor = "let head of header; let i = index;" 
@@ -8,6 +8,19 @@
                     id = "{{ head.value }}"
                     (contextmenu) = "getContextmenu($event, i, 'head')">
                     {{ head.name }}
+                    <div class="linkClass">
+                        <span *ngIf = "head.dataType == 'NUMBER'" class = "linkValueClass" style = "padding-left: 3px; padding-right: 4px;">123</span>
+                        <span *ngIf = "head.dataType == 'STRING'" class = "linkValueClass" style = "padding-left: 2px; padding-right: 2px;">str</span>
+                        <span *ngIf = "head.dataType == 'DATETIME'" class = "linkValueClass">
+                            <i class="fas fa-clock"></i>
+                        </span>
+                        <span *ngIf = "head.dataType == 'tlist'" class = "linkValueClass">
+                            <i class="fas fa-bars"></i>
+                        </span>
+                        <span *ngIf = "head.eventId" class = "linkCellClass">
+                            <i class = "fa fa-bolt"></i>
+                        </span>
+                    </div>
                 </th>
             </tr>
             <tr>
@@ -16,6 +29,7 @@
                     <input type = "text" 
                         style = "width:100%; height:22px; border:1px solid transparent; padding:5px; color:#aaaaaa;" 
                         placeholder="Поиск"
+                        [(ngModel)] = "filter.value"
                         (input) = "onChangeFilter(i, $event.target.value)">
                 </td>
             </tr>
@@ -25,11 +39,11 @@
                     <td *ngFor = "let void of header; let j = index;" 
                         id = "{{ row[j].id }}"
                         (contextmenu) = "getContextmenu($event, i, 'cell')"
-                        [style.background] = "row[j] == undefined ? '#fafafa' : (row[j].id == searchCellId ? '#e7f5c6' : none)">
+                        [style.background] = "row[j].id == searchCellId ? '#e7f5c6' : (row[j].id == inputProperty._colorId ? '#9abfe225' : none)">
                         {{ row[j] != undefined && row[j].listValue !== undefined ? row[j].listValue : row[j].value }}
                         <div class="linkClass">
-                            <span *ngIf = "(row[j].type == 'tlist')" class = "linkValueClass">
-                                <i class = "fa fa-link"></i>
+                            <span *ngIf = "(row[j].type == 'tlist')" class = "linkCellClass">
+                                <i class="fas fa-bars"></i>
                             </span>
                             <span *ngIf = "row[j].type == 'table'" class = "linkValueClass">
                                 <i class = "fa fa-table"></i>
@@ -57,19 +71,18 @@
         </tbody>
     </table>
 
-    <div #mainEditElement style = "position:absolute;" [ngStyle] = "configInput" [hidden] = "!inputProperty.visible">
+    <div style = "position:absolute;" [ngStyle] = "configInput" [hidden] = "!inputProperty.visible">
         <textarea #mainInputElement class = "mainInputStyle TableCreatorInputColor" 
-            (blur) = "acceptEditField($event)" 
+            (blur) = "acceptEditField()" 
             [(ngModel)] = "inputProperty.value" 
             (keydown)="downEnter($event)"></textarea>
-        <button #mainButtonElement [hidden] = "inputProperty.type != 'table'" 
+        <button [hidden] = "inputProperty.type != 'table'" 
             style = "position:absolute; right:0px; top: 0px; color:red; cursor:pointer; border:none; background:none; outline: none;"
-            (click) = "inputProperty.value = ''; acceptEditField($event);">
+            (click) = "inputProperty.value = ''; acceptEditField();">
             <i class = "fa fa-times-circle"></i>
         </button>
-        <select #mainSelectElement 
+        <select 
             [hidden] = "inputProperty.values.length == 0" 
-            (blur) = "acceptEditField($event)" 
             (change) = "changeMainSelect()"
             style = "position:absolute; top: 100%; height: 24px; width:100%;" 
             [(ngModel)] = "inputProperty.valueList">
@@ -80,43 +93,46 @@
                 <option *ngFor = "let option of inputProperty.values; let i = index" value = "{{ i }}">{{ option }}</option>
             </ng-container>
         </select>
-        <!-- <div class = "mainStatusStyle TableCreatorStateColor" [hidden] = "!inputProperty.visibleState">
-            Статус: <input #mainStatusElement type = "number" (blur) = "acceptEditField($event)" style = "width:45px;" step = "10" min = "0" max = "100" [(ngModel)] = "inputProperty.state"> %
-            <button #mainButtonRemoveEvent [hidden] = "!inputProperty.eventId" title = "Удалить событие" (blur) = "acceptEditField($event)" (click) = "removeEvent()">
-                <span style = "color:#ca4242;">
-                    <i class = "fa fa-bolt"></i>
-                </span>
-            </button>
+        <!-- <div style = "position:absolute; top: 100%; height: 24px; width:100%;" >
+            <datetimepicker></datetimepicker>
         </div> -->
-        <!-- <div class = "buttonAcceptEditing" title = "сохранить изменения"><i class="fas fa-check"></i></div> -->
     </div>
 </div>
 <div *ngIf = "inputProperty.visible" class = "TableCreatorHeadColor" style = "position:absolute; bottom:-26px; font-size:12px;">id: {{ inputProperty.id }}</div>
 <div class = "createContextMenu" 
-    [hidden] = "!createContextMenu.visible || !change" 
+    [hidden] = "!createContextMenu.visible" 
     [style.top] = "createContextMenu.top" 
     [style.left] = "createContextMenu.left"
     [style.transform] = "createContextMenu.transform">
     <ng-container *ngIf = "createContextMenu.type == 'head'">
-        <button class = "contextMenuList" (click) = "pasteObject(true)" [disabled] = "!rules.pasteObject">Назначить тип</button>
-        <button class = "contextMenuList" (click) = "pasteObject()" [disabled] = "!rules.pasteObject">Выставить всем</button>
-        <button class = "contextMenuList" (click) = "pasteObject()" [disabled] = "!rules.pasteObject">Добавить событие</button>
+        <button class = "contextMenuList" (click) = "pasteObject(true, false)" [disabled] = "!rules.type">Назначить тип</button>
+        <button class = "contextMenuList" (click) = "pasteObject(true, 'NUMBER')" [disabled] = "!rules.change">Назначить тип NUMBER</button>
+        <button class = "contextMenuList" (click) = "pasteObject(true, 'STRING')" [disabled] = "!rules.change">Назначить тип STRING</button>
+        <button class = "contextMenuList" (click) = "pasteObject(true, 'DATETIME')" [disabled] = "!rules.change">Назначить тип DATETIME</button>
+        <!-- <button class = "contextMenuList" (click) = "pasteField()" [disabled] = "!rules.paste">Вставить</button> -->
+        <button class = "contextMenuList" (click) = "pasteObject(rules.event, false)" [disabled] = "!rules.object">
+                {{ rules.event ? 'Добавить событие' : 'Вставить объект' }}</button>
+        <button class = "contextMenuList" (click) = "removeEvent(true)" [disabled] = "!rules.change">Удалить событие</button>
+        <button class = "contextMenuList" (click) = "clearFilters()">Очистить фильтры</button>
     </ng-container>
     <ng-container *ngIf = "createContextMenu.type == 'row'">
-        <div class = "contextMenuList" (click) = "removeRow(createContextMenu.i)">Удалить строку</div>
-        <div class = "contextMenuList" (click) = "addRow(-1)">Вставить строку выше</div>
-        <div class = "contextMenuList" (click) = "addRow(0)">Вставить строку ниже</div>
+        <button class = "contextMenuList" (click) = "removeRow(createContextMenu.i)" [disabled] = "!rules.change">Удалить строку</button>
+        <button class = "contextMenuList" (click) = "addRow(-1)" [disabled] = "!rules.change">Вставить строку выше</button>
+        <button class = "contextMenuList" (click) = "addRow(0)" [disabled] = "!rules.change">Вставить строку ниже</button>
     </ng-container>
     <ng-container *ngIf = "createContextMenu.type == 'cell'">
-        <button class = "contextMenuList" (click) = "pasteField()" [disabled] = "!rules.paste">Вставить</button>
-        <button class = "contextMenuList" (click) = "pasteObject()" [disabled] = "!rules.pasteObject">Вставить объект</button>
+        <button class = "contextMenuList" (click) = "clearField()" [disabled] = "!rules.change">Очистить</button>
+        <button class = "contextMenuList" (click) = "pasteObject(false, false)" [disabled] = "!rules.object">
+                {{ rules.event ? 'Добавить событие' : 'Вставить объект' }}</button>
+        <button class = "contextMenuList" (click) = "pasteField('cell')" [disabled] = "!rules.paste">Вставить по ссылке</button>
+        <button class = "contextMenuList" (click) = "pasteField('value')" [disabled] = "!rules.paste">Вставить по значению</button>
         <button class = "contextMenuList" (click) = "copyOrCut('copy')" [disabled] = "!rules.copy">Копировать</button>
         <button class = "contextMenuList" (click) = "copyOrCut('cut')" [disabled] = "!rules.cut">Вырезать</button>
-        <div class = "contextMenuList" (click) = "setState(0)">Статус - 0%</div>
-        <div class = "contextMenuList" (click) = "setState(10)">Статус - 10%</div>
-        <div class = "contextMenuList" (click) = "setState(50)">Статус - 50%</div>
-        <div class = "contextMenuList" (click) = "setState(100)">Статус - 100%</div>
-        <div *ngIf = "inputProperty.eventId" class = "contextMenuList" (click) = "removeEvent()">Удалить событие</div>
+        <button class = "contextMenuList" (click) = "setState(0)" [disabled] = "!rules.change">Статус - 0%</button>
+        <button class = "contextMenuList" (click) = "setState(10)" [disabled] = "!rules.change">Статус - 10%</button>
+        <button class = "contextMenuList" (click) = "setState(50)" [disabled] = "!rules.change">Статус - 50%</button>
+        <button class = "contextMenuList" (click) = "setState(100)" [disabled] = "!rules.change">Статус - 100%</button>
+        <button *ngIf = "inputProperty.eventId" class = "contextMenuList" (click) = "removeEvent()" [disabled] = "!rules.change">Удалить событие</button>
         <div *ngIf = "inputProperty.type == 'cell'" class = "contextMenuList" (click) = "openToExplorer(inputProperty)">Показать в таблице</div>
         <div *ngIf = "inputProperty.type == 'table' || inputProperty.type == 'file' || inputProperty.type == 'tlist'" class = "contextMenuList" (click) = "openToExplorer(inputProperty)">Показать в проводнике</div>
     </ng-container>

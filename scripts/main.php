@@ -81,8 +81,8 @@
             case 0: // Запрос версии
                 /* include("./version/versions.php"); */
                 $project = [];	
-                $project['main'] = "0.9.63";/* getVersion(		$_main["name"], 		$_main["data"]); */
-                $project['php'] = "0.9.80";/* getVersion(		$_php["name"], 			$_php["data"]); */
+                $project['main'] = "0.9.64";/* getVersion(		$_main["name"], 		$_main["data"]); */
+                $project['php'] = "0.9.84";/* getVersion(		$_php["name"], 			$_php["data"]); */
                 echo json_encode($project);
                 break;
             case 1: // Возвращает информацию о текущем пользователе
@@ -498,7 +498,11 @@
                     case 250: // Запрос таблицы
                         $right = $myRight->get($idTable);
                         if(($right & 1) != 1) return; // Права на просмотр
-                        $read_only = ($right & 8) != 8;
+                        $tableRight = [
+                            "change" => ($right & 8) == 8,
+                            "cut" => ($right & 2) == 2 && ($right & 8) == 8,
+                            "copy" => ($right & 2) == 2
+                        ];
                         $filters = [];
                         $filterStr = "";
                         /* Доступные фильтры*/
@@ -525,7 +529,7 @@
                                 }
                                 $filters[] = $row;
                             }
-                        $myTable->getTable($read_only, $filters, $filterSelected, $filterStr);
+                        $myTable->getTable($tableRight, $filters, $filterSelected, $filterStr);
                         /* request("SELECT * FROM fields WHERE tableId = %i", [$idTable]); */
                         break;
                     case 251: // Добавить/Удалить заголовок
@@ -599,21 +603,20 @@
                         $myTable->export();
                         break;
                     case 262: // Добавление события из левого меню на ячейку
-                        if(($myRight->get($idTable) & 1) != 1) return; // Права на просмотр
+                        if(($myRight->get($idTable) & 8) != 8) return; // Права на изменение
                         $eventId = (int)$param[1];
                         $type = selectOne("SELECT type FROM events WHERE id = %i", [ $eventId ]);
                         if($type != "date") query("UPDATE fields SET eventId = %i WHERE id = %i", [$eventId, (int)$param[2]]);
                         else echo json_encode(false);
                         break;
                     case 263: // Удаление события с ячейки
-                        if(($myRight->get($idTable) & 1) != 1) return; // Права на просмотр
+                        if(($myRight->get($idTable) & 8) != 8) return; // Права на изменение
                         query("UPDATE fields SET eventId = NULL WHERE id = %i", [(int)$param[1]]);
                         break;
                     case 264: // Назначить тип столбцу
                         if(($myRight->get($idTable) & 8) != 8) return; // Права на изменение
                         $idField = (int)$param[1]; // id ячейки
                         $idValue = (int)$param[2]; // id из структуры
-                        // Пока тип может быть только из списка
                         $idTlist = selectOne("SELECT id FROM my_values WHERE id = (SELECT objectId FROM structures WHERE id = %i)", [ $idValue ]); // id из my_values
                         query("UPDATE fields SET dataType = %i WHERE id = %i AND type = 'head' AND tableId = %i", [ $idTlist, $idField, $idTable ]);
                         query("UPDATE fields SET type = 'link', linkId = %i, linkType = 'tlist', value = '' WHERE idColumn = %i AND tableId = %i", [ $idTlist, $idField, $idTable ]);
@@ -635,6 +638,14 @@
                             if(($myRight->get($idTable) & 8) != 8) continue; // Права на изменение
                             for($i = 0, $c = count($value); $i < $c; $i++) $myTable->setCell($value[$i], true);
                         }
+                        break;
+                    case 268: // Назначить примитивный тип столбцу
+                        if(($myRight->get($idTable) & 8) != 8) return; // Права на изменение
+                        $idField = (int)$param[1]; // id ячейки
+                        $idValue = $param[2]; // имя из структуры
+                        $idType = selectOne("SELECT id FROM my_values WHERE type = %s", [ $idValue ]);
+                        query("UPDATE fields SET dataType = %i WHERE id = %i AND type = 'head' AND tableId = %i", [ $idType, $idField, $idTable ]);
+                        query("UPDATE fields SET type = 'value', linkId = NULL, linkType = NULL WHERE idColumn = %i AND tableId = %i", [ $idField, $idTable ]);
                         break;
                 }
             }

@@ -322,7 +322,7 @@ export class ExplorerComponent implements OnInit
         {
             this.clearRules(false);
             let right = this.createRight.decodeRights(data[0]);
-            this.selectRules.copy = objectType == "user" || objectType == "role" || objectType == "tlist" ? false : Boolean(right.copy);
+            this.selectRules.copy = objectType == "user" || objectType == "role" ? false : Boolean(right.copy);
             this.selectRules.cut = Boolean(right.change);
             this.selectRules.rights = objectType == "user" || objectType == "role" ? false : Boolean(right.change);
             this.selectRules.remove = Boolean(right.change);

@@ -8,13 +8,13 @@
                 <div style="position:absolute; right:-25px; top: -4px; font-size: 11px; font-weight: bold;" class = "TableCreatorHeadColor">{{stateTable + '%'}}</div>
             </div>
         </div>
-        <button class = "mainButton" title = "Заголовок" (click) = "changeHeader()" [disabled] = "!rules.head"><i class="fas fa-heading"></i></button>
-        <button id = "tablePasteButton"  class = "mainButton" title = "Вставить" (click) = "pasteField()" [disabled] = "!rules.paste"><i class="fas fa-paste"></i></button>
+        <button class = "mainButton" title = "Заголовок" (click) = "changeHeader()" [disabled] = "!right.change"><i class="fas fa-heading"></i></button>
+        <!-- <button id = "tablePasteButton"  class = "mainButton" title = "Вставить" (click) = "pasteField()" [disabled] = "!rules.paste"><i class="fas fa-paste"></i></button>
         <button id = "tableCutButton"  class = "mainButton" title = "Вырезать" (click) = "copyField('cut')" [disabled] = "!rules.cut"><i class="fas fa-cut"></i></button>
-        <button id = "tableCopyButton"  class = "mainButton" title = "Копировать" (click) = "copyField('copy')" [disabled] = "!rules.copy"><i class="fas fa-copy"></i></button>
+        <button id = "tableCopyButton"  class = "mainButton" title = "Копировать" (click) = "copyField('copy')" [disabled] = "!rules.copy"><i class="fas fa-copy"></i></button> -->
         <button class = "mainButton" title = "Экспорт в Excel" (click) = "exportToExcel()" ><i class="fas fa-file-excel"></i></button>
-        <button class = "mainButton" title = "Импорт таблицы" (click) = "importFromExcel()" [disabled] = "!rules.add"><i class="fas fa-download"></i></button>
-        <button class = "mainButton" title = "Добавить строку" (click) = "addRow()" [disabled] = "!rules.add"><i class="fas fa-plus"></i></button>
+        <button class = "mainButton" title = "Импорт таблицы" (click) = "importFromExcel()" [disabled] = "!right.change"><i class="fas fa-download"></i></button>
+        <button class = "mainButton" title = "Добавить строку" (click) = "addRow()" [disabled] = "!right.change"><i class="fas fa-plus"></i></button>
         <button class = "mainButton" (click) = "loadTable()" title = "Обновить"><i class="fas fa-sync-alt"></i></button>
         <select 
             style = "margin-left: 2px; height: 32px; border-radius: 5px; border: 1px solid #456486; cursor:pointer;" 
@@ -36,7 +36,7 @@
         <span *ngIf = "load" class = "TableCreatorHeadColor" style = "font-size:12px;">Загрузка...</span>
         <span *ngIf = "needUpdate" class = "TableCreatorHeadColor" style = "font-size:12px;">Требуется синхронизация</span>
         <span *ngIf = "mode == 'Global'" style = "float:right; color:#b5e498; font-size:20px; margin-left:5px;" title = "global"><i class="fas fa-cloud"></i></span>
-        <span *ngIf = "!rules.add" style = "float:right; color:#b5e498; font-size:20px; margin-left:5px;" title = "Режим просмотра"><i class="fas fa-eye"></i></span>
+        <span *ngIf = "!right.change" style = "float:right; color:#b5e498; font-size:20px; margin-left:5px;" title = "Режим просмотра"><i class="fas fa-eye"></i></span>
         <span *ngFor = "let login of listLogin" class = "loginFromList">{{login}}</span>
     </div>
 </div>

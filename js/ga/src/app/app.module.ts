@@ -15,6 +15,7 @@ import { InfoComponent } from './software/info/info.component';
 import { HttpClientModule } from '@angular/common/http';
 import { UserSettingsComponent } from './software/user-settings/user-settings.component';
 import { EventEditorComponent } from './software/event-editor/event-editor.component';
+import { DateTimeModule } from "./system/datetimepicker/datetimepicker.module";
 
 @NgModule({
     declarations: [ 
@@ -31,7 +32,7 @@ import { EventEditorComponent } from './software/event-editor/event-editor.compo
         EventEditorComponent,
         PlanEditorComponent
     ],
-    imports: [ BrowserModule, FormsModule, ModalWindowModule, HttpClientModule ],
+    imports: [ BrowserModule, FormsModule, ModalWindowModule, HttpClientModule, DateTimeModule ],
     providers: [],
     bootstrap: [AppComponent]
 })

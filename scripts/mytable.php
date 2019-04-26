@@ -6,7 +6,7 @@
             $this->idTable = (int)$idTable;
             $this->myLog = $myLog;
         }
-        function getTable($read_only, $filters, $filterSelected, $filterStr) // Запрос таблицы
+        function getTable($tableRight, $filters, $filterSelected, $filterStr) // Запрос таблицы
         {
             $idTable = $this->idTable; 
             $nameTable = "";
@@ -15,10 +15,18 @@
             $data = [];
             $enableLines = "";
             if($result = query("SELECT name, bindId, state FROM structures WHERE id = %i", [$idTable]))
-                while ($row = $result->fetch_array(MYSQLI_NUM)) { $nameTable = $row[0]; $bindId = $row[1]; $stateTable = (int)$row[2]; }
-            if($result = query("SELECT i, id, value FROM fields WHERE tableId = %i AND type = 'head' ORDER by i", [$idTable]))
                 while ($row = $result->fetch_array(MYSQLI_NUM)) 
+                { 
+                    $nameTable = $row[0]; 
+                    $bindId = $row[1]; 
+                    $stateTable = (int)$row[2]; 
+                }
+            if($result = query("SELECT i, id, value, eventId, dataType FROM fields WHERE tableId = %i AND type = 'head' ORDER by i", [$idTable]))
+                while ($row = $result->fetch_array(MYSQLI_NUM))
+                {
+                    if($row[4]) $row[4] = selectOne("SELECT type FROM my_values WHERE id = %i", [(int)$row[4]]);
                     $head[] = $row;
+                }
             /* Применить фильтр и узнать набор строк которые надо включить */
             /* Должны найти первый доступный фильтр */
             if($filterStr != "")
@@ -92,9 +100,9 @@
                 "data" => $outData2, 
                 "tableIds" => $tableIds, 
                 "name" => $nameTable, 
-                "change" => !$read_only,
+                "right" => $tableRight,
                 "idLogTableOpen" => $this->myLog->add("table", "open", $idTable), 
-                "changeHead" => $bindId, 
+                "changeHead" => $bindId, // Запрет может быть еще и по связи
                 "state" => $stateTable,
                 "filters" => $filters,
                 "filter" => $filterSelected
@@ -138,14 +146,14 @@
             $value = $data->value;
             $idField = (int)$data->id;
 
-            $typeField = is_object($value) ? "link" : "value";
+            $typeField = is_object($value) ? "tlist" : "value";
             if($typeField == "value")
                 query("UPDATE fields SET value = %s, linkId = NULL, linkType = NULL, type = 'value' WHERE tableId = %i AND id = %i", [ 
                     $value, 
                     $idTable, // для подстраховки
                     $idField
                 ]);
-            if($typeField == "link")
+            if($typeField == "tlist")
                 query("UPDATE fields SET value = %s, linkId = %i, linkType = %s, type = 'link' WHERE tableId = %i AND id = %i", [ 
                     $value->value, 
                     $value->linkId, 
@@ -154,14 +162,20 @@
                     $idField
                 ]);
             $idEvent = (int)selectOne("SELECT eventId FROM fields WHERE id = %i", [ $idField ]);
-            if(!is_null($idEvent) && $event)
+            $idEventColumn = (int)selectOne("SELECT eventId FROM fields WHERE id = (SELECT idColumn FROM fields WHERE id = %i)", [ $idField ]);
+            if($event)
             {
-                $typeAndCode = query("SELECT type, code FROM events WHERE id = %i", [ $idEvent ])->fetch_array(MYSQLI_NUM);
-                if($typeAndCode[0] == "value")
+                require_once("FASM.php"); // класс для работы с событиями
+                $fasm = new FASM($this->myLog);
+                if(!is_null($idEvent)) // Если событие на ячейке
                 {
-                    require_once("FASM.php"); // класс для работы с событиями
-                    $fasm = new FASM($this->myLog);
-                    $fasm->start($typeAndCode[1], $idField);
+                    $typeAndCode = query("SELECT type, code FROM events WHERE id = %i AND type = 'value'", [ $idEvent ])->fetch_array(MYSQLI_NUM);
+                    if($typeAndCode) $fasm->start($typeAndCode[1], $idField);
+                }
+                if(!is_null($idEventColumn)) // Если событие на столбце
+                {
+                    $typeAndCode = query("SELECT type, code FROM events WHERE id = %i AND type = 'value'", [ $idEventColumn ])->fetch_array(MYSQLI_NUM);
+                    if($typeAndCode) $fasm->start($typeAndCode[1], $idField);
                 }
             }
             if($echo) 

@@ -14,47 +14,8 @@ export class ErrorTableComponent implements OnInit
 {
     @ViewChild("mainContainer") mainContainer:ElementRef;
     @ViewChild("mainInputElement") mainInputElement:ElementRef;
-    @ViewChild("mainButtonElement") mainButtonElement:ElementRef;
-    @ViewChild("mainSelectElement") mainSelectElement:ElementRef;
     /* @ViewChild("mainStatusElement") mainStatusElement:ElementRef;
     @ViewChild("mainButtonRemoveEvent") mainButtonRemoveEvent:ElementRef; */
-    
-    @Output() onChange = new EventEmitter<any>();
-    header = [];
-    firstHeader = {};
-    filterHeader = [];
-    mapHideRows = {}; // По этому объекту скрываются строки не подходящие по фильтру
-    mainData;
-    listTables = [];
-    firstData = [];
-    change = false;
-    mapFields = {};
-    mainElementIds = 
-    {
-        mainInputElement: this.sys.getUnicName("m"),
-        mainButtonElement: this.sys.getUnicName("m"),
-        mainSelectElement: this.sys.getUnicName("m"),
-        /* mainStatusElement: this.sys.getUnicName("m"),
-        mainButtonRemoveEvent: this.sys.getUnicName("m"), */
-    };
-    constructor(private sys:FunctionsService, private query:QueryService) { }
-    ngOnInit() 
-    {
-        this.resize();
-        this.globalClick = (e) => 
-        { 
-            this.createContextMenu.visible = false; 
-        };
-        this.functionResize = () => { this.resize(); };
-        window.addEventListener("resize", this.functionResize, false);
-        window.addEventListener("click", this.globalClick, false);
-        this.mainContainer.nativeElement.onscroll = () => 
-        { 
-            if(this.inputProperty.visible) this.inputProperty.visible = false;
-        }
-        for(var key in this.mainElementIds) // выставляем id тегам по которым не должно проходить событие клик
-            this[key].nativeElement.setAttribute("id", this.mainElementIds[key]);
-    }
     @Input() set head(value)
     {
         if(value)
@@ -68,6 +29,7 @@ export class ErrorTableComponent implements OnInit
                 this.filterHeader[value[key].i] = { value: "" };
                 this.mapFields[value[key].value] = { name: key, header: true };
             }
+            trace(this.header)
         }
     }
     @Input() set data(value)
@@ -78,6 +40,84 @@ export class ErrorTableComponent implements OnInit
             this.updateData();
         }
     }
+    @Input() set searchCell(id) // Выделяет объект красной границей 10 секунд
+    {
+        if(id) this.searchCellId = id;
+    }
+    @Output() onChange = new EventEmitter<any>();
+    header = [];
+    firstHeader = {};
+    filterHeader = [];
+    mapHideRows = {}; // По этому объекту скрываются строки не подходящие по фильтру
+    mainData;
+    listTables = [];
+    firstData = [];
+    mapFields = {};
+    searchCellId = -1; 
+    configInput = {
+        width: "100px",
+        height: "10px",
+        top: "0px",
+        left: "0px",
+        i: -1, 
+        j: -1
+    }
+    inputProperty = {
+        set id(value) {
+            this._id = value;
+            this._colorId = value;
+        },
+        get id() {
+            return this._id;
+        },
+        _id: -1, // Требуется для запросов
+        _colorId: -1, // Требуется для подсвечивания ячейки
+        oldValue: "",
+        value: "",
+        visible: false,
+        values: [],
+        valueList: "",
+        typeValues: "",
+        type: "",
+        eventId: -1,
+        linkId: -1,
+        close: function() {
+            this.visible = false;
+            this._colorId = -1;
+        },
+        clearId: function() {
+            this._colorId = -1;
+        }
+    }
+    right = { change: false, copy: false, cut: false };
+    rules = {
+        change: false, // Разрешено изменять
+        copy: false, // Разрешено копирование
+        cut: false,  // Разрешено вырезать
+        paste: false, // В табличном буфере что-то есть
+        object: false, // В буфере объект
+        event: false, // В буфере есть событие
+        type: false // В буфере находится tlist пригодный для типа
+    }
+    cacheListValues = {};
+    constructor(private sys:FunctionsService, private query:QueryService) { }
+    ngOnInit() 
+    {
+        this.resize();
+        this.globalClick = (e) => 
+        { 
+            this.createContextMenu.visible = false; 
+            trace(e.target)
+            this.inputProperty.clearId();
+        };
+        this.functionResize = () => { this.resize(); };
+        window.addEventListener("resize", this.functionResize, false);
+        window.addEventListener("click", this.globalClick, false);
+        this.mainContainer.nativeElement.onscroll = () => 
+        { 
+            this.inputProperty.close();
+        }
+    }
     setScroll(id) // Устанавливает скролл
     {
         let td = document.getElementById(id);
@@ -85,11 +125,6 @@ export class ErrorTableComponent implements OnInit
             this.mainContainer.nativeElement.scrollTop = td.offsetTop;
             this.mainContainer.nativeElement.scrollLeft = td.scrollLeft;
         }, 100);
-    }
-    searchCellId = -1; 
-    @Input() set searchCell(id) // Выделяет объект красной границей 10 секунд
-    {
-        if(id) this.searchCellId = id;
     }
     set setCell(value)
     {
@@ -100,37 +135,6 @@ export class ErrorTableComponent implements OnInit
         this.listTables[value.i][this.firstHeader[value.key]].listValue = value.listValue;
         this.listTables[value.i][this.firstHeader[value.key]].value = value.value;
     }
-    configInput = 
-    {
-        width: "100px",
-        height: "10px",
-        top: "0px",
-        left: "0px",
-        i: -1, 
-        j: -1
-    }
-    inputProperty = 
-    {
-        id: -1,
-        oldValue: "",
-        value: "",
-        visible: false,
-        values: [],
-        valueList: "",
-        typeValues: "",
-        type: "",
-        visibleState: false,
-        eventId: -1,
-        linkId: -1
-    }
-    rules = 
-    {
-        copy: false, 
-        cut: false, 
-        paste: false,
-        pasteObject: false
-    }
-    cacheListValues = {};
     updateData()
     {
         this.firstData = [];
@@ -152,7 +156,6 @@ export class ErrorTableComponent implements OnInit
                     {
                         let str = (cell.listValue || cell.value).toLowerCase();
                         let substr = this.filterHeader[this.firstHeader[key]].value.toLowerCase();
-                        trace(str + " == " + substr)
                         if(str.indexOf(substr) !== -1) rowHide = false; // содержит
                         else rowHide = true; // не содержит
                     }
@@ -164,64 +167,61 @@ export class ErrorTableComponent implements OnInit
     }
     editField(e) // нажали на ячейку для редактирования
     {
-        if(this.getPositionInTable(e.target, this.configInput))
-        {
-            let i = this.configInput.i;
-            let j = this.configInput.j;
-            this.inputProperty.visible = true;
-            this.inputProperty.id = this.listTables[i][j].id;
-            this.inputProperty.eventId = this.listTables[i][j].eventId;
-            this.inputProperty.type = this.listTables[i][j] ? this.listTables[i][j].type : "value";
-            this.inputProperty.visibleState = this.inputProperty.type == "value" || this.inputProperty.type == undefined;
-            this.inputProperty.linkId = this.listTables[i][j].linkId;
-            if(this.listTables[i][j] && this.listTables[i][j].listValue !== undefined) 
+        if(this.right.change)
+            if(this.getPositionInTable(e.target, this.configInput))
             {
-                let _i = 0;
-                if(this.cacheListValues[this.listTables[i][j].linkId])
+                let i = this.configInput.i;
+                let j = this.configInput.j;
+                this.inputProperty.visible = true;
+                this.inputProperty.id = this.listTables[i][j].id;
+                this.inputProperty.eventId = this.listTables[i][j].eventId;
+                this.inputProperty.type = this.listTables[i][j] ? this.listTables[i][j].type : "value";
+                this.inputProperty.linkId = this.listTables[i][j].linkId;
+                if(this.listTables[i][j] && this.listTables[i][j].listValue !== undefined) 
                 {
-                    this.inputProperty.values = this.cacheListValues[this.listTables[i][j].linkId];
-                    this.inputProperty.typeValues = typeof this.inputProperty.values[0];
-                    let value = this.inputProperty.values[this.listTables[i][j].value];
-                    if(this.inputProperty.typeValues === "object") 
-                        value = this.getValueFromArrayById(this.inputProperty.values, this.listTables[i][j].value);
-                    this.inputProperty.oldValue = this.inputProperty.value = value;
-                    this.inputProperty.valueList = this.listTables[i][j].value;
-                }
-                else
-                    this.query.protectionPost(304, { param: [this.listTables[i][j].linkId] }, (data) =>
+                    let _i = 0;
+                    if(this.cacheListValues[this.listTables[i][j].linkId])
                     {
-                        this.inputProperty.typeValues = typeof data[0];
-                        this.cacheListValues[this.listTables[i][j].linkId] = data;
-                        this.inputProperty.values = data;
+                        this.inputProperty.values = this.cacheListValues[this.listTables[i][j].linkId];
+                        this.inputProperty.typeValues = typeof this.inputProperty.values[0];
                         let value = this.inputProperty.values[this.listTables[i][j].value];
                         if(this.inputProperty.typeValues === "object") 
                             value = this.getValueFromArrayById(this.inputProperty.values, this.listTables[i][j].value);
                         this.inputProperty.oldValue = this.inputProperty.value = value;
                         this.inputProperty.valueList = this.listTables[i][j].value;
-                    });
+                    }
+                    else
+                        this.query.protectionPost(304, { param: [this.listTables[i][j].linkId] }, (data) =>
+                        {
+                            this.inputProperty.typeValues = typeof data[0];
+                            this.cacheListValues[this.listTables[i][j].linkId] = data;
+                            this.inputProperty.values = data;
+                            let value = this.inputProperty.values[this.listTables[i][j].value];
+                            if(this.inputProperty.typeValues === "object") 
+                                value = this.getValueFromArrayById(this.inputProperty.values, this.listTables[i][j].value);
+                            this.inputProperty.oldValue = this.inputProperty.value = value;
+                            this.inputProperty.valueList = this.listTables[i][j].value;
+                        });
+                }
+                else 
+                {
+                    this.inputProperty.oldValue = this.inputProperty.value = this.listTables[i][j] ? this.listTables[i][j].value : undefined;
+                    this.inputProperty.values = [];
+                }
+                setTimeout(() => { this.mainInputElement.nativeElement.focus(); }, 20);
+                return true;
             }
-            else 
-            {
-                this.inputProperty.oldValue = this.inputProperty.value = this.listTables[i][j] ? this.listTables[i][j].value : undefined;
-                this.inputProperty.values = [];
-            }
-            //Проверка на возможность вставки
-            this.rules = { copy: true, cut: true, paste: false, pasteObject: false }
-            if(this.inputProperty.oldValue == undefined) this.rules.copy = this.rules.cut = false;
-            if(localStorage.getItem("copyTable") 
-                && this.listTables[i][j].id != localStorage.getItem("copyTable")) //Ячейку нельзя вставить саму в себя
-                    this.rules.paste = true;
-            if(localStorage.getItem("copyExplorer")) this.rules.pasteObject = true; 
-            this.onChange.emit({ type: "operation", rules: this.rules});
-            setTimeout(() => { this.mainInputElement.nativeElement.focus(); }, 20);
-            return true;
-        }
         return false;
     }
     onChangeFilter(i, value)
     {
         this.filterHeader[i].value = value;
-        trace(this.filterHeader[i].value)
+        this.updateData();
+    }
+    clearFilters()
+    {
+        for(let i = 0; i < this.filterHeader.length; i++)
+            this.filterHeader[i].value = "";
         this.updateData();
     }
     getValueFromArrayById(array, id)
@@ -234,20 +234,17 @@ export class ErrorTableComponent implements OnInit
         if(this.inputProperty.typeValues === "object") 
             this.inputProperty.value = this.getValueFromArrayById(this.inputProperty.values, this.inputProperty.valueList);
         else this.inputProperty.value = this.inputProperty.values[Number(this.inputProperty.valueList)];
+        this.acceptEditField();
     }
-    acceptEditField(e) // пропал фокус с выделенной ячейки
+    acceptEditField() // пропал фокус с выделенной ячейки
     {
-        if(e.relatedTarget)
-            for(var key in this.mainElementIds) // проверяем id по которым не должно проходить событие клик
-                if(e.relatedTarget.getAttribute("id") == this.mainElementIds[key]) return;
-
-        this.inputProperty.visible = false;
+        this.inputProperty.close();
         let i = this.configInput.i;
         let j = this.configInput.j;
         if(this.inputProperty.oldValue != this.inputProperty.value)
         {
             let type = "value";
-            let out:any = {  nameColumn: this.header[j].value, id: this.listTables[i][j].id }; // при обновлении достаточно знать id
+            let out:any = { id: this.listTables[i][j].id }; // при обновлении достаточно знать id
             let listValue = null;
             let linkType = "value";
             if(this.inputProperty.values.length > 0)
@@ -267,11 +264,7 @@ export class ErrorTableComponent implements OnInit
             if(type == "list") out.value = { value: this.inputProperty.valueList, linkId:this.listTables[i][j].linkId, type:linkType, listValue: listValue };
             this.onChange.emit({ type: "field", out: out, i: i, nameColumn: this.header[j].value, eventId: this.inputProperty.eventId });
         }
-        if(e.relatedTarget)
-            if(e.relatedTarget.getAttribute("id") == "tableCutButton" ||
-                e.relatedTarget.getAttribute("id") == "tableCopyButton" ||
-                    e.relatedTarget.getAttribute("id") == "tablePasteButton") return;
-        this.onChange.emit({ type: "operation", rules: { copy: false, cut: false, paste: false }});
+        /* this.onChange.emit({ type: "operation", rules: { copy: false, cut: false, paste: false }}); */
     }
     removeRow(i)
     {
@@ -285,9 +278,15 @@ export class ErrorTableComponent implements OnInit
     {
         this.onChange.emit({ type: "event", eventId: eventId });
     }
-    removeEvent()
+    removeEvent(head)
     {
-        this.onChange.emit({ type: "removeEvent", id: this.inputProperty.id, i: this.configInput.i, nameColumn: this.header[this.configInput.j].value });
+        this.onChange.emit({ 
+            type: "removeEvent", 
+            id: this.inputProperty.id, 
+            i: this.configInput.i, 
+            nameColumn: head ? -1 : this.header[this.configInput.j].value,
+            head: head
+        });
     }
     getPositionInTable(element, out)
     {
@@ -323,8 +322,43 @@ export class ErrorTableComponent implements OnInit
     }
     getContextmenu(e, data, type)
     {
-        if(type == "cell") this.editField(e);
-        if(type == "head") this.rules.pasteObject = localStorage.getItem("copyExplorer") !== null;
+        //Проверка на возможность вставки
+        for(let key in this.rules) this.rules[key] = false;
+        this.rules.change = this.right.change;
+        this.rules.copy = this.right.copy;
+        this.rules.cut = this.right.cut;
+        let copyExplorer = localStorage.getItem("copyExplorer");
+        if(copyExplorer) 
+        {
+            let copy = JSON.parse(copyExplorer);
+            this.rules.object = true;
+            this.rules.event = copy.objectType == "event";
+            this.rules.type = copy.objectType == "tlist";
+        }
+        if(localStorage.getItem("copyTable")) this.rules.paste = true;
+        switch(type) // Здесь должны заполнится правила
+        {
+            case "cell":
+                if(this.getPositionInTable(e.target, this.configInput))
+                {
+                    let i = this.configInput.i;
+                    let j = this.configInput.j;
+                    this.inputProperty.id = this.listTables[i][j].id;
+                    this.inputProperty.eventId = this.listTables[i][j].eventId;
+                    this.inputProperty.type = this.listTables[i][j] ? this.listTables[i][j].type : "value";
+                    this.inputProperty.linkId = this.listTables[i][j].linkId;
+                    if(this.listTables[i][j].id == localStorage.getItem("copyTable")) //Ячейку нельзя вставить саму в себя
+                        this.rules.paste = false;
+                }
+                break;
+            case "head":
+                this.inputProperty.id = this.header[data].value;
+                break;
+            case "row":
+                break;
+        }
+        this.rules.paste = this.rules.paste && this.rules.change;
+        this.rules.object = this.rules.object && this.rules.change; // Чтобы в html не делать несколько проверок
         if(e.clientY > Number(this.height.replace("px", "")) / 2) this.createContextMenu.transform = "translate(0, -100%)";
         else this.createContextMenu.transform = null;
         this.createContextMenu.left = e.clientX + "px";
@@ -339,13 +373,19 @@ export class ErrorTableComponent implements OnInit
         let idRow = this.firstData[this.createContextMenu.i + prevOrNext] ? this.firstData[this.createContextMenu.i + prevOrNext] : -1;
         this.onChange.emit({ type: "row", idRow: idRow, idNextRow: idRow == -1 ? this.firstData[this.createContextMenu.i] : -1 });
     }
-    pasteField()
+    pasteField(type)
     {
-        this.onChange.emit({ type: "paste" });
+        this.onChange.emit({ type: "paste", typePaste: type });
     }
-    pasteObject(setType?)
+    pasteObject(setType, primitive)
     {
-        this.onChange.emit({ type: "pasteObject", setType: setType });
+        this.onChange.emit({ type: "pasteObject", setType: setType, primitive: primitive });
+    }
+    clearField()
+    {
+        let i = this.configInput.i;
+        let j = this.configInput.j;
+        this.onChange.emit({ type: "field", out: { id: this.inputProperty.id, value: "" }, i: i, nameColumn: this.header[j].value, eventId: this.inputProperty.eventId });
     }
     copyOrCut(type)
     {
@@ -370,9 +410,8 @@ export class ErrorTableComponent implements OnInit
         window.removeEventListener("click", this.globalClick, false);
         window.removeEventListener("resize", this.functionResize, false);
     }
-    dragoverHandler(e) { e.preventDefault(); } // для того чтобы подсвечивалось cursor
     downEnter(e)
     {
-        if(e.keyCode == 13 && this.inputProperty.visible) this.inputProperty.visible = false;
+        if(e.keyCode == 13 && this.inputProperty.visible) this.acceptEditField();
     }
 }
