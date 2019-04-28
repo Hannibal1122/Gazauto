@@ -1,9 +1,9 @@
-<div #mainContainer style = "overflow:auto;" [style.height] = "height">
+<div name = "clickArea" #mainContainer style = "overflow:auto;" [style.height] = "height">
     <table class = "errorTable TableCreatorBorderColor">  <!--  -->
         <tbody (click) = "editField($event)">
             <tr>
-                <th class = "TableCreatorHeadColor"></th>
-                <th *ngFor = "let head of header; let i = index;" 
+                <th name = "clickArea" class = "TableCreatorHeadColor"></th>
+                <th name = "clickArea" *ngFor = "let head of header; let i = index;" 
                     class = "TableCreatorHeadColor TableCreatorHeadBColor" 
                     id = "{{ head.value }}"
                     (contextmenu) = "getContextmenu($event, i, 'head')">
@@ -73,29 +73,25 @@
 
     <div style = "position:absolute;" [ngStyle] = "configInput" [hidden] = "!inputProperty.visible">
         <textarea #mainInputElement class = "mainInputStyle TableCreatorInputColor" 
+            [hidden] = "inputProperty.type == 'tlist' || inputProperty.type == 'datetime'" 
             (blur) = "acceptEditField()" 
             [(ngModel)] = "inputProperty.value" 
             (keydown)="downEnter($event)"></textarea>
-        <button [hidden] = "inputProperty.type != 'table'" 
+        <button *ngIf = "inputProperty.type == 'table'" 
             style = "position:absolute; right:0px; top: 0px; color:red; cursor:pointer; border:none; background:none; outline: none;"
             (click) = "inputProperty.value = ''; acceptEditField();">
             <i class = "fa fa-times-circle"></i>
         </button>
-        <select 
-            [hidden] = "inputProperty.values.length == 0" 
-            (change) = "changeMainSelect()"
-            style = "position:absolute; top: 100%; height: 24px; width:100%;" 
-            [(ngModel)] = "inputProperty.valueList">
-            <ng-container *ngIf = "inputProperty.typeValues == 'object'">
+        <ng-container *ngIf = "inputProperty.type == 'tlist'" >
+            <textarea class = "mainInputStyle TableCreatorInputColor" 
+                [(ngModel)] = "inputProperty.value" 
+                (keydown)="downEnter($event)"></textarea>
+            <select (change) = "changeMainSelect()"
+                style = "position:absolute; top: 100%; height: 24px; width:100%;" 
+                [(ngModel)] = "inputProperty.valueList">
                 <option *ngFor = "let option of inputProperty.values" value = "{{ option.id }}">{{ option.value }}</option>
-            </ng-container>
-            <ng-container *ngIf = "inputProperty.typeValues != 'object'">
-                <option *ngFor = "let option of inputProperty.values; let i = index" value = "{{ i }}">{{ option }}</option>
-            </ng-container>
-        </select>
-        <!-- <div style = "position:absolute; top: 100%; height: 24px; width:100%;" >
-            <datetimepicker></datetimepicker>
-        </div> -->
+            </select>
+        </ng-container>
     </div>
 </div>
 <div *ngIf = "inputProperty.visible" class = "TableCreatorHeadColor" style = "position:absolute; bottom:-26px; font-size:12px;">id: {{ inputProperty.id }}</div>
@@ -128,6 +124,7 @@
         <button class = "contextMenuList" (click) = "pasteField('value')" [disabled] = "!rules.paste">Вставить по значению</button>
         <button class = "contextMenuList" (click) = "copyOrCut('copy')" [disabled] = "!rules.copy">Копировать</button>
         <button class = "contextMenuList" (click) = "copyOrCut('cut')" [disabled] = "!rules.cut">Вырезать</button>
+        <button *ngIf = "inputProperty.type == 'datetime'" class = "contextMenuList" (click) = "openDatetimeModal()" [disabled] = "!rules.change">Вставить дату</button>
         <button class = "contextMenuList" (click) = "setState(0)" [disabled] = "!rules.change">Статус - 0%</button>
         <button class = "contextMenuList" (click) = "setState(10)" [disabled] = "!rules.change">Статус - 10%</button>
         <button class = "contextMenuList" (click) = "setState(50)" [disabled] = "!rules.change">Статус - 50%</button>
@@ -137,3 +134,4 @@
         <div *ngIf = "inputProperty.type == 'table' || inputProperty.type == 'file' || inputProperty.type == 'tlist'" class = "contextMenuList" (click) = "openToExplorer(inputProperty)">Показать в проводнике</div>
     </ng-container>
 </div>
+<modal-moved-window #modalMovedWindow></modal-moved-window>

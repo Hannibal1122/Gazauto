@@ -2,6 +2,7 @@ import { Component, OnInit, Input, Output, EventEmitter, ViewChild, ElementRef }
 import { FunctionsService } from '../../lib/functions.service';
 import { QueryService } from '../../lib/query.service';
 import { isJsObject } from '@angular/core/src/change_detection/change_detection_util';
+import { ModalMovedWindowComponent } from '../modal-moved-window/modal-moved-window.component';
 declare var trace:any;
 declare var $:any;
 @Component({
@@ -14,6 +15,8 @@ export class ErrorTableComponent implements OnInit
 {
     @ViewChild("mainContainer") mainContainer:ElementRef;
     @ViewChild("mainInputElement") mainInputElement:ElementRef;
+    @ViewChild("modalMovedWindow") modalMovedWindow:ModalMovedWindowComponent;
+    
     /* @ViewChild("mainStatusElement") mainStatusElement:ElementRef;
     @ViewChild("mainButtonRemoveEvent") mainButtonRemoveEvent:ElementRef; */
     @Input() set head(value)
@@ -29,7 +32,6 @@ export class ErrorTableComponent implements OnInit
                 this.filterHeader[value[key].i] = { value: "" };
                 this.mapFields[value[key].value] = { name: key, header: true };
             }
-            trace(this.header)
         }
     }
     @Input() set data(value)
@@ -74,6 +76,7 @@ export class ErrorTableComponent implements OnInit
         _colorId: -1, // Требуется для подсвечивания ячейки
         oldValue: "",
         value: "",
+        count: 0,
         visible: false,
         values: [],
         valueList: "",
@@ -107,8 +110,14 @@ export class ErrorTableComponent implements OnInit
         this.globalClick = (e) => 
         { 
             this.createContextMenu.visible = false; 
-            trace(e.target)
-            this.inputProperty.clearId();
+            if(this.inputProperty.type == "tlist") 
+            {
+                if(e.target.getAttribute("name") == "clickArea")
+                    this.inputProperty.close();
+                /* this.inputProperty.count++;
+                if(this.inputProperty.count == 2)
+                this.inputProperty.close(); */
+            }
         };
         this.functionResize = () => { this.resize(); };
         window.addEventListener("resize", this.functionResize, false);
@@ -173,9 +182,12 @@ export class ErrorTableComponent implements OnInit
                 let i = this.configInput.i;
                 let j = this.configInput.j;
                 this.inputProperty.visible = true;
+                this.inputProperty.count = 0;
                 this.inputProperty.id = this.listTables[i][j].id;
                 this.inputProperty.eventId = this.listTables[i][j].eventId;
-                this.inputProperty.type = this.listTables[i][j] ? this.listTables[i][j].type : "value";
+                this.inputProperty.type = "value";
+                if(this.listTables[i][j] && this.listTables[i][j].type) this.inputProperty.type = this.listTables[i][j].type;
+                if(this.header[j].dataType == "DATETIME") this.inputProperty.type = "datetime";
                 this.inputProperty.linkId = this.listTables[i][j].linkId;
                 if(this.listTables[i][j] && this.listTables[i][j].listValue !== undefined) 
                 {
@@ -278,6 +290,16 @@ export class ErrorTableComponent implements OnInit
     {
         this.onChange.emit({ type: "event", eventId: eventId });
     }
+    openDatetimeModal()
+    {
+        this.modalMovedWindow.open = true;
+        this.modalMovedWindow.inputValue = this.inputProperty.value;
+        this.modalMovedWindow.change = (datetime) =>
+        {
+            this.inputProperty.value = datetime;
+            this.acceptEditField();
+        };
+    }
     removeEvent(head)
     {
         this.onChange.emit({ 
@@ -345,7 +367,13 @@ export class ErrorTableComponent implements OnInit
                     let j = this.configInput.j;
                     this.inputProperty.id = this.listTables[i][j].id;
                     this.inputProperty.eventId = this.listTables[i][j].eventId;
-                    this.inputProperty.type = this.listTables[i][j] ? this.listTables[i][j].type : "value";
+                    this.inputProperty.type = "value";
+                    if(this.listTables[i][j] && this.listTables[i][j].type) this.inputProperty.type = this.listTables[i][j].type;
+                    if(this.header[j].dataType == "DATETIME") 
+                    {
+                        this.inputProperty.type = "datetime";
+                        this.inputProperty.value = this.listTables[i][j].value;
+                    }
                     this.inputProperty.linkId = this.listTables[i][j].linkId;
                     if(this.listTables[i][j].id == localStorage.getItem("copyTable")) //Ячейку нельзя вставить саму в себя
                         this.rules.paste = false;
