@@ -23,17 +23,18 @@ export class ModalMovedWindowComponent implements OnInit
             y: 0
         }
     }
+    onMouseMove = (e) =>
+    {
+        if(this.settings.click)
+        {
+            this.settings.left = e.clientX - this.settings.error.x;
+            this.settings.top = e.clientY - this.settings.error.y;
+        }
+    }
     constructor()
     {
         // TODO Удалять слушатель
-        document.addEventListener("mousemove", (e) =>
-        {
-            if(this.settings.click)
-            {
-                this.settings.left = e.clientX - this.settings.error.x;
-                this.settings.top = e.clientY - this.settings.error.y;
-            }
-        });
+        document.addEventListener("mousemove", this.onMouseMove);
     }
     ngOnInit()
     {
@@ -52,5 +53,9 @@ export class ModalMovedWindowComponent implements OnInit
     {
         if(this.change) this.change(this.value);
         this.open = false;
+    }
+    ngOnDestroy()
+    {
+        document.removeEventListener("mousemove", this.onMouseMove);
     }
 }

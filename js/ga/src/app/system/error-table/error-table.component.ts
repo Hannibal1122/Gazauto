@@ -25,11 +25,14 @@ export class ErrorTableComponent implements OnInit
         {
             this.header = [];
             this.firstHeader = {};
+            this.filter.fields = [];
+            this.filter.state = [];
             for(var key in value)
             {
                 this.firstHeader[value[key].value] = value[key].i;
                 this.header[value[key].i] = value[key];
-                this.filterHeader[value[key].i] = { value: "" };
+                this.filter.fields[value[key].i] = { value: "" };
+                this.filter.state[value[key].i] = { value: "" };
                 this.mapFields[value[key].value] = { name: key, header: true };
             }
         }
@@ -49,7 +52,13 @@ export class ErrorTableComponent implements OnInit
     @Output() onChange = new EventEmitter<any>();
     header = [];
     firstHeader = {};
-    filterHeader = [];
+    filter = 
+    {
+        fields: [],
+        state: [],
+        count: 0,
+        countHide: 0
+    }
     mapHideRows = {}; // По этому объекту скрываются строки не подходящие по фильтру
     mainData;
     listTables = [];
@@ -114,9 +123,6 @@ export class ErrorTableComponent implements OnInit
             {
                 if(e.target.getAttribute("name") == "clickArea")
                     this.inputProperty.close();
-                /* this.inputProperty.count++;
-                if(this.inputProperty.count == 2)
-                this.inputProperty.close(); */
             }
         };
         this.functionResize = () => { this.resize(); };
@@ -150,6 +156,8 @@ export class ErrorTableComponent implements OnInit
         this.listTables = [];
         this.mapHideRows = {};
         let rowHide;
+        this.filter.count = this.mainData.length;
+        this.filter.countHide = 0;
         for(var i = 0; i < this.mainData.length; i++)
         {
             this.listTables[i] = [];
@@ -161,15 +169,24 @@ export class ErrorTableComponent implements OnInit
                     let cell = this.mainData[i][key];
                     this.listTables[i][this.firstHeader[key]] = cell;
                     this.mapFields[cell.id] = { i: i, j: this.firstHeader[key] };
-                    if(cell && this.filterHeader[this.firstHeader[key]].value != "")
+                    if(cell)
                     {
-                        let str = (cell.listValue || cell.value).toLowerCase();
-                        let substr = this.filterHeader[this.firstHeader[key]].value.toLowerCase();
-                        if(str.indexOf(substr) !== -1) rowHide = false; // содержит
-                        else rowHide = true; // не содержит
+                        if(this.filter.fields[this.firstHeader[key]].value != "")
+                        {
+                            let str = (cell.listValue || cell.value).toLowerCase();
+                            let substr = this.filter.fields[this.firstHeader[key]].value.toLowerCase();
+                            if(str.indexOf(substr) !== -1) rowHide = false; // содержит
+                            else rowHide = true; // не содержит
+                        }
+                        if(this.filter.state[this.firstHeader[key]].value != "") 
+                        {
+                            if(cell.state >= Number(this.filter.state[this.firstHeader[key]].value))
+                                rowHide = true;
+                        }
                     }
                 }
             }
+            this.filter.countHide += rowHide ? 1 : 0;
             this.mapHideRows[i] = rowHide;
             this.firstData[i] = this.mainData[i].__ID__; // id строки в бд
         }
@@ -227,13 +244,18 @@ export class ErrorTableComponent implements OnInit
     }
     onChangeFilter(i, value)
     {
-        this.filterHeader[i].value = value;
+        this.filter.fields[i].value = value;
+        this.updateData();
+    }
+    onChangeFilterState(i, value)
+    {
+        this.filter.state[i].value = value;
         this.updateData();
     }
     clearFilters()
     {
-        for(let i = 0; i < this.filterHeader.length; i++)
-            this.filterHeader[i].value = "";
+        for(let i = 0; i < this.filter.fields.length; i++)
+            this.filter.fields[i].value = this.filter.state[i].value = "";
         this.updateData();
     }
     getValueFromArrayById(array, id)
@@ -381,6 +403,7 @@ export class ErrorTableComponent implements OnInit
                 break;
             case "head":
                 this.inputProperty.id = this.header[data].value;
+                this.inputProperty.eventId = this.header[data].eventId;
                 break;
             case "row":
                 break;

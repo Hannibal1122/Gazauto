@@ -30,7 +30,9 @@ export class DateTimeComponent implements AfterViewInit/* , OnChanges */ /*  imp
     };
     @Input() set setValue(value: string) 
     { 
-        if(value)
+        // Проверка валидности введенных данных
+        let reg = new RegExp(/([0-2]\d|3[01])\.(0\d|1[012])\.(\d{4})/);
+        if(value && reg.test(value))
         {
             let timeValue = value.split(" ");
             let date:any = timeValue[0].split(".");
@@ -149,7 +151,7 @@ export class DateTimeComponent implements AfterViewInit/* , OnChanges */ /*  imp
         if(date.time != undefined) this.selectTime = date.time;
 
         /*************************Проверка даты************************/
-        let _time = this.selectTime.split(":");
+        let _time = this.selectTime ? this.selectTime.split(":") : [0, 0];
         let hour = date.hour != undefined ? date.hour : Number(_time[0]);
         let minutes = date.minutes != undefined ? date.minutes : Number(_time[1]);
         let testDate = new Date(date.year, date.month, date.day, hour, minutes);

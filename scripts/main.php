@@ -743,7 +743,7 @@
                                                 break; 
                                             }
                                 $logins = [];
-                                if($result = query("SELECT login FROM main_log WHERE type = 'table' AND value = %s AND dateUpdate >= DATE_SUB(NOW(), INTERVAL 0.5 MINUTE)", [ $idTable ]))
+                                if($result = query("SELECT login FROM main_log WHERE type = 'table' AND value = %s AND operation = 'open' AND dateUpdate >= DATE_SUB(NOW(), INTERVAL 0.5 MINUTE)", [ $idTable ]))
                                     while ($row = $result->fetch_array(MYSQLI_NUM)) 
                                         $logins[$row[0]] = "";
                             
@@ -756,30 +756,7 @@
             if($nQuery >= 400 && $nQuery < 410) // Работа с задачами
                 switch($nQuery)
                 {
-                    case 400: // Запрос списка пользователей с именами
-                        // Получаем список логинов
-                        /* $logins = [];
-                        $fields = [];
-                        if($result = query("SELECT login FROM registration", []))
-                            while ($row = $result->fetch_array(MYSQLI_NUM)) 
-                                $logins[$row[0]] = ["name" => "", "familiya" => "", "patronymic" => ""];
-                        if($result = query("SELECT i, name_column, value FROM fields WHERE tableId = 4 AND type != 'head'", []))
-                            while ($row = $result->fetch_array(MYSQLI_NUM)) 
-                            {
-                                if(!array_key_exists($row[0], $fields)) $fields[$row[0]] = [];
-                                $fields[$row[0]][$row[1]] = $row[2];
-                            }
-                        foreach($fields as $field)
-                        {
-                            $login = $field["Логин"];
-                            if($login != "")
-                            {
-                                $logins[$login]["name"] = $field["Имя"];
-                                $logins[$login]["familiya"] = $field["Фамилия"];
-                                $logins[$login]["patronymic"] = $field["Отчество"];
-                            }
-                        }
-                        echo json_encode($logins); */
+                    case 400: // резерв
                         break;
                 }
             if($nQuery >= 410 && $nQuery < 450) // Работа с событиями
@@ -814,17 +791,7 @@
                         $fasm = new FASM();
                         $fasm->start(selectOne("SELECT code FROM events WHERE id = %i", $param)); */
                         break;
-                    case 414: // Проверка на временные события
-                        /* if($result = query("SELECT id, param, date, code FROM events WHERE ready = 0 AND type = 'date' AND date <= NOW()", []))
-                            while ($row = $result->fetch_array(MYSQLI_NUM)) 
-                            {
-                                require_once("FASM.php"); // класс для работы с событиями
-                                $fasm = new FASM();
-                                $fasm->start($row[3], -1);
-                                $nextDateTime = getNextDateForEvent($row[1])->format("Y-m-d H:i:s");
-                                if($nextDateTime == $row[2]) query("UPDATE events SET ready = 1 WHERE id = %i", [(int)$row[0]]);
-                                else query("UPDATE events SET date = %s WHERE id = %i", [$nextDateTime, (int)$row[0]]);
-                            } */
+                    case 414: // резерв
                         break;
                     case 415: // Завершить событие досрочно
                         $idElement = (int)$param[0];
@@ -910,27 +877,6 @@
         }
         return $elem;
     }
-    function request($_query, $param) // Отправка запроса и получение от вета в формате JSON
-    {
-        global $mysqli;
-        $Result = [];
-        if($result = query($_query, $param))
-        {
-            while ($row = $result->fetch_array(MYSQLI_NUM)) 
-                $Result[] = $row;
-            echo json_encode($Result);
-        }
-        else if ($result == 0) echo json_encode(["Index", $mysqli->insert_id]);
-        else echo json_encode(["Error", $mysqli->error]);
-    }
-    function selectOne($_query, $param) // Запрос одного значения
-    {
-        return query($_query, $param)->fetch_array(MYSQLI_NUM)[0];
-    }
-    function selectArray($_query, $param) // Запрос одного значения
-    {
-        return query($_query, $param)->fetch_array(MYSQLI_NUM);
-    }
     function getFullPath(&$out, $parent)
     {
         if($result = query("SELECT name, parent FROM structures WHERE id = %i",[$parent]))
@@ -1003,31 +949,5 @@
                 return $out;
             }
         }
-    }
-    function getNextDateForEvent($_dateTime)
-    {
-        $countX = substr_count($_dateTime, "xx");
-        $currentTime = selectOne("SELECT NOW()", []);
-        $dateTime = $_dateTime.":00";
-        $error = "";
-        switch($countX)
-        {
-            case 2: // Каждый год
-                $dateTime = str_replace("xxxx", mb_strcut($currentTime, 0, 4), $dateTime);
-                $error = "+1 year";
-                break;
-            case 3: // Каждый месяц
-                $dateTime = str_replace("xxxx-xx", mb_strcut($currentTime, 0, 7), $dateTime);
-                $error = "+1 month";
-                break;
-            case 4: // Каждый день
-                $dateTime = str_replace("xxxx-xx-xx", mb_strcut($currentTime, 0, 10), $dateTime);
-                $error = "+1 day";
-                break;
-        }
-        $currentTime = new DateTime($currentTime);
-        $date = new DateTime($dateTime);
-        if($currentTime > $date && $error != "") $date->modify($error);
-        return $date;
     }
 ?>

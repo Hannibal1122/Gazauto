@@ -59,5 +59,52 @@
 			return $refs;
 		}
 		return $arr;
-	}
+    }
+    function request($_query, $param) // Отправка запроса и получение от вета в формате JSON
+    {
+        global $mysqli;
+        $Result = [];
+        if($result = query($_query, $param))
+        {
+            while ($row = $result->fetch_array(MYSQLI_NUM)) 
+                $Result[] = $row;
+            echo json_encode($Result);
+        }
+        else if ($result == 0) echo json_encode(["Index", $mysqli->insert_id]);
+        else echo json_encode(["Error", $mysqli->error]);
+    }
+    function selectOne($_query, $param) // Запрос одного значения
+    {
+        return query($_query, $param)->fetch_array(MYSQLI_NUM)[0];
+    }
+    function selectArray($_query, $param) // Запрос одного значения
+    {
+        return query($_query, $param)->fetch_array(MYSQLI_NUM);
+    }
+    function getNextDateForEvent($_dateTime) // Функция для работы с временными событиями
+    {
+        $countX = substr_count($_dateTime, "xx");
+        $currentTime = selectOne("SELECT NOW()", []);
+        $dateTime = $_dateTime.":00";
+        $error = "";
+        switch($countX)
+        {
+            case 2: // Каждый год
+                $dateTime = str_replace("xxxx", mb_strcut($currentTime, 0, 4), $dateTime);
+                $error = "+1 year";
+                break;
+            case 3: // Каждый месяц
+                $dateTime = str_replace("xxxx-xx", mb_strcut($currentTime, 0, 7), $dateTime);
+                $error = "+1 month";
+                break;
+            case 4: // Каждый день
+                $dateTime = str_replace("xxxx-xx-xx", mb_strcut($currentTime, 0, 10), $dateTime);
+                $error = "+1 day";
+                break;
+        }
+        $currentTime = new DateTime($currentTime);
+        $date = new DateTime($dateTime);
+        if($currentTime > $date && $error != "") $date->modify($error);
+        return $date;
+    }
 ?>

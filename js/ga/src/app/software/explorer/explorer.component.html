@@ -150,41 +150,32 @@
 </div>
 <div class = "createContextMenu" [hidden] = "!createContextMenu.visible" [style.top] = "createContextMenu.top" [style.left] = "createContextMenu.left">
     <button class = "contextMenuList" (click) = "getRenameObject()" [disabled] = "!selectRules.rename">
-        <span *ngIf = "!selectRules.rename"><i class="fas fa-lock" style = "font-size:10px;"></i></span>
          Переименовать</button>
     <button class = "contextMenuList" (click) = "getListLink()">Показать связи</button>
     <ng-container *ngIf = "createContextMenu.type == 'table'">
         <button class = "contextMenuList" (click) = "openTableFilter()">
             Открыть фильтры</button>
         <button class = "contextMenuList" (click) = "createListOfTable()" [disabled] = "!selectRules.cut">
-            <span *ngIf = "!selectRules.cut"><i class="fas fa-lock" style = "font-size:10px;"></i></span>
             Создать список из столбца</button>
     </ng-container>
     <button class = "contextMenuList" (click) = "copyObject('cut')" [disabled] = "!selectRules.cut">
-        <span *ngIf = "!selectRules.cut"><i class="fas fa-lock" style = "font-size:10px;"></i></span>
         Вырезать</button>
     <button class = "contextMenuList" (click) = "copyObject('copy')" [disabled] = "!selectRules.copy">
-        <span *ngIf = "!selectRules.copy"><i class="fas fa-lock" style = "font-size:10px;"></i></span>
         Копировать</button>
     <button class = "contextMenuList" (click) = "createObject(outFolders[selectObjectI].id, 'Права', null)" [disabled] = "!selectRules.rights">
-        <span *ngIf = "!selectRules.rights"><i class="fas fa-lock" style = "font-size:10px;"></i></span>
         Добавить права</button>
     <button class = "contextMenuList" (click) = "addInfo()" [disabled] = "!selectRules.info">
-        <span *ngIf = "!selectRules.info"><i class="fas fa-lock" style = "font-size:10px;"></i></span>
         Справка</button>
     <button class = "contextMenuList" (click) = "removeObject()" [disabled] = "!selectRules.remove">
-        <span *ngIf = "!selectRules.remove"><i class="fas fa-lock" style = "font-size:10px;"></i></span>
         Удалить</button>
     <button class = "contextMenuList" (click) = "createLabel()">
         <span><i class="fas fa-share-square" style = "font-size:10px;"></i></span>
         Создать ярлык</button>
     <button class = "contextMenuList" (click) = "downloadObject()" [disabled] = "!selectRules.download">
-        <span *ngIf = "!selectRules.download"><i class="fas fa-lock" style = "font-size:10px;"></i></span>
         Скачать</button>
 </div>
 <div class = "createContextMenu" [hidden] = "!createContextMenuMain.visible" [style.top] = "createContextMenuMain.top" [style.left] = "createContextMenuMain.left">
     <button class = "contextMenuList" (click) = "newObject()" [disabled] = "!selectRules.new">
-        <span *ngIf = "!selectRules.new"><i class="fas fa-lock" style = "font-size:10px;"></i></span>
         Создать</button>
     <button class = "contextMenuList" (click) = "_pasteObject()" [disabled] = "!selectRules.paste || inputs.parentBind">
         <span *ngIf = "!selectRules.paste || inputs.parentBind"><i class="fas fa-lock" style = "font-size:10px;"></i></span>
