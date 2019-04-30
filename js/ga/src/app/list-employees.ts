@@ -63,5 +63,19 @@ export const EMPLOYEES: Employees[] = [
             { value: '8', colspan: 1}, 
             { value: 'Вых', colspan: 1}, 
             { value: '8', colspan: 4}
+        ] },
+    { tabelnom: 6, surname: 'Скворцов', name: 'Егор', patronymic: 'Егорович', 
+        days: [ 
+            { value: '8', colspan: 1}, 
+            { value: 'К', colspan: 3}, 
+            { value: '8', colspan: 5}, 
+            { value: 'Вых', colspan: 2}, 
+            { value: '8', colspan: 5}, 
+            { value: 'Вых', colspan: 2}, 
+            { value: '8', colspan: 5}, 
+            { value: 'Вых', colspan: 2}, 
+            { value: 'К', colspan: 2},
+            { value: 'Вых', colspan: 1},  
+            { value: '8', colspan: 3}
         ] }
 ];

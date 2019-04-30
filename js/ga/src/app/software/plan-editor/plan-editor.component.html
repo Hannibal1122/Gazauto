@@ -18,7 +18,8 @@
         </select>
     </label>
     <button class = "mainButton" title = "Показать" (click) = "showPlan('all')" ><i class="fas fa-check"></i></button>
-    <button class = "mainButton" title = "Добавить сотрудника" (click) = "addEmployee()"><i class="fas fa-user-plus"></i></button>
+    <!--<button class = "mainButton" title = "Добавить сотрудника" (click) = "editEmployee()"><i class="fas fa-user-plus"></i></button> -->
+    <button class = "mainButton" title = "Редактирование" (click) = "editEmployee()"><i class="fas fa-cog"></i></button>
 </div>
 <div style = "overflow:auto;" [style.height] = "height"> 
     <table border="1" class = "PlanEditor">
@@ -65,13 +66,20 @@
                         [class.colorGray] = "day.value == 'Вых'"
                         [class.colorBlue] = "day.value == 'От'"> {{day.value}} </div>
                 </td>
-            </tr>
-            <tr *ngIf="proba == 1">
-                <td>
-                    новое окно
-                </td>
+               <!-- <td> <button class = "mainButton" title = "Редактировать" (click) = "editEmployee()" ><i class="fas fa-cog"></i></button> </td> -->
             </tr>
         </tbody>
+    </table>
+</div>
+
+
+<!-- тест -->
+<br>
+<div>
+    <table>
+        <tr>
+            <td> {{ today }} </td>
+        </tr>
     </table>
 </div>
 

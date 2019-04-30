@@ -4,6 +4,7 @@ import { QueryService } from '../../lib/query.service';
 import { EMPLOYEES} from '../../list-employees';
 
 declare var trace:any;
+
 @Component({
   selector: 'app-plan-editor',
   templateUrl: './plan-editor.component.html',
@@ -15,7 +16,6 @@ export class PlanEditorComponent implements OnInit
   @ViewChild('editPlan') public editPlan: any;
 
   employees = EMPLOYEES; //массив с данными о сотрудниках и их днях работы
-  proba=0;
 
   month: string;
   coldays: number;
@@ -27,7 +27,7 @@ export class PlanEditorComponent implements OnInit
     constructor(public query: QueryService) { }
     ngOnInit() 
     {
-      
+
     }
 
     showPlan(month) //Показать план-график 
@@ -35,34 +35,64 @@ export class PlanEditorComponent implements OnInit
       
     }
 
-    addEmployee() //Добавить сотрудника 
+    editEmployee() //Добавить сотрудника 
     {
+      var currentDate = new Date();
+      var today: any;
+      
       var fio = [];
       var fioId = [];
-        for(var i = 0; i < this.employees.length; i++) 
-        {
-          fio[i] = this.employees[i].surname+' '+this.employees[i].name+' '+this.employees[i].patronymic;
-          fioId[i] = this.employees[i].tabelnom;
+      for(var i = 0; i < this.employees.length; i++) 
+      { 
+        fio[i] = this.employees[i].surname+' '+this.employees[i].name+' '+this.employees[i].patronymic;
+        fioId[i] = this.employees[i].tabelnom;
+      }
+
+      /*  for(var i = 0; i < this.employees.length; i++) 
+        { 
+          for(var j = 0; j < this.employees[i].days.length; j++)
+          {
+            this.employees[i].days[j].value = today;
+          }
         }
-        var Data:any = {
-          title: "Добавление сотрудника",  
-          data: [
-              ["Сотрудник", { selected: fio[0].id, data: fio, value: fioId }, "select"],
-              ["От", "", "datetime"],
-              ["До", "", "datetime"],
-              ["Значение", "", "text"]
-          ],
-          ok: "Изменить",
-          cancel: "Отмена"
+      */
+
+      /*for(var j = 0; j < 30; j++)
+      {
+        today[j] = currentDate.toDateString();
+        //document.write(today[j]);
+        //console.log(today[j]);
+      }*/
+
+      
+      var Data:any = {
+        title: "Добавление сотрудника",  
+        data: [
+          ["Сотрудник", { selected: fio[0].id, data: fio, value: fioId }, "select"],
+          ["От", "", "datetime"],
+          ["До", "", "datetime"],
+          ["Значение", "", "text"]
+        ],
+        ok: "Изменить",
+        cancel: "Отмена"
       };
 
       this.modal.open(Data, (save) =>
       {
-          trace(Data.data[0][1].selected) // id Сотрудника
-          trace(Data.data[1][1]) // От (миллисекунды)
-          trace(Data.data[2][1]) // До (миллисекунды)
-          trace(Data.data[3][1]) // Значение
+        trace(Data.data[0][1].selected) // id Сотрудника
+        trace(Data.data[1][1]) // От (миллисекунды)
+        trace(Data.data[2][1]) // До (миллисекунды)
+        trace(Data.data[3][1]) // Значение
+
+        if(save == true)
+        {
+          today = Data.data[2][1] - Data.data[1][1];
+          this.employees[1].days[1].value = today.toString();
+        };
+
       });
+
+      
 
     }
 
