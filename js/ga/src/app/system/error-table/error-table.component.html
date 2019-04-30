@@ -81,7 +81,7 @@
         </tbody>
     </table>
 
-    <div style = "position:absolute;" [ngStyle] = "configInput" [hidden] = "!inputProperty.visible">
+    <div style = "position:absolute; pointer-events: none;" [ngStyle] = "configInput" [hidden] = "!inputProperty.visible">
         <textarea #mainInputElement class = "mainInputStyle TableCreatorInputColor" 
             [hidden] = "inputProperty.type == 'tlist' || inputProperty.type == 'datetime'" 
             (blur) = "acceptEditField()" 
