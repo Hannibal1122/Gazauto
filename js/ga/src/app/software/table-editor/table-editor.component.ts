@@ -162,7 +162,7 @@ export class TableEditorComponent implements OnInit
         let endI = i;
         let k = beginI;
         let length = 1;
-        if(_nameColumn)
+        if(_nameColumn !== "")
         {
             beginI = 0;
             endI = this.dataTable.length - 1;
@@ -177,7 +177,7 @@ export class TableEditorComponent implements OnInit
                 break;
             case "tlist":
                 // Проверка на вставку в себя (по tableId)
-                if(_nameColumn && data.setType) // Назначение типа столбцу
+                if(_nameColumn !== "" && data.setType) // Назначение типа столбцу
                     this.addToQueue(264, [ this.inputs.id, this.dataHeader[Number(_nameColumn)].value, data.id ], () => {
                         this.loadTable();
                     });
@@ -211,7 +211,7 @@ export class TableEditorComponent implements OnInit
                 break;
             case "event":
                 let eventId = data.id;
-                if(_nameColumn && data.setType) // Назначение типа столбцу
+                if(_nameColumn !== "" && data.setType) // Назначение типа столбцу
                     this.addToQueue(262, [ this.inputs.id, eventId, this.dataHeader[Number(_nameColumn)].value ], () => {
                         this.loadTable();
                     });

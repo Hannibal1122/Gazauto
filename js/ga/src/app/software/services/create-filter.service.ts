@@ -41,6 +41,7 @@ export class CreateFilterService
             for(let i = 0; i < head.length; i++) fields.push({ id: head[i][0], value: head[i][1] });
             this.query.protectionPost(472, { param: [ id ] }, (data) => 
             {
+                trace(data)
                 let Data:any = {
                     title: "<b>Изменить фильтр</b>",  
                     data: [

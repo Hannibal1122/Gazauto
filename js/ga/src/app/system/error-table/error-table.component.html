@@ -81,7 +81,7 @@
         </tbody>
     </table>
 
-    <div style = "position:absolute; pointer-events: none;" [ngStyle] = "configInput" [hidden] = "!inputProperty.visible">
+    <div style = "position:absolute;" [ngStyle] = "configInput" [hidden] = "!inputProperty.visible">
         <textarea #mainInputElement class = "mainInputStyle TableCreatorInputColor" 
             [hidden] = "inputProperty.type == 'tlist' || inputProperty.type == 'datetime'" 
             (blur) = "acceptEditField()" 
@@ -138,7 +138,6 @@
         <button class = "contextMenuList" (click) = "pasteField('value')" [disabled] = "!rules.paste">Вставить по значению</button>
         <button class = "contextMenuList" (click) = "copyOrCut('copy')" [disabled] = "!rules.copy">Копировать</button>
         <button class = "contextMenuList" (click) = "copyOrCut('cut')" [disabled] = "!rules.cut">Вырезать</button>
-        <button *ngIf = "inputProperty.type == 'datetime'" class = "contextMenuList" (click) = "openDatetimeModal()" [disabled] = "!rules.change">Вставить дату</button>
         <button class = "contextMenuList" (click) = "setState(0)" [disabled] = "!rules.change">Статус - 0%</button>
         <button class = "contextMenuList" (click) = "setState(10)" [disabled] = "!rules.change">Статус - 10%</button>
         <button class = "contextMenuList" (click) = "setState(50)" [disabled] = "!rules.change">Статус - 50%</button>

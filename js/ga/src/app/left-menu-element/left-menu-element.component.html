@@ -24,10 +24,11 @@
 </div>
 <div *ngIf = "!hide" style = "padding: 5px; padding-left: 15px;">
     <div *ngFor = "let data of outData; let i = index;" [hidden] = "(search == '' && data.hide) || (search != '' && data.searchHide)">
-        <div [style.marginLeft.px] = "search == '' ? (15 * data.level) : 0">
-            <div class = "elementMenu" 
+        <div class = "leftItem" [style.marginLeft.px] = "search == '' ? (15 * data.level) : 0">
+            <div class = "leftItemText" 
                 (click) = "getInfo(data)"
                 (dblclick) = "openElement(data)" 
+                [title] = "data.name"
                 style = "user-select:none;">
                 <span *ngIf = "data.objectType == 'folder' && !data.open" style = "cursor: pointer; margin-right:2px;" (click) = "openCollapse(i, data.level)">
                     <i class="fas fa-folder"></i>
@@ -50,9 +51,9 @@
                 <i *ngIf = "data.objectType == 'tlist'" class="fas fa-list-alt" style = "color:#7eb2be;"></i>
                 <i *ngIf = "data.objectType == 'label'" class="fas fa-share-square colorIconRole"></i>
                 {{data.name}}
-                <span class = "copyButton" (click) = "copyObject(data)">
-                    <i class="fas fa-copy" title = "Копировать"></i>
-                </span>
+            </div>
+            <div class = "copyButton" (click) = "copyObject(data)">
+                <i class="fas fa-copy" title = "Копировать"></i>
             </div>
         </div>
     </div>

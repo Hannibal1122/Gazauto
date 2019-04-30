@@ -7,6 +7,8 @@ class FASM
     }
 	function parse($str)
 	{
+        global $login;
+        $str = str_replace("LOGIN", "\"$login\"", $str); // Заменяет константу на текущий логин
 		$a = explode("\n", $str);
 		$operandStr = "";
 		$operandBool = false;
@@ -59,7 +61,7 @@ class FASM
 		}
 		return $code;
     }
-    function start($str, $_idField)
+    function start($str, $_idField, /* $idColumn = -1,  */$idLine = -1)
     {
         $code = $this->parse($str);
         $limit = 0;
@@ -89,7 +91,9 @@ class FASM
                 case "set": // выставить значение
                     require_once("myTable.php");
                     $myTable = new MyTable($value["tableId"], $this->myLog);
-                    $myTable->setCell((object) ["id" => $idField, "value" => $current["operand"][1]], false, false);
+                    $operand = $this->getFunction($current["operand"][1]);
+                    if($value["type"] == "head") $myTable->setCell((object) ["id" => $this->getFieldByHead($idField, $idLine), "value" => $operand], false, false);
+                    else $myTable->setCell((object) ["id" => $idField, "value" => $operand], false, false);
                     $i++;
                     break; 
                 case "eq": // сравнить на равенство значение
@@ -125,11 +129,12 @@ class FASM
     function getField($id)
     {
         $field = [];
-        if($result = query("SELECT value, type, linkId, linkType, state, tableId FROM fields WHERE id = %i AND type != 'head'", [ (int)$id ]))
+        if($result = query("SELECT value, type, linkId, linkType, state, tableId FROM fields WHERE id = %i", [ (int)$id ]))
             while ($row = $result->fetch_array(MYSQLI_NUM)) 
             {
                 $field["value"] = $row[0];
                 $field["state"] = $row[4];
+                $field["type"] = $row[1];
                 $field["tableId"] = (int)$row[5];
                 if($row[1] == "link")
                 {
@@ -156,6 +161,34 @@ class FASM
                 }
             }
         return $field;
+    }
+    function getFieldByHead($idColumn, $idLine)
+    {
+        return selectOne("SELECT id FROM fields WHERE idColumn = %i AND i = %i", [ $idColumn, $idLine ]);
+    }
+    function getFunction($value)
+    {
+        // Проверка на функцию
+        $enableFunc = ["unite"]; // Доступные функции
+        $func = explode("(", $value);
+        if(in_array($func[0], $enableFunc))
+        {
+            $operand = str_replace(")", "", $func[1]);
+            switch($func[0])
+            {
+                case "unite":
+                    $out = "";
+                    $strArray = explode(",", $operand);
+                    for($i = 0, $c = count($strArray); $i < $c; $i++)
+                    {
+                        echo (int)$strArray[$i][0];
+                        if($strArray[$i][0] == "\"") echo "FUCK";
+                        $out .= $strArray[$i];
+                    }
+                    return $out;
+            }
+        }
+        return $value;
     }
 }
 ?>

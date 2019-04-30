@@ -21,6 +21,7 @@
         }
         function getFilterStr($idFilter)
         {
+            global $login;
             $str = "";
             $expression = json_decode(selectOne("SELECT value FROM filter WHERE id = %i", [ $idFilter ]));
             for($i = 0, $c = count($expression); $i < $c; $i++)
@@ -41,6 +42,7 @@
                         if(array_key_exists($i + 1, $expression) && ($expression[$i + 1]->type === "condition" || $expression[$i + 1]->begin))
                             $str .= $this->getOperator($expression[$i]->operator);
                     }
+            $str = str_replace("LOGIN", $login, $str); // LOGIN - константа
             return $str;
         }
         function getUserFilter($login, $idTable)
@@ -66,6 +68,10 @@
                 case "И": return " AND ";
                 case "ИЛИ": return " OR ";
             }
+        }
+        function getStructureId($idFilter)
+        {
+            return selectOne("SELECT id FROM structures WHERE objectType = 'filter' AND objectId = %i", [$idFilter]);
         }
     }
 ?>

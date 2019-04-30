@@ -238,7 +238,11 @@ export class ErrorTableComponent implements OnInit
                     this.inputProperty.oldValue = this.inputProperty.value = this.listTables[i][j] ? this.listTables[i][j].value : undefined;
                     this.inputProperty.values = [];
                 }
-                if(this.inputProperty.type == "datetime") this.openDatetimeModal();
+                if(this.inputProperty.type == "datetime") 
+                {
+                    this.openDatetimeModal();
+                    this.inputProperty.visible = false;
+                }
                 setTimeout(() => { this.mainInputElement.nativeElement.focus(); }, 20);
                 return true;
             }

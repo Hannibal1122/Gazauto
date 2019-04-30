@@ -41,8 +41,9 @@
                 while ($row = $result->fetch_array(MYSQLI_NUM))
                     $data[(int)$row[0]]["__NEXT__"] = $row[1]; 
             $queryStr = "SELECT i, idColumn, value, type, linkId, linkType, fields.id, state, eventId FROM fields WHERE tableId = %i AND type != 'head'";
+            
             if($enableLines != "") $queryStr .= "AND i IN ($enableLines)";
-            else if(count($filters) == 0) $queryStr .= "AND i IN (-1)";
+            else if($filterStr != "") $queryStr .= "AND i IN (-1)";
             if($result = query($queryStr, [$idTable]))
                 while ($row = $result->fetch_array(MYSQLI_NUM)) 
                 {
@@ -161,23 +162,7 @@
                     $idTable, // для подстраховки
                     $idField
                 ]);
-            $idEvent = (int)selectOne("SELECT eventId FROM fields WHERE id = %i", [ $idField ]);
-            $idEventColumn = (int)selectOne("SELECT eventId FROM fields WHERE id = (SELECT idColumn FROM fields WHERE id = %i)", [ $idField ]);
-            if($event)
-            {
-                require_once("FASM.php"); // класс для работы с событиями
-                $fasm = new FASM($this->myLog);
-                if(!is_null($idEvent)) // Если событие на ячейке
-                {
-                    $typeAndCode = query("SELECT type, code FROM events WHERE id = %i AND type = 'value'", [ $idEvent ])->fetch_array(MYSQLI_NUM);
-                    if($typeAndCode) $fasm->start($typeAndCode[1], $idField);
-                }
-                if(!is_null($idEventColumn)) // Если событие на столбце
-                {
-                    $typeAndCode = query("SELECT type, code FROM events WHERE id = %i AND type = 'value'", [ $idEventColumn ])->fetch_array(MYSQLI_NUM);
-                    if($typeAndCode) $fasm->start($typeAndCode[1], $idField);
-                }
-            }
+            if($event) $this->checkEvent($idField);
             if($echo) 
             {
                 echo json_encode([ "id" => $idField, "value" => $value ]);
@@ -185,6 +170,26 @@
             }
             else $this->myLog->add("table", "updateScript", $idTable);
             $this->calculateStateForTable($idTable);
+        }
+        function checkEvent($idField) // Нужно вызывать при изменении ячейки, проверяет наличие событий
+        {
+            $idEvent = (int)selectOne("SELECT eventId FROM fields WHERE id = %i", [ $idField ]);
+            /* $idColumn = (int)selectOne("SELECT idColumn FROM fields WHERE id = %i", [ $idField ]);
+            $idEventColumn = (int)selectOne("SELECT eventId FROM fields WHERE id = %i", [ $idColumn ]); */
+            $idEventColumn = (int)selectOne("SELECT eventId FROM fields WHERE id = (SELECT idColumn FROM fields WHERE id = %i)", [ $idField ]);
+            require_once("FASM.php"); // класс для работы с событиями
+            $fasm = new FASM($this->myLog);
+            if(!is_null($idEvent)) // Если событие на ячейке
+            {
+                $typeAndCode = query("SELECT type, code FROM events WHERE id = %i AND type = 'value'", [ $idEvent ])->fetch_array(MYSQLI_NUM);
+                if($typeAndCode) $fasm->start($typeAndCode[1], $idField);
+            }
+            if(!is_null($idEventColumn)) // Если событие на столбце
+            {
+                $idLine = (int)selectOne("SELECT i FROM fields WHERE id = %i", [ $idField ]);
+                $typeAndCode = query("SELECT type, code FROM events WHERE id = %i AND type = 'value'", [ $idEventColumn ])->fetch_array(MYSQLI_NUM);
+                if($typeAndCode) $fasm->start($typeAndCode[1], $idField/* , $idColumn */, $idLine);
+            }
         }
         function setCellByLink($idObject, $idFields) // Добавление элемента из левого меню в таблицу по ссылке
         {
@@ -270,6 +275,7 @@
                         ]);
                     else query("INSERT INTO fields (tableId, i, idColumn, type, value) VALUES(%i, %i, %i, 'value', '') ", [ $idTable, $idRow, (int)$row[0] ]);
                     $out[$row[0]] = ["id" => $mysqli->insert_id, "value" => ""];
+                    $this->checkEvent($mysqli->insert_id); // Проверяем наличие события на заголовке
                 }
             if($echo)
             {

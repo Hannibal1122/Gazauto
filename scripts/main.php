@@ -178,8 +178,9 @@
                     case 110: // Загрузка структуры // Права на просмотр
                         $out = ["folder" => [], "path" => []];
                         $idParent = (int)$param[0];
-                        if($login == "admin") $query = "SELECT id, objectType, objectId, name, parent, priority, info, bindId, state FROM structures WHERE parent = %i ORDER by parent, priority";
-                        else $query = "SELECT id, objectType, objectId, name, parent, priority, info, bindId, state FROM structures WHERE parent = %i AND
+                        $query = "SELECT id, objectType, objectId, name, parent, priority, info, bindId, state FROM structures WHERE parent = %i AND trash = 0";
+                        if($login == "admin") $query .= " ORDER by parent, priority";
+                        else $query .= " AND
                             id IN (SELECT objectId FROM rights WHERE (login = %s OR login = %s) AND rights & 1 
                                 AND objectId NOT IN (SELECT objectId FROM rights WHERE login = %s AND (rights & 1) = 0)) ORDER by parent, priority";
                         if($result = query($query, $login == "admin" ? [ $idParent ] : [ $idParent, $login, $role, $login ]))
@@ -212,22 +213,9 @@
                         }
                         break;
                     case 112: // Удаление элемента структуры // Права на изменение
-                        require_once("myObject.php");
-                        require_once("copyAndRemove.php");
-                        
                         $idElement = (int)$param[0];
-                        $structures = new CopyAndRemove(null, null, null, $myLog);
-                        $out = [ $idElement ];
-                        getRemoveElementbyStructure($out, $idElement);
-                        
-                        $myObject = new MyObject($idElement);
-                        $myObject->checkRemove($out);
-                        for($i = 0, $c = count($out); $i < $c; $i++)
-                        {
-                            if(($myRight->get($out[$i]) & 8) != 8) continue; // Права на изменение
-                            $structures->remove($out[$i]);
-                        }
-                        echo json_encode($out);
+                        if(($myRight->get($idElement) & 8) != 8) return; // Права на изменение
+                        query("UPDATE structures SET trash = 1 WHERE id = %i", [$idElement]);
                         break;
                     case 113: // Загрузка структуры без выпрямления
                         $out = [];
@@ -391,6 +379,24 @@
                                 $out = getObjectFromStructures($row);
                         echo json_encode($out);
                         break;
+                    case 130: // Полное удаление из программы
+                        require_once("myObject.php");
+                        require_once("copyAndRemove.php");
+                        
+                        $idElement = (int)$param[0];
+                        $structures = new CopyAndRemove(null, null, null, $myLog);
+                        $out = [ $idElement ];
+                        getRemoveElementbyStructure($out, $idElement);
+                        
+                        $myObject = new MyObject($idElement);
+                        $myObject->checkRemove($out);
+                        for($i = 0, $c = count($out); $i < $c; $i++)
+                        {
+                            if(($myRight->get($out[$i]) & 8) != 8) continue; // Права на изменение
+                            $structures->remove($out[$i]);
+                        }
+                        echo json_encode($out);
+                        break;
                 }
             }
             if($nQuery >= 150 && $nQuery < 200) // Работа с Пользователями // Только admin
@@ -510,8 +516,8 @@
                         $filterSelected = -1;
                         $myFilter = new MyFilter();
                         $userFilter = $myFilter->getUserFilter($login, $idTable);
-                        if($login == "admin") $query = "SELECT id, objectId, name FROM structures WHERE parent = %i ORDER by parent, priority";
-                        else $query = "SELECT id, objectId, name FROM structures WHERE parent = %i AND
+                        if($login == "admin") $query = "SELECT id, objectId, name FROM structures WHERE parent = %i AND objectType = 'filter' ORDER by parent, priority";
+                        else $query = "SELECT id, objectId, name FROM structures WHERE parent = %i AND objectType = 'filter' AND
                             id IN (SELECT objectId FROM rights WHERE (login = %s OR login = %s) AND rights & 1 
                                 AND objectId NOT IN (SELECT objectId FROM rights WHERE login = %s AND (rights & 1) = 0)) ORDER by parent, priority";
                         if($result = query($query, $login == "admin" ? [ $idTable ] : [ $idTable, $login, $role, $login ]))
@@ -812,6 +818,7 @@
                 require_once("myFilter.php");
                 $idFilter = (int)$param[0];
                 $myFilter = new MyFilter();
+                $idFilterStructure = (int)$myFilter->getStructureId($idFilter);
                 switch($nQuery)
                 {
                     case 470: // Создать фильтр
@@ -820,14 +827,15 @@
                         echo json_encode([ $myFilter->create($param[1]) ]);
                         break;
                     case 471: // Обновить фильтр
-                        if(($myRight->get($idFilter) & 8) != 8) return; // Права на изменение
+                        if(($myRight->get($idFilterStructure) & 8) != 8) return; // Права на изменение
                         $myFilter->update($idFilter, $param[1]);
                         break;
                     case 472: // Запрос значения фильтра
-                        if(($myRight->get($idFilter) & 1) != 1) return; // Права на просмотр
+                        if(($myRight->get($idFilterStructure) & 1) != 1) return; // Права на просмотр
                         $myFilter->get($idFilter);
                         break;
                     case 473:
+                        if(($myRight->get($idFilterStructure) & 1) != 1) return; // Права на просмотр
                         echo $myFilter->getFilterStr($idFilter);
                         break;
                     case 474: // Обновить / создать настройки фильтра для таблицы
