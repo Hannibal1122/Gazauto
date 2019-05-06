@@ -199,6 +199,7 @@ export class AppComponent implements OnInit
             case "plan": i = this.getNewTab(type, { component: PlanEditorComponent, inputs: input }); break;
         }
         if(length != this.tabs.length) this.setSaveTab(i, type, input) // Новая вкладка, нужно сохранить
+        trace(this.tabs[i])
         this.currentSoftware = i;
     }
     getNewTab(type, software)

@@ -26,7 +26,7 @@ export class TableEditorComponent implements OnInit
         if(value && value.update) this.loadTable();
     }
 
-    inputs = { id: -1, searchObjectId: -1 };
+    inputs = { id: -1, searchObjectId: -1, name: null };
     firstData = {};
     dataHeader = [];
     dataTable = [];
@@ -67,7 +67,7 @@ export class TableEditorComponent implements OnInit
             this.error = false;
             this.right = data.right;
             this.editTable.right = data.right;
-            this.nameTable = data.name;
+            this.nameTable = this.inputs.name = data.name;
             this.stateTable = data.state;
             this.dataHeader = [];
             this.dataTable = [];
@@ -239,14 +239,14 @@ export class TableEditorComponent implements OnInit
             return;
         }
         let l = this.dataTable.length;
-        this.update({ type: "row", idRow: l > 0 ? this.dataTable[l - 1].__ID__ : -1, idNextRow: -1 });
+        this.update({ type: "row", idRow: l > 0 ? this.dataTable[l - 1].__ID__ : -1, prevOrNext: 1 });
     }
     update(property)
     {
         switch(property.type)
         {
             case "row": // Добавление строки
-                this.addToQueue(257, [ this.inputs.id, property.idRow, property.idNextRow ], (data) => { this.loadTable(); });
+                this.addToQueue(257, [ this.inputs.id, property.idRow, property.prevOrNext ], (data) => { this.loadTable(); });
                 break;
             case "field": // Обновление ячейки
                 this.addToQueue(252, [ this.inputs.id,  JSON.stringify(property.out) ], (data) =>
@@ -299,6 +299,8 @@ export class TableEditorComponent implements OnInit
                     this.dataTable[property.i][property.nameColumn].eventId = null;
                     this.editTable.data = this.dataTable; // update edit table
                 }
+                else 
+                    this.editTable.header[this.editTable.firstHeader[property.id]].eventId = null;
                 this.addToQueue(263, [ this.inputs.id, property.id ], (data) => { });
                 break;
             case "paste":

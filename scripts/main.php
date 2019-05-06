@@ -81,8 +81,8 @@
             case 0: // Запрос версии
                 /* include("./version/versions.php"); */
                 $project = [];	
-                $project['main'] = "0.9.64";/* getVersion(		$_main["name"], 		$_main["data"]); */
-                $project['php'] = "0.9.84";/* getVersion(		$_php["name"], 			$_php["data"]); */
+                $project['main'] = "0.9.70";/* getVersion(		$_main["name"], 		$_main["data"]); */
+                $project['php'] = "0.9.90";/* getVersion(		$_php["name"], 			$_php["data"]); */
                 echo json_encode($project);
                 break;
             case 1: // Возвращает информацию о текущем пользователе
@@ -509,33 +509,16 @@
                             "cut" => ($right & 2) == 2 && ($right & 8) == 8,
                             "copy" => ($right & 2) == 2
                         ];
-                        $filters = [];
-                        $filterStr = "";
                         /* Доступные фильтры*/
                         require_once("myFilter.php");
-                        $filterSelected = -1;
                         $myFilter = new MyFilter();
-                        $userFilter = $myFilter->getUserFilter($login, $idTable);
-                        if($login == "admin") $query = "SELECT id, objectId, name FROM structures WHERE parent = %i AND objectType = 'filter' ORDER by parent, priority";
-                        else $query = "SELECT id, objectId, name FROM structures WHERE parent = %i AND objectType = 'filter' AND
-                            id IN (SELECT objectId FROM rights WHERE (login = %s OR login = %s) AND rights & 1 
-                                AND objectId NOT IN (SELECT objectId FROM rights WHERE login = %s AND (rights & 1) = 0)) ORDER by parent, priority";
-                        if($result = query($query, $login == "admin" ? [ $idTable ] : [ $idTable, $login, $role, $login ]))
-                            while ($row = $result->fetch_array(MYSQLI_NUM))
-                            {
-                                if($userFilter == "" && count($filters) == 0)
-                                {
-                                    $filterStr = $myFilter->getFilterStr((int)$row[1]);
-                                    $filterSelected = (int)$row[0];
-                                }
-                                if($userFilter != "" && $userFilter == $row[0])
-                                {
-                                    $filterStr = $myFilter->getFilterStr((int)$row[1]);
-                                    $filterSelected = (int)$row[0];
-                                }
-                                $filters[] = $row;
-                            }
-                        $myTable->getTable($tableRight, $filters, $filterSelected, $filterStr);
+                        $allFilters = $myFilter->getAllFilters($idTable);
+                        $myTable->getTable(
+                            $tableRight, 
+                            $allFilters["filters"], 
+                            $allFilters["filterSelected"], 
+                            $allFilters["filterStr"]
+                        );
                         /* request("SELECT * FROM fields WHERE tableId = %i", [$idTable]); */
                         break;
                     case 251: // Добавить/Удалить заголовок
@@ -577,9 +560,9 @@
                         break;
                     case 257: // Добавить строку в таблицу
                         if(($myRight->get($idTable) & 8) != 8) return; // Права на изменение
-                        $idPrevRow = (int)$param[1]; // id предыдущей строки
-                        $idNextRow = (int)$param[2]; // id следующей строки
-                        $myTable->addRow($idPrevRow, $idNextRow, true);
+                        $idPrevRow = (int)$param[1]; // либо id предыдущей строки, либо -1
+                        $prevOrNext = (int)$param[2]; // -1 добавить строку выше, 1 добавить строку ниже
+                        $myTable->addRow($idPrevRow, $prevOrNext, true);
                         break;
                     case 258: // Удалить строку из таблицы
                         if(($myRight->get($idTable) & 8) != 8) return; // Права на изменение
@@ -669,10 +652,10 @@
                         break;
                     case 304: // Загрузить список
                         $idValue = (int)$param[0]; // Добавить проверку наоборот
-                        if($result = query("SELECT type, value, tableId FROM my_values WHERE id = %i", [ $idValue ]))
+                        if($result = query("SELECT value, tableId, filterId FROM my_values WHERE id = %i", [ $idValue ]))
                         {
                             $row = $result->fetch_array(MYSQLI_NUM);
-                            echo json_encode(getTableListValues((int)$row[2], (int)$row[1]));
+                            echo json_encode(getTableListValues((int)$row[1], (int)$row[0], (int)$row[2]));
                         }
                         /* if($result = query("SELECT objectId FROM structures WHERE id = %i", [ $idElement ]))
                         while ($row = $result->fetch_array(MYSQLI_NUM)) $idValue = (int)$row[0]; */
@@ -904,11 +887,20 @@
                 if(searchParent($out[$i]["childrens"], $parent, $elem)) return true;
         return false;
     }
-    function getTableListValues($tableId, $idColumn) // Получить список значений из таблицы, только value
+    function getTableListValues($tableId, $idColumn, $filterId) // Получить список значений из таблицы, только value
     {
         $out = [];
-        if($result = query("SELECT id, value FROM fields WHERE idColumn = %s AND tableId = %i AND type = 'value' AND value != ''", [ $idColumn, $tableId ]))
-            while ($row = $result->fetch_array(MYSQLI_NUM)) $out[] = [ "id" => $row[0], "value" => $row[1]];
+        $filterStr = "";
+        if($filterId)
+        {
+            require_once("myFilter.php");
+            $myFilter = new MyFilter();
+            $filterStr = $myFilter->getFilterStr(selectOne("SELECT objectId FROM structures WHERE id = %i", [ $filterId ]));
+            if($filterStr != "") $filterStr = "AND ($filterStr)";
+        }
+        if($result = query("SELECT id, value FROM fields WHERE idColumn = %i AND tableId = %i AND type = 'value' AND value != '' $filterStr", [ $idColumn, $tableId ]))
+            while ($row = $result->fetch_array(MYSQLI_NUM)) 
+                $out[] = [ "id" => $row[0], "value" => $row[1]];
         return $out;
     }
     function getTableListValueByKey($id, $tableId) // Получить значение из списка таблицы

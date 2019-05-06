@@ -210,7 +210,7 @@ export class ErrorTableComponent implements OnInit
                 if(this.listTables[i][j] && this.listTables[i][j].listValue !== undefined) 
                 {
                     let _i = 0;
-                    if(this.cacheListValues[this.listTables[i][j].linkId])
+                    /* if(this.cacheListValues[this.listTables[i][j].linkId])
                     {
                         this.inputProperty.values = this.cacheListValues[this.listTables[i][j].linkId];
                         this.inputProperty.typeValues = typeof this.inputProperty.values[0];
@@ -220,7 +220,7 @@ export class ErrorTableComponent implements OnInit
                         this.inputProperty.oldValue = this.inputProperty.value = value;
                         this.inputProperty.valueList = this.listTables[i][j].value;
                     }
-                    else
+                    else */
                         this.query.protectionPost(304, { param: [this.listTables[i][j].linkId] }, (data) =>
                         {
                             this.inputProperty.typeValues = typeof data[0];
@@ -333,7 +333,7 @@ export class ErrorTableComponent implements OnInit
         this.onChange.emit({ 
             type: "removeEvent", 
             id: this.inputProperty.id, 
-            i: this.configInput.i, 
+            i: this.configInput.i,
             nameColumn: head ? -1 : this.header[this.configInput.j].value,
             head: head
         });
@@ -427,8 +427,8 @@ export class ErrorTableComponent implements OnInit
     }
     addRow(prevOrNext)
     {
-        let idRow = this.firstData[this.createContextMenu.i + prevOrNext] ? this.firstData[this.createContextMenu.i + prevOrNext] : -1;
-        this.onChange.emit({ type: "row", idRow: idRow, idNextRow: idRow == -1 ? this.firstData[this.createContextMenu.i] : -1 });
+        let idRow = this.firstData[this.createContextMenu.i] ? this.firstData[this.createContextMenu.i] : -1;
+        this.onChange.emit({ type: "row", idRow: idRow, prevOrNext: prevOrNext });
     }
     pasteField(type)
     {

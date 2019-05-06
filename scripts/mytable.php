@@ -106,7 +106,8 @@
                 "changeHead" => $bindId, // Запрет может быть еще и по связи
                 "state" => $stateTable,
                 "filters" => $filters,
-                "filter" => $filterSelected
+                "filter" => $filterSelected,
+                "filterStr" => $filterStr
             ]);
         }
         function setAndRemoveHeader($data, $changes) // Добавить/Удалить заголовок
@@ -250,19 +251,34 @@
             }
             $this->myLog->add("table", "update", $idTable);
         }
-        function addRow($idPrevRow, $idNextRow, $echo) // Добавить строку в таблицу
+        function addRow($idPrevRow, $prevOrNext, $echo) // Добавить строку в таблицу
         {
             global $mysqli;
             $idTable = $this->idTable; 
-            $oldNext = "NULL";
-            
-            if($idPrevRow != -1) query("INSERT INTO line_ids(next) SELECT next FROM line_ids WHERE id = %i", [$idPrevRow]);
-            else query("INSERT INTO line_ids (next) VALUES(NULL)", []);
-            
-            $idRow = $mysqli->insert_id;
+            query("INSERT INTO line_ids (next) VALUES(NULL)", []);
+            $idRow = $mysqli->insert_id; // Новая строка
             $out = ["__ID__" => $idRow];
-            if($idPrevRow != -1) query("UPDATE line_ids SET next = %i WHERE id = %i", [$idRow, $idPrevRow]); 
-            if($idNextRow != -1) query("UPDATE line_ids SET next = %i WHERE id = %i", [$idNextRow, $idRow]); 
+            if($idPrevRow != -1) 
+            {
+                if($prevOrNext == 1)
+                {
+                    $oldNext = selectOne("SELECT next FROM line_ids WHERE id = %i", [ $idPrevRow ]);
+                    query("UPDATE line_ids SET next = %i WHERE id = %i", [$idRow, $idPrevRow]);
+                    query("UPDATE line_ids SET next = %i WHERE id = %i", [$oldNext, $idRow]);
+                }
+                else if($prevOrNext == -1)
+                {
+                    $oldId = selectOne("SELECT id FROM line_ids WHERE next = %i", [ $idPrevRow ]);
+                    query("UPDATE line_ids SET next = %i WHERE id = %i", [$idPrevRow, $idRow]);
+                    if($oldId) query("UPDATE line_ids SET next = %i WHERE id = %i", [$idRow, $oldId]);
+                }
+            }
+            else // Получить последний id 
+            {
+                $lastId = selectOne("SELECT id FROM line_ids WHERE id IN (SELECT i FROM fields WHERE tableId = %i AND type != 'head') AND next IS NULL", [$idTable]);
+                if($lastId)
+                    query("UPDATE line_ids SET next = %i WHERE id = %i", [$idRow, $lastId]);
+            }
             if($result = query("SELECT id, value, dataType FROM fields WHERE tableId = %i AND type = 'head'", [$idTable]))
                 while ($row = $result->fetch_array(MYSQLI_NUM)) 
                 {
@@ -313,7 +329,7 @@
                     $out["value"] = $value["value"];
                     $out["type"] = $typePaste;
                     $out["linkId"] = $idCellFrom;
-                    query("UPDATE fields SET value = %s, linkId = %i, linkType = %s, type = 'link', state = %i WHERE id = %i", [ "", $idCellFrom, "cell", $valueData[4], $idCellTo ]);
+                    query("UPDATE fields SET value = %s, linkId = %i, linkType = %s, type = 'link', state = %i WHERE id = %i", [ $value["value"], $idCellFrom, "cell", $valueData[4], $idCellTo ]);
                 }
                 else
                 {
@@ -342,8 +358,12 @@
                     query("UPDATE fields SET type=%s, value=%s, linkId=%i, linkType=%s, state=%i WHERE id = %i", [ 
                         $valueData[0], $valueData[1], $valueData[2], $valueData[3], $valueData[4], $idCellTo ]);
                 }
-                if($echo) echo json_encode($out);
-                $this->myLog->add("table", "update", $idTableTo); // изменение основной таблицы
+                if($echo) 
+                {
+                    echo json_encode($out);
+                    $this->myLog->add("table", "update", $idTableTo); // изменение основной таблицы
+                }
+                else $this->myLog->add("table", "updateScript", $idTableTo); // изменение основной таблицы
             }
             if($operation == "cut") 
             {
@@ -394,7 +414,7 @@
             }
             for($i = 0; $i < $l; $i++)
             {
-                $newRow = $this->addRow($idNewRow, -1, false);
+                $newRow = $this->addRow($idNewRow, 1, false);
                 $idNewRow = $newRow["__ID__"];
                 foreach($outData[$i] as $key => $value)
                     if($key != "__ID__" && $key != "__NEXT__")

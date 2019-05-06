@@ -105,7 +105,7 @@
     </div>
 </div>
 <div style = "position:absolute; bottom:-30px; left: 10px;">
-    <div *ngIf = "inputProperty.visible" class = "TableCreatorHeadColor" style = "float:left; font-size:12px; margin-right:5px;">id: {{ inputProperty.id }}</div>
+    <div *ngIf = "inputProperty.visible || createContextMenu.visible" class = "TableCreatorHeadColor" style = "float:left; font-size:12px; margin-right:5px;">id: {{ inputProperty.id }}</div>
     <div *ngIf = "filter.countHide > 0" class = "TableCreatorHeadColor" style = "float:left; font-size:12px;">Показано: {{ filter.count - filter.countHide}} из {{ filter.count }}</div>
 </div>
 <div class = "createContextMenu" 
@@ -128,7 +128,7 @@
     <ng-container *ngIf = "createContextMenu.type == 'row'">
         <button class = "contextMenuList" (click) = "removeRow(createContextMenu.i)" [disabled] = "!rules.change">Удалить строку</button>
         <button class = "contextMenuList" (click) = "addRow(-1)" [disabled] = "!rules.change">Вставить строку выше</button>
-        <button class = "contextMenuList" (click) = "addRow(0)" [disabled] = "!rules.change">Вставить строку ниже</button>
+        <button class = "contextMenuList" (click) = "addRow(1)" [disabled] = "!rules.change">Вставить строку ниже</button>
     </ng-container>
     <ng-container *ngIf = "createContextMenu.type == 'cell'">
         <button class = "contextMenuList" (click) = "clearField()" [disabled] = "!rules.change">Очистить</button>
