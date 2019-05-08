@@ -2,17 +2,12 @@
 <app-enter *ngIf = "!enter && !load"></app-enter>
 <div [hidden] = "!enter || load">
     <div>
-        <div class = "PanelMiniAppBColor" style = "position:fixed; z-index:1000; width:60px; height:40px; left:0px; top:0px;">
+        <div class = "PanelMiniAppBColor" style = "position:fixed; z-index:1000; width:50px; height:40px; left:0px; top:0px;">
             <div class = "miniButton ButtonMiniAppColor ButtonMiniAppActiveColor" style = "cursor:default;">
                 <i class="fab fa-gripfire"></i>
             </div>
         </div>
-        <div *ngIf = "!hideMenu" class = "VersionPanelColor" style = "position:fixed; z-index:1000; width:320px; height:30px; left:60px; top:0px;">
-            <div class="mainPanelAppTitle MainTitleColor" style = "padding-top: 4px;">
-                CAD <span style = "font-size:12px;">{{ Version }}</span>
-            </div>
-        </div>
-        <div class = "PanelMiniAppBColor" style = "position:fixed; z-index:1000; width: 60px; height:calc(100% - 40px); top:40px;">
+        <div class = "PanelMiniAppBColor" style = "position:fixed; z-index:1000; width: 50px; height:calc(100% - 40px); top:40px;">
             <div class = "miniButton ButtonMiniAppColor"  
                 (click) = "openMiniApp('explorer')"
                 [class.ButtonMiniAppActiveColor] = "!hideMenu && currentMiniApp == 'explorer'">
@@ -42,7 +37,7 @@
                 (click) = "openMiniApp('settings')"
                 [class.ButtonMiniAppActiveColor] = "!hideMenu && currentMiniApp == 'settings'"
                 style="position: absolute; bottom:0px;">
-                <div style = "text-align: center; width:60px;">
+                <div style = "text-align: center; width:50px;">
                     <i class="fas fa-cog"></i>
                 </div>
             </div>
@@ -55,26 +50,21 @@
                     Проводник
                     <div class = "refreshIcon" title = "Обновить проводник" (click) = "refreshLeftMenu()"><i class = "fas fa-sync-alt"></i></div>
                 </div>
-                <app-left-menu-element *ngFor = "let element of leftMenuData; let i = index" 
-                    [config] = "leftMenuConfig[i]" 
-                    [data] = "element.childrens" 
-                    (onChange) = "onChangeInLeftMenu($event)"></app-left-menu-element>
-                <!-- <app-left-menu-element *ngIf = "leftMenuData.length > 0"
-                    [config] = "leftMenuData[0]" 
-                    [data] = "leftMenuData[0].childrens" 
-                    (onChange) = "onChangeInLeftMenu($event)"></app-left-menu-element> -->
+                <div style = "overflow: auto; overflow-x:hidden;">
+                    <app-left-menu-element *ngFor = "let element of leftMenuData; let i = index" 
+                        [config] = "leftMenuConfig[i]" 
+                        [data] = "element.childrens" 
+                        (onChange) = "onChangeInLeftMenu($event)"></app-left-menu-element>
+                </div>
             </div>
-            <!-- <div *ngIf = "currentMiniApp == 'search'"
-                [style.width] = "panelApp.width + 'px'" 
-                class = "mainPanelApp PanelAppColor">
-                <div class="mainPanelAppTitle PanelAppTitleColor">Поиск</div>
-            </div> -->
             <div *ngIf = "currentMiniApp == 'events'"
                 [style.width] = "panelApp.width + 'px'" 
                 class = "mainPanelApp PanelAppColor">
                 <div class="mainPanelAppTitle PanelAppTitleColor">События</div>
-                <div style = "font-size: 32px; text-align: center;"><i class="fas fa-wrench"></i></div>
-                <div style = "font-size: 12px; text-align: center;">В разработке</div>
+                <div>
+                    <div style = "font-size: 32px; text-align: center;"><i class="fas fa-wrench"></i></div>
+                    <div style = "font-size: 12px; text-align: center;">В разработке</div>
+                </div>
             </div>
             <div *ngIf = "currentMiniApp == 'app'"
                 [style.width] = "panelApp.width + 'px'" 
@@ -92,68 +82,69 @@
                 [style.width] = "panelApp.width + 'px'" 
                 class = "mainPanelApp PanelAppColor">
                 <div class="mainPanelAppTitle PanelAppTitleColor">Чат</div>
-                <div style = "font-size: 32px; text-align: center;"><i class="fas fa-wrench"></i></div>
-                <div style = "font-size: 12px; text-align: center;">В разработке</div>
-                <!-- <div style = "width:100%; padding: 5px; display: flex; flex-direction: column; align-items: flex-start;">
-                    <div>
-                        <div style = "font-size: 12px;">Человек</div>
-                        <div class = "leftMenuTitleBColor" style = "border-radius: 5px; padding: 4px;">Привет!</div>
-                    </div>
-                    <div style = "align-self:flex-end;">
-                        <div style = "font-size: 12px; text-align: right;">Вы</div>
-                        <div class = "leftMenuTitleBColor" style = "border-radius: 5px; padding: 4px;">Привет!</div>
-                    </div>
+                <div>
+                    <div style = "font-size: 32px; text-align: center;"><i class="fas fa-wrench"></i></div>
+                    <div style = "font-size: 12px; text-align: center;">В разработке</div>
                 </div>
-                <div style = "width:100%; padding: 5px;">
-                    <textarea placeholder = "Напишите текст" style = "width:100%;"></textarea>
-                </div> -->
             </div>
             <div *ngIf = "currentMiniApp == 'settings'"
                 [style.width] = "panelApp.width + 'px'" 
                 class = "mainPanelApp PanelAppColor">
                 <div class="mainPanelAppTitle PanelAppTitleColor">Настройки</div>
-                <div style = "height: 40px; padding: 6px; font-weight:bold; font-size:14px; position: relative;">
-                    <span style = "position: absolute; left:35px; top: 9px;">
-                        {{ Login }}
-                    </span>
-                    <span style = "position: absolute; left:10px; top: 7px; cursor: pointer; font-size:18px;" (click) = "exitLogin()" title = "выйти">
-                        <i class="fas fa-sign-out-alt"></i>
-                    </span>
+                <div>
+                    <div style = "padding: 6px;">CAD <span style = "font-size:12px;">{{ Version }}</span></div>
+                    <div style = "height: 40px; padding: 6px; font-weight:bold; font-size:14px; position: relative;">
+                        <span style = "position: absolute; left:35px; top: 9px;">
+                            {{ Login }}
+                        </span>
+                        <span style = "position: absolute; left:10px; top: 7px; cursor: pointer; font-size:18px;" (click) = "exitLogin()" title = "выйти">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </span>
+                    </div>
+                    <user-settings></user-settings>
                 </div>
-                <user-settings></user-settings>
             </div>
         </div>
     </div>
-    <div *ngIf = "tabs.length > 0" [style.width] = "hideMenu ? 'calc(100% - 60px)' : 'calc(100% - 380px)'"
-        [style.left] = "hideMenu ? '60px' : '380px'"
-        class = "TabsPanelColor"
-        style = "height:30px; position: fixed; top: 0px; overflow:auto; overflow-y:hidden; display:flex; font-size: 14px; z-index: 1000;">
-        <div *ngFor = "let tab of tabs; let i = index;" 
-            class = "myTabs TabsColor" [class.TabsActiveColor] = "i == currentSoftware">
-            <div (click) = "openTab(i)" style = "padding-left:7px; height:30px; line-height:30px; width: calc(100% - 20px); text-overflow: ellipsis; overflow: hidden; white-space: nowrap;" >
-                <span *ngIf = "tab.type == 'explorer'"> <i class = "fas fa-sitemap colorIconExplorer"></i> </span>
-                <span *ngIf = "tab.type == 'table'"> <i class = "fas fa-table colorIconTable"></i> </span>
-                <span *ngIf = "tab.type == 'event'"> <i class = "fas fa-bolt colorIconEvent"></i> </span>
-                <span *ngIf = "tab.type == 'info'"> <i class = "fas fa-info colorIconEvent"></i> </span>
-                {{tab.software.inputs.name || tab.name}}
+    <div class = "AppScreen"
+        [style.width] = "hideMenu || panelApp.up ? 'calc(100% - 50px)' : 'calc(100% - 370px)'"
+        [style.left] = "hideMenu || panelApp.up ? '50px' : '370px'">
+        <div *ngFor = "let screen of splitScreen.screens; let s = index;" class = "SubScreen"
+            [ngStyle] = "{'grid-column': screen.gridColumn, 'grid-row': screen.gridRow}">
+            <div class = "TabsPanelColor"
+                style = "width: 100%; height:30px; position: absolute; top: 0px; overflow:auto; overflow-y:hidden; display:flex; font-size: 14px; z-index: 1000;">
+                <div *ngFor = "let tab of screen.tabs; let i = index;" 
+                    draggable="true"
+                    (dragstart) = "splitScreen.onDragStart(s, i)"
+                    class = "myTabs TabsColor" [class.TabsActiveColor] = "i == screen.currentSoftware">
+                    <div (click) = "openTab(screen, i)" 
+                        style = "padding-left:7px; height:30px; line-height:30px; width: calc(100% - 20px); text-overflow: ellipsis; overflow: hidden; white-space: nowrap;" >
+                        <span *ngIf = "tab.type == 'explorer'"> <i class = "fas fa-sitemap colorIconExplorer"></i> </span>
+                        <span *ngIf = "tab.type == 'table'"> <i class = "fas fa-table colorIconTable"></i> </span>
+                        <span *ngIf = "tab.type == 'event'"> <i class = "fas fa-bolt colorIconEvent"></i> </span>
+                        <span *ngIf = "tab.type == 'info'"> <i class = "fas fa-info colorIconEvent"></i> </span>
+                        {{tab.software.inputs.name || tab.name}}
+                    </div>
+                    <span (click) = "closeTab(i)"><i class="fas fa-times-circle tubExitButton TabsButtonExitColor"></i></span>
+                </div>
             </div>
-            <span (click) = "closeTab(i)"><i class="fas fa-times-circle tubExitButton TabsButtonExitColor"></i></span>
+            <div style = "width:100%; height:calc(100% - 30px); position: absolute; overflow: auto; top: 30px; padding: 5px;" class = "WorkspaceBColor WorkspaceColor">
+                <div *ngFor="let app of screen.tabs; let i = index;">
+                    <div [style.display] = "i == screen.currentSoftware ? 'block' : 'none'">
+                        <vg-dynamic-view [componentData] = "app.software" (onChange) = "onChangeInSoftware($event)" [inputFromApp] = "app.inputFromApp"></vg-dynamic-view>
+                    </div> 
+                </div>
+            </div>
+        </div>
+        <div class = "DragScreen" *ngIf = "splitScreen.drag">
+            <div [ngStyle] = "splitScreen.rect" style = "position: absolute; border: 2px dotted #b8b8b8; pointer-events: none; transition: 0.3s;"></div>
         </div>
     </div>
-    <div [style.width] = "hideMenu || panelApp.up ? 'calc(100% - 60px)' : 'calc(100% - 380px)'"
-        [style.left] = "hideMenu || panelApp.up ? '60px' : '380px'"
-        style = "height:calc(100% - 30px); position: absolute; overflow: auto; top: 30px; padding: 10px;" class = "WorkspaceBColor WorkspaceColor">
-        <div *ngFor="let app of tabs; let i = index;">
-            <div [style.display] = "i == currentSoftware ? 'block' : 'none'">
-                <vg-dynamic-view [componentData] = "app.software" (onChange) = "onChangeInSoftware($event)" [inputFromApp] = "app.inputFromApp"></vg-dynamic-view>
-            </div> 
-        </div>
-        <div *ngIf = "tabs.length == 0" style = "text-align: center; line-height: 16px;">
-            <i class="fab fa-gripfire" style = "font-size: 150px; color:#d6e6fd;"></i><br>
-            <span style="color:#b8b8b8; font-size:25px; font-weight:bold">Добро пожаловать!
-                <br>
-                <span style = "font-size:14px;">Выберите объект из левого меню</span>
-            </span>
-        </div>
+    <div *ngIf = "tabs.length == 0" style = "text-align: center; line-height: 16px;">
+        <i class="fab fa-gripfire" style = "font-size: 150px; color:#d6e6fd;"></i><br>
+        <span style="color:#b8b8b8; font-size:25px; font-weight:bold">Добро пожаловать!
+            <br>
+            <span style = "font-size:14px;">Выберите объект из левого меню</span>
+        </span>
     </div>
 <div>

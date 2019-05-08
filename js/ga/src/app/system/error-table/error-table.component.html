@@ -1,8 +1,8 @@
-<div name = "clickArea" #mainContainer style = "overflow:auto;" [style.height] = "height">
+<div name = "clickArea" #mainContainer style = "position:relative; height: 100%;">
     <table class = "errorTable TableCreatorBorderColor">  <!--  -->
         <tbody (click) = "editField($event)">
             <tr>
-                <th name = "clickArea" class = "TableCreatorHeadColor"></th>
+                <th name = "clickArea" class = "TableCreatorHeadColor TableCreatorHeadBColor"></th>
                 <th name = "clickArea" *ngFor = "let head of header; let i = index;" 
                     class = "TableCreatorHeadColor TableCreatorHeadBColor" 
                     id = "{{ head.value }}"
@@ -24,20 +24,20 @@
                 </th>
             </tr>
             <tr>
-                <td style = "padding:0px;"></td>
+                <td style = "padding:0px;" class = "TableCreatorHeadColor TableCreatorHeadBColor"></td>
                 <td *ngFor = "let filter of filter.fields; let i = index;" style = "padding:0px;">
                     <input type = "text" 
-                        style = "width:100%; height:22px; border:1px solid transparent; padding:5px; color:#aaaaaa;" 
+                        style = "width:100%; height:22px; border:1px solid transparent; padding:5px;" 
                         placeholder="Поиск"
                         [(ngModel)] = "filter.value"
                         (input) = "onChangeFilter(i, $event.target.value)">
                 </td>
             </tr>
             <tr>
-                <td style = "padding:0px;"></td>
+                <td style = "padding:0px;" class = "TableCreatorHeadColor TableCreatorHeadBColor"></td>
                 <td *ngFor = "let filter of filter.state; let i = index;" style = "padding:0px;">
                     <input type = "text" 
-                        style = "width:100%; height:22px; border:1px solid transparent; padding:5px; color:#aaaaaa;" 
+                        style = "width:100%; height:22px; border:1px solid transparent; padding:5px;" 
                         placeholder="Статус <"
                         [(ngModel)] = "filter.value"
                         (input) = "onChangeFilterState(i, $event.target.value)">
@@ -80,14 +80,13 @@
             </ng-container>
         </tbody>
     </table>
-
     <div style = "position:absolute;" [ngStyle] = "configInput" [hidden] = "!inputProperty.visible">
         <textarea #mainInputElement class = "mainInputStyle TableCreatorInputColor" 
             [hidden] = "inputProperty.type == 'tlist' || inputProperty.type == 'datetime'" 
             (blur) = "acceptEditField()" 
             [(ngModel)] = "inputProperty.value" 
             (keydown)="downEnter($event)"></textarea>
-        <button *ngIf = "inputProperty.type == 'table'" 
+        <button *ngIf = "inputProperty.type == 'table'"
             style = "position:absolute; right:0px; top: 0px; color:red; cursor:pointer; border:none; background:none; outline: none;"
             (click) = "inputProperty.value = ''; acceptEditField();">
             <i class = "fa fa-times-circle"></i>
@@ -103,10 +102,6 @@
             </select>
         </ng-container>
     </div>
-</div>
-<div style = "position:absolute; bottom:-30px; left: 10px;">
-    <div *ngIf = "inputProperty.visible || createContextMenu.visible" class = "TableCreatorHeadColor" style = "float:left; font-size:12px; margin-right:5px;">id: {{ inputProperty.id }}</div>
-    <div *ngIf = "filter.countHide > 0" class = "TableCreatorHeadColor" style = "float:left; font-size:12px;">Показано: {{ filter.count - filter.countHide}} из {{ filter.count }}</div>
 </div>
 <div class = "createContextMenu" 
     [hidden] = "!createContextMenu.visible" 

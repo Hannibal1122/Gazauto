@@ -9,12 +9,13 @@
 .mainPanelApp
 {
     position:fixed; 
-    z-index: 1000;
-    overflow: auto; 
-    overflow-x:hidden; 
-    height:calc(100% - 30px); 
-    top:30px;
-    left:60px;
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: 30px 1fr;
+    height: 100vh;
+    z-index: 1000; 
+    top:0px;
+    left:50px;
 }
 .mainPanelAppTitle
 {

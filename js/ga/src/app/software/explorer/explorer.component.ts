@@ -113,14 +113,11 @@ export class ExplorerComponent implements OnInit
         this.createFilter.modal = this.modal;
         this.globalClick = (e) => 
         { 
-            if(e.target.classList[0] == "col-md-12"  && this.selectObjectI != -1) this.refresh(); 
+            if(e.target.classList[0] == "explorerMain"  && this.selectObjectI != -1) this.unSelectObject(); 
             this.createContextMenu.visible = false;
             this.createContextMenuMain.visible = false;
         }
         window.addEventListener("click", this.globalClick, false);
-        this.resize();
-        this.functionResize = () => { this.resize(); };
-        window.addEventListener("resize", this.functionResize, false);
     }
     changeViewType()
     {
@@ -493,7 +490,6 @@ export class ExplorerComponent implements OnInit
     {
         if(this.selectObjectI == -1) return;
         var id = this.outFolders[this.selectObjectI].id;
-        var name = this.outFolders[this.selectObjectI].name;
         this.createTableList.create(this.parent, () => { this.refresh() }, id, null);
     }
     openTableFilter() // Открыть таблицу как папку для просмотра фильтров
@@ -501,12 +497,6 @@ export class ExplorerComponent implements OnInit
         this.openFolder(this.outFolders[this.selectObjectI].id);
     }
     /**************************************/
-    heightListElement = 0;
-    functionResize;
-    resize()
-    {
-        this.heightListElement = document.documentElement.clientHeight - 50 - 50 - 40 - 40 - 30;
-    }
     createContextMenu = 
     {
         top: "", 
@@ -534,7 +524,7 @@ export class ExplorerComponent implements OnInit
     {
         this.createContextMenuMain.left = e.clientX + "px";
         this.createContextMenuMain.top = e.clientY + "px";
-        if(e.target.classList[0] == "col-md-12")
+        if(e.target.classList[0] == "explorerMain")
         {
             this.createContextMenu.visible = false;
             this.createContextMenuMain.visible = true;
@@ -545,6 +535,5 @@ export class ExplorerComponent implements OnInit
     ngOnDestroy() 
     {
         window.removeEventListener("click", this.globalClick, false);
-        window.removeEventListener("resize", this.functionResize, false);
     }
 }

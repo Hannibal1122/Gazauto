@@ -178,13 +178,13 @@
                     case 110: // Загрузка структуры // Права на просмотр
                         $out = ["folder" => [], "path" => []];
                         $idParent = (int)$param[0];
-                        $query = "SELECT id, objectType, objectId, name, parent, priority, info, bindId, state FROM structures WHERE parent = %i AND trash = 0";
+                        $query = "SELECT id, objectType, objectId, name, parent, priority, info, bindId, state, icon FROM structures WHERE parent = %i AND trash = 0";
                         if($login == "admin") $query .= " ORDER by parent, priority";
                         else $query .= " AND
                             id IN (SELECT objectId FROM rights WHERE (login = %s OR login = %s) AND rights & 1 
                                 AND objectId NOT IN (SELECT objectId FROM rights WHERE login = %s AND (rights & 1) = 0)) ORDER by parent, priority";
                         if($result = query($query, $login == "admin" ? [ $idParent ] : [ $idParent, $login, $role, $login ]))
-                            while ($row = $result->fetch_array(MYSQLI_NUM)) 
+                            while ($row = $result->fetch_assoc()) 
                                 $out["folder"][] = getObjectFromStructures($row);
                         getFullPath($out["path"], $param[0]);
                         echo json_encode($out);
@@ -219,7 +219,7 @@
                         break;
                     case 113: // Загрузка структуры без выпрямления
                         $out = [];
-                        if($result = query("SELECT id, objectType, objectId, name, parent, priority, info, state FROM structures ORDER by parent, priority", []))
+                        if($result = query("SELECT id, objectType, objectId, name, parent, priority, info, state FROM structures WHERE trash = 0 ORDER by parent, priority", []))
                             while ($row = $result->fetch_array(MYSQLI_NUM)) 
                             {
                                 $elem = [];
@@ -266,13 +266,13 @@
                             $myLog->add("structure", "cut", $idParent);
                         }
                         break;
-                    case 115: // Запрос приоритета
+                    case 115: // Запрос приоритета и иконок
                         if(($myRight->get($param[0]) & 1) != 1) continue; // Права на просмотр
-                        request("SELECT priority FROM structures WHERE id = %i", $param);
+                        request("SELECT priority, icon FROM structures WHERE id = %i", $param);
                         break;
-                    case 116: // Изменение приоритета
+                    case 116: // Изменение приоритета и иконок
                         if(($myRight->get($param[1]) & 8) != 8) continue; // Права на просмотр
-                        query("UPDATE structures SET priority = %i WHERE id = %i", $param);
+                        query("UPDATE structures SET priority = %i, icon = %i WHERE id = %i", $param);
                         break;
                     case 117: // Загрузка файлов на сервер
                         echo loadFile(10, ['gif','jpeg','png','jpg','xls','xlsx','doc','docx']);
@@ -836,18 +836,24 @@
     function getObjectFromStructures($row)
     {
         $elem = [];
-        $elem["id"] = $row[0];
-        $elem["objectType"] = $row[1];
-        $elem["objectId"] = $row[2];
-        $elem["name"] = $row[3];
-        $elem["parent"] = $row[4];
-        $elem["priority"] = $row[5];
-        $elem["bindId"] = $row[7];
-        $elem["state"] = $row[8];
-        if($row[1] == "file")
+        $elem["id"] = $row["id"];
+        $elem["objectType"] = $row["objectType"];
+        $elem["objectId"] = $row["objectId"];
+        $elem["name"] = $row["name"];
+        $elem["parent"] = $row["parent"];
+        $elem["priority"] = $row["priority"];
+        $elem["bindId"] = $row["bindId"];
+
+        // Заполнение отображаемых иконок
+        $icon = (int)$row["icon"];
+        $state = ($icon & 1) == 1;
+        $count = ($icon & 2) == 2;
+        $elem["state"] = $state ? $row["state"] : NULL;
+        $elem["count"] = $count ? selectOne("SELECT COUNT(*) FROM structures WHERE parent = %i", [ $elem["id"] ]) : NULL;
+        if($elem["objectType"] == "file")
         {
-            $end = strripos($row[3], "."); 
-            $type = substr($row[3], $end + 1);
+            $end = strripos($elem["name"], "."); 
+            $type = substr($elem["name"], $end + 1);
             switch($type)
             {
                 case 'gif':

@@ -283,11 +283,13 @@
                 while ($row = $result->fetch_array(MYSQLI_NUM)) 
                 {
                     if($row[2])
-                        query("INSERT INTO fields (tableId, i, idColumn, type, value, linkId, linkType) VALUES(%i, %i, %i, 'link', '', %i, 'tlist') ", [ 
+                        query("INSERT INTO fields (tableId, i, idColumn, type, value, linkId, linkType) VALUES(%i, %i, %i, %s, '', %i, %s) ", [ 
                             $idTable, 
                             $idRow, 
                             (int)$row[0], 
-                            (int)$row[2]
+                            (int)$row[2] > 3 ? 'link' : 'value', // Стандартные типы
+                            (int)$row[2],
+                            (int)$row[2] > 3 ? 'tlist' : NULL
                         ]);
                     else query("INSERT INTO fields (tableId, i, idColumn, type, value) VALUES(%i, %i, %i, 'value', '') ", [ $idTable, $idRow, (int)$row[0] ]);
                     $out[$row[0]] = ["id" => $mysqli->insert_id, "value" => ""];

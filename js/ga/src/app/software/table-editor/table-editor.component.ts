@@ -32,10 +32,17 @@ export class TableEditorComponent implements OnInit
     dataTable = [];
     mode = "Global"; //Local
     nameTable = "";
-    stateTable = 0;
-    error = false;
     load = false;
-    needUpdate = false;
+    control = 
+    {
+        state: 0,
+        error: false,
+        id: -1,
+        filter: {
+            count: 0,
+            countHide: 0
+        }
+    }
     right = 
     {
         change: false, 
@@ -61,14 +68,14 @@ export class TableEditorComponent implements OnInit
         {
             if(data.head == undefined) 
             {
-                this.error = true;
+                this.control.error = true;
                 return;
             }
-            this.error = false;
+            this.control.error = false;
             this.right = data.right;
             this.editTable.right = data.right;
             this.nameTable = this.inputs.name = data.name;
-            this.stateTable = data.state;
+            this.control.state = data.state;
             this.dataHeader = [];
             this.dataTable = [];
             this.firstData = data.data;
@@ -323,6 +330,12 @@ export class TableEditorComponent implements OnInit
                 break;
             case "copyOrCut":
                 this.copyField(property.copyOrCut);
+                break;
+            case "bottomControlPanel":
+                this.control.id = property.id;
+                break;
+            case "bottomControlPanelFilter":
+                this.control.filter = property.filter;
                 break;
         }
     }

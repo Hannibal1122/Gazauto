@@ -6,29 +6,25 @@
 }
 .WorkspaceBColor /*Фон рабочей области*/
 {
-    background-color: #ffffff;
+    background-color: #d7d1db;
 }
 .WorkspaceColor /*Цвет рабочей области*/
 {
-    color: #000000;
+    color: #353012;
 }
 .TabsPanelColor
 {
-    background-color: #6085ac;
-}
-.VersionPanelColor
-{
-    background-color: #456486;
+    background-color: #5675ac;
 }
 .TabsColor
 {
-    color: #daf1ff;
-    background-color: #6085ac;
+    color: #e6e6e6;
+    background-color: #5675ac;
 }
 .TabsActiveColor /* Цвета активной вкладки*/
 {
     color: #ffffff;
-    background-color: #456486;
+    background-color: #133268;
 }
 .TabsButtonExitColor
 {
@@ -37,40 +33,29 @@
 }
 .TabsButtonExitColor:hover
 {
-    color: #faa9a9;
+    color: #ffcaca;
 }
-/*******************************************************/
-.ModalButtonExitColor
-{
-    color: #faa9a9;
-    transition: 0.3s;
-}
-.ModalButtonExitColor:hover
-{
-    color: #ff3333;
-}
-/*******************************************************/
 .PanelAppColor /*Основной цвет шрифта и фона у открытого меню*/
 {
     color:#ffffff;
-    background-color: #456486;
+    background-color: #262431;
 }
 .PanelAppTitleColor /*Фон и цвет у заголовка открытого меню*/
 {
     color:#ffffff;
-    background-color: #6085ac;
+    background-color: #a6a6b0;
 }
 .PanelMiniAppBColor /*Фон у панели слева где иконки приложений*/
 {
-    background-color: #5378a0;
+    background-color: #585d70
 }
 .leftMenuTitleBColor
 {
-    background-color: #456486;
+    background-color: #262431;
 }
 .ButtonMiniAppColor
 {
-    color:#daf1ff;
+    color:#a6a6b0;
 }
 .ButtonMiniAppActiveColor
 {
@@ -84,15 +69,16 @@
 /*Table Creator*/
 .TableCreatorHeadBColor /*Фон заголовка*/
 {
-    background-color: #f6faff;
+    background-color: #ffffff;
 }
 .TableCreatorHeadColor /*Цвет текста заголовка, цвет нижнего статуса и цвет процентов*/
 {
-    color: #566b86;
+    color: #634b27;
 }
 .TableCreatorBorderColor td, th/*Цвет границ таблицы*/
 {
-    border-color: #ececec !important;
+    border-color: #b09a7e !important;
+    background-color: #ffffff;
 }
 .TableCreatorInputColor
 {
@@ -121,37 +107,33 @@
     background-color: #dfdfdf;
 }
 /*******************************************************/
-.colorIconFolder
-{
-    color: #6085ac;
-}
 .colorIconEvent
 {
-    color: #caca5d;
+    color: #a74c1f;
 }
 .colorIconValue
 {
-    color: #d38dca;
+    color: #a74c1f;
 }
 .colorIconTable
 {
-    color: #9dd165;
+    color: #a74c1f;
 }
 .colorIconRole
 {
-    color: #c2c2c2;
+    color: #a74c1f;
 }
 .colorIconExplorer
 {
-    color: #c77373;
+    color: #a74c1f;
 }
 .colorIconFile
 {
-    color: #9dd165;
+    color: #a74c1f;
 }
 .colorIconTlist
 {
-    color: #7eb2be;
+    color: #a74c1f;
 }
 /*******************************************************/
 .LowState
@@ -166,9 +148,20 @@
 {
     color:#def7c2;
 }
+/*******************************************************/
+.mainButton
+{
+    color: #585d70;
+    border: 1px solid #585d70;
+}
+.mainButton:disabled
+{
+    color: #a6a6b0;
+    border: 1px solid #a6a6b0;
+}
 .mainSelect
 {
-    color: #456486;
-    border: 1px solid #b9c5d1; 
+    color: #585d70;
+    border: 1px solid #585d70; 
     border-radius:5px;
 }

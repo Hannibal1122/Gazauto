@@ -2,6 +2,7 @@ import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { ExplorerComponent } from './software/explorer/explorer.component';
 import { QueryService } from "./lib/query.service";
 import { GlobalEvent } from "./system/global-event.service";
+import { SplitScreen } from "./system/screen.service";
 import { FunctionsService } from "./lib/functions.service";
 import { TableEditorComponent } from './software/table-editor/table-editor.component';
 import { EventEditorComponent } from './software/event-editor/event-editor.component';
@@ -16,7 +17,7 @@ declare var $: any;
 @Component({
     selector: 'app-root',
     templateUrl: './app.component.html',
-    styleUrls: ['./app.component.css'],
+    styleUrls: ['./app.component.css', './app.screen.component.css'],
     providers: [ QueryService, FunctionsService, GlobalEvent ]
 })
 export class AppComponent implements OnInit
@@ -31,7 +32,16 @@ export class AppComponent implements OnInit
     tabs = [];
     Login = "";
     Version = "";
-    currentSoftware = 0;
+    _currentSoftware = 0;
+    set currentSoftware(value)
+    {
+        this._currentSoftware = value;
+    }
+    get currentSoftware()
+    {
+        return this._currentSoftware;
+    }
+    splitScreen: SplitScreen = new SplitScreen();
     constructor(private query: QueryService, private lib: FunctionsService, private globalEvent:GlobalEvent) 
     { 
         query.post(0, {}, (data) => { this.Version = data.main });
@@ -61,8 +71,8 @@ export class AppComponent implements OnInit
                 if(saveTabs[i]) 
                     this.openSoftware(saveTabs[i][0], saveTabs[i][1]);
 
-            let currentTab = localStorage.getItem("CurrentTab");
-            if(currentTab !== null) this.currentSoftware = Number(currentTab);
+            /* let currentTab = localStorage.getItem("CurrentTab");
+            if(currentTab !== null) this.currentSoftware = Number(currentTab); */
 
             let miniApp:any = localStorage.getItem("MiniApp");
             if(miniApp !== null)
@@ -80,19 +90,20 @@ export class AppComponent implements OnInit
     resizeWindow()
     {
         let Width = document.documentElement.clientWidth;
-        if(Width < 380) this.panelApp.width = Width - 60;
+        if(Width < 380) this.panelApp.width = Width - 50;
         else this.panelApp.width = 320;
         if(Width < 720) this.panelApp.up = true;
         else this.panelApp.up = false;
     }
-    openTab(i) // Активировать вкладку
+    openTab(screen, i) // Активировать вкладку
     {
-        this.currentSoftware = i;
-        localStorage.setItem("CurrentTab", i);
+        screen.currentSoftware = i;
+        /* this.currentSoftware = i;
+        localStorage.setItem("CurrentTab", i); */
     }
     closeTab(i) // Закрыть вкладку
     {
-        this.removeSaveTab(i);
+        /* this.removeSaveTab(i);
         if(this.tabs[i].type == "table")
             this.globalEvent.unsubscribe("table", this.tabs[i].software.inputs.id);
         this.tabs.splice(i, 1);
@@ -101,7 +112,7 @@ export class AppComponent implements OnInit
         {
             if(this.tabs[i]) this.currentSoftware = i;
             else if(this.tabs[i - 1]) this.currentSoftware = i - 1;
-        }
+        } */
     }
     leftMenuConfig = [];
     refreshLeftMenu() // обновить левое меню
@@ -129,11 +140,11 @@ export class AppComponent implements OnInit
         switch(e.type)
         {
             case "open":
-                this.openSoftware(e.value.name, e.value);
+                this.openSoftware(e.value.name, { id: e.value.id });
                 break;
             case "info":
-                if(this.tabs[this.currentSoftware] && this.tabs[this.currentSoftware].type == "info")
-                    this.tabs[this.currentSoftware].inputFromApp = e.value.id;
+                /* if(this.tabs[this.currentSoftware] && this.tabs[this.currentSoftware].type == "info")
+                    this.tabs[this.currentSoftware].inputFromApp = e.value.id; */
                 break;
         }
     }
@@ -199,8 +210,7 @@ export class AppComponent implements OnInit
             case "plan": i = this.getNewTab(type, { component: PlanEditorComponent, inputs: input }); break;
         }
         if(length != this.tabs.length) this.setSaveTab(i, type, input) // Новая вкладка, нужно сохранить
-        trace(this.tabs[i])
-        this.currentSoftware = i;
+        /* this.currentSoftware = i; */
     }
     getNewTab(type, software)
     {
@@ -221,12 +231,15 @@ export class AppComponent implements OnInit
             if(input.element) this.tabs[i].inputFromApp = { element: input.element };
         }
         else
+        {
             this.tabs[i] = {
                 name: name,
                 type: type,
                 software: software,
                 inputFromApp: null,
             };
+            this.splitScreen.appendTab(this.tabs[i]);
+        }
         this.tabs[i].software.inputs.updateHistory = (input) => { this.setSaveTab(i, type, input); } 
         return i;
     }
