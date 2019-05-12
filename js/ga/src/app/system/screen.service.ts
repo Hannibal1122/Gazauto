@@ -18,28 +18,23 @@ export class SplitScreen
     dragSettings = 
     {
         s: -1,
-        i: -1,
-        x: -1,
-        y: -1
+        tabsI: -1,
+        new: false,
+        rect: {
+            pointA: { i: 0, j: 0},
+            pointB: { i: 0, j: 0}
+        }
     };
     sectors = 
     [
-        [0, null, null, null, null, null],
-        [null, null, null, null, null, null],
-        [null, null, null, null, null, null],
-        [null, null, null, null, null, null],
-        [null, null, null, null, null, null],
-        [null, null, null, null, null, null]
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
     ]
     constructor()
     {
-        this.appendScreen();
-        document.addEventListener("dragenter", (event:any) => 
-        {
-            // highlight potential drop target when the draggable element enters it
-            /* trace(event) */
-            
-        }, false);
+        this.appendScreen(0, 0);
         document.addEventListener("dragover", (event:any) => 
         {
             if(event.target.className != "DragScreen") return;
@@ -47,69 +42,70 @@ export class SplitScreen
             let mouseX = event.clientX - box.x;
             let mouseY = event.clientY - box.y;
 
-            let w = box.width / 6;
-            let h = box.height / 6;
-            let x = Math.floor(mouseX / w);
-            let y = Math.floor(mouseY / h);
-            this.rect.left = x * w + "px";
-            this.rect.top = y * h + "px";
-            this.rect.width = (6 - x) * w + "px";
-            this.rect.height = (6 - y) * h + "px";
-            this.dragSettings.x = x;
-            this.dragSettings.y = y;
-            /* if(mouseX > Width / 2) 
+            let w = box.width / 4;
+            let h = box.height / 4;
+            let pointA = 
             {
-                this.rect.left = Width / 2 + "px";
-                this.rect.width = Width / 2 + "px";
-                this.rect.height = Height + "px";
-                this.sector = 1;
+                i: Math.floor(mouseY / h),
+                j:  Math.floor(mouseX / w)
             }
-            else 
-            {
-                this.rect.left = 0 + "px";
-                this.rect.width = Width + "px";
-                this.rect.height = Height + "px";
-                this.sector = 0;
-            } */
+            let first = this.screens[this.sectors[pointA.i][pointA.j]].first;
+            pointA.j = first.i == pointA.i ? pointA.j : first.j;
+            let pointB = this.getRect(pointA);
+            this.rect.left = pointA.j * w + "px";
+            this.rect.top = pointA.i * h + "px";
+            this.rect.width = (pointB.j - pointA.j) * w + "px";
+            this.rect.height = (pointB.i - pointA.i) * h + "px";
+
+            this.dragSettings.new = !(first.i == pointA.i && first.j == pointA.j);
+            this.dragSettings.rect.pointA = pointA;
+            this.dragSettings.rect.pointB = pointB;
         }, false);
         document.addEventListener("dragend", (event:any) => 
         {
-            let x = this.dragSettings.x;
-            let y = this.dragSettings.y;
-            if(this.sectors[y][x] === null)
+            let pointA = this.dragSettings.rect.pointA;
+            let pointB = this.dragSettings.rect.pointB;
+            if(this.dragSettings.new)
             {
                 this.sector = this.screens.length;
-                this.sectors[y][x] = this.sector;
-                this.appendScreen();
+                this.appendScreen(pointA.i, pointA.j);
+                for(let i = pointA.i; i < pointB.i; i++)
+                    for(let j = pointA.j; j < pointB.j; j++)
+                        this.sectors[i][j] = this.sector;
             }
-            else this.sector = this.sectors[y][x];
-            this.calcSectors();
-            trace(this.sectors)
-            /* if(this.sector) */
-            return;
+            else this.sector = this.sectors[pointA.i][pointA.j];
+
             let s = this.dragSettings.s;
-            let i = this.dragSettings.i;
-            switch(this.sector)
+            let tabsI = this.dragSettings.tabsI;
+            let tab = this.screens[s].tabs[tabsI];
+            this.screens[this.sector].tabs.push(tab);
+            this.screens[s].tabs.splice(tabsI, 1);
+            this.screens[this.sector].currentSoftware = this.screens[this.sector].tabs.length - 1;
+            /* if(this.screens[s].tabs.length == 0)
             {
-                case 0:
-                    break;
-                case 1: 
-                    if(!this.screens[1]) 
-                    {
-                        this.appendScreen();
-                        this.screens[0].column = { first: 1, end: 4 };
-                        /* this.screens[0].rows = { first: , end:  }; */
-                        this.screens[1].column = { first: 4, end: 7 };
-                    }
-                    trace(this.screens[1].tabs)
-                    let tab = this.screens[s].tabs[i];
-                    this.screens[1].tabs.push(tab);
-                    this.screens[s].tabs.splice(i, 1);
-                    this.screens[1].currentSoftware = this.screens[1].tabs.length - 1;
-                    break;
-            }
+                this.sectors[this.screens[s].y][this.screens[s].x] = null;
+                this.screens[s] = null;
+            } */
+            this.calcSectors();
             this.onDragEnd();
+            trace(this.screens)
+            trace(this.sectors)
         }, false);
+    }
+    getRect(pointA)
+    {
+        let sectors = this.sectors;
+        let s = sectors[pointA.i][pointA.j]; // Текущий сектор
+        let pointB = { i: 0, j: 0};
+        let i = pointA.i + 1;
+        for(; i < sectors.length; i++)
+            if(sectors[i][pointA.j] != s) break;
+        pointB.i = i;
+        let j = pointA.j + 1;
+        for(; j < sectors[pointA.i].length; j++)
+            if(sectors[pointA.i][j] != s) break;
+        pointB.j = j;
+        return pointB;
     }
     calcSectors()
     {
@@ -117,22 +113,21 @@ export class SplitScreen
         for(let i = 0; i < sectors.length; i++)
         {
             let s = -1;
-            let first = -1;
-            for(let j = 0; j < sectors[i].length; j++)
+            let screen;
+            let l = sectors[i].length;
+            for(let j = 0; j < l; j++)
             {
-                if(sectors[i][j] !== null || j == sectors[i].length - 1)
+                s = sectors[i][j];
+                screen = this.screens[s];
+                if(!(screen.first.i == i && screen.first.j == j))
                 {
-                    if(s != -1)
-                    {
-                        this.screens[s].column = { first: first + 1, end: j + 1 }
-                    }
-                    s = sectors[i][j];
-                    first = j;
+                    this.screens[s].column = { first: screen.first.j + 1, end: j + 2 }
+                    this.screens[s].rows = { first: screen.first.i + 1, end: i + 2 }
                 }
             }
         }
     }
-    appendScreen()
+    appendScreen(i, j)
     {
         this.screens.push({
             tabs: [],
@@ -146,20 +141,21 @@ export class SplitScreen
             },
             gridColumn: "1 / 7",
             gridRow: "1 / 7",
-            currentSoftware: -1
+            currentSoftware: -1,
+            first: { i: i, j: j}
         });
     }
     drag = false;
-    onDragStart(s, i)
+    onDragStart(s, tabsI)
     {
-        this.dragSettings.s = s;
-        this.dragSettings.i = i;
+        this.dragSettings.s = s; // Из какого экрана
+        this.dragSettings.tabsI = tabsI; // Номер влкадки
         this.drag = true;
     }
     onDragEnd()
     {
         this.dragSettings.s = -1;
-        this.dragSettings.i = -1;
+        this.dragSettings.tabsI = -1;
         this.drag = false;
     }
     appendTab(tab)

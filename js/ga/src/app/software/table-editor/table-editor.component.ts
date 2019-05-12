@@ -25,7 +25,7 @@ export class TableEditorComponent implements OnInit
         }
         if(value && value.update) this.loadTable();
     }
-
+    visible = true;
     inputs = { id: -1, searchObjectId: -1, name: null };
     firstData = {};
     dataHeader = [];

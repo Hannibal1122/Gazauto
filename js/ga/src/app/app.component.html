@@ -109,35 +109,41 @@
     <div class = "AppScreen"
         [style.width] = "hideMenu || panelApp.up ? 'calc(100% - 50px)' : 'calc(100% - 370px)'"
         [style.left] = "hideMenu || panelApp.up ? '50px' : '370px'">
-        <div *ngFor = "let screen of splitScreen.screens; let s = index;" class = "SubScreen"
-            [ngStyle] = "{'grid-column': screen.gridColumn, 'grid-row': screen.gridRow}">
-            <div class = "TabsPanelColor"
-                style = "width: 100%; height:30px; position: absolute; top: 0px; overflow:auto; overflow-y:hidden; display:flex; font-size: 14px; z-index: 1000;">
-                <div *ngFor = "let tab of screen.tabs; let i = index;" 
-                    draggable="true"
-                    (dragstart) = "splitScreen.onDragStart(s, i)"
-                    class = "myTabs TabsColor" [class.TabsActiveColor] = "i == screen.currentSoftware">
-                    <div (click) = "openTab(screen, i)" 
-                        style = "padding-left:7px; height:30px; line-height:30px; width: calc(100% - 20px); text-overflow: ellipsis; overflow: hidden; white-space: nowrap;" >
-                        <span *ngIf = "tab.type == 'explorer'"> <i class = "fas fa-sitemap colorIconExplorer"></i> </span>
-                        <span *ngIf = "tab.type == 'table'"> <i class = "fas fa-table colorIconTable"></i> </span>
-                        <span *ngIf = "tab.type == 'event'"> <i class = "fas fa-bolt colorIconEvent"></i> </span>
-                        <span *ngIf = "tab.type == 'info'"> <i class = "fas fa-info colorIconEvent"></i> </span>
-                        {{tab.software.inputs.name || tab.name}}
+        <ng-container *ngFor = "let screen of splitScreen.screens; let s = index;">
+            <div *ngIf = "screen" class = "SubScreen"
+                [ngStyle] = "{'grid-column': screen.gridColumn, 'grid-row': screen.gridRow}">
+                <div class = "TabsPanelColor"
+                    style = "width: 100%; height:30px; position: absolute; top: 0px; overflow:auto; overflow-y:hidden; display:flex; font-size: 14px; z-index: 1000;">
+                    <div *ngFor = "let tab of screen.tabs; let i = index;" 
+                        draggable="true"
+                        (dragstart) = "splitScreen.onDragStart(s, i)"
+                        class = "myTabs TabsColor" [class.TabsActiveColor] = "i == screen.currentSoftware">
+                        <div (click) = "openTab(screen, i)" 
+                            style = "padding-left:7px; height:30px; line-height:30px; width: calc(100% - 20px); text-overflow: ellipsis; overflow: hidden; white-space: nowrap;" >
+                            <span *ngIf = "tab.type == 'explorer'"> <i class = "fas fa-sitemap colorIconExplorer"></i> </span>
+                            <span *ngIf = "tab.type == 'table'"> <i class = "fas fa-table colorIconTable"></i> </span>
+                            <span *ngIf = "tab.type == 'event'"> <i class = "fas fa-bolt colorIconEvent"></i> </span>
+                            <span *ngIf = "tab.type == 'info'"> <i class = "fas fa-info colorIconEvent"></i> </span>
+                            {{tab.software.inputs.name || tab.name}}
+                        </div>
+                        <span (click) = "closeTab(i)"><i class="fas fa-times-circle tubExitButton TabsButtonExitColor"></i></span>
                     </div>
-                    <span (click) = "closeTab(i)"><i class="fas fa-times-circle tubExitButton TabsButtonExitColor"></i></span>
+                </div>
+                <div style = "width:100%; height:calc(100% - 30px); position: absolute; overflow: auto; top: 30px; padding: 5px;" class = "WorkspaceBColor WorkspaceColor">
+                    <div *ngFor="let app of screen.tabs; let i = index;">
+                        <div [hidden] = "i != screen.currentSoftware">
+                            <vg-dynamic-view 
+                                [visible] = "!splitScreen.drag"
+                                [componentData] = "app.software" 
+                                (onChange) = "onChangeInSoftware($event)" 
+                                [inputFromApp] = "app.inputFromApp"></vg-dynamic-view>
+                        </div> 
+                    </div>
                 </div>
             </div>
-            <div style = "width:100%; height:calc(100% - 30px); position: absolute; overflow: auto; top: 30px; padding: 5px;" class = "WorkspaceBColor WorkspaceColor">
-                <div *ngFor="let app of screen.tabs; let i = index;">
-                    <div [style.display] = "i == screen.currentSoftware ? 'block' : 'none'">
-                        <vg-dynamic-view [componentData] = "app.software" (onChange) = "onChangeInSoftware($event)" [inputFromApp] = "app.inputFromApp"></vg-dynamic-view>
-                    </div> 
-                </div>
-            </div>
-        </div>
+        </ng-container>
         <div class = "DragScreen" *ngIf = "splitScreen.drag">
-            <div [ngStyle] = "splitScreen.rect" style = "position: absolute; border: 2px dotted #b8b8b8; pointer-events: none; transition: 0.3s;"></div>
+            <div [ngStyle] = "splitScreen.rect" style = "position: absolute; background-color: #b8b8b88e; pointer-events: none; transition:0.3s;"></div>
         </div>
     </div>
     <div *ngIf = "tabs.length == 0" style = "text-align: center; line-height: 16px;">
