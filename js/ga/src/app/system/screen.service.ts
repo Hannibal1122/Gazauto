@@ -69,23 +69,25 @@ export class SplitScreen
             {
                 this.sector = this.screens.length;
                 this.appendScreen(pointA.i, pointA.j);
-                for(let i = pointA.i; i < pointB.i; i++)
-                    for(let j = pointA.j; j < pointB.j; j++)
-                        this.sectors[i][j] = this.sector;
+                trace(pointA)
+                trace(pointB)
+                this.setRectInSectors(pointA, pointB, this.sector);
             }
             else this.sector = this.sectors[pointA.i][pointA.j];
 
-            let s = this.dragSettings.s;
+            let s = this.dragSettings.s; // Откуда
             let tabsI = this.dragSettings.tabsI;
             let tab = this.screens[s].tabs[tabsI];
             this.screens[this.sector].tabs.push(tab);
             this.screens[s].tabs.splice(tabsI, 1);
             this.screens[this.sector].currentSoftware = this.screens[this.sector].tabs.length - 1;
-            /* if(this.screens[s].tabs.length == 0)
+            if(this.screens[s].tabs.length == 0)
             {
-                this.sectors[this.screens[s].y][this.screens[s].x] = null;
+                /* this.sectors[this.screens[s].y][this.screens[s].x] = null;
+                this.screens[s] = null; */
+                this.fillTheVoid(s);
                 this.screens[s] = null;
-            } */
+            }
             this.calcSectors();
             this.onDragEnd();
             trace(this.screens)
@@ -119,10 +121,12 @@ export class SplitScreen
             {
                 s = sectors[i][j];
                 screen = this.screens[s];
+                if(screen === null) continue;
                 if(!(screen.first.i == i && screen.first.j == j))
                 {
-                    this.screens[s].column = { first: screen.first.j + 1, end: j + 2 }
-                    this.screens[s].rows = { first: screen.first.i + 1, end: i + 2 }
+                    this.screens[s].end = { i: i, j: j }
+                    this.screens[s].column = { first: screen.first.j + 1, end: screen.end.j + 2 }
+                    this.screens[s].rows = { first: screen.first.i + 1, end: screen.end.i + 2 }
                 }
             }
         }
@@ -142,8 +146,50 @@ export class SplitScreen
             gridColumn: "1 / 7",
             gridRow: "1 / 7",
             currentSoftware: -1,
-            first: { i: i, j: j}
+            first: { i: i, j: j },
+            end: { i: this.sectors.length, j: this.sectors[0].length }
         });
+    }
+    fillTheVoid(screenI)
+    {
+        let screenA = this.screens[screenI];
+        let screenB;
+        for(let i = 0; i < this.screens.length; i++)
+        {
+            if(i == screenI) continue;
+            screenB = this.screens[i];
+            if(screenA.first.i == screenB.first.i)
+            {
+                let right = screenB.end.j === screenA.first.j - 1;
+                let left = screenB.first.j === screenA.end.j + 1;
+                if(left || right)
+                {
+                    let aH = (screenA.end.i - screenA.first.i) + 1;
+                    let bH = (screenB.end.i - screenB.first.i) + 1;
+                    if(aH >= bH)
+                    {
+                        this.setRectInSectors(screenA.first, { i: screenB.end.i + 1, j: screenA.end.j + 1 }, this.sector);
+                        if(left) screenB.first.j = screenA.first.j;
+                        if(right) screenB.end.j = screenA.end.j;
+                        if(aH > bH)
+                        {
+                            screenA.first.i += bH;
+                            this.fillTheVoid(screenI);
+                        }
+                        break;
+                    }
+                }
+            }
+            if(screenA.first.j == screenB.first.j)
+            {
+            }
+        }
+    }
+    setRectInSectors(pointA, pointB, value)
+    {
+        for(let i = pointA.i; i < pointB.i; i++)
+            for(let j = pointA.j; j < pointB.j; j++)
+                this.sectors[i][j] = value;
     }
     drag = false;
     onDragStart(s, tabsI)

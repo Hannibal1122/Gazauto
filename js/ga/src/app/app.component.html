@@ -129,16 +129,17 @@
                         <span (click) = "closeTab(i)"><i class="fas fa-times-circle tubExitButton TabsButtonExitColor"></i></span>
                     </div>
                 </div>
-                <div style = "width:100%; height:calc(100% - 30px); position: absolute; overflow: auto; top: 30px; padding: 5px;" class = "WorkspaceBColor WorkspaceColor">
-                    <div *ngFor="let app of screen.tabs; let i = index;">
-                        <div [hidden] = "i != screen.currentSoftware">
-                            <vg-dynamic-view 
+                <div style = "width:100%; height:calc(100% - 30px); position: absolute; overflow: auto; top: 30px;" class = "WorkspaceBColor WorkspaceColor">
+                    <ng-container *ngFor="let app of screen.tabs; let i = index;">
+                        <div style = "height: 100%; width:100%; padding: 5px; position:absolute;" 
+                            [hidden] = "i != screen.currentSoftware">
+                            <vg-dynamic-view  
                                 [visible] = "!splitScreen.drag"
                                 [componentData] = "app.software" 
                                 (onChange) = "onChangeInSoftware($event)" 
                                 [inputFromApp] = "app.inputFromApp"></vg-dynamic-view>
-                        </div> 
-                    </div>
+                        </div>
+                    </ng-container>
                 </div>
             </div>
         </ng-container>

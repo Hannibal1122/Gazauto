@@ -69,8 +69,8 @@ export class PlanEditorComponent implements OnInit
         title: "Добавление сотрудника",  
         data: [
           ["Сотрудник", { selected: fio[0].id, data: fio, value: fioId }, "select"],
-          ["От", "", "datetime"],
-          ["До", "", "datetime"],
+          ["От", "", "datetime", null, { time: false }],
+          ["До", "", "datetime", null, { time: false }],
           ["Значение", "", "text"]
         ],
         ok: "Изменить",
