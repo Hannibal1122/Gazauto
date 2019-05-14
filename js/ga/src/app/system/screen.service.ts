@@ -156,21 +156,25 @@ export class SplitScreen
         let screenB;
         for(let i = 0; i < this.screens.length; i++)
         {
-            if(i == screenI) continue;
+            if(i == screenI || this.screens === null) continue;
             screenB = this.screens[i];
             if(screenA.first.i == screenB.first.i)
             {
-                let right = screenB.end.j === screenA.first.j - 1;
-                let left = screenB.first.j === screenA.end.j + 1;
+                trace("gorizontal")
+                let right = screenB.end.j == screenA.first.j - 1;
+                let left = screenB.first.j == screenA.end.j + 1;
                 if(left || right)
                 {
+                    trace("left || right")
                     let aH = (screenA.end.i - screenA.first.i) + 1;
                     let bH = (screenB.end.i - screenB.first.i) + 1;
                     if(aH >= bH)
                     {
+                        trace("aH >= bH")
                         this.setRectInSectors(screenA.first, { i: screenB.end.i + 1, j: screenA.end.j + 1 }, this.sector);
                         if(left) screenB.first.j = screenA.first.j;
                         if(right) screenB.end.j = screenA.end.j;
+                        trace(screenB)
                         if(aH > bH)
                         {
                             screenA.first.i += bH;
@@ -182,6 +186,28 @@ export class SplitScreen
             }
             if(screenA.first.j == screenB.first.j)
             {
+                trace("vertical")
+                let up = screenB.end.i === screenA.first.i - 1;
+                let down = screenB.first.i === screenA.end.i + 1;
+                if(up || down)
+                {
+                    trace("up || down")
+                    let aW = (screenA.end.j - screenA.first.j) + 1;
+                    let bW = (screenB.end.j - screenB.first.j) + 1;
+                    if(aW >= bW)
+                    {
+                        trace("aW >= bW")
+                        this.setRectInSectors(screenA.first, { i: screenA.end.i + 1, j: screenB.end.j + 1 }, this.sector);
+                        if(down) screenB.first.i = screenA.first.i;
+                        if(up) screenB.end.i = screenA.end.i;
+                        if(aW > bW)
+                        {
+                            screenA.first.j += bW;
+                            this.fillTheVoid(screenI);
+                        }
+                        break;
+                    }
+                }
             }
         }
     }
