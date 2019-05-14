@@ -64,7 +64,7 @@
                         </div>
                         <!-- ******************************************************************************** -->
                         <div *ngIf = "data[2] === 'datetime'">
-                            <datetimepicker (onChange) = "changeDate(data, $event)" [setValue] = "data[3]" [config] = "data[4]"></datetimepicker> 
+                            <datetimepicker (onChange) = "changeDate(data, $event)" [setValue] = "data[3]" [config] = "configDTP"></datetimepicker> 
                         </div>
                         <!-- ******************************************************************************** -->
                         <div *ngIf = "data[2] === 'uploader'">

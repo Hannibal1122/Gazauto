@@ -119,10 +119,13 @@ export class ErrorTableComponent implements OnInit
         this.globalClick = (e) => 
         { 
             this.createContextMenu.visible = false; 
+            if(this.inputProperty.type == "tlist") 
+            {
             /* if(this.inputProperty.type == "tlist") 
             { */
                 if(e.target.getAttribute("name") == "clickArea")
                     this.inputProperty.close();
+            }
             /* } */
         };
         this.functionResize = () => { this.resize(); };
@@ -204,8 +207,7 @@ export class ErrorTableComponent implements OnInit
                 this.inputProperty.eventId = this.listTables[i][j].eventId;
                 this.inputProperty.type = "value";
                 if(this.listTables[i][j] && this.listTables[i][j].type) this.inputProperty.type = this.listTables[i][j].type;
-                if(this.header[j].dataType == "DATETIME") 
-                    this.inputProperty.type = "datetime";
+                if(this.header[j].dataType == "DATETIME") this.inputProperty.type = "datetime";
                 this.inputProperty.linkId = this.listTables[i][j].linkId;
                 if(this.listTables[i][j] && this.listTables[i][j].listValue !== undefined) 
                 {
@@ -238,7 +240,7 @@ export class ErrorTableComponent implements OnInit
                     this.inputProperty.oldValue = this.inputProperty.value = this.listTables[i][j] ? this.listTables[i][j].value : undefined;
                     this.inputProperty.values = [];
                 }
-                if(this.inputProperty.type == "datetime") this.openDatetimeModal();
+                //if(this.inputProperty.type == "datetime") this.openDatetimeModal();
                 setTimeout(() => { this.mainInputElement.nativeElement.focus(); }, 20);
                 return true;
             }

@@ -37,8 +37,9 @@ export class PlanEditorComponent implements OnInit
 
     editEmployee() //Добавить сотрудника 
     {
-      var currentDate = new Date();
-      var today: any;
+      //var currentDate = new Date();
+      var today = [];
+      var dayvalue = [];
       
       var fio = [];
       var fioId = [];
@@ -48,29 +49,21 @@ export class PlanEditorComponent implements OnInit
         fioId[i] = this.employees[i].tabelnom;
       }
 
-      /*  for(var i = 0; i < this.employees.length; i++) 
+      for(var i = 0; i < this.employees.length; i++) 
         { 
           for(var j = 0; j < this.employees[i].days.length; j++)
           {
-            this.employees[i].days[j].value = today;
+            today[i][j] = this.employees[i].days[j].colspan;
+            dayvalue[i][j] = this.employees[i].days[j].value;
           }
         }
-      */
-
-      /*for(var j = 0; j < 30; j++)
-      {
-        today[j] = currentDate.toDateString();
-        //document.write(today[j]);
-        //console.log(today[j]);
-      }*/
-
       
       var Data:any = {
         title: "Добавление сотрудника",  
         data: [
           ["Сотрудник", { selected: fio[0].id, data: fio, value: fioId }, "select"],
-          ["От", "", "datetime"],
-          ["До", "", "datetime"],
+          ["От", "", "datetime", null, { time: false }],
+          ["До", "", "datetime", null, { time: false }],
           ["Значение", "", "text"]
         ],
         ok: "Изменить",
@@ -86,8 +79,17 @@ export class PlanEditorComponent implements OnInit
 
         if(save == true)
         {
-          today = Data.data[2][1] - Data.data[1][1];
-          this.employees[1].days[1].value = today.toString();
+          for(var i = 0; i < today.length; i++)
+          {
+            for(var j = 0; j < today[i]; j++)
+            {
+              today[i][j] = (Data.data[2][1] - Data.data[1][1])/(1000*3600*24); //делим на кол-во миллисекунд в сутках, чтобы определить кол-во дней
+              this.employees[i].days[j].colspan = today[i][j]; 
+              dayvalue[i][j] = Data.data[3][1];  
+              this.employees[i].days[j].value = dayvalue[i][j]; //присваиваем новое значение, введенное в всплывающем окне
+
+            }
+          }
         };
 
       });
