@@ -81,8 +81,8 @@
             case 0: // Запрос версии
                 /* include("./version/versions.php"); */
                 $project = [];	
-                $project['main'] = "0.9.64";/* getVersion(		$_main["name"], 		$_main["data"]); */
-                $project['php'] = "0.9.84";/* getVersion(		$_php["name"], 			$_php["data"]); */
+                $project['main'] = "0.9.70";/* getVersion(		$_main["name"], 		$_main["data"]); */
+                $project['php'] = "0.9.90";/* getVersion(		$_php["name"], 			$_php["data"]); */
                 echo json_encode($project);
                 break;
             case 1: // Возвращает информацию о текущем пользователе
@@ -178,12 +178,13 @@
                     case 110: // Загрузка структуры // Права на просмотр
                         $out = ["folder" => [], "path" => []];
                         $idParent = (int)$param[0];
-                        if($login == "admin") $query = "SELECT id, objectType, objectId, name, parent, priority, info, bindId, state FROM structures WHERE parent = %i ORDER by parent, priority";
-                        else $query = "SELECT id, objectType, objectId, name, parent, priority, info, bindId, state FROM structures WHERE parent = %i AND
+                        $query = "SELECT id, objectType, objectId, name, parent, priority, info, bindId, state, icon FROM structures WHERE parent = %i AND trash = 0";
+                        if($login == "admin") $query .= " ORDER by parent, priority";
+                        else $query .= " AND
                             id IN (SELECT objectId FROM rights WHERE (login = %s OR login = %s) AND rights & 1 
                                 AND objectId NOT IN (SELECT objectId FROM rights WHERE login = %s AND (rights & 1) = 0)) ORDER by parent, priority";
                         if($result = query($query, $login == "admin" ? [ $idParent ] : [ $idParent, $login, $role, $login ]))
-                            while ($row = $result->fetch_array(MYSQLI_NUM)) 
+                            while ($row = $result->fetch_assoc()) 
                                 $out["folder"][] = getObjectFromStructures($row);
                         getFullPath($out["path"], $param[0]);
                         echo json_encode($out);
@@ -212,26 +213,13 @@
                         }
                         break;
                     case 112: // Удаление элемента структуры // Права на изменение
-                        require_once("myObject.php");
-                        require_once("copyAndRemove.php");
-                        
                         $idElement = (int)$param[0];
-                        $structures = new CopyAndRemove(null, null, null, $myLog);
-                        $out = [ $idElement ];
-                        getRemoveElementbyStructure($out, $idElement);
-                        
-                        $myObject = new MyObject($idElement);
-                        $myObject->checkRemove($out);
-                        for($i = 0, $c = count($out); $i < $c; $i++)
-                        {
-                            if(($myRight->get($out[$i]) & 8) != 8) continue; // Права на изменение
-                            $structures->remove($out[$i]);
-                        }
-                        echo json_encode($out);
+                        if(($myRight->get($idElement) & 8) != 8) return; // Права на изменение
+                        query("UPDATE structures SET trash = 1 WHERE id = %i", [$idElement]);
                         break;
                     case 113: // Загрузка структуры без выпрямления
                         $out = [];
-                        if($result = query("SELECT id, objectType, objectId, name, parent, priority, info, state FROM structures ORDER by parent, priority", []))
+                        if($result = query("SELECT id, objectType, objectId, name, parent, priority, info, state FROM structures WHERE trash = 0 ORDER by parent, priority", []))
                             while ($row = $result->fetch_array(MYSQLI_NUM)) 
                             {
                                 $elem = [];
@@ -278,13 +266,13 @@
                             $myLog->add("structure", "cut", $idParent);
                         }
                         break;
-                    case 115: // Запрос приоритета
+                    case 115: // Запрос приоритета и иконок
                         if(($myRight->get($param[0]) & 1) != 1) continue; // Права на просмотр
-                        request("SELECT priority FROM structures WHERE id = %i", $param);
+                        request("SELECT priority, icon FROM structures WHERE id = %i", $param);
                         break;
-                    case 116: // Изменение приоритета
+                    case 116: // Изменение приоритета и иконок
                         if(($myRight->get($param[1]) & 8) != 8) continue; // Права на просмотр
-                        query("UPDATE structures SET priority = %i WHERE id = %i", $param);
+                        query("UPDATE structures SET priority = %i, icon = %i WHERE id = %i", $param);
                         break;
                     case 117: // Загрузка файлов на сервер
                         echo loadFile(10, ['gif','jpeg','png','jpg','xls','xlsx','doc','docx']);
@@ -389,6 +377,24 @@
                         if($result = query("SELECT id, objectType, objectId, name, parent, priority, info, bindId, state FROM structures WHERE id = %i", [ $idElement ]))
                             while ($row = $result->fetch_array(MYSQLI_NUM)) 
                                 $out = getObjectFromStructures($row);
+                        echo json_encode($out);
+                        break;
+                    case 130: // Полное удаление из программы
+                        require_once("myObject.php");
+                        require_once("copyAndRemove.php");
+                        
+                        $idElement = (int)$param[0];
+                        $structures = new CopyAndRemove(null, null, null, $myLog);
+                        $out = [ $idElement ];
+                        getRemoveElementbyStructure($out, $idElement);
+                        
+                        $myObject = new MyObject($idElement);
+                        $myObject->checkRemove($out);
+                        for($i = 0, $c = count($out); $i < $c; $i++)
+                        {
+                            if(($myRight->get($out[$i]) & 8) != 8) continue; // Права на изменение
+                            $structures->remove($out[$i]);
+                        }
                         echo json_encode($out);
                         break;
                 }
@@ -503,33 +509,16 @@
                             "cut" => ($right & 2) == 2 && ($right & 8) == 8,
                             "copy" => ($right & 2) == 2
                         ];
-                        $filters = [];
-                        $filterStr = "";
                         /* Доступные фильтры*/
                         require_once("myFilter.php");
-                        $filterSelected = -1;
                         $myFilter = new MyFilter();
-                        $userFilter = $myFilter->getUserFilter($login, $idTable);
-                        if($login == "admin") $query = "SELECT id, objectId, name FROM structures WHERE parent = %i ORDER by parent, priority";
-                        else $query = "SELECT id, objectId, name FROM structures WHERE parent = %i AND
-                            id IN (SELECT objectId FROM rights WHERE (login = %s OR login = %s) AND rights & 1 
-                                AND objectId NOT IN (SELECT objectId FROM rights WHERE login = %s AND (rights & 1) = 0)) ORDER by parent, priority";
-                        if($result = query($query, $login == "admin" ? [ $idTable ] : [ $idTable, $login, $role, $login ]))
-                            while ($row = $result->fetch_array(MYSQLI_NUM))
-                            {
-                                if($userFilter == "" && count($filters) == 0)
-                                {
-                                    $filterStr = $myFilter->getFilterStr((int)$row[1]);
-                                    $filterSelected = (int)$row[0];
-                                }
-                                if($userFilter != "" && $userFilter == $row[0])
-                                {
-                                    $filterStr = $myFilter->getFilterStr((int)$row[1]);
-                                    $filterSelected = (int)$row[0];
-                                }
-                                $filters[] = $row;
-                            }
-                        $myTable->getTable($tableRight, $filters, $filterSelected, $filterStr);
+                        $allFilters = $myFilter->getAllFilters($idTable);
+                        $myTable->getTable(
+                            $tableRight, 
+                            $allFilters["filters"], 
+                            $allFilters["filterSelected"], 
+                            $allFilters["filterStr"]
+                        );
                         /* request("SELECT * FROM fields WHERE tableId = %i", [$idTable]); */
                         break;
                     case 251: // Добавить/Удалить заголовок
@@ -571,9 +560,9 @@
                         break;
                     case 257: // Добавить строку в таблицу
                         if(($myRight->get($idTable) & 8) != 8) return; // Права на изменение
-                        $idPrevRow = (int)$param[1]; // id предыдущей строки
-                        $idNextRow = (int)$param[2]; // id следующей строки
-                        $myTable->addRow($idPrevRow, $idNextRow, true);
+                        $idPrevRow = (int)$param[1]; // либо id предыдущей строки, либо -1
+                        $prevOrNext = (int)$param[2]; // -1 добавить строку выше, 1 добавить строку ниже
+                        $myTable->addRow($idPrevRow, $prevOrNext, true);
                         break;
                     case 258: // Удалить строку из таблицы
                         if(($myRight->get($idTable) & 8) != 8) return; // Права на изменение
@@ -663,10 +652,10 @@
                         break;
                     case 304: // Загрузить список
                         $idValue = (int)$param[0]; // Добавить проверку наоборот
-                        if($result = query("SELECT type, value, tableId FROM my_values WHERE id = %i", [ $idValue ]))
+                        if($result = query("SELECT value, tableId, filterId FROM my_values WHERE id = %i", [ $idValue ]))
                         {
                             $row = $result->fetch_array(MYSQLI_NUM);
-                            echo json_encode(getTableListValues((int)$row[2], (int)$row[1]));
+                            echo json_encode(getTableListValues((int)$row[1], (int)$row[0], (int)$row[2]));
                         }
                         /* if($result = query("SELECT objectId FROM structures WHERE id = %i", [ $idElement ]))
                         while ($row = $result->fetch_array(MYSQLI_NUM)) $idValue = (int)$row[0]; */
@@ -812,6 +801,7 @@
                 require_once("myFilter.php");
                 $idFilter = (int)$param[0];
                 $myFilter = new MyFilter();
+                $idFilterStructure = (int)$myFilter->getStructureId($idFilter);
                 switch($nQuery)
                 {
                     case 470: // Создать фильтр
@@ -820,14 +810,15 @@
                         echo json_encode([ $myFilter->create($param[1]) ]);
                         break;
                     case 471: // Обновить фильтр
-                        if(($myRight->get($idFilter) & 8) != 8) return; // Права на изменение
+                        if(($myRight->get($idFilterStructure) & 8) != 8) return; // Права на изменение
                         $myFilter->update($idFilter, $param[1]);
                         break;
                     case 472: // Запрос значения фильтра
-                        if(($myRight->get($idFilter) & 1) != 1) return; // Права на просмотр
+                        if(($myRight->get($idFilterStructure) & 1) != 1) return; // Права на просмотр
                         $myFilter->get($idFilter);
                         break;
                     case 473:
+                        if(($myRight->get($idFilterStructure) & 1) != 1) return; // Права на просмотр
                         echo $myFilter->getFilterStr($idFilter);
                         break;
                     case 474: // Обновить / создать настройки фильтра для таблицы
@@ -845,18 +836,24 @@
     function getObjectFromStructures($row)
     {
         $elem = [];
-        $elem["id"] = $row[0];
-        $elem["objectType"] = $row[1];
-        $elem["objectId"] = $row[2];
-        $elem["name"] = $row[3];
-        $elem["parent"] = $row[4];
-        $elem["priority"] = $row[5];
-        $elem["bindId"] = $row[7];
-        $elem["state"] = $row[8];
-        if($row[1] == "file")
+        $elem["id"] = $row["id"];
+        $elem["objectType"] = $row["objectType"];
+        $elem["objectId"] = $row["objectId"];
+        $elem["name"] = $row["name"];
+        $elem["parent"] = $row["parent"];
+        $elem["priority"] = $row["priority"];
+        $elem["bindId"] = $row["bindId"];
+
+        // Заполнение отображаемых иконок
+        $icon = (int)$row["icon"];
+        $state = ($icon & 1) == 1;
+        $count = ($icon & 2) == 2;
+        $elem["state"] = $state ? $row["state"] : NULL;
+        $elem["count"] = $count ? selectOne("SELECT COUNT(*) FROM structures WHERE parent = %i", [ $elem["id"] ]) : NULL;
+        if($elem["objectType"] == "file")
         {
-            $end = strripos($row[3], "."); 
-            $type = substr($row[3], $end + 1);
+            $end = strripos($elem["name"], "."); 
+            $type = substr($elem["name"], $end + 1);
             switch($type)
             {
                 case 'gif':
@@ -896,11 +893,20 @@
                 if(searchParent($out[$i]["childrens"], $parent, $elem)) return true;
         return false;
     }
-    function getTableListValues($tableId, $idColumn) // Получить список значений из таблицы, только value
+    function getTableListValues($tableId, $idColumn, $filterId) // Получить список значений из таблицы, только value
     {
         $out = [];
-        if($result = query("SELECT id, value FROM fields WHERE idColumn = %s AND tableId = %i AND type = 'value' AND value != ''", [ $idColumn, $tableId ]))
-            while ($row = $result->fetch_array(MYSQLI_NUM)) $out[] = [ "id" => $row[0], "value" => $row[1]];
+        $filterStr = "";
+        if($filterId)
+        {
+            require_once("myFilter.php");
+            $myFilter = new MyFilter();
+            $filterStr = $myFilter->getFilterStr(selectOne("SELECT objectId FROM structures WHERE id = %i", [ $filterId ]));
+            if($filterStr != "") $filterStr = "AND ($filterStr)";
+        }
+        if($result = query("SELECT id, value FROM fields WHERE idColumn = %i AND tableId = %i AND type = 'value' AND value != '' $filterStr", [ $idColumn, $tableId ]))
+            while ($row = $result->fetch_array(MYSQLI_NUM)) 
+                $out[] = [ "id" => $row[0], "value" => $row[1]];
         return $out;
     }
     function getTableListValueByKey($id, $tableId) // Получить значение из списка таблицы

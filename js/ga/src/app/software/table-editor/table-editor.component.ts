@@ -25,17 +25,24 @@ export class TableEditorComponent implements OnInit
         }
         if(value && value.update) this.loadTable();
     }
-
-    inputs = { id: -1, searchObjectId: -1 };
+    visible = true;
+    inputs = { id: -1, searchObjectId: -1, name: null };
     firstData = {};
     dataHeader = [];
     dataTable = [];
     mode = "Global"; //Local
     nameTable = "";
-    stateTable = 0;
-    error = false;
     load = false;
-    needUpdate = false;
+    control = 
+    {
+        state: 0,
+        error: false,
+        id: -1,
+        filter: {
+            count: 0,
+            countHide: 0
+        }
+    }
     right = 
     {
         change: false, 
@@ -61,14 +68,14 @@ export class TableEditorComponent implements OnInit
         {
             if(data.head == undefined) 
             {
-                this.error = true;
+                this.control.error = true;
                 return;
             }
-            this.error = false;
+            this.control.error = false;
             this.right = data.right;
             this.editTable.right = data.right;
-            this.nameTable = data.name;
-            this.stateTable = data.state;
+            this.nameTable = this.inputs.name = data.name;
+            this.control.state = data.state;
             this.dataHeader = [];
             this.dataTable = [];
             this.firstData = data.data;
@@ -162,7 +169,7 @@ export class TableEditorComponent implements OnInit
         let endI = i;
         let k = beginI;
         let length = 1;
-        if(_nameColumn)
+        if(_nameColumn !== "")
         {
             beginI = 0;
             endI = this.dataTable.length - 1;
@@ -177,7 +184,7 @@ export class TableEditorComponent implements OnInit
                 break;
             case "tlist":
                 // Проверка на вставку в себя (по tableId)
-                if(_nameColumn && data.setType) // Назначение типа столбцу
+                if(_nameColumn !== "" && data.setType) // Назначение типа столбцу
                     this.addToQueue(264, [ this.inputs.id, this.dataHeader[Number(_nameColumn)].value, data.id ], () => {
                         this.loadTable();
                     });
@@ -211,7 +218,7 @@ export class TableEditorComponent implements OnInit
                 break;
             case "event":
                 let eventId = data.id;
-                if(_nameColumn && data.setType) // Назначение типа столбцу
+                if(_nameColumn !== "" && data.setType) // Назначение типа столбцу
                     this.addToQueue(262, [ this.inputs.id, eventId, this.dataHeader[Number(_nameColumn)].value ], () => {
                         this.loadTable();
                     });
@@ -239,14 +246,14 @@ export class TableEditorComponent implements OnInit
             return;
         }
         let l = this.dataTable.length;
-        this.update({ type: "row", idRow: l > 0 ? this.dataTable[l - 1].__ID__ : -1, idNextRow: -1 });
+        this.update({ type: "row", idRow: l > 0 ? this.dataTable[l - 1].__ID__ : -1, prevOrNext: 1 });
     }
     update(property)
     {
         switch(property.type)
         {
             case "row": // Добавление строки
-                this.addToQueue(257, [ this.inputs.id, property.idRow, property.idNextRow ], (data) => { this.loadTable(); });
+                this.addToQueue(257, [ this.inputs.id, property.idRow, property.prevOrNext ], (data) => { this.loadTable(); });
                 break;
             case "field": // Обновление ячейки
                 this.addToQueue(252, [ this.inputs.id,  JSON.stringify(property.out) ], (data) =>
@@ -299,6 +306,8 @@ export class TableEditorComponent implements OnInit
                     this.dataTable[property.i][property.nameColumn].eventId = null;
                     this.editTable.data = this.dataTable; // update edit table
                 }
+                else 
+                    this.editTable.header[this.editTable.firstHeader[property.id]].eventId = null;
                 this.addToQueue(263, [ this.inputs.id, property.id ], (data) => { });
                 break;
             case "paste":
@@ -321,6 +330,12 @@ export class TableEditorComponent implements OnInit
                 break;
             case "copyOrCut":
                 this.copyField(property.copyOrCut);
+                break;
+            case "bottomControlPanel":
+                this.control.id = property.id;
+                break;
+            case "bottomControlPanelFilter":
+                this.control.filter = property.filter;
                 break;
         }
     }

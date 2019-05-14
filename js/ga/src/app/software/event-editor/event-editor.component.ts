@@ -23,7 +23,7 @@ export class EventEditorComponent implements OnInit
     {
         this.query.protectionPost(411, { param: [ this.inputs.id ] }, (data) =>
         {
-            this.name = data[5];
+            this.inputs.name = this.name = data[5];
             this.ready = data[4] == 1;
             this.readonly = data[6];
             this.fasmEditor = new FasmEditor("#2E2E2E", null, null, this.readonly);

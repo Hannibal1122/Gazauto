@@ -1,14 +1,48 @@
 /* .dx-datagrid-rowsview .dx-data-row .dx-cell-modified .dx-highlight-outline::after {
     border: 1px solid #000000;
 } */
-.loginFromList
+.tableGrid
 {
-    float:right; 
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: 40px 1fr 30px;
+    height: 100%;
+}
+.tableControlPanel
+{
+    position:relative; 
+    overflow: auto; 
+    padding-top:3px;
+}
+.tableControlPanel button, select
+{
+    margin-right:5px;
+}
+
+.bottomControlPanel
+{
+    user-select:none; 
+    display: flex; 
+    overflow: auto; 
+    padding-top:3px;
+    width:50%;
+    float:left;
+}
+.bottomControlPanel div
+{
+    height:24px;
+    line-height: 24px;
     border-radius:5px; 
-    background-color:#d8ecfc; 
-    margin-right:2px; 
-    color:#354558;
-    font-size:12px; 
-    padding:5px;
-    font-weight: bold;
+    font-size:12px;
+    padding: 0px 4px;
+    margin-right:5px;
+}
+.right
+{
+    justify-content: flex-end;
+}
+.right div
+{
+    margin-right:0px;
+    margin-left:5px;
 }

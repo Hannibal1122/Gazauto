@@ -35,6 +35,10 @@ export class DynamicComponent
     {
         this.currentComponent._component.inputFromApp = value;
     }
+    @Input() set visible(value)
+    {
+        this.currentComponent._component.visible = value;
+    }
     @Output() onChange = new EventEmitter<any>();
     constructor(private resolver: ComponentFactoryResolver) { }
 }

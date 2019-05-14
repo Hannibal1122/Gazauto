@@ -5,8 +5,8 @@
     (mouseup) = "settings.click = false"
     (mousedown) = "mouseDown($event)">
     <div>Заголовок
-        <span (click) = "open = false;"
-            style = "color:red; float:right; cursor: pointer;"><i class = "fas fa-times-circle"></i></span>
+        <span (click) = "open = false;" class = "ModalButtonExitColor"
+            style = "float:right; cursor: pointer;"><i class = "fas fa-times-circle"></i></span>
     </div>
     <div>
         <datetimepicker (onChange) = "changeDate($event)" [config] = "{ setDefault: false }" [setValue] = "inputValue"></datetimepicker>

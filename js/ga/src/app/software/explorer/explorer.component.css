@@ -1,14 +1,22 @@
+.explorer
+{
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: 36px 36px 16px 1fr 30px;
+    height: 100%;
+}
 .explorerMain
 {
     display: flex; 
     align-content: flex-start;
-    color: #456486; 
+    /*color: #6085ac;*/ 
     flex-wrap: wrap; 
     font-size:12px;
+    overflow: auto;
 }
 .explorerMainList
 {
-    color: #456486; 
+    color: #6085ac; 
     flex-wrap: wrap; 
     font-size:12px;
 }
@@ -96,4 +104,35 @@
 .linkField:hover
 {
     text-decoration: underline;
+}
+
+.iconPanel
+{
+    width:76px; 
+    display:flex; 
+    position: absolute; 
+    top: 44px; 
+    margin-left: 7px; 
+    justify-content:flex-end;
+}
+.iconPanel div
+{
+    padding: 0px 4px;
+    font-size: 12px;
+    border-radius: 10px;
+    background-color: #456486;
+    /* box-shadow: 0 0px 3px 2px #54293f45; */
+    color: white;
+}
+/************************************************/
+.explorerControlPanel
+{
+    user-select:none; 
+    display: flex; 
+    overflow: auto; 
+    padding-top:2px;
+}
+.explorerControlPanel button, input, select
+{
+    margin-right:5px;
 }

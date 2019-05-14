@@ -77,6 +77,7 @@ export class ErrorTableComponent implements OnInit
         set id(value) {
             this._id = value;
             this._colorId = value;
+            this.self.onChange.emit({ type: "bottomControlPanel", id: value });
         },
         get id() {
             return this._id;
@@ -96,10 +97,13 @@ export class ErrorTableComponent implements OnInit
         close: function() {
             this.visible = false;
             this._colorId = -1;
+            this.self.onChange.emit({ type: "bottomControlPanel", id: -1 });
         },
         clearId: function() {
             this._colorId = -1;
-        }
+            this.self.onChange.emit({ type: "bottomControlPanel", id: -1 });
+        },
+        self: this
     }
     right = { change: false, copy: false, cut: false };
     rules = {
@@ -115,10 +119,10 @@ export class ErrorTableComponent implements OnInit
     constructor(private sys:FunctionsService, private query:QueryService) { }
     ngOnInit() 
     {
-        this.resize();
         this.globalClick = (e) => 
         { 
             this.createContextMenu.visible = false; 
+<<<<<<< HEAD
             if(this.inputProperty.type == "tlist") 
             {
             /* if(this.inputProperty.type == "tlist") 
@@ -127,9 +131,11 @@ export class ErrorTableComponent implements OnInit
                     this.inputProperty.close();
             }
             /* } */
+=======
+            if(e.target.getAttribute("name") == "clickArea")
+                this.inputProperty.close();
+>>>>>>> 79450f988beb027ee9139621601ec96301fb162e
         };
-        this.functionResize = () => { this.resize(); };
-        window.addEventListener("resize", this.functionResize, false);
         window.addEventListener("click", this.globalClick, false);
         this.mainContainer.nativeElement.onscroll = () => 
         { 
@@ -193,6 +199,7 @@ export class ErrorTableComponent implements OnInit
             this.mapHideRows[i] = rowHide;
             this.firstData[i] = this.mainData[i].__ID__; // id строки в бд
         }
+        this.onChange.emit({ type: "bottomControlPanelFilter", filter: this.filter });
     }
     editField(e) // нажали на ячейку для редактирования
     {
@@ -212,7 +219,7 @@ export class ErrorTableComponent implements OnInit
                 if(this.listTables[i][j] && this.listTables[i][j].listValue !== undefined) 
                 {
                     let _i = 0;
-                    if(this.cacheListValues[this.listTables[i][j].linkId])
+                    /* if(this.cacheListValues[this.listTables[i][j].linkId])
                     {
                         this.inputProperty.values = this.cacheListValues[this.listTables[i][j].linkId];
                         this.inputProperty.typeValues = typeof this.inputProperty.values[0];
@@ -222,7 +229,7 @@ export class ErrorTableComponent implements OnInit
                         this.inputProperty.oldValue = this.inputProperty.value = value;
                         this.inputProperty.valueList = this.listTables[i][j].value;
                     }
-                    else
+                    else */
                         this.query.protectionPost(304, { param: [this.listTables[i][j].linkId] }, (data) =>
                         {
                             this.inputProperty.typeValues = typeof data[0];
@@ -240,7 +247,15 @@ export class ErrorTableComponent implements OnInit
                     this.inputProperty.oldValue = this.inputProperty.value = this.listTables[i][j] ? this.listTables[i][j].value : undefined;
                     this.inputProperty.values = [];
                 }
+<<<<<<< HEAD
                 //if(this.inputProperty.type == "datetime") this.openDatetimeModal();
+=======
+                if(this.inputProperty.type == "datetime") 
+                {
+                    this.openDatetimeModal();
+                    this.inputProperty.visible = false;
+                }
+>>>>>>> 79450f988beb027ee9139621601ec96301fb162e
                 setTimeout(() => { this.mainInputElement.nativeElement.focus(); }, 20);
                 return true;
             }
@@ -331,7 +346,7 @@ export class ErrorTableComponent implements OnInit
         this.onChange.emit({ 
             type: "removeEvent", 
             id: this.inputProperty.id, 
-            i: this.configInput.i, 
+            i: this.configInput.i,
             nameColumn: head ? -1 : this.header[this.configInput.j].value,
             head: head
         });
@@ -346,9 +361,8 @@ export class ErrorTableComponent implements OnInit
             i = this.mapFields[id].i;
             j = this.mapFields[id].j;
             let mainOffset = $(this.mainContainer.nativeElement).offset();
-            /* let scrollTop = this.mainContainer.nativeElement.scrollTop; */
             let offset = $(element).offset();
-            out.top = (offset.top - mainOffset.top/*  + scrollTop */) + "px";
+            out.top = (offset.top - mainOffset.top) + "px";
             out.left = (offset.left - mainOffset.left) + "px";
             out.width = (element.clientWidth + 1) + "px";
             out.height = (element.clientHeight + 1) + "px";
@@ -414,8 +428,8 @@ export class ErrorTableComponent implements OnInit
         }
         this.rules.paste = this.rules.paste && this.rules.change;
         this.rules.object = this.rules.object && this.rules.change; // Чтобы в html не делать несколько проверок
-        if(e.clientY > Number(this.height.replace("px", "")) / 2) this.createContextMenu.transform = "translate(0, -100%)";
-        else this.createContextMenu.transform = null;
+        /* if(e.clientY > Number(this.height.replace("px", "")) / 2) this.createContextMenu.transform = "translate(0, -100%)";
+        else this.createContextMenu.transform = null; */
         this.createContextMenu.left = e.clientX + "px";
         this.createContextMenu.top = e.clientY + "px";
         this.createContextMenu.visible = true;
@@ -425,8 +439,8 @@ export class ErrorTableComponent implements OnInit
     }
     addRow(prevOrNext)
     {
-        let idRow = this.firstData[this.createContextMenu.i + prevOrNext] ? this.firstData[this.createContextMenu.i + prevOrNext] : -1;
-        this.onChange.emit({ type: "row", idRow: idRow, idNextRow: idRow == -1 ? this.firstData[this.createContextMenu.i] : -1 });
+        let idRow = this.firstData[this.createContextMenu.i] ? this.firstData[this.createContextMenu.i] : -1;
+        this.onChange.emit({ type: "row", idRow: idRow, prevOrNext: prevOrNext });
     }
     pasteField(type)
     {
@@ -453,17 +467,10 @@ export class ErrorTableComponent implements OnInit
         this.onChange.emit({ type: "state", id: this.inputProperty.id, i: i, nameColumn: this.header[j].value, state: value });
     }
     //////////////////////////////////
-    height = "";
-    functionResize;
     globalClick;
-    resize()
-    {
-        this.height = document.documentElement.clientHeight - 127 + "px";
-    }
     ngOnDestroy() 
     {
         window.removeEventListener("click", this.globalClick, false);
-        window.removeEventListener("resize", this.functionResize, false);
     }
     downEnter(e)
     {
