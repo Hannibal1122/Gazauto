@@ -53,8 +53,9 @@ export class PlanEditorComponent implements OnInit
         { 
           for(var j = 0; j < this.employees[i].days.length; j++)
           {
-            today[i][j] = this.employees[i].days[j].colspan;
-            dayvalue[i][j] = this.employees[i].days[j].value;
+            for(var k = 0; k < this.employees[i].days[j].colspan[k].length; k++)
+            today[j][k] = this.employees[i].days[j].colspan[k];
+            dayvalue[j][k] = this.employees[i].days[j].value[k];
           }
         }
       
