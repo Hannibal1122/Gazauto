@@ -72,8 +72,11 @@ export class TableEditorComponent implements OnInit
                 return;
             }
             this.control.error = false;
-            this.right = data.right;
-            this.editTable.right = data.right;
+            for(let key in data.right) 
+            {
+                this.right[key] = data.right[key];
+                this.editTable.right[key] = data.right[key];
+            }
             this.nameTable = this.inputs.name = data.name;
             this.control.state = data.state;
             this.dataHeader = [];
@@ -252,6 +255,10 @@ export class TableEditorComponent implements OnInit
     {
         switch(property.type)
         {
+            
+            case "getRight":
+                for(let key in this.right) this.editTable.right[key] = this.right[key];
+                break;
             case "row": // Добавление строки
                 this.addToQueue(257, [ this.inputs.id, property.idRow, property.prevOrNext ], (data) => { this.loadTable(); });
                 break;

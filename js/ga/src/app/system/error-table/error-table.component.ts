@@ -105,7 +105,7 @@ export class ErrorTableComponent implements OnInit
         },
         self: this
     }
-    right = { change: false, copy: false, cut: false };
+    right = { change: false, copy: false, cut: false};
     rules = {
         change: false, // Разрешено изменять
         copy: false, // Разрешено копирование
@@ -122,25 +122,17 @@ export class ErrorTableComponent implements OnInit
         this.globalClick = (e) => 
         { 
             this.createContextMenu.visible = false; 
-<<<<<<< HEAD
-            if(this.inputProperty.type == "tlist") 
-            {
-            /* if(this.inputProperty.type == "tlist") 
-            { */
-                if(e.target.getAttribute("name") == "clickArea")
-                    this.inputProperty.close();
-            }
-            /* } */
-=======
             if(e.target.getAttribute("name") == "clickArea")
                 this.inputProperty.close();
->>>>>>> 79450f988beb027ee9139621601ec96301fb162e
         };
         window.addEventListener("click", this.globalClick, false);
         this.mainContainer.nativeElement.onscroll = () => 
         { 
             this.inputProperty.close();
         }
+        setTimeout(() => {
+            this.onChange.emit({ type: "getRight" });
+        }, 20);
     }
     setScroll(id) // Устанавливает скролл
     {
@@ -214,7 +206,8 @@ export class ErrorTableComponent implements OnInit
                 this.inputProperty.eventId = this.listTables[i][j].eventId;
                 this.inputProperty.type = "value";
                 if(this.listTables[i][j] && this.listTables[i][j].type) this.inputProperty.type = this.listTables[i][j].type;
-                if(this.header[j].dataType == "DATETIME") this.inputProperty.type = "datetime";
+                if(this.header[j].dataType == "DATETIME") 
+                    this.inputProperty.type = "datetime";
                 this.inputProperty.linkId = this.listTables[i][j].linkId;
                 if(this.listTables[i][j] && this.listTables[i][j].listValue !== undefined) 
                 {
@@ -247,15 +240,11 @@ export class ErrorTableComponent implements OnInit
                     this.inputProperty.oldValue = this.inputProperty.value = this.listTables[i][j] ? this.listTables[i][j].value : undefined;
                     this.inputProperty.values = [];
                 }
-<<<<<<< HEAD
-                //if(this.inputProperty.type == "datetime") this.openDatetimeModal();
-=======
                 if(this.inputProperty.type == "datetime") 
                 {
                     this.openDatetimeModal();
                     this.inputProperty.visible = false;
                 }
->>>>>>> 79450f988beb027ee9139621601ec96301fb162e
                 setTimeout(() => { this.mainInputElement.nativeElement.focus(); }, 20);
                 return true;
             }

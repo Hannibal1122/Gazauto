@@ -34,7 +34,7 @@ export class SplitScreen
     ]
     constructor()
     {
-        this.appendScreen(0, 0);
+        this.appendScreen(0, 0, 0);
         document.addEventListener("dragover", (event:any) => 
         {
             if(event.target.className != "DragScreen") return;
@@ -67,11 +67,10 @@ export class SplitScreen
             let pointB = this.dragSettings.rect.pointB;
             if(this.dragSettings.new)
             {
-                this.sector = this.screens.length;
-                this.appendScreen(pointA.i, pointA.j);
-                trace(pointA)
-                trace(pointB)
+                this.sector = this.getNewSector();
+                this.appendScreen(this.sector, pointA.i, pointA.j);
                 this.setRectInSectors(pointA, pointB, this.sector);
+                this.calcSectors();
             }
             else this.sector = this.sectors[pointA.i][pointA.j];
 
@@ -83,16 +82,19 @@ export class SplitScreen
             this.screens[this.sector].currentSoftware = this.screens[this.sector].tabs.length - 1;
             if(this.screens[s].tabs.length == 0)
             {
-                /* this.sectors[this.screens[s].y][this.screens[s].x] = null;
-                this.screens[s] = null; */
                 this.fillTheVoid(s);
                 this.screens[s] = null;
             }
             this.calcSectors();
             this.onDragEnd();
-            trace(this.screens)
-            trace(this.sectors)
         }, false);
+    }
+    getNewSector()
+    {
+        let i = 0;
+        for(; i < this.screens.length; i++)
+            if(this.screens[i] === null) return i;
+        return i;
     }
     getRect(pointA)
     {
@@ -131,9 +133,9 @@ export class SplitScreen
             }
         }
     }
-    appendScreen(i, j)
+    appendScreen(screenI, i, j)
     {
-        this.screens.push({
+        this.screens[screenI] = {
             tabs: [],
             set column(value) 
             { 
@@ -148,7 +150,7 @@ export class SplitScreen
             currentSoftware: -1,
             first: { i: i, j: j },
             end: { i: this.sectors.length, j: this.sectors[0].length }
-        });
+        };
     }
     fillTheVoid(screenI)
     {
@@ -156,25 +158,21 @@ export class SplitScreen
         let screenB;
         for(let i = 0; i < this.screens.length; i++)
         {
-            if(i == screenI || this.screens === null) continue;
+            if(i == screenI || this.screens[i] === null) continue;
             screenB = this.screens[i];
             if(screenA.first.i == screenB.first.i)
             {
-                trace("gorizontal")
                 let right = screenB.end.j == screenA.first.j - 1;
                 let left = screenB.first.j == screenA.end.j + 1;
                 if(left || right)
                 {
-                    trace("left || right")
                     let aH = (screenA.end.i - screenA.first.i) + 1;
                     let bH = (screenB.end.i - screenB.first.i) + 1;
                     if(aH >= bH)
                     {
-                        trace("aH >= bH")
-                        this.setRectInSectors(screenA.first, { i: screenB.end.i + 1, j: screenA.end.j + 1 }, this.sector);
+                        this.setRectInSectors(screenA.first, { i: screenB.end.i + 1, j: screenA.end.j + 1 }, i);
                         if(left) screenB.first.j = screenA.first.j;
                         if(right) screenB.end.j = screenA.end.j;
-                        trace(screenB)
                         if(aH > bH)
                         {
                             screenA.first.i += bH;
@@ -186,18 +184,15 @@ export class SplitScreen
             }
             if(screenA.first.j == screenB.first.j)
             {
-                trace("vertical")
                 let up = screenB.end.i === screenA.first.i - 1;
                 let down = screenB.first.i === screenA.end.i + 1;
                 if(up || down)
                 {
-                    trace("up || down")
                     let aW = (screenA.end.j - screenA.first.j) + 1;
                     let bW = (screenB.end.j - screenB.first.j) + 1;
                     if(aW >= bW)
                     {
-                        trace("aW >= bW")
-                        this.setRectInSectors(screenA.first, { i: screenA.end.i + 1, j: screenB.end.j + 1 }, this.sector);
+                        this.setRectInSectors(screenA.first, { i: screenA.end.i + 1, j: screenB.end.j + 1 }, i);
                         if(down) screenB.first.i = screenA.first.i;
                         if(up) screenB.end.i = screenA.end.i;
                         if(aW > bW)
@@ -233,5 +228,16 @@ export class SplitScreen
     appendTab(tab)
     {
         this.screens[this.currentScreen].tabs.push(tab);
+    }
+    closeTab(s, i)
+    {
+        let tabsI = i;
+        this.screens[s].tabs.splice(tabsI, 1);
+        if(this.screens[s].tabs.length == 0)
+        {
+            this.fillTheVoid(s);
+            this.screens[s] = null;
+        }
+        this.calcSectors();
     }
 }

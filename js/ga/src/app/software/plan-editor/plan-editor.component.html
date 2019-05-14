@@ -1,8 +1,7 @@
-<<<<<<< HEAD
 <!-- Plan Editor-->
 <div class = "col-md-4 col-sm-12" style = "user-select:none; margin-top:4px; padding-right:5px; padding-left:5px;">
     <label>Показать план-график за  
-        <select style = "height: 36px; border: 1px solid #eeeeee; border-radius:5px;" [(ngModel)] = "searchInputType">
+        <select style = "height: 36px; border: 1px solid #eeeeee; border-radius:5px;">
             <option value = "all">Год</option>
             <option value = "jan">Январь</option>
             <option value = "feb">Февраль</option>
@@ -22,8 +21,8 @@
     <!--<button class = "mainButton" title = "Добавить сотрудника" (click) = "editEmployee()"><i class="fas fa-user-plus"></i></button> -->
     <button class = "mainButton" title = "Редактирование" (click) = "editEmployee()"><i class="fas fa-cog"></i></button>
 </div>
-<div style = "overflow:auto;" [style.height] = "height"> 
-    <table border="1" class = "PlanEditor">
+<div style = "overflow:auto;"> 
+    <table class = "PlanEditor">
         <tbody>
             <tr>
                 <th>ФИО сотрудника</th>
@@ -59,13 +58,14 @@
                 <th>30</th>
                 <th>31</th>
             </tr>
-            <tr *ngFor="let employee of employees"> 
-                <td> {{employee.surname}} {{employee.name}} {{employee.patronymic}} </td>
-                <td *ngFor="let day of employee.days" [attr.colspan]="day.colspan">
-                    <div [class.colorRed] = "day.value == 'К'"
-                        [class.colorGreen] = "day.value == '8'"
-                        [class.colorGray] = "day.value == 'Вых'"
-                        [class.colorBlue] = "day.value == 'От'"> {{day.value}} </div>
+            <tr *ngFor="let employee of outEmployees"> 
+                <td>{{employee.name}}</td>
+                <td *ngFor="let day of employee.days" 
+                    [attr.colspan]="day.colspan"
+                    [class.colorRed] = "day.value == 'К'"
+                    [class.colorGreen] = "day.value == '8'"
+                    [class.colorGray] = "day.value == 'Вых'"
+                    [class.colorBlue] = "day.value == 'От'"> {{day.value}}
                 </td>
                <!-- <td> <button class = "mainButton" title = "Редактировать" (click) = "editEmployee()" ><i class="fas fa-cog"></i></button> </td> -->
             </tr>
@@ -87,5 +87,3 @@
 
 
 <modalwindow #modal></modalwindow>
-=======
->>>>>>> 79450f988beb027ee9139621601ec96301fb162e

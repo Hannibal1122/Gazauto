@@ -126,7 +126,7 @@
                             <span *ngIf = "tab.type == 'info'"> <i class = "fas fa-info colorIconEvent"></i> </span>
                             {{tab.software.inputs.name || tab.name}}
                         </div>
-                        <span (click) = "closeTab(i)"><i class="fas fa-times-circle tubExitButton TabsButtonExitColor"></i></span>
+                        <span (click) = "closeTab(s, i)"><i class="fas fa-times-circle tubExitButton TabsButtonExitColor"></i></span>
                     </div>
                 </div>
                 <div style = "width:100%; height:calc(100% - 30px); position: absolute; overflow: auto; top: 30px;" class = "WorkspaceBColor WorkspaceColor">

@@ -18,3 +18,17 @@
     background-color:#7be8f7c7;
     text-align: center; 
 }
+.PlanEditor
+{
+}
+.PlanEditor td:first-child, th:first-child
+{
+    text-align:left !important;
+}
+.PlanEditor th, td
+{
+    min-width:30px;
+    text-align:center;
+    padding: 5px;
+    font-size: 14px;
+}

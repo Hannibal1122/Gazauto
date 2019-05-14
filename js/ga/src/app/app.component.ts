@@ -101,13 +101,16 @@ export class AppComponent implements OnInit
         /* this.currentSoftware = i;
         localStorage.setItem("CurrentTab", i); */
     }
-    closeTab(i) // Закрыть вкладку
+    closeTab(s, i) // Закрыть вкладку
     {
-        /* this.removeSaveTab(i);
-        if(this.tabs[i].type == "table")
-            this.globalEvent.unsubscribe("table", this.tabs[i].software.inputs.id);
-        this.tabs.splice(i, 1);
-        if(i < this.currentSoftware) this.currentSoftware--;
+        let tab = this.splitScreen.screens[s].tabs[i];
+        let _i = tab.i;
+        this.removeSaveTab(_i);
+        if(tab.type == "table")
+            this.globalEvent.unsubscribe("table", tab.software.inputs.id);
+        this.tabs.splice(_i, 1);
+        this.splitScreen.closeTab(s, i);
+        /*if(i < this.currentSoftware) this.currentSoftware--;
         else if(i == this.currentSoftware)
         {
             if(this.tabs[i]) this.currentSoftware = i;
@@ -237,6 +240,7 @@ export class AppComponent implements OnInit
                 type: type,
                 software: software,
                 inputFromApp: null,
+                i: i
             };
             this.splitScreen.appendTab(this.tabs[i]);
         }
@@ -309,11 +313,12 @@ export class AppComponent implements OnInit
     }
     setSaveTab(i, type, input) // Сохранение вкладки
     {
-        let saveData:any = localStorage.getItem("Tabs");
+        
+        /* let saveData:any = localStorage.getItem("Tabs");
         if(saveData == null) saveData = [];
         else saveData = JSON.parse(saveData);
         saveData[i] = [type, { id: input.id }];
-        localStorage.setItem("Tabs", JSON.stringify(saveData));
+        localStorage.setItem("Tabs", JSON.stringify(saveData)); */
     }
     removeSaveTab(i) // Удаление вкладки из сохранения
     {
