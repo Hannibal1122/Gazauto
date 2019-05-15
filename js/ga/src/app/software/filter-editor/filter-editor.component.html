@@ -16,7 +16,7 @@
                         <option *ngFor = "let o of operand" [value] = "o.id">{{ o.value }}</option>
                     </select>
                 </div>
-                <div class = "condition value"><input type = "text" [(ngModel)] = "e.value" placeholder="значение"></div>
+                <div class = "condition value"><input type = "text" [(ngModel)] = "e.value" placeholder="пустое значение"></div>
                 <div *ngIf = "e.operator_edit !== true" class = "condition operator" (click) = "setEdit(e, 'operator')">{{ e.operator }}</div>
                 <div *ngIf = "e.operator_edit === true" class = "condition" style = "padding-top: 0px">
                     <select [(ngModel)] = "e.operator" (change) = "endEdit(e, 'operator')">

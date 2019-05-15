@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { QueryService } from '../../lib/query.service';
 
 declare var trace:any;
@@ -13,7 +13,7 @@ export class TableEditorComponent implements OnInit
 {
     @ViewChild('modal') public modal: any;
     @ViewChild('editTable') public editTable: any;
-    
+    @ViewChild('editTableDiv') public editTableDiv: ElementRef;
     onChange = null;
     set inputFromApp(value)
     {
@@ -25,7 +25,36 @@ export class TableEditorComponent implements OnInit
         }
         if(value && value.update) this.loadTable();
     }
-    visible = true;
+    _visible;
+    set visible(value)
+    {
+        this._visible = value;
+        if(value == true)
+        {
+            setTimeout(() =>
+            {
+                if(this.editTableDiv)
+                {
+                    let scroll:any = localStorage.getItem("table_scroll_" + this.inputs.id);
+                    if(scroll) 
+                    {
+                        scroll = JSON.parse(scroll);
+                        this.editTableDiv.nativeElement.scrollTop = scroll.top;
+                        this.editTableDiv.nativeElement.scrollLeft = scroll.left;
+                    }
+                    this.editTableDiv.nativeElement.onscroll = () => 
+                    { 
+                        let scroll = 
+                        {
+                            top: this.editTableDiv.nativeElement.scrollTop,
+                            left: this.editTableDiv.nativeElement.scrollLeft
+                        }
+                        localStorage.setItem("table_scroll_" + this.inputs.id, JSON.stringify(scroll));
+                    }
+                }
+            }, 100);
+        }
+    }
     inputs = { id: -1, searchObjectId: -1, name: null };
     firstData = {};
     dataHeader = [];
@@ -258,6 +287,7 @@ export class TableEditorComponent implements OnInit
             
             case "getRight":
                 for(let key in this.right) this.editTable.right[key] = this.right[key];
+                if(this.searchCellId > 0) this.setScroll(this.searchCellId);
                 break;
             case "row": // Добавление строки
                 this.addToQueue(257, [ this.inputs.id, property.idRow, property.prevOrNext ], (data) => { this.loadTable(); });
@@ -407,13 +437,6 @@ export class TableEditorComponent implements OnInit
     {
         clearInterval(this.searchTimeout);
         this.searchCellId = Number(id);
-        for(var i = 0; i < this.dataTable.length; i++)
-            for(var key in this.dataTable[i])
-                if(key != "__ID__" && key != "__NEXT__" && this.dataTable[i][key].id == id) 
-                {
-                    this.editTable.setScroll(id);
-                    break;
-                }
         let searchCellId = this.searchCellId;
         let searchCellCount = 0;
         this.searchTimeout = setInterval(() => 
@@ -427,6 +450,12 @@ export class TableEditorComponent implements OnInit
                 this.inputs.searchObjectId = -1;
             }
         }, 500);
+    }
+    setScroll(id) // Устанавливает скролл
+    {
+        let td = document.getElementById(id);
+        this.editTableDiv.nativeElement.scrollTop = td.offsetTop;
+        this.editTableDiv.nativeElement.scrollLeft = td.scrollLeft;
     }
     exportToExcel()
     {

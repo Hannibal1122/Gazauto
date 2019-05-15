@@ -35,5 +35,24 @@
             echo json_encode(["Index", $idElement]);
             $this->myLog->add("structure", "add", $idElement);
         }
+        function getWhereUsed($idElement)
+        {
+            $count = 0;
+            $type = selectOne("SELECT objectType FROM structures WHERE id = %i", [ $idElement ]);
+            switch($type)
+            {
+                case "table":
+                case "file":
+                    $count = (int)selectOne("SELECT count(*) FROM fields WHERE linkId = %i AND linkType = %s", [ $idElement, $type ]);
+                    break;
+                case "tlist":
+                    $count = (int)selectOne("SELECT count(*) FROM fields WHERE linkId = (SELECT objectId FROM structures WHERE id = %i) AND linkType = %s", [ $idElement, $type ]);
+                    break;
+                case "event":
+                    $count = (int)selectOne("SELECT count(*) FROM fields WHERE eventId = %i", [ $idElement ]);
+                    break;
+            }
+            return $count;
+        }
     }
 ?>

@@ -271,7 +271,7 @@
                         request("SELECT priority, icon FROM structures WHERE id = %i", $param);
                         break;
                     case 116: // Изменение приоритета и иконок
-                        if(($myRight->get($param[1]) & 8) != 8) continue; // Права на просмотр
+                        if(($myRight->get($param[1]) & 8) != 8) continue; // Права на изменение
                         query("UPDATE structures SET priority = %i, icon = %i WHERE id = %i", $param);
                         break;
                     case 117: // Загрузка файлов на сервер
@@ -396,6 +396,11 @@
                             $structures->remove($out[$i]);
                         }
                         echo json_encode($out);
+                        break;
+                    case 131:
+                        $idElement = (int)$param[0];
+                        if(($myRight->get($idElement) & 1) != 1) continue; // Права на просмотр
+                        echo $myStructures->getWhereUsed($idElement);
                         break;
                 }
             }

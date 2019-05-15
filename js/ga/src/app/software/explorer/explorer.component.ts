@@ -347,7 +347,6 @@ export class ExplorerComponent implements OnInit
     {
         this.openStructure(id, () =>
         {
-            this.inputs.updateHistory({ id: id });
             this.unSelectObject();
             this.query.protectionPost(202, { param: [ id ] }, (data) =>
             {
@@ -373,6 +372,7 @@ export class ExplorerComponent implements OnInit
                     this.selectRules.paste = false; 
                 if(func) func();
                 this.inputs.id = id;
+                this.inputs.updateHistory();
             });
         });
     }

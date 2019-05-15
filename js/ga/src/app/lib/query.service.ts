@@ -72,4 +72,19 @@ export class QueryService
         catch(e) { a = data; }
         return a
     }
+    public getWhereUsed(id, func) // Используется при удалении 
+    {
+        this.protectionPost(131, { param: [id] }, (data) => 
+        { 
+            let out = "";
+            let end = "е";
+            if(data > 0) 
+            {
+                if(data > 1) end = "ах";
+                else data = "одном";
+                out = `Объект используется в ${data} объект${end}`;
+            }
+            if(func) func(out);
+        });
+    }
 }

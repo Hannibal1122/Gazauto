@@ -4,6 +4,7 @@
     grid-template-columns: repeat(4, 1fr);
     grid-template-rows: repeat(4, 1fr);
     height: 100vh;
+    height: calc(var(--vh, 1vh) * 100);
     position: fixed; 
     top: 0px;
 }

@@ -64,21 +64,20 @@
                     }
                 }
                 else
-                    if($expression[$i]->value !== "")
-                    {
-                        $strI = "";
-                        $operand = $this->getOperand($expression[$i]->operand, $expression[$i]->value); // защита от инъекции
-                        if($result = query("SELECT i FROM fields WHERE idColumn = %i AND value ".$operand[0]." %s", [ $expression[$i]->field, str_replace("LOGIN", $login, $operand[1]) ])) // LOGIN - константа
-                            while($row = $result->fetch_array(MYSQLI_NUM))
-                            {
-                                if($strI != "") $strI .= ",";
-                                $strI .= $row[0];
-                            }
-                        if($strI == "") $strI = "-1";
-                        $str .= "i IN ($strI)";
-                        if(array_key_exists($i + 1, $expression) && ($expression[$i + 1]->type === "condition" || $expression[$i + 1]->begin))
-                            $str .= $this->getOperator($expression[$i]->operator);
-                    }
+                {
+                    $strI = "";
+                    $operand = $this->getOperand($expression[$i]->operand, $expression[$i]->value); // защита от инъекции
+                    if($result = query("SELECT i FROM fields WHERE idColumn = %i AND value ".$operand[0]." %s", [ $expression[$i]->field, str_replace("LOGIN", $login, $operand[1]) ])) // LOGIN - константа
+                        while($row = $result->fetch_array(MYSQLI_NUM))
+                        {
+                            if($strI != "") $strI .= ",";
+                            $strI .= $row[0];
+                        }
+                    if($strI == "") $strI = "-1";
+                    $str .= "i IN ($strI)";
+                    if(array_key_exists($i + 1, $expression) && ($expression[$i + 1]->type === "condition" || $expression[$i + 1]->begin))
+                        $str .= $this->getOperator($expression[$i]->operator);
+                }
             return $str;
         }
         function getUserFilter($login, $idTable)

@@ -31,23 +31,27 @@ export class CreateTableService
     }
     remove(id, update)
     {
-        var Data:any = {
-            title: "Вы действительно хотите удалить элемент? (" + id + ")",  
-            data: [],
-            ok: "Да",
-            cancel: "Отмена"
-        };
-        this.modal.open(Data, (save) =>
-        {
-            if(save)
-                this.query.protectionPost(112, { param: [id] }, (data) => 
-                { 
-                    trace(data)
-                    /* this.query.protectionPost(254, { param: [id] }, (data) => 
-                    { */
-                        update();
-                    /* }); */
-                });
+        this.query.getWhereUsed(id, (data) => 
+        { 
+            var Data:any = {
+                title: "Вы действительно хотите удалить элемент? (" + id + ")",  
+                data: [],
+                ok: "Да",
+                cancel: "Отмена"
+            };
+            if(data != "") Data.data[0] = ["", data, "html"];
+            this.modal.open(Data, (save) =>
+            {
+                if(save)
+                    this.query.protectionPost(112, { param: [id] }, (data) => 
+                    { 
+                        trace(data)
+                        /* this.query.protectionPost(254, { param: [id] }, (data) => 
+                        { */
+                            update();
+                        /* }); */
+                    });
+            });
         });
     }
 }

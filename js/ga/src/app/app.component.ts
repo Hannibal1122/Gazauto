@@ -48,6 +48,15 @@ export class AppComponent implements OnInit
         if(location.search == "?set_type=install")
             $.post(environment.URL, {nquery: -1}, (data)=>{ console.log(data) });
         globalEvent.subscribe("structure", -1, () => { this.refreshLeftMenu(); });
+
+        /*************************************************/
+        let vh = window.innerHeight * 0.01;
+        document.documentElement.style.setProperty('--vh', `${vh}px`);
+        window.addEventListener('resize', () => {
+            // We execute the same script as before
+            let vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        });
     }
     leftMenuScroll = 
     {
@@ -221,6 +230,7 @@ export class AppComponent implements OnInit
         {
             if(input.searchObjectId) this.tabs[i].inputFromApp = { search: input.searchObjectId };
             if(input.element) this.tabs[i].inputFromApp = { element: input.element };
+            this.splitScreen.setActiveTab(i);
         }
         else
         {
@@ -233,7 +243,7 @@ export class AppComponent implements OnInit
             };
             this.splitScreen.appendTab(this.tabs[i], settings);
         }
-        this.tabs[i].software.inputs.updateHistory = (input) => { /* this.setSaveTab(i, type, input); */ } 
+        this.tabs[i].software.inputs.updateHistory = () => { this.splitScreen.saveTabs(); } 
         return i;
     }
     checkRepeatSoftware(type, id)

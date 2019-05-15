@@ -126,21 +126,9 @@ export class ErrorTableComponent implements OnInit
                 this.inputProperty.close();
         };
         window.addEventListener("click", this.globalClick, false);
-        this.mainContainer.nativeElement.onscroll = () => 
-        { 
-            this.inputProperty.close();
-        }
         setTimeout(() => {
             this.onChange.emit({ type: "getRight" });
         }, 20);
-    }
-    setScroll(id) // Устанавливает скролл
-    {
-        let td = document.getElementById(id);
-        setTimeout(() => {
-            this.mainContainer.nativeElement.scrollTop = td.offsetTop;
-            this.mainContainer.nativeElement.scrollLeft = td.scrollLeft;
-        }, 100);
     }
     set setCell(value)
     {
@@ -306,7 +294,6 @@ export class ErrorTableComponent implements OnInit
             if(type == "list") out.value = { value: this.inputProperty.valueList, linkId:this.listTables[i][j].linkId, type:linkType, listValue: listValue };
             this.onChange.emit({ type: "field", out: out, i: i, nameColumn: this.header[j].value, eventId: this.inputProperty.eventId });
         }
-        /* this.onChange.emit({ type: "operation", rules: { copy: false, cut: false, paste: false }}); */
     }
     removeRow(i)
     {
@@ -417,8 +404,11 @@ export class ErrorTableComponent implements OnInit
         }
         this.rules.paste = this.rules.paste && this.rules.change;
         this.rules.object = this.rules.object && this.rules.change; // Чтобы в html не делать несколько проверок
-        /* if(e.clientY > Number(this.height.replace("px", "")) / 2) this.createContextMenu.transform = "translate(0, -100%)";
-        else this.createContextMenu.transform = null; */
+
+        let height = this.mainContainer.nativeElement.clientHeight;
+        if(e.clientY > height / 2) this.createContextMenu.transform = "translate(0, -100%)";
+        else this.createContextMenu.transform = null;
+
         this.createContextMenu.left = e.clientX + "px";
         this.createContextMenu.top = e.clientY + "px";
         this.createContextMenu.visible = true;

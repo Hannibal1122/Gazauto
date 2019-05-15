@@ -252,9 +252,22 @@ export class SplitScreen
         }
         else 
         {
+            if(settings.screen === undefined) settings.screen = 0;
             this.screens[settings.screen].tabs.push(tab);
             if(settings.current) this.screens[settings.screen].currentSoftware = this.screens[settings.screen].tabs.length - 1;
         }
+        this.saveTabs();
+    }
+    setActiveTab(tabsI) // Делает активной вкладку по tabsI
+    {
+        for(let s = 0; s < this.screens.length; s++)
+            if(this.screens[s])
+                for(let j = 0; j < this.screens[s].tabs.length; j++)
+                    if(this.screens[s].tabs[j].i == tabsI)
+                    {
+                        this.screens[s].currentSoftware = j;
+                        break;
+                    }
     }
     getLength() // Получить длину массива
     {

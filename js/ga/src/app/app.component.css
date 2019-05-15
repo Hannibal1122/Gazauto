@@ -13,6 +13,7 @@
     grid-template-columns: 1fr;
     grid-template-rows: 30px 1fr;
     height: 100vh;
+    height: calc(var(--vh, 1vh) * 100);
     z-index: 1000; 
     top:0px;
     left:50px;
