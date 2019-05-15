@@ -60,6 +60,9 @@ export class SplitScreen
             this.dragSettings.new = !(first.i == pointA.i && first.j == pointA.j);
             this.dragSettings.rect.pointA = pointA;
             this.dragSettings.rect.pointB = pointB;
+
+            event.preventDefault();
+            event.dataTransfer.dropEffect = "move"
         }, false);
         document.addEventListener("dragend", (event:any) => 
         {
@@ -87,16 +90,17 @@ export class SplitScreen
             }
             this.calcSectors();
             this.onDragEnd();
+            this.saveTabs();
         }, false);
     }
-    getNewSector()
+    getNewSector() // Массив screens может содержать null или undefined 
     {
         let i = 0;
         for(; i < this.screens.length; i++)
-            if(this.screens[i] === null) return i;
+            if(!this.screens[i]) return i;
         return i;
     }
-    getRect(pointA)
+    getRect(pointA) // Вычисляет область сектора по первой точке
     {
         let sectors = this.sectors;
         let s = sectors[pointA.i][pointA.j]; // Текущий сектор
@@ -111,7 +115,7 @@ export class SplitScreen
         pointB.j = j;
         return pointB;
     }
-    calcSectors()
+    calcSectors() // Вычисляется grid-column и grid-row для grid
     {
         let sectors = this.sectors;
         for(let i = 0; i < sectors.length; i++)
@@ -123,7 +127,7 @@ export class SplitScreen
             {
                 s = sectors[i][j];
                 screen = this.screens[s];
-                if(screen === null) continue;
+                if(!screen) continue;
                 if(!(screen.first.i == i && screen.first.j == j))
                 {
                     this.screens[s].end = { i: i, j: j }
@@ -151,6 +155,18 @@ export class SplitScreen
             first: { i: i, j: j },
             end: { i: this.sectors.length, j: this.sectors[0].length }
         };
+        this.currentScreen = screenI;
+    }
+    appendScreenBySectors()
+    {
+        this.screens = [];
+        for(let i = 0; i < this.sectors.length; i++)
+            for(let j = 0; j < this.sectors[i].length; j++)
+            {
+                let s = this.sectors[i][j];
+                if(!this.screens[s]) this.appendScreen(s, i, j);
+            }
+        this.calcSectors();
     }
     fillTheVoid(screenI)
     {
@@ -158,7 +174,7 @@ export class SplitScreen
         let screenB;
         for(let i = 0; i < this.screens.length; i++)
         {
-            if(i == screenI || this.screens[i] === null) continue;
+            if(i == screenI || !this.screens[i]) continue;
             screenB = this.screens[i];
             if(screenA.first.i == screenB.first.i)
             {
@@ -213,8 +229,9 @@ export class SplitScreen
                 this.sectors[i][j] = value;
     }
     drag = false;
-    onDragStart(s, tabsI)
+    onDragStart(event, s, tabsI)
     {
+        event.dataTransfer.effectAllowed = "move";
         this.dragSettings.s = s; // Из какого экрана
         this.dragSettings.tabsI = tabsI; // Номер влкадки
         this.drag = true;
@@ -225,19 +242,70 @@ export class SplitScreen
         this.dragSettings.tabsI = -1;
         this.drag = false;
     }
-    appendTab(tab)
+    appendTab(tab, settings?)
     {
-        this.screens[this.currentScreen].tabs.push(tab);
+        if(settings === undefined)
+        {
+            let s = this.getLastScreen();
+            this.screens[s].tabs.push(tab);
+            this.screens[s].currentSoftware = this.screens[s].tabs.length - 1;
+        }
+        else 
+        {
+            this.screens[settings.screen].tabs.push(tab);
+            if(settings.current) this.screens[settings.screen].currentSoftware = this.screens[settings.screen].tabs.length - 1;
+        }
+    }
+    getLength() // Получить длину массива
+    {
+        let l = 0;
+        for(let i = 0; i < this.screens.length; i++)
+            if(this.screens[i]) l++;
+        return l;
+    }
+    getLastScreen()
+    {
+        let i = 0;
+        if(this.screens[this.currentScreen]) return this.currentScreen;
+        for(; i < this.screens.length; i++)
+            if(this.screens[i]) return i;
+        return i;
     }
     closeTab(s, i)
     {
         let tabsI = i;
-        this.screens[s].tabs.splice(tabsI, 1);
-        if(this.screens[s].tabs.length == 0)
+        let screen = this.screens[s];
+        let tabs = screen.tabs;
+        tabs.splice(tabsI, 1);
+        if(tabs.length == 0)
         {
             this.fillTheVoid(s);
-            this.screens[s] = null;
+            if(this.getLength() > 1)
+                this.screens[s] = null;
+        }
+        else
+        {
+            if(i < screen.currentSoftware) screen.currentSoftware--;
+            else if(i == screen.currentSoftware)
+            {
+                if(tabs[i]) screen.currentSoftware = i;
+                else if(tabs[i - 1]) screen.currentSoftware = i - 1;
+            }
         }
         this.calcSectors();
+        this.saveTabs();
+    }
+    saveTabs()
+    {
+        let saveData = []
+        for(let s = 0; s < this.screens.length; s++)
+            if(this.screens[s])
+                for(let j = 0; j < this.screens[s].tabs.length; j++)
+                {
+                    let tab = this.screens[s].tabs[j];
+                    saveData.push([tab.type, { id: tab.software.inputs.id }, s, this.screens[s].currentSoftware == j])
+                }
+        localStorage.setItem("Tabs", JSON.stringify(saveData));
+        localStorage.setItem("Sectors", JSON.stringify(this.sectors));
     }
 }

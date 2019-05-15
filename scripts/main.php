@@ -81,8 +81,8 @@
             case 0: // Запрос версии
                 /* include("./version/versions.php"); */
                 $project = [];	
-                $project['main'] = "0.9.70";/* getVersion(		$_main["name"], 		$_main["data"]); */
-                $project['php'] = "0.9.90";/* getVersion(		$_php["name"], 			$_php["data"]); */
+                $project['main'] = "0.9.71";/* getVersion(		$_main["name"], 		$_main["data"]); */
+                $project['php'] = "0.9.91";/* getVersion(		$_php["name"], 			$_php["data"]); */
                 echo json_encode($project);
                 break;
             case 1: // Возвращает информацию о текущем пользователе

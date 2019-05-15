@@ -75,7 +75,7 @@ export class TableEditorComponent implements OnInit
             for(let key in data.right) 
             {
                 this.right[key] = data.right[key];
-                this.editTable.right[key] = data.right[key];
+                if(this.editTable) this.editTable.right[key] = data.right[key];
             }
             this.nameTable = this.inputs.name = data.name;
             this.control.state = data.state;

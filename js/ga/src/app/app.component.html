@@ -116,9 +116,9 @@
                     style = "width: 100%; height:30px; position: absolute; top: 0px; overflow:auto; overflow-y:hidden; display:flex; font-size: 14px; z-index: 1000;">
                     <div *ngFor = "let tab of screen.tabs; let i = index;" 
                         draggable="true"
-                        (dragstart) = "splitScreen.onDragStart(s, i)"
+                        (dragstart) = "splitScreen.onDragStart($event, s, i)"
                         class = "myTabs TabsColor" [class.TabsActiveColor] = "i == screen.currentSoftware">
-                        <div (click) = "openTab(screen, i)" 
+                        <div (click) = "openTab(s, i)" 
                             style = "padding-left:7px; height:30px; line-height:30px; width: calc(100% - 20px); text-overflow: ellipsis; overflow: hidden; white-space: nowrap;" >
                             <span *ngIf = "tab.type == 'explorer'"> <i class = "fas fa-sitemap colorIconExplorer"></i> </span>
                             <span *ngIf = "tab.type == 'table'"> <i class = "fas fa-table colorIconTable"></i> </span>
@@ -134,7 +134,7 @@
                         <div style = "height: 100%; width:100%; padding: 5px; position:absolute;" 
                             [hidden] = "i != screen.currentSoftware">
                             <vg-dynamic-view  
-                                [visible] = "!splitScreen.drag"
+                                [visible] = "!splitScreen.drag && i == screen.currentSoftware"
                                 [componentData] = "app.software" 
                                 (onChange) = "onChangeInSoftware($event)" 
                                 [inputFromApp] = "app.inputFromApp"></vg-dynamic-view>

@@ -66,10 +66,7 @@ export class AppComponent implements OnInit
             this.enter = true; 
             this.Login = localStorage.getItem("login");
             this.refreshLeftMenu();
-            let saveTabs = this.getSaveTabs();
-            for(var i = 0; i < saveTabs.length; i++) 
-                if(saveTabs[i]) 
-                    this.openSoftware(saveTabs[i][0], saveTabs[i][1]);
+            this.getSaveTabs();
 
             /* let currentTab = localStorage.getItem("CurrentTab");
             if(currentTab !== null) this.currentSoftware = Number(currentTab); */
@@ -95,11 +92,12 @@ export class AppComponent implements OnInit
         if(Width < 720) this.panelApp.up = true;
         else this.panelApp.up = false;
     }
-    openTab(screen, i) // Активировать вкладку
+    openTab(s, i) // Активировать вкладку
     {
+        let screen = this.splitScreen.screens[s];
         screen.currentSoftware = i;
-        /* this.currentSoftware = i;
-        localStorage.setItem("CurrentTab", i); */
+        this.splitScreen.currentScreen = s;
+        this.splitScreen.saveTabs();
     }
     closeTab(s, i) // Закрыть вкладку
     {
@@ -110,12 +108,6 @@ export class AppComponent implements OnInit
             this.globalEvent.unsubscribe("table", tab.software.inputs.id);
         this.tabs.splice(_i, 1);
         this.splitScreen.closeTab(s, i);
-        /*if(i < this.currentSoftware) this.currentSoftware--;
-        else if(i == this.currentSoftware)
-        {
-            if(this.tabs[i]) this.currentSoftware = i;
-            else if(this.tabs[i - 1]) this.currentSoftware = i - 1;
-        } */
     }
     leftMenuConfig = [];
     refreshLeftMenu() // обновить левое меню
@@ -191,15 +183,14 @@ export class AppComponent implements OnInit
                 break;
         }
     }
-    openSoftware(type, input) // Открыть приложение
+    openSoftware(type, input, settings?) // Открыть приложение
     {
         var i = 0;
-        let length = this.tabs.length;
         switch(type)
         {
-            case "explorer": i = this.getNewTab(type, { component: ExplorerComponent, inputs: input }); break;
+            case "explorer": i = this.getNewTab(type, { component: ExplorerComponent, inputs: input }, settings); break;
             case "table": 
-                i = this.getNewTab(type, { component: TableEditorComponent, inputs: input });
+                i = this.getNewTab(type, { component: TableEditorComponent, inputs: input }, settings);
                 let tableId = input.id;
                 this.globalEvent.subscribe("table", tableId, (event) =>
                 {
@@ -208,14 +199,12 @@ export class AppComponent implements OnInit
                     else this.tabs[i].inputFromApp = { logins: event.logins };
                 });
                 break;
-            case "info": i = this.getNewTab(type, { component: InfoComponent, inputs: input }); break;
-            case "event": i = this.getNewTab(type, { component: EventEditorComponent, inputs: input }); break;
-            case "plan": i = this.getNewTab(type, { component: PlanEditorComponent, inputs: input }); break;
+            case "info": i = this.getNewTab(type, { component: InfoComponent, inputs: input }, settings); break;
+            case "event": i = this.getNewTab(type, { component: EventEditorComponent, inputs: input }, settings); break;
+            case "plan": i = this.getNewTab(type, { component: PlanEditorComponent, inputs: input }, settings); break;
         }
-        if(length != this.tabs.length) this.setSaveTab(i, type, input) // Новая вкладка, нужно сохранить
-        /* this.currentSoftware = i; */
     }
-    getNewTab(type, software)
+    getNewTab(type, software, settings)
     {
         var input = software.inputs;
         var name = "";
@@ -242,9 +231,9 @@ export class AppComponent implements OnInit
                 inputFromApp: null,
                 i: i
             };
-            this.splitScreen.appendTab(this.tabs[i]);
+            this.splitScreen.appendTab(this.tabs[i], settings);
         }
-        this.tabs[i].software.inputs.updateHistory = (input) => { this.setSaveTab(i, type, input); } 
+        this.tabs[i].software.inputs.updateHistory = (input) => { /* this.setSaveTab(i, type, input); */ } 
         return i;
     }
     checkRepeatSoftware(type, id)
@@ -293,7 +282,7 @@ export class AppComponent implements OnInit
         localStorage.setItem("name", "");
         localStorage.removeItem("MiniApp");
         localStorage.removeItem("Tabs");
-        localStorage.removeItem("CurrentTab");
+        localStorage.removeItem("Sectors");
     }
     hideMenu = true;
     currentMiniApp = "";
@@ -307,18 +296,16 @@ export class AppComponent implements OnInit
     }
     getSaveTabs() // Запрос всех сохраненных вкладок
     {
-        let saveData:any = localStorage.getItem("Tabs"); 
-        if(saveData == null) return [];
-        else return JSON.parse(saveData);
-    }
-    setSaveTab(i, type, input) // Сохранение вкладки
-    {
-        
-        /* let saveData:any = localStorage.getItem("Tabs");
-        if(saveData == null) saveData = [];
-        else saveData = JSON.parse(saveData);
-        saveData[i] = [type, { id: input.id }];
-        localStorage.setItem("Tabs", JSON.stringify(saveData)); */
+        let saveTabs:any = localStorage.getItem("Tabs"); 
+        if(saveTabs == null) saveTabs = [];
+        else saveTabs = JSON.parse(saveTabs);
+        let sectors = localStorage.getItem("Sectors");
+        if(sectors != null) this.splitScreen.sectors = JSON.parse(sectors);
+
+        this.splitScreen.appendScreenBySectors();
+        for(var i = 0; i < saveTabs.length; i++) 
+            if(saveTabs[i])
+                this.openSoftware(saveTabs[i][0], saveTabs[i][1], { screen: saveTabs[i][2], current: saveTabs[i][3] });
     }
     removeSaveTab(i) // Удаление вкладки из сохранения
     {
