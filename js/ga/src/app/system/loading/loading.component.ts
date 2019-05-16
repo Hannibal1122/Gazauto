@@ -14,7 +14,7 @@ export class LoadingComponent implements OnInit
     {
         this._load = value;
     }
-    _load = true;
+    _load = false;
     bigCircle;
     up = false;
     constructor() { }

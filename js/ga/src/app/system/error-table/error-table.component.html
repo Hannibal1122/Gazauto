@@ -118,6 +118,7 @@
                 {{ rules.event ? 'Добавить событие' : 'Вставить объект' }}</button>
         <button *ngIf = "inputProperty.eventId" class = "contextMenuList" (click) = "removeEvent(true)" [disabled] = "!rules.change">Удалить событие</button>
         <button *ngIf = "inputProperty.eventId" class = "contextMenuList" (click) = "openEventToExplorer(inputProperty.eventId)">Найти событие</button>
+        <button *ngIf = "inputProperty.eventId" class = "contextMenuList" (click) = "openSoftware('event', inputProperty.eventId)">Открыть событие</button>
         <button class = "contextMenuList" (click) = "clearFilters()">Очистить фильтры</button>
     </ng-container>
     <ng-container *ngIf = "createContextMenu.type == 'row'">
@@ -133,14 +134,18 @@
         <button class = "contextMenuList" (click) = "pasteField('value')" [disabled] = "!rules.paste">Вставить по значению</button>
         <button class = "contextMenuList" (click) = "copyOrCut('copy')" [disabled] = "!rules.copy">Копировать</button>
         <button class = "contextMenuList" (click) = "copyOrCut('cut')" [disabled] = "!rules.cut">Вырезать</button>
-        <button class = "contextMenuList" (click) = "setState(0)" [disabled] = "!rules.change">Статус - 0%</button>
-        <button class = "contextMenuList" (click) = "setState(10)" [disabled] = "!rules.change">Статус - 10%</button>
-        <button class = "contextMenuList" (click) = "setState(50)" [disabled] = "!rules.change">Статус - 50%</button>
-        <button class = "contextMenuList" (click) = "setState(100)" [disabled] = "!rules.change">Статус - 100%</button>
+        <button class = "contextMenuList" [disabled] = "!rules.change">Статус 
+            <span (click) = "setState(0)" style = "margin-left:5px;">0%</span>
+            <span (click) = "setState(10)" style = "margin-left:5px;">10%</span>
+            <span (click) = "setState(50)" style = "margin-left:5px;">50%</span>
+            <span (click) = "setState(100)" style = "margin-left:5px;">100%</span>
+        </button>
         <button *ngIf = "inputProperty.eventId" class = "contextMenuList" (click) = "removeEvent()" [disabled] = "!rules.change">Удалить событие</button>
         <button *ngIf = "inputProperty.eventId" class = "contextMenuList" (click) = "openEventToExplorer(inputProperty.eventId)">Найти событие</button>
+        <button *ngIf = "inputProperty.eventId" class = "contextMenuList" (click) = "openSoftware('event', inputProperty.eventId)">Открыть событие</button>
         <button *ngIf = "inputProperty.type == 'cell'" class = "contextMenuList" (click) = "openToExplorer(inputProperty)">Найти в таблице</button>
         <button *ngIf = "inputProperty.type == 'table' || inputProperty.type == 'file' || inputProperty.type == 'tlist'" class = "contextMenuList" (click) = "openToExplorer(inputProperty)">Найти в проводнике</button>
+        <button *ngIf = "inputProperty.type == 'table'" class = "contextMenuList" (click) = "openSoftware('table', inputProperty.linkId)">Открыть таблицу</button>
     </ng-container>
 </div>
 <modal-moved-window #modalMovedWindow></modal-moved-window>

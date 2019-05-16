@@ -60,7 +60,7 @@
 		}
 		return $arr;
     }
-    function request($_query, $param) // Отправка запроса и получение от вета в формате JSON
+    function request($_query, $param) // Отправка запроса и получение ответа в формате JSON
     {
         global $mysqli;
         $Result = [];

@@ -81,7 +81,7 @@
             case 0: // Запрос версии
                 /* include("./version/versions.php"); */
                 $project = [];	
-                $project['main'] = "0.9.71";/* getVersion(		$_main["name"], 		$_main["data"]); */
+                $project['main'] = "0.9.72";/* getVersion(		$_main["name"], 		$_main["data"]); */
                 $project['php'] = "0.9.91";/* getVersion(		$_php["name"], 			$_php["data"]); */
                 echo json_encode($project);
                 break;
@@ -216,6 +216,7 @@
                         $idElement = (int)$param[0];
                         if(($myRight->get($idElement) & 8) != 8) return; // Права на изменение
                         query("UPDATE structures SET trash = 1 WHERE id = %i", [$idElement]);
+                        $myLog->add("structure", "remove", $idElement);
                         break;
                     case 113: // Загрузка структуры без выпрямления
                         $out = [];
@@ -379,10 +380,9 @@
                                 $out = getObjectFromStructures($row);
                         echo json_encode($out);
                         break;
-                    case 130: // Полное удаление из программы
+                    case 130: // Полное удаление из Объекта из проекта
                         require_once("myObject.php");
                         require_once("copyAndRemove.php");
-                        
                         $idElement = (int)$param[0];
                         $structures = new CopyAndRemove(null, null, null, $myLog);
                         $out = [ $idElement ];
@@ -397,10 +397,17 @@
                         }
                         echo json_encode($out);
                         break;
-                    case 131:
+                    case 131: // Подсчитывает сколько элементов используют данный объект
                         $idElement = (int)$param[0];
                         if(($myRight->get($idElement) & 1) != 1) continue; // Права на просмотр
                         echo $myStructures->getWhereUsed($idElement);
+                        break;
+                    case 132: // Отключение пользователя
+                        $idElement = (int)$param[0];
+                        if(($myRight->get($idElement) & 8) != 8) continue; // Права на изменение
+                        $username = selectOne("SELECT name FROM structures WHERE id = %i", [ $idElement ]);
+                        query("UPDATE signin SET checkkey = '', login = '' WHERE login = %s", [$username]);
+                        $myLog->add("user", "logout", $username);
                         break;
                 }
             }
@@ -831,6 +838,17 @@
                         $q = $myFilter->getUserFilter($login, $idTable);
                         if($q == "") query("INSERT INTO user_settings (login, id, type, value) VALUES(%s, %i, %s, %s)", [$login, $idTable, 'filter', $idFilter]);
                         else query("UPDATE user_settings SET value = %s WHERE login = %s AND id = %i AND type = %s", [$idFilter, $login, $idTable, 'filter']);
+                        break;
+                }
+            }
+            if($nQuery >= 480 && $nQuery < 490) // Работа с журналом У него фиксированный id = 5
+            {
+                $idElement = (int)$param[0];
+                switch($nQuery)
+                {
+                    case 480:
+                        if(($myRight->get($idElement) & 1) != 1) continue; // Права на просмотр
+                        request("SELECT date, login, type, operation, value FROM main_log ORDER by date DESC LIMIT 100", [ ]);
                         break;
                 }
             }

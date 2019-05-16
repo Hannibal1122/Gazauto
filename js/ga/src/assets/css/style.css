@@ -36,6 +36,14 @@
 {
     background-color: #dadada;
 }
+.contextMenuList span
+{
+    color:#9b9b9b;
+}
+.contextMenuList span:hover
+{
+    color:#ffffff;
+}
 /*******************************************************/
 .leftMenuTitle
 {
@@ -49,6 +57,7 @@
 {
     color:#456486;
     width: 32px;
+    min-width: 32px;
     height: 32px;
     /* background-color: #e5e5e5; */
     background-color: #ffffff;

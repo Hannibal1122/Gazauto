@@ -303,6 +303,10 @@ export class ErrorTableComponent implements OnInit
     {
         this.onChange.emit({ type: "explorer", data: data });
     }
+    openSoftware(type, id) // Открывает без отображения в проводнике
+    {
+        this.onChange.emit({ type: "openSoftware", data: { id: id, type: type }});
+    }
     openEventToExplorer(eventId)
     {
         this.onChange.emit({ type: "event", eventId: eventId });

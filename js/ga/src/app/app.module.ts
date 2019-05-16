@@ -15,6 +15,7 @@ import { InfoComponent } from './software/info/info.component';
 import { HttpClientModule } from '@angular/common/http';
 import { UserSettingsComponent } from './software/user-settings/user-settings.component';
 import { EventEditorComponent } from './software/event-editor/event-editor.component';
+import { EventLogComponent } from './software/event-log/event-log.component';
 import { ModalMovedWindowComponent } from './system/modal-moved-window/modal-moved-window.component';
 
 import { DateTimeModule } from "./system/datetimepicker/datetimepicker.module";
@@ -33,7 +34,8 @@ import { DateTimeModule } from "./system/datetimepicker/datetimepicker.module";
         InfoComponent,
         EventEditorComponent,
         PlanEditorComponent,
-        ModalMovedWindowComponent
+        ModalMovedWindowComponent,
+        EventLogComponent
     ],
     imports: [ BrowserModule, FormsModule, ModalWindowModule, HttpClientModule, DateTimeModule ],
     providers: [],

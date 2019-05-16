@@ -32,6 +32,7 @@ export class SplitScreen
         [0, 0, 0, 0],
         [0, 0, 0, 0],
     ]
+    empty = true;
     constructor()
     {
         this.appendScreen(0, 0, 0);
@@ -257,6 +258,7 @@ export class SplitScreen
             if(settings.current) this.screens[settings.screen].currentSoftware = this.screens[settings.screen].tabs.length - 1;
         }
         this.saveTabs();
+        this.empty = false;
     }
     setActiveTab(tabsI) // Делает активной вкладку по tabsI
     {
@@ -293,8 +295,8 @@ export class SplitScreen
         if(tabs.length == 0)
         {
             this.fillTheVoid(s);
-            if(this.getLength() > 1)
-                this.screens[s] = null;
+            if(this.getLength() > 1) this.screens[s] = null;
+            else this.empty = true;  
         }
         else
         {

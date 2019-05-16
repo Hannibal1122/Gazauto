@@ -1,9 +1,17 @@
 .explorer
 {
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 340px;
     grid-template-rows: 36px 36px 16px 1fr 30px;
     height: 100%;
+}
+.explorerFull
+{
+    grid-column: 1 / 3;
+}
+.explorerDouble
+{
+    grid-column: 1 / 2;
 }
 .explorerMain
 {
@@ -13,6 +21,7 @@
     flex-wrap: wrap; 
     font-size:12px;
     overflow: auto;
+    min-width: 280px;
 }
 .explorerMainList
 {

@@ -200,18 +200,11 @@
             {
                 $row = $result->fetch_array(MYSQLI_NUM);
                 $linkType = $row[1];
-                $fieldList = null;
                 $fieldState = 0;
                 if($linkType == "tlist" && $value = query("SELECT id, value, type, tableId FROM my_values WHERE id = %i", [ (int)$row[2] ]))
                 {
                     $valueData = $value->fetch_array(MYSQLI_NUM);
                     $fieldValue = $valueData[1];
-                    $fieldList = "";
-                    /*     if($valueData[2] == "tlist") 
-                    {
-                        $fieldValue = selectOne("SELECT id FROM fields WHERE type = 'value' AND tableId = %i", [ (int)$valueData[3] ]);
-                        $fieldList = "";
-                    } */
                 }
                 else 
                 {
@@ -225,7 +218,7 @@
                 $linkId = $linkType != "value" && $linkType != "tlist" ? $idObject : (int)$valueData[0];
                 
                 query("UPDATE fields SET value = %s, linkId = %i, linkType = %s, type = 'link', state = %i WHERE tableId = %i AND id = %i", [ $fieldValue, $linkId, $linkType, $fieldState, $idTable, $idFields ]);
-                echo json_encode([ "id" => $idFields, "linkId" => $linkId, "type" => $linkType, "value" => $fieldValue, "state" => $fieldState, "listValue" => $fieldList ]);
+                echo json_encode([ "id" => $idFields, "linkId" => $linkId, "type" => $linkType, "value" => $fieldValue, "state" => $fieldState ]);
             }
             $this->myLog->add("table", "update", $idTable);
         }

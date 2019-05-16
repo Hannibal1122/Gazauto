@@ -1,6 +1,6 @@
-<app-loading [load] = "load"></app-loading>
-<app-enter *ngIf = "!enter && !load"></app-enter>
-<div [hidden] = "!enter || load">
+<app-loading [load] = "!loaded"></app-loading>
+<app-enter *ngIf = "!enter && loaded"></app-enter>
+<div *ngIf = "enter && loaded">
     <div>
         <div class = "PanelMiniAppBColor" style = "position:fixed; z-index:1000; width:50px; height:40px; left:0px; top:0px;">
             <div class = "miniButton ButtonMiniAppColor ButtonMiniAppActiveColor" style = "cursor:default;">
@@ -140,6 +140,13 @@
                                 [inputFromApp] = "app.inputFromApp"></vg-dynamic-view>
                         </div>
                     </ng-container>
+                    <div *ngIf = "splitScreen.empty" style = "text-align: center; line-height: 16px; margin-top: 20px;">
+                        <i class="fab fa-gripfire" style = "font-size: 150px; color:#d6e6fd;"></i><br>
+                        <span style="color:#b8b8b8; font-size:25px; font-weight:bold">Добро пожаловать!
+                            <br>
+                            <span style = "font-size:14px;">Выберите объект из левого меню</span>
+                        </span>
+                    </div>
                 </div>
             </div>
         </ng-container>
@@ -147,11 +154,4 @@
             <div [ngStyle] = "splitScreen.rect" style = "position: absolute; background-color: #b8b8b88e; pointer-events: none; transition:0.3s;"></div>
         </div>
     </div>
-    <div *ngIf = "tabs.length == 0" style = "text-align: center; line-height: 16px;">
-        <i class="fab fa-gripfire" style = "font-size: 150px; color:#d6e6fd;"></i><br>
-        <span style="color:#b8b8b8; font-size:25px; font-weight:bold">Добро пожаловать!
-            <br>
-            <span style = "font-size:14px;">Выберите объект из левого меню</span>
-        </span>
-    </div>
-<div>
+</div>

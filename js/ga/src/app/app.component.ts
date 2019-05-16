@@ -7,6 +7,7 @@ import { FunctionsService } from "./lib/functions.service";
 import { TableEditorComponent } from './software/table-editor/table-editor.component';
 import { EventEditorComponent } from './software/event-editor/event-editor.component';
 import { PlanEditorComponent } from './software/plan-editor/plan-editor.component';
+import { EventLogComponent } from './software/event-log/event-log.component';
 import { InfoComponent } from './software/info/info.component';
 import { environment } from '../environments/environment';
 
@@ -27,7 +28,7 @@ export class AppComponent implements OnInit
     timeSend = 900000;
     firstEnterBool = false;
     enter = false;
-    load = false;
+    loaded = false;
     leftMenuData = [];
     tabs = [];
     Login = "";
@@ -48,7 +49,6 @@ export class AppComponent implements OnInit
         if(location.search == "?set_type=install")
             $.post(environment.URL, {nquery: -1}, (data)=>{ console.log(data) });
         globalEvent.subscribe("structure", -1, () => { this.refreshLeftMenu(); });
-
         /*************************************************/
         let vh = window.innerHeight * 0.01;
         document.documentElement.style.setProperty('--vh', `${vh}px`);
@@ -160,23 +160,34 @@ export class AppComponent implements OnInit
                 this.openSoftware(e.value.name, e.value);
                 break;
             case "openFromTable":
-                this.query.protectionPost(111, { param: [ e.value.name, e.value.id ]}, (idParent) =>
+                if(e.value.type === "open")
                 {
-                    if(idParent === "") return;
                     switch(e.value.name)
                     {
-                        case "table":
-                        case "file":
                         case "event":
-                        case "tlist":
-                        case "value":
-                            this.openSoftware("explorer", { id: idParent[0][0], searchObjectId: e.value.name == "value" || e.value.name == "tlist" ? idParent[0][1] : e.value.id });
-                            break;
-                        case "cell":
-                            this.openSoftware("table", { id: idParent[0][0], searchObjectId: e.value.id });
+                        case "table":
+                            this.openSoftware(e.value.name, { id: e.value.id });
                             break;
                     }
-                });
+                }
+                else 
+                    this.query.protectionPost(111, { param: [ e.value.name, e.value.id ]}, (idParent) =>
+                    {
+                        if(idParent === "") return;
+                        switch(e.value.name)
+                        {
+                            case "table":
+                            case "file":
+                            case "event":
+                            case "tlist":
+                            case "value":
+                                this.openSoftware("explorer", { id: idParent[0][0], searchObjectId: e.value.name == "value" || e.value.name == "tlist" ? idParent[0][1] : e.value.id });
+                                break;
+                            case "cell":
+                                this.openSoftware("table", { id: idParent[0][0], searchObjectId: e.value.id });
+                                break;
+                        }
+                    });
                 break;
             case "updateTable":
                 let i = 0;
@@ -211,6 +222,7 @@ export class AppComponent implements OnInit
             case "info": i = this.getNewTab(type, { component: InfoComponent, inputs: input }, settings); break;
             case "event": i = this.getNewTab(type, { component: EventEditorComponent, inputs: input }, settings); break;
             case "plan": i = this.getNewTab(type, { component: PlanEditorComponent, inputs: input }, settings); break;
+            case "log": i = this.getNewTab(type, { component: EventLogComponent, inputs: input }, settings); break;
         }
     }
     getNewTab(type, software, settings)
@@ -256,7 +268,7 @@ export class AppComponent implements OnInit
     /*******************************************************************/
     autoLogin(func) // Автовход
     {
-        this.load = true;
+        this.loaded = false;
         this.query.protectionPost(6, {}, (data) =>
         {
             if(typeof data !== "object") return;
@@ -269,7 +281,7 @@ export class AppComponent implements OnInit
                 this.enter = false;
             }
             else func(data[0]);
-            this.load = false;
+            this.loaded = true;
         });
     }
     firstEnter() // Первый запуск и проверка на наличие ключа

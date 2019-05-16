@@ -86,7 +86,6 @@ export class ExplorerComponent implements OnInit
     ) {}
     ngOnInit() 
     { 
-        /* trace(this.inputs.data) */
         if(this.inputs && this.inputs.id) 
         {
             this.openFolder(this.inputs.id, () => 
@@ -157,11 +156,10 @@ export class ExplorerComponent implements OnInit
             case "folder": 
                 this.openFolder(object.id);
                 break;
-            case "table":
-                this.onChange({ type: "open", value: { name: "table", id: object.id }});
-                break;
+            case "log":
             case "event":
-                this.onChange({ type: "open", value: { name: "event", id: object.id }});
+            case "table":
+                this.onChange({ type: "open", value: { name: object.objectType, id: object.id }});
                 break;
             case "user":
                 this.createObject(null, 'Пользователь', object);
@@ -380,6 +378,11 @@ export class ExplorerComponent implements OnInit
     {
         if(this.selectObjectI != -1)
             this.createInfo.create(this.outFolders[this.selectObjectI].id, () => { this.refresh(); });
+    }
+    userOff() // Отключить пользователя
+    {
+        if(this.selectObjectI != -1)
+            this.query.protectionPost(132, { param: [this.outFolders[this.selectObjectI].id] });
     }
     openBackFolder()
     {

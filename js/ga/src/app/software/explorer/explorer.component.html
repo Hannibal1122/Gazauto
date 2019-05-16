@@ -1,5 +1,5 @@
 <div class = "explorer">
-    <div class = "explorerControlPanel">
+    <div class = "explorerControlPanel explorerFull">
         <input type = "text" 
             class = "mainSelect"
             [(ngModel)] = "searchInput" 
@@ -18,7 +18,7 @@
         <button class = "mainButton" title = "Поиск в папке" (click) = "searchInputObjectFromFolder()" ><i class="fas fa-search"></i></button>
         <button class = "mainButton" title = "Глобальный поиск" (click) = "searchInputObject()"><i class="fas fa-globe"></i></button>
     </div>
-    <div class = "explorerControlPanel">
+    <div class = "explorerControlPanel explorerFull">
         <button class = "mainButton" title = "Назад" (click) = "openBackFolder()"><i class="fas fa-arrow-left"></i></button>
         <button class = "mainButton" title = "Добавить элемент" (click) = "newObject()" [disabled] = "!selectRules.new"><i class="fas fa-file"></i></button>
         <button class = "mainButton" title = "Вставить" (click) = "_pasteObject()" [disabled] = "!selectRules.paste || inputs.parentBind"><i class="fas fa-paste"></i></button>
@@ -32,10 +32,12 @@
         <!-- <button *ngIf = "viewType == 'list'" class = "mainButton" title = "Вид список" (click) = "changeViewType()"><i class="fas fa-th"></i></button>
         <button *ngIf = "viewType == 'table'" class = "mainButton" title = "Вид таблица" (click) = "changeViewType()"><i class="fas fa-list"></i></button> -->
     </div>
-    <div style = "font-size:12px; color:#8f8f8f">
+    <div class = "explorerFull" style = "font-size:12px; color:#8f8f8f">
         <span *ngFor = "let path of allPath" (click) = "openObject({objectType: 'folder', id: path.id})" style = "cursor:pointer;">{{ path.name }}/</span>
     </div>
     <div class = "explorerMain"
+        [class.explorerDouble] = "listLink.visible"
+        [class.explorerFull] = "!listLink.visible"
         (contextmenu) = "getContextmenuMain($event)">
         <span *ngFor = "let object of outFolders; let i = index;">
             <div *ngIf = "object.visible !== false"
@@ -56,6 +58,7 @@
                     <span *ngIf = "object.objectType == 'user'"><i class="fas fa-user colorIconRole" style = "font-size: 55px;"></i></span>
                     <span *ngIf = "object.objectType == 'event'"><i class="fas fa-bolt colorIconEvent" style = "font-size: 50px; margin-bottom:5px;"></i></span>
                     <span *ngIf = "object.objectType == 'role'"><i class="fas fa-address-book colorIconRole" style = "font-size: 55px;"></i></span>
+                    <span *ngIf = "object.objectType == 'log'"><i class="fas fa-book colorIconTable" style = "font-size: 55px;"></i></span>
                     <span *ngIf = "object.objectType == 'file'">
                         <i *ngIf = "object.fileType == 'img'" class="fas fa-file-image colorIconFile" style = "font-size: 55px;"></i>
                         <i *ngIf = "object.fileType == 'xls'" class="fas fa-file-excel colorIconFile" style = "font-size: 55px;"></i>
@@ -64,7 +67,7 @@
                     <span *ngIf = "object.objectType == 'tlist'"><i class="fas fa-list-alt colorIconTlist" style = "font-size: 55px;"></i></span>
                     <span *ngIf = "object.objectType == 'label'"><i class="fas fa-share-square colorIconRole" style = "font-size: 55px;"></i></span>
                 </div>
-                <div *ngIf = "viewType == 'list'" class = "listIcon">
+                <!-- <div *ngIf = "viewType == 'list'" class = "listIcon">
                     <span *ngIf = "object.objectType == 'folder'"><i class="fas fa-folder colorIconFolder" style = "font-size: 16px;"></i></span>
                     <span *ngIf = "object.objectType == 'filter'"><i class="fas fa-filter colorIconTable" style = "font-size: 16px;"></i></span>
                     <span *ngIf = "object.objectType == 'table'"><i class="fas fa-table colorIconTable" style = "font-size: 16px;"></i></span>
@@ -78,7 +81,7 @@
                     </span>
                     <span *ngIf = "object.objectType == 'tlist'"><i class="fas fa-list-ol colorIconValue" style = "font-size: 16px;"></i></span>
                     <span *ngIf = "object.objectType == 'label'"><i class="fas fa-share-square colorIconRole" style = "font-size: 16px;"></i></span>
-                </div>
+                </div> -->
                 <div style = "position:relative; width:90px; height:2px;" [class.substrate] = "object.state > 0">
                     <div style = "position:absolute; top:0px; left:0px; height:100%;" 
                     [style.width] = "object.state + '%'"
@@ -99,40 +102,40 @@
         </span>
         <span class = "col-md-12" *ngIf = "outFolders.length == 0" style = "color:#b8b8b8; font-size:24px; font-weight:bold"> Папка пуста</span>
     </div>
-    <div *ngIf = "listLink.visible" class = "col-md-4" style = "display: flex; color: #456486; flex-wrap: wrap; font-size:12px; border-left:1px solid #b8b8b8;"> 
-            <span *ngIf = "listLink.fromInherit.length == 0 && listLink.whoInherit.length == 0 && listLink.whoRefer.length == 0" 
-                class = "col-md-12" 
-                style = "color:#b8b8b8; font-size:24px; font-weight:bold"> Связи отсутсвуют</span>
-            <div *ngIf = "listLink.fromInherit.length != 0" class = "col-md-12">
-                <div style = "font-size:16px; font-weight:bold;">Объект наследуется от:</div>
-                <div *ngFor = "let data of listLink.fromInherit" class = "linkTable" (click) = "openTable(data[0])">
-                    <span *ngIf = "data[1] == 'table'"><i class="fas fa-table colorIconTable"></i> </span>
-                    {{ data[2] }}
-                </div>
-            </div>
-            <div *ngIf = "listLink.whoInherit.length != 0" class = "col-md-12">
-                <div style = "font-size:16px; font-weight:bold;">Объект наследуют:</div>
-                <div *ngFor = "let data of listLink.whoInherit" class = "linkTable" (click) = "openTable(data[0])">
-                    <span *ngIf = "data[1] == 'table'"><i class="fas fa-table colorIconTable"></i> </span>
-                    {{ data[2] }}
-                </div>
-            </div>
-            <div *ngIf = "listLink.whoRefer.length != 0" class = "col-md-12">
-                <div style = "font-size:16px; font-weight:bold;">Объект используется:</div>
-                <div *ngFor = "let data of listLink.whoRefer">
-                    <div (click) = "openTable(data.id)" class = "linkTable">
-                        <i class="fas fa-table colorIconTable"></i> {{ data.name }}
-                    </div>
-                    <div *ngFor = "let _data of data.fields" class = "linkField" (click) = "openField(_data, data.id)">
-                        <i class="fas fa-cube"></i> Ячейка {{ _data }}
-                    </div>
-                </div>
-            </div>
-            <div class = "ModalButtonExitColor" style = "position:absolute; right:5px; top:5px; font-size:16px; cursor:pointer;" (click) = "closeListLink()">
-                <i class="fas fa-times-circle"></i>
+    <div *ngIf = "listLink.visible" 
+        style = "display: flex; color: #456486; flex-wrap: wrap; font-size:12px; border-left:1px solid #b8b8b8; position:relative; padding:5px;"> 
+        <span *ngIf = "listLink.fromInherit.length == 0 && listLink.whoInherit.length == 0 && listLink.whoRefer.length == 0" 
+            style = "color:#b8b8b8; font-size:24px; font-weight:bold"> Связи отсутсвуют</span>
+        <div *ngIf = "listLink.fromInherit.length != 0">
+            <div style = "font-size:16px; font-weight:bold;">Объект наследуется от:</div>
+            <div *ngFor = "let data of listLink.fromInherit" class = "linkTable" (click) = "openTable(data[0])">
+                <span *ngIf = "data[1] == 'table'"><i class="fas fa-table colorIconTable"></i> </span>
+                {{ data[2] }}
             </div>
         </div>
-    <div style = "margin-top:5px; height:20px;background-color:#ececec; line-height:20px; padding-left:3px;">
+        <div *ngIf = "listLink.whoInherit.length != 0">
+            <div style = "font-size:16px; font-weight:bold;">Объект наследуют:</div>
+            <div *ngFor = "let data of listLink.whoInherit" class = "linkTable" (click) = "openTable(data[0])">
+                <span *ngIf = "data[1] == 'table'"><i class="fas fa-table colorIconTable"></i> </span>
+                {{ data[2] }}
+            </div>
+        </div>
+        <div *ngIf = "listLink.whoRefer.length != 0">
+            <div style = "font-size:16px; font-weight:bold;">Объект используется:</div>
+            <div *ngFor = "let data of listLink.whoRefer">
+                <div (click) = "openTable(data.id)" class = "linkTable">
+                    <i class="fas fa-table colorIconTable"></i> {{ data.name }}
+                </div>
+                <div *ngFor = "let _data of data.fields" class = "linkField" (click) = "openField(_data, data.id)">
+                    <i class="fas fa-cube"></i> Ячейка {{ _data }}
+                </div>
+            </div>
+        </div>
+        <div class = "ModalButtonExitColor" style = "position:absolute; right:5px; top:5px; font-size:16px; cursor:pointer;" (click) = "closeListLink()">
+            <i class="fas fa-times-circle"></i>
+        </div>
+    </div>
+    <div class = "explorerFull" style = "margin-top:5px; height:20px;background-color:#ececec; line-height:20px; padding-left:3px;">
         <span *ngIf = "load" style = "color:#757575;font-size:12px;">Loading...</span>
     </div>
 </div>
@@ -145,6 +148,10 @@
             Открыть фильтры</button>
         <button class = "contextMenuList" (click) = "createListOfTable()" [disabled] = "!selectRules.cut">
             Создать список из столбца</button>
+    </ng-container>
+    <ng-container *ngIf = "createContextMenu.type == 'user'">
+        <button class = "contextMenuList" (click) = "userOff()" [disabled] = "!selectRules.remove">
+            Отключить</button>
     </ng-container>
     <button class = "contextMenuList" (click) = "copyObject('cut')" [disabled] = "!selectRules.cut">
         Вырезать</button>

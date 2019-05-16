@@ -25,7 +25,7 @@ export class TableEditorComponent implements OnInit
         }
         if(value && value.update) this.loadTable();
     }
-    _visible;
+    _visible = true;
     set visible(value)
     {
         this._visible = value;
@@ -326,6 +326,9 @@ export class TableEditorComponent implements OnInit
                         else this.onChange({ type: "openFromTable", value: { name: "cell", id: property.data.linkId }});
                     });
                 else this.onChange({ type: "openFromTable", value: { name: property.data.type, id: property.data.linkId }});
+                break;
+            case "openSoftware": // Окрывает сразу приложение
+                this.onChange({ type: "openFromTable", value: { type: "open", name: property.data.type, id: property.data.id }});
                 break;
             case "state": // Изменить состояние ячейки
                 this.addToQueue(260, [ this.inputs.id, property.id, property.state ], (data) => 
