@@ -19,6 +19,7 @@ export class TableEditorV2Component implements OnInit
     @ViewChild("mainInputElement") mainInputElement:ElementRef;
     @ViewChild("modalMovedWindow") modalMovedWindow:ModalMovedWindowComponent;
     
+    mode = "Global"; //Local
     id = -1;
     searchObjectId = -1;
     loaded = false;
@@ -51,6 +52,7 @@ export class TableEditorV2Component implements OnInit
         selected: -1,
         list: []
     };
+    needUpdate = false;
     listLogin = [];
     dataHeader = [];
     mapHeader = {}; // Карта для свзывания ячеек со столбцами
@@ -102,7 +104,7 @@ export class TableEditorV2Component implements OnInit
     { 
         let param:any = this.getValueBySrc(location.search);
         this.id = param.id ? Number(param.id) : -1;
-        if(param.searchObjectId) this.searchCell(param.searchObjectId);
+        if(param.searchObjectId) this.searchCellId = param.searchObjectId;
 
         window.addEventListener("click", (e:any) => 
         { 
@@ -111,12 +113,37 @@ export class TableEditorV2Component implements OnInit
                 this.inputProperty.close();
         }, false);
 
-        window.addEventListener("UpdateSrc", () => this.updateSrc() );
+        window.addEventListener("UpdateFromApp", () => this.updateFromApp() );
     }
-    updateSrc()
+    updateFromApp()
     {
-        if(window["searchObjectId"])
-            this.searchCell(window["searchObjectId"]);
+        let inputValues = ["searchObjectId", "inputFromApp"];
+        for(let i = 0; i < inputValues.length; i++)
+        {
+            let name = inputValues[i];
+            if(!window[name]) continue;
+            switch(name)
+            {
+                case "searchObjectId":
+                    this.searchCell(window[name]);
+                    break;
+                case "inputFromApp":
+                    let value = window[name];
+                    if(value.logins)
+                    {
+                        this.listLogin = [];
+                        for(var key in value.logins) this.listLogin.push(key);
+                    }
+                    if(value.update) 
+                    {
+                        this.needUpdate = true;
+                        if(!this.inputProperty.visible)
+                            this.loadTable();
+                    }
+                    break;
+            }
+            delete window[name];
+        }
     }
     ngOnInit() 
     {
@@ -167,19 +194,18 @@ export class TableEditorV2Component implements OnInit
                 this.mapFields[this.dataHeader[_j].id] = { ...this.dataHeader[_j], header: true };
             }
             this.tableIds = data.tableIds;
-            
-            /* this.onChange({ type: "updateTableIds", id: this.inputs.id, tableIds: this.tableIds, idLogTableOpen: data.idLogTableOpen }); */
+            this.onChange({ type: "updateTableIds", id: this.id, tableIds: this.tableIds, idLogTableOpen: data.idLogTableOpen });
 
             this.firstData = data.data;
             this.updateData();
-            /* if(this.inputs.searchObjectId) this.searchCell(this.inputs.searchObjectId); */
-
+            if(this.searchCellId > 0) this.searchCell(this.searchCellId);
             /* Заполнение фильтров */
             this.filter.selected = data.filter;
             this.filter.list = [];
             for(i = 0; i < data.filters.length; i++)
                 this.filter.list.push({ id: data.filters[i][0], value: data.filters[i][2]});
 
+            this.needUpdate = false;
             this.loaded = true;
             setTimeout(() => {
                 this.setScroll();
@@ -658,10 +684,6 @@ export class TableEditorV2Component implements OnInit
     searchTimeout = null
     searchCell(id) // Поиск ячейки и моргание
     {
-        let td = document.getElementById(id);
-        this.mainContainer.nativeElement.scrollTop = td.offsetTop;
-        this.mainContainer.nativeElement.scrollLeft = td.scrollLeft;
-
         clearInterval(this.searchTimeout);
         this.searchCellId = Number(id);
         let searchCellId = this.searchCellId;
@@ -674,8 +696,12 @@ export class TableEditorV2Component implements OnInit
             {
                 clearInterval(this.searchTimeout);
                 this.searchCellId = -1;
-                this.searchObjectId = -1;
             }
         }, 500);
+        setTimeout(() => {
+            let td = document.getElementById(id);
+            this.mainContainer.nativeElement.scrollTop = td.offsetTop;
+            this.mainContainer.nativeElement.scrollLeft = td.scrollLeft;
+        }, 100);
     }
 }

@@ -155,6 +155,7 @@
             <div *ngIf = "control.error" style = "font-size:12px; background-color:#af7e7e; color:white; font-weight:bold;">Таблица не доступна!</div>
             <div *ngIf = "loaded && !control.error && dataHeader.length == 0" style = "font-size:12px; background-color:#b8b8b8; color:white; font-weight:bold;">Таблица пуста</div>
             <div *ngIf = "!loaded" style = "font-size:12px;">Загрузка...</div>
+            <div *ngIf = "needUpdate" style = "font-size:12px;">Требуется синхронизация</div>
             <div *ngIf = "control.id >0" style = "font-size:12px;">id: {{ control.id }}</div>
             <div *ngIf = "tableFilter.countHide > 0" style = "font-size:12px;">Показано: {{ tableFilter.count - tableFilter.countHide}} из {{ tableFilter.count }}</div>
         </div>

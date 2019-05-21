@@ -242,8 +242,15 @@ export class AppComponent implements OnInit
                 this.globalEvent.subscribe("table", tableId, (event) =>
                 {
                     let i = this.checkRepeatSoftware(type, tableId);
-                    if(event.update) this.tabs[i].inputFromApp = { update: true, logins: event.logins };
-                    else this.tabs[i].inputFromApp = { logins: event.logins };
+                    let iframe = this.tabs[i].iframe
+                    if(iframe)
+                    {
+                        if(event.update) iframe.inputFromApp = { update: true, logins: event.logins };
+                        else iframe.inputFromApp = { logins: event.logins };
+                        iframe.dispatchEvent(iframe.EventUpdateFromApp);
+                    }
+                    /* if(event.update) this.tabs[i].inputFromApp = { update: true, logins: event.logins };
+                    else this.tabs[i].inputFromApp = { logins: event.logins }; */
                 });
                 break;
             case "info": i = this.getNewTab(type, { component: InfoComponent, inputs: input }, settings); break;
@@ -278,7 +285,7 @@ export class AppComponent implements OnInit
             if(this.tabs[i].iframe && input.searchObjectId)
             {
                 this.tabs[i].iframe.searchObjectId = input.searchObjectId;
-                this.tabs[i].iframe.dispatchEvent(this.tabs[i].iframe.EventUpdateSrc);
+                this.tabs[i].iframe.dispatchEvent(this.tabs[i].iframe.EventUpdateFromApp);
             }
             this.splitScreen.setActiveTab(i);
         }
@@ -299,7 +306,7 @@ export class AppComponent implements OnInit
     onLoadIframe(app, e)
     {
         app.iframe = e.target.contentWindow;
-        app.iframe.EventUpdateSrc = new CustomEvent("UpdateSrc");
+        app.iframe.EventUpdateFromApp = new CustomEvent("UpdateFromApp");
     }
     checkRepeatSoftware(type, id)
     {
