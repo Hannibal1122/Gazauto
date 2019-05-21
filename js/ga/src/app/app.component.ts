@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, ViewChild, ElementRef, ApplicationRef } from '@angular/core';
 import { ExplorerComponent } from './software/explorer/explorer.component';
 import { QueryService } from "./lib/query.service";
 import { GlobalEvent } from "./system/global-event.service";
@@ -10,6 +10,7 @@ import { PlanEditorComponent } from './software/plan-editor/plan-editor.componen
 import { EventLogComponent } from './software/event-log/event-log.component';
 import { InfoComponent } from './software/info/info.component';
 import { environment } from '../environments/environment';
+import { DomSanitizer } from '@angular/platform-browser';
 
 declare var trace:any;
 declare var $: any;
@@ -25,8 +26,6 @@ export class AppComponent implements OnInit
 {
     /* @ViewChild('MyLeftMenu') public MyLeftMenu: ElementRef;
     @ViewChild('MyLeftObjects') public MyLeftObjects: ElementRef; */
-    timeSend = 900000;
-    firstEnterBool = false;
     enter = false;
     loaded = false;
     leftMenuData = [];
@@ -34,6 +33,8 @@ export class AppComponent implements OnInit
     Login = "";
     Version = "";
     _currentSoftware = 0;
+    globalEvent:GlobalEvent;
+    windowType = "interface";
     set currentSoftware(value)
     {
         this._currentSoftware = value;
@@ -43,12 +44,35 @@ export class AppComponent implements OnInit
         return this._currentSoftware;
     }
     splitScreen: SplitScreen = new SplitScreen();
-    constructor(private query: QueryService, private lib: FunctionsService, private globalEvent:GlobalEvent) 
+    constructor(private query: QueryService, 
+        private lib: FunctionsService, 
+        protected sanitizer: DomSanitizer, 
+        private ref: ApplicationRef
+    ) 
     { 
-        query.post(0, {}, (data) => { this.Version = data.main });
-        if(location.search == "?set_type=install")
-            $.post(environment.URL, {nquery: -1}, (data)=>{ console.log(data) });
-        globalEvent.subscribe("structure", -1, () => { this.refreshLeftMenu(); });
+        switch(location.pathname)
+        {
+            case "/":
+                query.post(0, {}, (data) => { this.Version = data.main });
+                if(location.search == "?set_type=install")
+                    $.post(environment.URL, {nquery: -1}, (data)=>{ console.log(data) });
+                this.globalEvent = new GlobalEvent(query);
+                this.globalEvent.subscribe("structure", -1, () => { this.refreshLeftMenu(); });
+                this.globalEvent.subscribe("iframe", -1, () => 
+                { 
+                    let data = localStorage.getItem("propertyIFrame");
+                    if(data && data != "")
+                    {
+                        data = JSON.parse(data);
+                        this.onChangeInSoftware(data);
+                        localStorage.setItem("propertyIFrame", "");
+                    }
+                });
+                break;
+            case "/table":
+                this.windowType = "table";
+                break;
+        }
         /*************************************************/
         let vh = window.innerHeight * 0.01;
         document.documentElement.style.setProperty('--vh', `${vh}px`);
@@ -70,27 +94,30 @@ export class AppComponent implements OnInit
     }; // Если размер меньше 720 то меню будет поверх
     ngOnInit(): void 
     {
-        this.autoLogin(() => 
-        { 
-            this.enter = true; 
-            this.Login = localStorage.getItem("login");
-            this.refreshLeftMenu();
-            this.getSaveTabs();
+        if(this.windowType == "interface")
+        {
+            this.autoLogin(() => 
+            { 
+                this.enter = true; 
+                this.Login = localStorage.getItem("login");
+                this.refreshLeftMenu();
+                this.getSaveTabs();
 
-            /* let currentTab = localStorage.getItem("CurrentTab");
-            if(currentTab !== null) this.currentSoftware = Number(currentTab); */
+                /* let currentTab = localStorage.getItem("CurrentTab");
+                if(currentTab !== null) this.currentSoftware = Number(currentTab); */
 
-            let miniApp:any = localStorage.getItem("MiniApp");
-            if(miniApp !== null)
-            {
-                miniApp = JSON.parse(miniApp);
-                this.hideMenu = miniApp.hide;
-                this.currentMiniApp = miniApp.current;
-            }
-        });
-        this.firstEnter();
-        this.resizeWindow();
-        window.addEventListener("resize", () => { this.resizeWindow() });
+                let miniApp:any = localStorage.getItem("MiniApp");
+                if(miniApp !== null)
+                {
+                    miniApp = JSON.parse(miniApp);
+                    this.hideMenu = miniApp.hide;
+                    this.currentMiniApp = miniApp.current;
+                }
+            });
+            this.firstEnter();
+            this.resizeWindow();
+            window.addEventListener("resize", () => { this.resizeWindow() });
+        }
         ////////////////////////////////////////////////////////////////////
     }
     resizeWindow()
@@ -232,7 +259,12 @@ export class AppComponent implements OnInit
         switch(type)
         {
             case "explorer": name = "Проводник"; break;
-            case "table": name = "Редактор таблицы"; break;
+            case "table": 
+                let param = "id=" + input.id;
+                if(input.searchObjectId) param += "&searchObjectId=" + input.searchObjectId;
+                software.securitySrc = this.sanitizer.bypassSecurityTrustResourceUrl("/table?" + param);
+                name = "Редактор таблицы"; 
+                break;
             case "info": name = "Справка"; break;
             case "event": name = "Редактор событий"; break;
             case "plan": name = "План-график"; break;
@@ -242,6 +274,12 @@ export class AppComponent implements OnInit
         {
             if(input.searchObjectId) this.tabs[i].inputFromApp = { search: input.searchObjectId };
             if(input.element) this.tabs[i].inputFromApp = { element: input.element };
+            // Специально для iframe
+            if(this.tabs[i].iframe && input.searchObjectId)
+            {
+                this.tabs[i].iframe.searchObjectId = input.searchObjectId;
+                this.tabs[i].iframe.dispatchEvent(this.tabs[i].iframe.EventUpdateSrc);
+            }
             this.splitScreen.setActiveTab(i);
         }
         else
@@ -257,6 +295,11 @@ export class AppComponent implements OnInit
         }
         this.tabs[i].software.inputs.updateHistory = () => { this.splitScreen.saveTabs(); } 
         return i;
+    }
+    onLoadIframe(app, e)
+    {
+        app.iframe = e.target.contentWindow;
+        app.iframe.EventUpdateSrc = new CustomEvent("UpdateSrc");
     }
     checkRepeatSoftware(type, id)
     {

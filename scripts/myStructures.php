@@ -6,7 +6,7 @@
             $this->myRight = $myRight;
             $this->myLog = $myLog;
         }
-        function create($param)
+        function create($param, $out = true)
         {
             // 0 - objectType
             // 1 - objectId
@@ -28,11 +28,17 @@
                 if($param[0] == "table") // Если таблица создаем фильтр по умолчанию с правами пользователя
                 {
                     require_once("myFilter.php");
-                    $myFilter = new MyFilter($idFilter);
+                    $myFilter = new MyFilter();
                     $this->create([ "filter", $myFilter->create(""), "default filter", $idElement, 0, "" ]);
                 }
             }
-            echo json_encode(["Index", $idElement]);
+            if($param[0] == "plan") // План можно открывать как таблицу, но нельзя наследовать
+            {
+                require_once("myFilter.php");
+                $myFilter = new MyFilter();
+                $this->create([ "filter", $myFilter->create(""), "default filter", $idElement, 0, "" ], false);
+            }
+            if($out) echo json_encode(["Index", $idElement]);
             $this->myLog->add("structure", "add", $idElement);
         }
         function getWhereUsed($idElement)

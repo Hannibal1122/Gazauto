@@ -1,8 +1,8 @@
 .explorer
 {
     display: grid;
-    grid-template-columns: 1fr 340px;
-    grid-template-rows: 36px 36px 16px 1fr 30px;
+    grid-template-columns: 1fr 320px;
+    grid-template-rows: auto auto 16px 1fr 30px;
     height: 100%;
 }
 .explorerFull
@@ -138,10 +138,10 @@
 {
     user-select:none; 
     display: flex; 
-    overflow: auto; 
-    padding-top:2px;
+    flex-wrap: wrap; 
 }
 .explorerControlPanel button, input, select
 {
+    margin-top:3px;
     margin-right:5px;
 }

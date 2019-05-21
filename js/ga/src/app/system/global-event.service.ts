@@ -8,6 +8,7 @@ declare var trace:any;
 export class GlobalEvent
 {
     autoUpdate:AutoUpdate;
+    autoUpdateIframe:AutoUpdate;
     autoUpdateOnline:AutoUpdate;
     subscribeData = {
         time: "",
@@ -16,11 +17,15 @@ export class GlobalEvent
         tableEvent: {},
         tables: []
     }
+    updateIFrame = null;
     constructor(public query: QueryService) 
     {
         this.autoUpdate = new AutoUpdate(() => {
             this.update()
         }, 10000);
+        this.autoUpdateIframe = new AutoUpdate(() => {
+            if(this.updateIFrame) this.updateIFrame();
+        }, 100);
         this.autoUpdateOnline = new AutoUpdate(() => {
             if(this.subscribeData.online) this.subscribeData.online();
         }, 60000); // Раз в минуту обновляются данные о пользователе
@@ -31,6 +36,7 @@ export class GlobalEvent
             this.update();
             this.autoUpdate.start();
         });
+        this.autoUpdateIframe.start();
         this.autoUpdateOnline.start();
     }
     update()
@@ -63,6 +69,9 @@ export class GlobalEvent
             case "online":
                 this.subscribeData.online = event;
                 event();
+                break;
+            case "iframe":
+                this.updateIFrame = event;
                 break;
         }
     }

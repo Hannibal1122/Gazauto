@@ -121,6 +121,9 @@ export class LeftMenuElementComponent implements OnInit
             case "event":
                 this.onChange.emit({ type: "open", value: { name: "event", id: data.id }});
                 break;
+            case "log":
+                this.onChange.emit({ type: "open", value: { name: "log", id: data.id }});
+                break;
         }
     }
     getInfo(data)

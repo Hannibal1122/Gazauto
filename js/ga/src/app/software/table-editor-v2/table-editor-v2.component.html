@@ -1,0 +1,214 @@
+<div class="tableGrid">
+    <div name = "clickArea" class = "tableControlPanel">
+        <div style = "height:30px; float:left; padding: 4px; padding-top:0px; margin-right:5px; width: 200px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;" 
+            title="{{nameTable}}">
+            {{nameTable}}
+            <div style="position:absolute; top:24px; width:170px; height:6px; left:0px; border-radius:3px;" class = "substrate">
+                <div style="position:absolute; top:0px; height:6px; left:0px; border-radius:3px;" 
+                    [style.width] = "control.state + '%'"
+                    [class.tableCellStateGreen] = "control.state == 100"
+                    [class.tableCellStateYellow] = "control.state >= 50 && control.state < 100"
+                    [class.tableCellStateRed] = "control.state < 50">
+                </div>
+                <div style="position:absolute; right:-25px; top: -4px; font-size: 11px; font-weight: bold;" class = "TableCreatorHeadColor">{{control.state + '%'}}</div>
+            </div>
+        </div>
+        <button class = "mainButton" title = "Заголовок" (click) = "changeHeader()" [disabled] = "!right.change"><i class="fas fa-heading"></i></button>
+        <button class = "mainButton" title = "Экспорт в Excel" (click) = "exportToExcel()" ><i class="fas fa-file-excel"></i></button>
+        <button class = "mainButton" title = "Импорт таблицы" (click) = "importFromExcel()" [disabled] = "!right.change"><i class="fas fa-download"></i></button>
+        <button class = "mainButton" title = "Добавить строку" (click) = "addRow('end', 1)" [disabled] = "!right.change"><i class="fas fa-plus"></i></button>
+        <button class = "mainButton" (click) = "loadTable()" title = "Обновить"><i class="fas fa-sync-alt"></i></button>
+        <select class = "mainSelect"
+            style = "margin-left: 2px; height: 32px; cursor:pointer;" 
+            [(ngModel)] = "filter.selected"
+            (change) = "onFilterChange()">
+            <option *ngFor = "let o of filter.list" [value] = "o.id">{{ o.value }}</option>
+        </select>
+    </div>
+    <div name = "clickArea" #mainContainer 
+        style = "overflow: auto;"
+        (scroll) = "saveScroll()">
+        <table class = "errorTable TableCreatorBorderColor">
+            <tbody (click) = "editField($event)">
+                <tr>
+                    <th name = "clickArea" class = "TableCreatorHeadColor TableCreatorHeadBColor"></th>
+                    <th name = "clickArea" *ngFor = "let head of dataHeader; let i = index;" 
+                        class = "TableCreatorHeadColor TableCreatorHeadBColor" 
+                        id = "{{ head.id }}"
+                        (contextmenu) = "getContextmenu($event, i, 'head')">
+                        {{ head.name }}
+                        <div class="linkClass">
+                            <span *ngIf = "head.dataType == 'NUMBER'" class = "linkValueClass" style = "padding-left: 3px; padding-right: 4px;">123</span>
+                            <span *ngIf = "head.dataType == 'STRING'" class = "linkValueClass" style = "padding-left: 2px; padding-right: 2px;">str</span>
+                            <span *ngIf = "head.dataType == 'DATETIME'" class = "linkValueClass">
+                                <i class="fas fa-clock"></i>
+                            </span>
+                            <span *ngIf = "head.dataType == 'tlist'" class = "linkValueClass">
+                                <i class="fas fa-bars"></i>
+                            </span>
+                            <span *ngIf = "head.eventId" class = "linkCellClass">
+                                <i class = "fa fa-bolt"></i>
+                            </span>
+                        </div>
+                    </th>
+                </tr>
+                <tr>
+                    <td style = "padding:0px;" class = "TableCreatorHeadColor TableCreatorHeadBColor"></td>
+                    <td *ngFor = "let filter of tableFilter.fields; let i = index;" style = "padding:0px;">
+                        <select [(ngModel)] = "filter.sign" 
+                            style = "width:40px; height:22px; float:left;"
+                            (change) = "onChangeFilter(i)">
+                            <option>=</option>
+                            <option>!=</option>
+                            <option>*</option>
+                            <option>!*</option>
+                        </select>
+                        <input type = "text" 
+                            style = "width: calc(100% - 40px); height:22px; border:1px solid transparent; padding:5px;" 
+                            placeholder="Поиск"
+                            [(ngModel)] = "filter.value"
+                            (input) = "onChangeFilter(i, $event.target.value)">
+                    </td>
+                </tr>
+                <tr>
+                    <td style = "padding:0px;" class = "TableCreatorHeadColor TableCreatorHeadBColor"></td>
+                    <td *ngFor = "let filter of tableFilter.state; let i = index;" style = "padding:0px;">
+                        <select [(ngModel)] = "filter.sign" 
+                            style = "width:40px; height:22px; float:left;"
+                            (change) = "onChangeFilter(i)">
+                            <option>=</option>
+                            <option>!=</option>
+                            <option>></option>
+                            <option>>=</option>
+                            <option><</option>
+                            <option><=</option>
+                        </select>
+                        <input type = "text" 
+                            style = "width: calc(100% - 40px); height:22px; border:1px solid transparent; padding:5px;" 
+                            placeholder="Статус"
+                            [(ngModel)] = "filter.value"
+                            (input) = "onChangeFilterState(i, $event.target.value)">
+                    </td>
+                </tr>
+                <ng-container *ngFor = "let row of dataTable; let i = index;">
+                    <tr *ngIf = "!tableFilter.mapHideRows[i]">
+                        <td (contextmenu) = "getContextmenu($event, i, 'row')" class = "TableCreatorHeadColor TableCreatorHeadBColor">{{ i + 1 }}</td>
+                        <td *ngFor = "let cell of row; let j = index;" 
+                            id = "{{ cell.id }}"
+                            (contextmenu) = "getContextmenu($event, i, 'cell')"
+                            [style.background] = "cell.id == searchCellId ? '#e7f5c6' : (cell.id == inputProperty._colorId ? '#9abfe225' : none)">
+                            {{ cell != undefined && cell.listValue ? cell.listValue : cell.value }}
+                            <div class="linkClass">
+                                <span *ngIf = "(cell.type == 'tlist')" class = "linkCellClass">
+                                    <i class="fas fa-bars"></i>
+                                </span>
+                                <span *ngIf = "cell.type == 'table'" class = "linkValueClass">
+                                    <i class = "fa fa-table"></i>
+                                </span>
+                                <span *ngIf = "cell.type == 'cell'" class = "linkCellClass" [class.linkErrorClass] = "cell.value == null">
+                                    <i class = "fa fa-link"></i>
+                                </span>
+                                <span *ngIf = "cell.type == 'file'" class = "linkValueClass">
+                                    <i class = "fa fa-file"></i>
+                                </span>
+                                <span *ngIf = "cell.eventId" class = "linkCellClass" (dblclick) = "openEventToExplorer(cell.eventId)">
+                                    <i class = "fa fa-bolt"></i>
+                                </span>
+                            </div>
+                            <div style = "position:absolute; pointer-events:none; width:100%; height:100%; top:0px; left:0px;">
+                                <div *ngIf = "cell.state" [style.width] = "cell.state + '%'" class = "tableStateLoading" 
+                                    [class.tableCellStateGreen] = "cell.state == 100"
+                                    [class.tableCellStateYellow] = "cell.state >= 50 && cell.state < 100"
+                                    [class.tableCellStateRed] = "cell.state < 50">
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                </ng-container>
+            </tbody>
+        </table>
+        <div style = "position:absolute;" [ngStyle] = "configInput" [hidden] = "!inputProperty.visible">
+            <textarea #mainInputElement class = "mainInputStyle TableCreatorInputColor" 
+                [hidden] = "inputProperty.type == 'tlist' || inputProperty.type == 'datetime'" 
+                (blur) = "acceptEditField()" 
+                [(ngModel)] = "inputProperty.value" 
+                (keydown)="downEnter($event)"></textarea>
+            <button *ngIf = "inputProperty.type == 'table'"
+                style = "position:absolute; right:0px; top: 0px; color:red; cursor:pointer; border:none; background:none; outline: none;"
+                (click) = "inputProperty.value = ''; acceptEditField();">
+                <i class = "fa fa-times-circle"></i>
+            </button>
+            <ng-container *ngIf = "inputProperty.type == 'tlist'" >
+                <textarea class = "mainInputStyle TableCreatorInputColor" 
+                    [(ngModel)] = "inputProperty.value" 
+                    (keydown)="downEnter($event)"></textarea>
+                <select (change) = "changeMainSelect()"
+                    style = "position:absolute; top: 100%; height: 24px; width:100%;" 
+                    [(ngModel)] = "inputProperty.valueList">
+                    <option *ngFor = "let option of inputProperty.values" value = "{{ option.id }}">{{ option.value }}</option>
+                </select>
+            </ng-container>
+        </div>
+    </div>
+    <div name = "clickArea">
+        <div class = "bottomControlPanel TableCreatorHeadColor">
+            <div *ngIf = "control.error" style = "font-size:12px; background-color:#af7e7e; color:white; font-weight:bold;">Таблица не доступна!</div>
+            <div *ngIf = "loaded && !control.error && dataHeader.length == 0" style = "font-size:12px; background-color:#b8b8b8; color:white; font-weight:bold;">Таблица пуста</div>
+            <div *ngIf = "!loaded" style = "font-size:12px;">Загрузка...</div>
+            <div *ngIf = "control.id >0" style = "font-size:12px;">id: {{ control.id }}</div>
+            <div *ngIf = "tableFilter.countHide > 0" style = "font-size:12px;">Показано: {{ tableFilter.count - tableFilter.countHide}} из {{ tableFilter.count }}</div>
+        </div>
+        <div class = "bottomControlPanel right">
+            <div *ngFor = "let login of listLogin" class = "PanelAppColor" style = "font-weight: bold;">{{login}}</div>
+            <div *ngIf = "!right.change" style = "float:right; color:#b5e498; font-size:20px;" title = "Режим просмотра"><i class="fas fa-eye"></i></div>
+            <div *ngIf = "mode == 'Global'" style = "float:right; color:#b5e498; font-size:20px;" title = "global"><i class="fas fa-cloud"></i></div>
+        </div>
+    </div>
+</div>
+<div class = "createContextMenu" 
+    [hidden] = "!createContextMenu.visible" 
+    [style.top] = "createContextMenu.top" 
+    [style.left] = "createContextMenu.left"
+    [style.transform] = "createContextMenu.transform">
+    <ng-container *ngIf = "createContextMenu.type == 'head'">
+        <button class = "contextMenuList" (click) = "pasteObject(true, false)" [disabled] = "!rules.type">Назначить тип</button>
+        <button class = "contextMenuList" (click) = "pasteObject(true, 'NUMBER')" [disabled] = "!rules.change">Назначить тип NUMBER</button>
+        <button class = "contextMenuList" (click) = "pasteObject(true, 'STRING')" [disabled] = "!rules.change">Назначить тип STRING</button>
+        <button class = "contextMenuList" (click) = "pasteObject(true, 'DATETIME')" [disabled] = "!rules.change">Назначить тип DATETIME</button>
+        <!-- <button class = "contextMenuList" (click) = "pasteField()" [disabled] = "!rules.paste">Вставить</button> -->
+        <button class = "contextMenuList" (click) = "pasteObject(rules.event, false)" [disabled] = "!rules.object">
+                {{ rules.event ? 'Добавить событие' : 'Вставить объект' }}</button>
+        <button *ngIf = "inputProperty.eventId" class = "contextMenuList" (click) = "removeEvent(true)" [disabled] = "!rules.change">Удалить событие</button>
+        <button *ngIf = "inputProperty.eventId" class = "contextMenuList" (click) = "openEventToExplorer(inputProperty.eventId)">Найти событие</button>
+        <button *ngIf = "inputProperty.eventId" class = "contextMenuList" (click) = "openSoftware('event', inputProperty.eventId)">Открыть событие</button>
+        <button class = "contextMenuList" (click) = "clearFilters()">Очистить фильтры</button>
+    </ng-container>
+    <ng-container *ngIf = "createContextMenu.type == 'row'">
+        <button class = "contextMenuList" (click) = "removeRow()" [disabled] = "!rules.change">Удалить строку</button>
+        <button class = "contextMenuList" (click) = "addRow('', -1)" [disabled] = "!rules.change">Вставить строку выше</button>
+        <button class = "contextMenuList" (click) = "addRow('', 1)" [disabled] = "!rules.change">Вставить строку ниже</button>
+    </ng-container>
+    <ng-container *ngIf = "createContextMenu.type == 'cell'">
+        <button class = "contextMenuList" (click) = "clearField()" [disabled] = "!rules.change">Очистить</button>
+        <button class = "contextMenuList" (click) = "pasteObject(false, false)" [disabled] = "!rules.object">
+                {{ rules.event ? 'Добавить событие' : 'Вставить объект' }}</button>
+        <button class = "contextMenuList" (click) = "pasteField('cell')" [disabled] = "!rules.paste">Вставить по ссылке</button>
+        <button class = "contextMenuList" (click) = "pasteField('value')" [disabled] = "!rules.paste">Вставить по значению</button>
+        <button class = "contextMenuList" (click) = "copyField('copy')" [disabled] = "!rules.copy">Копировать</button>
+        <button class = "contextMenuList" (click) = "copyField('cut')" [disabled] = "!rules.cut">Вырезать</button>
+        <button class = "contextMenuList" [disabled] = "!rules.change">Статус 
+            <span (click) = "setState(0)" style = "margin-left:5px;">0%</span>
+            <span (click) = "setState(10)" style = "margin-left:5px;">10%</span>
+            <span (click) = "setState(50)" style = "margin-left:5px;">50%</span>
+            <span (click) = "setState(100)" style = "margin-left:5px;">100%</span>
+        </button>
+        <button *ngIf = "inputProperty.eventId" class = "contextMenuList" (click) = "removeEvent()" [disabled] = "!rules.change">Удалить событие</button>
+        <button *ngIf = "inputProperty.eventId" class = "contextMenuList" (click) = "openEventToExplorer(inputProperty.eventId)">Найти событие</button>
+        <button *ngIf = "inputProperty.eventId" class = "contextMenuList" (click) = "openSoftware('event', inputProperty.eventId)">Открыть событие</button>
+        <button *ngIf = "inputProperty.type == 'cell'" class = "contextMenuList" (click) = "openToExplorer(inputProperty)">Найти в таблице</button>
+        <button *ngIf = "inputProperty.type == 'table' || inputProperty.type == 'file' || inputProperty.type == 'tlist'" class = "contextMenuList" (click) = "openToExplorer(inputProperty)">Найти в проводнике</button>
+        <button *ngIf = "inputProperty.type == 'table'" class = "contextMenuList" (click) = "openSoftware('table', inputProperty.linkId)">Открыть таблицу</button>
+    </ng-container>
+</div>
+<modalwindow #modal></modalwindow>
+<modal-moved-window #modalMovedWindow></modal-moved-window>

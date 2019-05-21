@@ -12,6 +12,7 @@ import { RenameObjectService } from "../services/rename-object.service";
 import { CreateEventService } from "../services/create-event.service";
 import { CreateTableListService } from "../services/create-table-list.service";
 import { CreateFilterService } from "../services/create-filter.service";
+import { CreatePlanChartService } from "../services/create-plan-chart.service"
 
 declare var $:any;
 declare var trace:any;
@@ -32,7 +33,8 @@ declare var trace:any;
         RenameObjectService,
         CreateTableListService,
         CreateEventService,
-        CreateFilterService
+        CreateFilterService,
+        CreatePlanChartService
     ]
 })
 export class ExplorerComponent implements OnInit 
@@ -40,6 +42,7 @@ export class ExplorerComponent implements OnInit
     @ViewChild('modal') public modal: any;
     set inputFromApp(value)
     {
+        trace(value)
         if(value) 
             if(value.search) this.openObjectById("search", value.search);
             else if(value.element) this.openObjectById("element", value.element);
@@ -83,6 +86,7 @@ export class ExplorerComponent implements OnInit
         private createEvent: CreateEventService,
         private createTableList: CreateTableListService,
         private createFilter: CreateFilterService,
+        private createPlanChart: CreatePlanChartService,
     ) {}
     ngOnInit() 
     { 
@@ -110,6 +114,7 @@ export class ExplorerComponent implements OnInit
         this.createEvent.modal = this.modal;
         this.createTableList.modal = this.modal;
         this.createFilter.modal = this.modal;
+        this.createPlanChart.modal = this.modal;
         this.globalClick = (e) => 
         { 
             if(e.target.classList[0] == "explorerMain"  && this.selectObjectI != -1) this.unSelectObject(); 
@@ -158,6 +163,7 @@ export class ExplorerComponent implements OnInit
                 break;
             case "log":
             case "event":
+            case "plan":
             case "table":
                 this.onChange({ type: "open", value: { name: object.objectType, id: object.id }});
                 break;
@@ -211,6 +217,9 @@ export class ExplorerComponent implements OnInit
                 break;
             case "Фильтр":
                 this.createFilter.create(id, () => { this.refresh() });
+                break;
+            case "План-график":
+                this.createPlanChart.create(id, () => { this.refresh() });
                 break;
         }
     }
@@ -273,6 +282,9 @@ export class ExplorerComponent implements OnInit
                 break;
             case "tlist":
                 this.createTableList.remove(id, () => { this.refresh() });
+                break;
+            case "plan":
+                this.createPlanChart.remove(id, () => { this.refresh() });
                 break;
         }
     }
@@ -498,6 +510,14 @@ export class ExplorerComponent implements OnInit
     openTableFilter() // Открыть таблицу как папку для просмотра фильтров
     {
         this.openFolder(this.outFolders[this.selectObjectI].id);
+    }
+    openAsTable() // Открыть план как таблицу
+    {
+        this.onChange({ type: "openFromTable", value: { 
+            type: "open",
+            name: "table", 
+            id: this.outFolders[this.selectObjectI].id 
+        }});
     }
     /**************************************/
     createContextMenu = 

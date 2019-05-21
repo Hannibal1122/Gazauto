@@ -15,7 +15,11 @@ class FasmEditor
         {
 			words: ["unite", "get", "link"],
 			color: "#a1f442"
-		},
+        },
+        {
+			words: ["warning", "error"],
+			color: "#f46242"
+        },
 		{
 			words: ["end"],
 			color: "#E84A4F"

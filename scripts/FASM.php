@@ -5,6 +5,7 @@ class FASM
     {
         global $login;
         $this->myLog = $myLog;
+        $this->myLog->login = "system";
         $this->login = $login;
         $this->current = ["id" => -1, "field" => []];
     }
@@ -142,6 +143,11 @@ class FASM
                     break; 
                 case "filter":
                     query("UPDATE my_values SET filterId = %i WHERE id = (SELECT objectId FROM structures WHERE id = %i)", [ (int)$current["operand"][1], (int)$current["operand"][0] ]);    
+                    $i++;
+                    break;
+                case "msg":
+                    $operand = $this->getFunction($current["operand"][1], $idLine);
+                    $this->myLog->add("message", $current["operand"][0], $operand["value"]);
                     $i++;
                     break;
                 case "end": return; // выйти из скрипта

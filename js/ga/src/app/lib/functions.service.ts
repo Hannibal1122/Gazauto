@@ -92,12 +92,14 @@ export class FunctionsService
         var day = b[2] ? b[2] : "01";
         var month = b[1] ? b[1] : "01";
         var year = b[0] ? b[0] : "1993";
-        var time = a[1] ? a[1] : "00:00";
+        var time = a[1].split(":");
         
         out = out.replace("yyyy", year);
         out = out.replace("MM", month);
         out = out.replace("dd", day);
-        out = out.replace("HH:mm", time);
+        out = out.replace("HH", time[0]);
+        out = out.replace("mm", time[1]);
+        out = out.replace("ss", time[2]);
         return out;
     }
     getFormatForMilliseconds(milliseconds, format?)

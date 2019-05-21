@@ -18,6 +18,11 @@
     top:0px;
     left:50px;
 }
+.anotherPanelApp /* Используется для приложений не использующих интерфейс*/
+{
+    height: 100vh;
+    height: calc(var(--vh, 1vh) * 100);
+}
 .mainPanelAppTitle
 {
     width: 100%;

@@ -39,7 +39,9 @@
 
                 <i *ngIf = "data.objectType == 'user'" class="fas fa-user colorIconRole"></i>
                 <i *ngIf = "data.objectType == 'role'" class="fas fa-address-book colorIconRole"></i>
-
+                <i *ngIf = "data.objectType == 'log'" class="fas fa-book colorIconTable"></i>
+                <i *ngIf = "data.objectType == 'plan'" class="fa fa-chart-bar colorIconTable"></i>
+                
                 <span *ngIf = "data.objectType == 'table'" style = "cursor: pointer;" (click) = "openCollapse(i, data.level)">
                     <i class="fas fa-table colorIconTable"></i>
                 </span>

@@ -77,19 +77,23 @@ export class SplitScreen
                 this.calcSectors();
             }
             else this.sector = this.sectors[pointA.i][pointA.j];
-
             let s = this.dragSettings.s; // Откуда
-            let tabsI = this.dragSettings.tabsI;
-            let tab = this.screens[s].tabs[tabsI];
-            this.screens[this.sector].tabs.push(tab);
-            this.screens[s].tabs.splice(tabsI, 1);
-            this.screens[this.sector].currentSoftware = this.screens[this.sector].tabs.length - 1;
-            if(this.screens[s].tabs.length == 0)
+
+            if(s !== this.sector)
             {
-                this.fillTheVoid(s);
-                this.screens[s] = null;
+                let tabsI = this.dragSettings.tabsI;
+                let tab = this.screens[s].tabs[tabsI];
+                this.screens[this.sector].tabs.push(tab);
+                this.screens[s].tabs.splice(tabsI, 1);
+                this.screens[this.sector].currentSoftware = this.screens[this.sector].tabs.length - 1;
+                if(this.screens[s].tabs.length == 0)
+                {
+                    this.fillTheVoid(s);
+                    this.screens[s] = null;
+                }
+                this.currentScreen = this.sector;
+                this.calcSectors();
             }
-            this.calcSectors();
             this.onDragEnd();
             this.saveTabs();
         }, false);
@@ -253,7 +257,7 @@ export class SplitScreen
         }
         else 
         {
-            if(settings.screen === undefined) settings.screen = 0;
+            if(settings.screen === undefined) settings.screen = this.getLastScreen();
             this.screens[settings.screen].tabs.push(tab);
             if(settings.current) this.screens[settings.screen].currentSoftware = this.screens[settings.screen].tabs.length - 1;
         }

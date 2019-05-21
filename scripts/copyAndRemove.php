@@ -79,7 +79,8 @@
         {
             $element = query("SELECT objectType, name, objectId FROM structures WHERE id = %i", [ $idElement ])->fetch_array(MYSQLI_NUM);
             if($idElement < 6) return;
-            switch($element[0])
+            $type = $element[0];
+            switch($type)
             {
                 case "role": query("DELETE FROM roles WHERE role = %s", [ $element[1] ]); break;
                 case "user": 
@@ -89,11 +90,12 @@
                     $this->myLog->add("user", "remove", json_encode([ $element[1] ]));
                     break;
                 case "folder": break;
+                case "plan":
                 case "table":
                     require_once("myTable.php");
                     $myTable = new MyTable($idElement, $this->myLog);
                     $myTable->remove();
-                    $this->myLog->add("table", "remove", $idElement);
+                    $this->myLog->add($type, "remove", $idElement);
                     break;
                 case "file":
                     unlink("../files/$idElement/".scandir("../files/$idElement")[2]); 

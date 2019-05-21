@@ -728,14 +728,14 @@
                                 $idLogTableOpen = (int)$param[1][$i]["idLogTableOpen"];
                                 $update = false;
                                 query("UPDATE main_log SET dateUpdate = NOW() WHERE id = %i", [ $idLogTableOpen ]);
-                                if($result = query("SELECT date FROM main_log WHERE type = 'table' AND (((operation = 'update' OR operation = 'updateState') AND login != %s) OR operation = 'updateScript') AND value = %i AND date >= %s LIMIT 1", [ $login, $idTable, $time ]))
+                                if($result = query("SELECT date FROM main_log WHERE type = 'table' AND (((operation = 'update' OR operation = 'state') AND login != %s) OR operation = 'script') AND value = %i AND date >= %s LIMIT 1", [ $login, $idTable, $time ]))
                                     while ($row = $result->fetch_array(MYSQLI_NUM)) 
                                     {
                                         $update = true;
                                         $time = $NOW;
                                     }
                                 if(!$update)
-                                    if($result = query("SELECT DISTINCT value FROM main_log WHERE type = 'table' AND (operation = 'update' OR operation = 'updateState') AND date >= %s", [ $time ]))
+                                    if($result = query("SELECT DISTINCT value FROM main_log WHERE type = 'table' AND (operation = 'update' OR operation = 'state') AND date >= %s", [ $time ]))
                                         while ($row = $result->fetch_array(MYSQLI_NUM))
                                             if(array_key_exists($row[0], $idFollowTable)) 
                                             {
@@ -754,22 +754,49 @@
                         echo json_encode([ "structure" => $update, "table" => $tables, "time" => $time ]);
                         break; 
                 }
-            if($nQuery >= 400 && $nQuery < 410) // Работа с задачами
+            if($nQuery >= 400 && $nQuery < 410) // Работа с План-графиком
+            {
+                require_once("myTable.php"); // $myTable класс для работы с таблицей
+                $idElement = (int)$param[0];
                 switch($nQuery)
                 {
-                    case 400: // резерв
+                    case 400: // Создание план-графика
+                        $idParent = (int)$param[0];
+                        if(($myRight->get($idParent) & 8) != 8) return; // Права на изменение
+                        $idTable = (int)$param[1];
+                        $month = (int)$param[2];
+                        $year = (int)$param[3];
+                        $number = cal_days_in_month(CAL_GREGORIAN, $month, $year);
+                        // Должен быть update имени
+                        $name = selectOne("SELECT name FROM structures WHERE id = %i", [ $idTable ]);
+                        query("UPDATE structures SET name = %s WHERE id = %i", [ $name." ($month.$year)", $idTable ]);
+                        // Создание заголовка
+                        $myTable = new MyTable($idTable, $myLog);
+                        $data = [];
+                        $data[] = (object)["value" => "ФИО", "i" => 0];
+                        for($i = 1; $i <= $number; $i++)
+                            $data[] = (object)["value" => $i, "i" => $i];
+                        $myTable->setAndRemoveHeader($data, []);
+                        break;
+                    case 401: // Запрос план графика как таблицы
+                        break;
+                    case 402: // Изменение данных, поддержка интервального изменения одинаковым значением
                         break;
                 }
+            }
             if($nQuery >= 410 && $nQuery < 450) // Работа с событиями
                 switch($nQuery)
                 {
                     case 410: // Создание события
-                        if($param[1] == "date")
+                        $idParent = (int)$param[0];
+                        if(($myRight->get($idParent) & 8) != 8) return; // Права на изменение
+                        $idElement = (int)$param[1];
+                        if($param[2] == "date")
                         {
-                            $param[3] = getNextDateForEvent($param[2])->format("Y-m-d H:i:s");
-                            query("INSERT INTO events (id, type, param, date, code) VALUES(%i, %s, %s, %s, 'end')", $param);
+                            $param[4] = getNextDateForEvent($param[3])->format("Y-m-d H:i:s");
+                            query("INSERT INTO events (id, type, param, date, code) VALUES(%i, %s, %s, %s, 'end')", [ $idElement, $param[2], $param[3], $param[4] ]);
                         }
-                        else query("INSERT INTO events (id, type, param, code) VALUES(%i, %s, %s, 'end')", $param);
+                        else query("INSERT INTO events (id, type, param, code) VALUES(%i, %s, %s, 'end')", [ $idElement, $param[2], $param[3] ]);
                         break;
                     case 411: // Загрузить событие
                         if(count($param) == 0) return;

@@ -1,5 +1,6 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { QueryService } from '../../lib/query.service';
+import { FunctionsService } from '../../lib/functions.service';
 
 declare var trace:any;
 @Component({
@@ -15,7 +16,8 @@ export class EventLogComponent implements OnInit
     log = [];
     timer = null;
     first = false;
-    constructor(public query: QueryService) { }
+    visible = true;
+    constructor(public query: QueryService, public func:FunctionsService) { }
     ngOnInit() 
     { 
         this.update();
@@ -33,6 +35,13 @@ export class EventLogComponent implements OnInit
         {
             this.inputs.name = "Журнал";
             this.log = data.reverse();
+            let time;
+            for(let i = 0; i < this.log.length; i++)
+            {
+                time = this.func.getFormat(this.log[i][0]);
+                this.log[i][0] = time.split(" ")[1];
+                this.log[i].push(time);
+            }
             if(!this.first)
                 setTimeout(() => 
                 {
@@ -46,9 +55,5 @@ export class EventLogComponent implements OnInit
     ngOnDestroy() 
     {
         clearTimeout(this.timer);
-    }
-    getTime(date)
-    {
-        return date.split(" ")[1];
     }
 }

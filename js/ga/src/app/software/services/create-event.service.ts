@@ -51,7 +51,7 @@ export class CreateEventService
                 this.query.protectionPost(100, { param: ["event", "NULL", Data.data[0][1], idParent, 0, ""] }, (data) => 
                 {  
                     if(data[0] == "Index")
-                        this.query.protectionPost(410, { param: [data[1], Data.data[1][1].selected, param ] }, (data) => 
+                        this.query.protectionPost(410, { param: [idParent, data[1], Data.data[1][1].selected, param ] }, (data) => 
                         {  
                             update();
                         });

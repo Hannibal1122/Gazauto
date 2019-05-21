@@ -3,6 +3,7 @@ import { FunctionsService } from '../../lib/functions.service';
 import { QueryService } from '../../lib/query.service';
 import { isJsObject } from '@angular/core/src/change_detection/change_detection_util';
 import { ModalMovedWindowComponent } from '../modal-moved-window/modal-moved-window.component';
+import { filterQueryId } from '@angular/core/src/view/util';
 declare var trace:any;
 declare var $:any;
 @Component({
@@ -31,8 +32,8 @@ export class ErrorTableComponent implements OnInit
             {
                 this.firstHeader[value[key].value] = value[key].i;
                 this.header[value[key].i] = value[key];
-                this.filter.fields[value[key].i] = { value: "" };
-                this.filter.state[value[key].i] = { value: "" };
+                this.filter.fields[value[key].i] = { value: "", sign: "*" };
+                this.filter.state[value[key].i] = { value: "", sign: "=" };
                 this.mapFields[value[key].value] = { name: key, header: true };
             }
         }
@@ -160,18 +161,16 @@ export class ErrorTableComponent implements OnInit
                     this.mapFields[cell.id] = { i: i, j: this.firstHeader[key] };
                     if(cell)
                     {
-                        if(this.filter.fields[this.firstHeader[key]].value != "")
+                        let filterFields = this.filter.fields[this.firstHeader[key]];
+                        let filterState = this.filter.state[this.firstHeader[key]];
+                        if(filterFields.value != "")
                         {
                             let str = (cell.listValue || cell.value).toLowerCase();
-                            let substr = this.filter.fields[this.firstHeader[key]].value.toLowerCase();
-                            if(str.indexOf(substr) !== -1) rowHide = false; // содержит
-                            else rowHide = true; // не содержит
+                            let substr = filterFields.value.toLowerCase();
+                            rowHide = this.checkFilterBySign(str, substr, filterFields.sign);
                         }
-                        if(this.filter.state[this.firstHeader[key]].value != "") 
-                        {
-                            if(cell.state >= Number(this.filter.state[this.firstHeader[key]].value))
-                                rowHide = true;
-                        }
+                        if(filterState.value != "") 
+                            rowHide = this.checkFilterBySignState(cell.state, filterState.value, filterState.sign);
                     }
                 }
             }
@@ -180,6 +179,50 @@ export class ErrorTableComponent implements OnInit
             this.firstData[i] = this.mainData[i].__ID__; // id строки в бд
         }
         this.onChange.emit({ type: "bottomControlPanelFilter", filter: this.filter });
+    }
+    checkFilterBySign(value1, value2, sign)
+    {
+        switch(sign)
+        {
+            case "=":
+                if(value1 == value2) return false;
+                break;
+            case "!=":
+                if(value1 != value2) return false;
+                break;
+            case "*":
+                if(value1.indexOf(value2) !== -1) return false;
+                break;
+            case "!*":
+                if(value1.indexOf(value2) === -1) return false;
+                break;
+        }
+        return true;
+    }
+    checkFilterBySignState(value1, value2, sign)
+    {
+        switch(sign)
+        {
+            case "=":
+                if(value1 == value2) return false;
+                break;
+            case "!=":
+                if(value1 != value2) return false;
+                break;
+            case ">":
+                if(value1 > value2) return false;
+                break;
+            case ">=":
+                if(value1 >= value2) return false;
+                break;
+            case "<":
+                if(value1 < value2) return false;
+                break;
+            case "!<=":
+                if(value1 <= value2) return false;
+                break;
+        }
+        return true;
     }
     editField(e) // нажали на ячейку для редактирования
     {
@@ -240,7 +283,7 @@ export class ErrorTableComponent implements OnInit
     }
     onChangeFilter(i, value)
     {
-        this.filter.fields[i].value = value;
+        if(value !== undefined) this.filter.fields[i].value = value;
         this.updateData();
     }
     onChangeFilterState(i, value)

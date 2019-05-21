@@ -1,3 +1,4 @@
+<ng-container *ngIf = "windowType == 'interface'">
 <app-loading [load] = "!loaded"></app-loading>
 <app-enter *ngIf = "!enter && loaded"></app-enter>
 <div *ngIf = "enter && loaded">
@@ -124,6 +125,7 @@
                             <span *ngIf = "tab.type == 'table'"> <i class = "fas fa-table colorIconTable"></i> </span>
                             <span *ngIf = "tab.type == 'event'"> <i class = "fas fa-bolt colorIconEvent"></i> </span>
                             <span *ngIf = "tab.type == 'info'"> <i class = "fas fa-info colorIconEvent"></i> </span>
+                            <span *ngIf = "tab.type == 'plan'"> <i class = "fa fa-chart-bar colorIconTable"></i> </span>
                             {{tab.software.inputs.name || tab.name}}
                         </div>
                         <span (click) = "closeTab(s, i)"><i class="fas fa-times-circle tubExitButton TabsButtonExitColor"></i></span>
@@ -134,10 +136,16 @@
                         <div style = "height: 100%; width:100%; padding: 5px; position:absolute;" 
                             [hidden] = "i != screen.currentSoftware">
                             <vg-dynamic-view  
+                                *ngIf = "app.type != 'table'"
                                 [visible] = "!splitScreen.drag && i == screen.currentSoftware"
                                 [componentData] = "app.software" 
                                 (onChange) = "onChangeInSoftware($event)" 
                                 [inputFromApp] = "app.inputFromApp"></vg-dynamic-view>
+                            <iframe [src] = "app.software.securitySrc"
+                                [hidden] = "splitScreen.drag"
+                                (load) = "onLoadIframe(app, $event)"
+                                style = "width:100%; height:100%; border:none;" 
+                                *ngIf = "app.type == 'table'"></iframe>
                         </div>
                     </ng-container>
                     <div *ngIf = "splitScreen.empty" style = "text-align: center; line-height: 16px; margin-top: 20px;">
@@ -155,3 +163,9 @@
         </div>
     </div>
 </div>
+</ng-container>
+<ng-container *ngIf = "windowType == 'table'">
+    <div class = "anotherPanelApp">
+        <app-table-editor-v2></app-table-editor-v2>
+    </div>
+</ng-container>

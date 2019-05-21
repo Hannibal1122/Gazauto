@@ -14,6 +14,7 @@
             $head = [];
             $data = [];
             $enableLines = "";
+            $bindId = -1;
             if($result = query("SELECT name, bindId, state FROM structures WHERE id = %i", [$idTable]))
                 while ($row = $result->fetch_array(MYSQLI_NUM)) 
                 { 
@@ -169,7 +170,7 @@
                 echo json_encode([ "id" => $idField, "value" => $value ]);
                 $this->myLog->add("table", "update", $idTable);
             }
-            else $this->myLog->add("table", "updateScript", $idTable);
+            else $this->myLog->add("table", "script", $idTable);
             $this->calculateStateForTable($idTable);
         }
         function checkEvent($idField) // Нужно вызывать при изменении ячейки, проверяет наличие событий
@@ -218,7 +219,14 @@
                 $linkId = $linkType != "value" && $linkType != "tlist" ? $idObject : (int)$valueData[0];
                 
                 query("UPDATE fields SET value = %s, linkId = %i, linkType = %s, type = 'link', state = %i WHERE tableId = %i AND id = %i", [ $fieldValue, $linkId, $linkType, $fieldState, $idTable, $idFields ]);
-                echo json_encode([ "id" => $idFields, "linkId" => $linkId, "type" => $linkType, "value" => $fieldValue, "state" => $fieldState ]);
+                echo json_encode([ 
+                    "id" => $idFields, 
+                    "linkId" => $linkId, 
+                    "type" => $linkType, 
+                    "value" => $fieldValue, 
+                    "listValue" => $linkType == "tlist" ? "" : NULL,
+                    "state" => $fieldState 
+                ]);
             }
             $this->myLog->add("table", "update", $idTable);
         }
@@ -358,7 +366,7 @@
                     echo json_encode($out);
                     $this->myLog->add("table", "update", $idTableTo); // изменение основной таблицы
                 }
-                else $this->myLog->add("table", "updateScript", $idTableTo); // изменение основной таблицы
+                else $this->myLog->add("table", "script", $idTableTo); // изменение основной таблицы
             }
             if($operation == "cut") 
             {
@@ -443,7 +451,7 @@
             if($result = query("SELECT avg(state) FROM fields WHERE tableId = %i AND type != 'head' AND state > 0", [ (int)$idTable ]))
                 $state = (int)$result->fetch_array(MYSQLI_NUM)[0];
             query("UPDATE structures SET state = %i WHERE id = %i", [ $state, (int)$idTable ]);
-            $this->myLog->add("table", "updateState", $idTable);
+            $this->myLog->add("table", "state", $idTable);
             if($result = query("SELECT tableId, id FROM fields WHERE type = 'link' AND linkId = %i AND linkType = 'table'", [ (int)$idTable ]))
                 while ($row = $result->fetch_array(MYSQLI_NUM))
                     $this->setStateForField($row[0], $row[1], $state);
