@@ -595,15 +595,13 @@ export class TableEditorV2Component implements OnInit
                     if(operation == "cut")
                     {
                         this.loadTable();
-                        /* if(this.id != data.idTableFrom)
-                            this.onChange({ type: "updateTable", id: data.idTableFrom}); // Чтобы таблица с вырезанной ячейкой обновилась */
+                        if(this.id != data.idTableFrom)
+                            this.onChange({ type: "updateTable", id: data.idTableFrom}); // Чтобы таблица с вырезанной ячейкой обновилась
                     }
                     else 
                     {
                         let cell = this.configInput.element;
-                        let newCell = this.dataTable[this.createContextMenu.i][this.mapHeader[cell.idColumn]];
-                        this.dataTable[this.createContextMenu.i][this.mapHeader[cell.idColumn]] = data;
-                        newCell.idColumn = cell.idColumn;
+                        this.mapFields[cell.id] = this.dataTable[this.createContextMenu.i][this.mapHeader[cell.idColumn]] = { ...data, idColumn: cell.idColumn };
                     }
                 this.loaded = true;            
             });   
