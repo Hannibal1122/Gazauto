@@ -5,25 +5,26 @@
         {
             
         }
-        function create($value)
+        function create($value, $column)
         {
             global $mysqli;
-            query("INSERT INTO filter (value) VALUES(%s)", [ $value ]);
+            query("INSERT INTO filter (value, col) VALUES(%s, %s)", [ $value, $column ]);
             return $mysqli->insert_id;
         }
         function get($idFilter)
         {
-            request("SELECT value FROM filter WHERE id = %i", [ $idFilter ]);
+            request("SELECT value, col FROM filter WHERE id = %i", [ $idFilter ]);
         }
-        function update($idFilter, $value)
+        function update($idFilter, $value, $column)
         {
-            query("UPDATE filter SET value = %s WHERE id = %i", [$value, $idFilter]);
+            query("UPDATE filter SET value = %s, col = %s WHERE id = %i", [$value, $column, $idFilter]);
         }
         function getAllFilters($idTable)
         {
             global $login, $role;
             $filterSelected = -1;
             $filters = [];
+            $filterColumn = ["", ""];
             $filterStr = "";
             $userFilter = $this->getUserFilter($login, $idTable);
             if($login == "admin") $query = "SELECT id, objectId, name FROM structures WHERE parent = %i AND objectType = 'filter' ORDER by parent, priority";
@@ -37,6 +38,7 @@
                         || ($userFilter != "" && $userFilter == $row[0]))
                     {
                         $filterStr = $this->getFilterStr((int)$row[1]);
+                        $filterColumn = $this->getFilterColumn((int)$row[1]);
                         $filterSelected = (int)$row[0];
                     }
                     $filters[] = $row;
@@ -44,7 +46,8 @@
             return [
                 "filters" => $filters, 
                 "filterSelected" => $filterSelected, 
-                "filterStr" => $filterStr
+                "filterStr" => $filterStr,
+                "filterColumn" => $filterColumn
             ];
         }
         function getFilterStr($idFilter)
@@ -77,6 +80,20 @@
                     $str .= "i IN ($strI)";
                     if(array_key_exists($i + 1, $expression) && ($expression[$i + 1]->type === "condition" || $expression[$i + 1]->begin))
                         $str .= $this->getOperator($expression[$i]->operator);
+                }
+            return $str;
+        }
+        function getFilterColumn($idFilter)
+        {
+            global $login;
+            $str = ["", ""];
+            $columns = json_decode(selectOne("SELECT col FROM filter WHERE id = %i", [ $idFilter ]));
+            for($i = 0, $c = count($columns); $i < $c; $i++)
+                if($columns[$i]->check === false)
+                {
+                    $id = (int)$columns[$i]->id;
+                    $str[0] .= " AND id != ".$id; 
+                    $str[1] .= " AND idColumn != ".$id;
                 }
             return $str;
         }

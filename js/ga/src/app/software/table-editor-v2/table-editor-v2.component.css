@@ -3,6 +3,7 @@
 } */
 .tableGrid
 {
+    padding: 5px; 
     display: grid;
     grid-template-columns: 1fr;
     grid-template-rows: auto 1fr 30px;
@@ -45,4 +46,13 @@
 {
     margin-right:0px;
     margin-left:5px;
+}
+
+.enableFilters
+{
+    background-color: rgb(187, 230, 139);
+}
+.cutRow
+{
+    color:rgb(173, 173, 173);
 }

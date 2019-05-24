@@ -264,12 +264,17 @@ export class SplitScreen
         this.saveTabs();
         this.empty = false;
     }
-    setActiveTab(tabsI) // Делает активной вкладку по tabsI
+    getGUID() // Каждый элемент получает уникальный идетификатор
+    {
+        let S4 = () => (((1 + Math.random()) * 0x10000) | 0).toString(16).substring(1);
+        return (S4() + S4() + "-" + S4() + "-" + S4() + "-" + S4() + "-" + S4() + S4() + S4());
+    }
+    setActiveTab(guid) // Делает активной вкладку по tabsI
     {
         for(let s = 0; s < this.screens.length; s++)
             if(this.screens[s])
                 for(let j = 0; j < this.screens[s].tabs.length; j++)
-                    if(this.screens[s].tabs[j].i == tabsI)
+                    if(this.screens[s].tabs[j].guid == guid)
                     {
                         this.screens[s].currentSoftware = j;
                         break;

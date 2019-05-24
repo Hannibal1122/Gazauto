@@ -8,10 +8,8 @@ import { DynamicComponent } from './lib/dynamic/dynamic.component';
 import { EnterComponent } from './enter/enter.component';
 import { ModalWindowModule } from "./system/modalwindow/modalwindow.module";
 import { LoadingComponent } from './system/loading/loading.component';
-import { TableEditorComponent } from './software/table-editor/table-editor.component';
 import { TableEditorV2Component } from './software/table-editor-v2/table-editor-v2.component';
 import { PlanEditorComponent } from './software/plan-editor/plan-editor.component';
-import { ErrorTableComponent } from './system/error-table/error-table.component';
 import { InfoComponent } from './software/info/info.component';
 import { HttpClientModule } from '@angular/common/http';
 import { UserSettingsComponent } from './software/user-settings/user-settings.component';
@@ -30,9 +28,7 @@ import { DateTimeModule } from "./system/datetimepicker/datetimepicker.module";
         UserSettingsComponent,
         EnterComponent, 
         LoadingComponent, 
-        TableEditorComponent,
         TableEditorV2Component,
-        ErrorTableComponent, 
         InfoComponent,
         EventEditorComponent,
         PlanEditorComponent,

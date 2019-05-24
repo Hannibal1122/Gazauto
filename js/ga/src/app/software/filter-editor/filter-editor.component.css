@@ -3,7 +3,7 @@
     display:flex;
     flex-wrap: wrap;
     align-content: flex-start;
-    height: 300px;
+    /* height: 300px; */
     overflow:auto; 
 }
 .filterClass select
@@ -64,6 +64,6 @@
 .filterPanel
 {
     background-color: white;
-    width:390px; 
-    height:300px; 
+    width:360px; 
+    /* height:300px;  */
 }

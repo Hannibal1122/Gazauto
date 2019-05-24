@@ -42,7 +42,6 @@ export class ExplorerComponent implements OnInit
     @ViewChild('modal') public modal: any;
     set inputFromApp(value)
     {
-        trace(value)
         if(value) 
             if(value.search) this.openObjectById("search", value.search);
             else if(value.element) this.openObjectById("element", value.element);
@@ -143,7 +142,6 @@ export class ExplorerComponent implements OnInit
             data: [
                 ["", -1, "typeObject", (type) => 
                 {
-                    /* trace(type) */
                     this.modal.close(false);
                     let id = this.parent;
                     this.createObject(id, type, null);
@@ -327,7 +325,7 @@ export class ExplorerComponent implements OnInit
         var objectType = this.outFolders[this.selectObjectI].objectType;
         this.query.protectionPost(202, { param: [ id ] }, (data) =>
         {
-            this.clearRules(false);
+            this.clearRules();
             let right = this.createRight.decodeRights(data[0]);
             this.selectRules.copy = objectType == "user" || objectType == "role" ? false : Boolean(right.copy);
             this.selectRules.cut = Boolean(right.change);
@@ -340,7 +338,6 @@ export class ExplorerComponent implements OnInit
 
             if(this.inputs.bind)
             {
-                this.selectRules.new = false;
                 this.selectRules.paste = false; 
                 this.selectRules.cut = false; 
                 this.selectRules.remove = false; 
@@ -351,7 +348,7 @@ export class ExplorerComponent implements OnInit
     {
         this.selectObjectCopy = { id: -1, type: "" };
         this.selectObjectI = -1;
-        this.clearRules(true);
+        this.clearRules();
     }
     openFolder(id, func?) // открыть папку
     {
@@ -419,10 +416,10 @@ export class ExplorerComponent implements OnInit
             this.load = false;
         });
     }
-    clearRules(_new)
+    clearRules()
     {
         this.selectRules = {
-            new: _new ? false : this.selectRules.new, 
+            new: this.selectRules.new, 
             copy: false, 
             paste: false, 
             cut: false, 
@@ -438,6 +435,15 @@ export class ExplorerComponent implements OnInit
         if(clearCopy) localStorage.removeItem("copyExplorer");
         this.openFolder(this.parent);
     }
+    /*******************************************/
+    mainSearch = 
+    {
+        open: false
+    }
+    openSearch()
+    {
+        this.mainSearch.open = true;
+    }
     searchInput = "";
     searchInputType = "";
     searchInputObject() // Глобальный поиск
@@ -445,7 +451,8 @@ export class ExplorerComponent implements OnInit
         if(this.searchInput == "") return;
         this.load = true;
         this.unSelectObject();
-        this.query.protectionPost(124, { param: ["%" + this.searchInput + "%", "%" + this.searchInputType + "%"] }, (data) =>
+        this.mainSearch.open = false; // Просто закрыть окно поиска
+        this.query.protectionPost(124, { param: [this.searchInput, this.searchInputType] }, (data) =>
         {
             this.outFolders = data.folder;
             this.load = false;
@@ -458,10 +465,17 @@ export class ExplorerComponent implements OnInit
         for(var i = 0; i < this.outFolders.length; i++)
             if(this.outFolders[i].name.toLowerCase().indexOf(searchInput) != -1) this.outFolders[i].visible = true;
             else this.outFolders[i].visible = false;
+        this.mainSearch.open = false;
     }
     clearSearch()
     {
         if(this.searchInput == "") this.refresh();
+    }
+    closeMainSearch() // Очистить строку поиска и сбросить результат
+    {
+        this.mainSearch.open = false;
+        this.searchInput = "";
+        this.clearSearch();
     }
     globalClick = null;
     /**************************************/

@@ -121,19 +121,23 @@
                         class = "myTabs TabsColor" [class.TabsActiveColor] = "i == screen.currentSoftware">
                         <div (click) = "openTab(s, i)" 
                             style = "padding-left:7px; height:30px; line-height:30px; width: calc(100% - 20px); text-overflow: ellipsis; overflow: hidden; white-space: nowrap;" >
-                            <span *ngIf = "tab.type == 'explorer'"> <i class = "fas fa-sitemap colorIconExplorer"></i> </span>
-                            <span *ngIf = "tab.type == 'table'"> <i class = "fas fa-table colorIconTable"></i> </span>
-                            <span *ngIf = "tab.type == 'event'"> <i class = "fas fa-bolt colorIconEvent"></i> </span>
-                            <span *ngIf = "tab.type == 'info'"> <i class = "fas fa-info colorIconEvent"></i> </span>
-                            <span *ngIf = "tab.type == 'plan'"> <i class = "fa fa-chart-bar colorIconTable"></i> </span>
-                            {{tab.software.inputs.name || tab.name}}
+                            <ng-container *ngIf = "tab.loaded">
+                                <span *ngIf = "tab.type == 'explorer'"> <i class = "fas fa-sitemap colorIconExplorer"></i> </span>
+                                <span *ngIf = "tab.type == 'table'"> <i class = "fas fa-table colorIconTable"></i> </span>
+                                <span *ngIf = "tab.type == 'event'"> <i class = "fas fa-bolt colorIconEvent"></i> </span>
+                                <span *ngIf = "tab.type == 'info'"> <i class = "fas fa-info colorIconEvent"></i> </span>
+                                <span *ngIf = "tab.type == 'plan'"> <i class = "fa fa-chart-bar colorIconTable"></i> </span>
+                                <span *ngIf = "tab.type == 'log'"> <i class = "fa fa-book colorIconTable"></i> </span>
+                            </ng-container>
+                            <span class = "tabsLoader" *ngIf = "!tab.loaded"> <i class="fas fa-spinner tabsLoader"></i> </span>
+                            {{ tab.software.inputs.name || tab.name }}
                         </div>
                         <span (click) = "closeTab(s, i)"><i class="fas fa-times-circle tubExitButton TabsButtonExitColor"></i></span>
                     </div>
                 </div>
-                <div style = "width:100%; height:calc(100% - 30px); position: absolute; overflow: auto; top: 30px;" class = "WorkspaceBColor WorkspaceColor">
+                <div style = "width:100%; height:calc(100% - 30px); position: absolute; top: 30px;" class = "WorkspaceBColor WorkspaceColor">
                     <ng-container *ngFor="let app of screen.tabs; let i = index;">
-                        <div style = "height: 100%; width:100%; padding: 5px; position:absolute;" 
+                        <div style = "height: 100%; width:100%; position:absolute;" 
                             [hidden] = "i != screen.currentSoftware">
                             <vg-dynamic-view  
                                 *ngIf = "app.type != 'table'"
@@ -144,7 +148,8 @@
                             <iframe [src] = "app.software.securitySrc"
                                 [hidden] = "splitScreen.drag"
                                 (load) = "onLoadIframe(app, $event)"
-                                style = "width:100%; height:100%; border:none;" 
+                                style = "width:100%; height:100%; border:none;"
+                                [attr.id] = "'iframe_' + app.guid"
                                 *ngIf = "app.type == 'table'"></iframe>
                         </div>
                     </ng-container>

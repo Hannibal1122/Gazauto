@@ -3,6 +3,7 @@ declare var trace:any;
 @Injectable()
 export class TableFilterService
 {
+    enable = false;
     fields = [];
     state = [];
     count = 0;
@@ -50,10 +51,34 @@ export class TableFilterService
             case "<":
                 if(value1 < value2) return false;
                 break;
-            case "!<=":
+            case "<=":
                 if(value1 <= value2) return false;
                 break;
         }
         return true;
+    }
+    append(j)
+    {
+        this.fields[j] = { value: "", sign: "*" };
+        this.state[j] = { value: "", sign: "=" };
+    }
+    flush(j)
+    {
+        this.fields[j] = null;
+        this.state[j] = null;
+    }
+    splice(j)
+    {
+        this.fields.splice(j);
+        this.state.splice(j);
+    }
+    changeEnamle()
+    {
+        this.enable = !this.enable;
+    }
+    clear()
+    {
+        for(let i = 0; i < this.fields.length; i++)
+            this.fields[i].value = this.state[i].value = "";
     }
 }

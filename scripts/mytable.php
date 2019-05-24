@@ -6,7 +6,7 @@
             $this->idTable = (int)$idTable;
             $this->myLog = $myLog;
         }
-        function getTable($tableRight, $filters, $filterSelected, $filterStr) // Запрос таблицы
+        function getTable($tableRight, $filters, $filterSelected, $filterStr, $filterColumn) // Запрос таблицы
         {
             $idTable = $this->idTable; 
             $nameTable = "";
@@ -22,7 +22,7 @@
                     $bindId = $row[1]; 
                     $stateTable = (int)$row[2]; 
                 }
-            if($result = query("SELECT i, id, value, eventId, dataType FROM fields WHERE tableId = %i AND type = 'head' ORDER by i", [$idTable]))
+            if($result = query("SELECT i, id, value, eventId, dataType FROM fields WHERE tableId = %i AND type = 'head' $filterColumn[0] ORDER by i", [$idTable]))
                 while ($row = $result->fetch_array(MYSQLI_NUM))
                 {
                     if($row[4]) $row[4] = selectOne("SELECT type FROM my_values WHERE id = %i", [(int)$row[4]]);
@@ -41,10 +41,9 @@
             if($result = query("SELECT i, next FROM fields LEFT JOIN line_ids ON line_ids.id = fields.i WHERE tableId = %i AND type != 'head'", [$idTable]))
                 while ($row = $result->fetch_array(MYSQLI_NUM))
                     $data[(int)$row[0]]["__NEXT__"] = $row[1]; 
-            $queryStr = "SELECT i, idColumn, value, type, linkId, linkType, fields.id, state, eventId FROM fields WHERE tableId = %i AND type != 'head'";
-            
+            $queryStr = "SELECT i, idColumn, value, type, linkId, linkType, fields.id, state, eventId FROM fields WHERE tableId = %i AND type != 'head' $filterColumn[1] ";
             if($enableLines != "") $queryStr .= "AND i IN ($enableLines)";
-            else if($filterStr != "") $queryStr .= "AND i IN (-1)";
+            /* else if($filterStr == "") $queryStr .= "AND i IN (-1)"; */ // Если это оставить, то фильтр по умолчанию все скрывает
             if($result = query($queryStr, [$idTable]))
                 while ($row = $result->fetch_array(MYSQLI_NUM)) 
                 {
@@ -104,11 +103,10 @@
                 "name" => $nameTable, 
                 "right" => $tableRight,
                 "idLogTableOpen" => $this->myLog->add("table", "open", $idTable), 
-                "changeHead" => $bindId, // Запрет может быть еще и по связи
+                "changeHead" => $filterColumn[0] == "", // Если столбцы скрыты фильтром, то нельзя менять
                 "state" => $stateTable,
                 "filters" => $filters,
-                "filter" => $filterSelected,
-                "filterStr" => $filterStr
+                "filter" => $filterSelected
             ]);
         }
         function setAndRemoveHeader($data, $changes) // Добавить/Удалить заголовок
@@ -168,19 +166,17 @@
             if($echo) 
             {
                 echo json_encode([ "id" => $idField, "value" => $value ]);
-                $this->myLog->add("table", "update", $idTable);
+                $this->myLog->add("field", "update", $idField);
             }
-            else $this->myLog->add("table", "script", $idTable);
-            $this->calculateStateForTable($idTable);
+            else $this->myLog->add("field", "script", $idField);
+            /* $this->calculateStateForTable($idTable); */
         }
         function checkEvent($idField) // Нужно вызывать при изменении ячейки, проверяет наличие событий
         {
             $idEvent = (int)selectOne("SELECT eventId FROM fields WHERE id = %i", [ $idField ]);
-            /* $idColumn = (int)selectOne("SELECT idColumn FROM fields WHERE id = %i", [ $idField ]);
-            $idEventColumn = (int)selectOne("SELECT eventId FROM fields WHERE id = %i", [ $idColumn ]); */
             $idEventColumn = (int)selectOne("SELECT eventId FROM fields WHERE id = (SELECT idColumn FROM fields WHERE id = %i)", [ $idField ]);
             require_once("FASM.php"); // класс для работы с событиями
-            $fasm = new FASM($this->myLog);
+            $fasm = new FASM();
             if(!is_null($idEvent)) // Если событие на ячейке
             {
                 $typeAndCode = query("SELECT type, code FROM events WHERE id = %i AND type = 'value'", [ $idEvent ])->fetch_array(MYSQLI_NUM);
@@ -190,10 +186,10 @@
             {
                 $idLine = (int)selectOne("SELECT i FROM fields WHERE id = %i", [ $idField ]);
                 $typeAndCode = query("SELECT type, code FROM events WHERE id = %i AND type = 'value'", [ $idEventColumn ])->fetch_array(MYSQLI_NUM);
-                if($typeAndCode) $fasm->start($typeAndCode[1], $idField/* , $idColumn */, $idLine);
+                if($typeAndCode) $fasm->start($typeAndCode[1], $idField, $idLine);
             }
         }
-        function setCellByLink($idObject, $idFields) // Добавление элемента из левого меню в таблицу по ссылке
+        function setCellByLink($idObject, $idField) // Добавление элемента из левого меню в таблицу по ссылке
         {
             $idTable = $this->idTable; 
             if((int)$idTable == (int)$idObject) { echo "ERROR"; return; }
@@ -218,9 +214,9 @@
                 }
                 $linkId = $linkType != "value" && $linkType != "tlist" ? $idObject : (int)$valueData[0];
                 
-                query("UPDATE fields SET value = %s, linkId = %i, linkType = %s, type = 'link', state = %i WHERE tableId = %i AND id = %i", [ $fieldValue, $linkId, $linkType, $fieldState, $idTable, $idFields ]);
+                query("UPDATE fields SET value = %s, linkId = %i, linkType = %s, type = 'link', state = %i WHERE tableId = %i AND id = %i", [ $fieldValue, $linkId, $linkType, $fieldState, $idTable, $idField ]);
                 echo json_encode([ 
-                    "id" => $idFields, 
+                    "id" => $idField, 
                     "linkId" => $linkId, 
                     "type" => $linkType, 
                     "value" => $fieldValue, 
@@ -228,9 +224,9 @@
                     "state" => $fieldState 
                 ]);
             }
-            $this->myLog->add("table", "update", $idTable);
+            $this->myLog->add("field", "update", $idField);
         }
-        function setCellByValue($idObject, $idFields, $key) // Добавление элемента из левого меню в таблицу по значению
+        function setCellByValue($idObject, $idField, $key) // Добавление элемента из левого меню в таблицу по значению
         {
             $idTable = $this->idTable; 
             if($result = query("SELECT objectType, objectId FROM structures WHERE id = %i", [ $idObject ]))
@@ -244,13 +240,13 @@
                             $valueData = $value->fetch_array(MYSQLI_NUM);
                             if($valueData[1] == "array") $fieldValue = getListValueByKey((int)$row[1], $key);
                             else $fieldValue = $valueData[0];
-                            query("UPDATE fields SET value = %s, type = 'value', linkId = NULL, linkType = NULL WHERE tableId = %i AND id = %i", [ $fieldValue, $idTable, $idFields]);
-                            echo json_encode([ "id" => $idFields, "value" => $fieldValue ]);
+                            query("UPDATE fields SET value = %s, type = 'value', linkId = NULL, linkType = NULL WHERE tableId = %i AND id = %i", [ $fieldValue, $idTable, $idField]);
+                            echo json_encode([ "id" => $idField, "value" => $fieldValue ]);
                         }
                         break;
                 }
             }
-            $this->myLog->add("table", "update", $idTable);
+            $this->myLog->add("field", "update", $idField);
         }
         function addRow($idPrevRow, $prevOrNext, $echo) // Добавить строку в таблицу
         {
@@ -302,6 +298,28 @@
                 $this->myLog->add("table", "update", $idTable);
             }
             else return $out;
+        }
+        function cutRow($idRow1, $idRow2, $prevOrNext) // Добавить строку в таблицу
+        {
+            global $mysqli;
+            $idTable = $this->idTable; 
+            $oldPrev1 = selectOne("SELECT id FROM line_ids WHERE next = %i", [ $idRow1 ]);
+            $oldNext1 = selectOne("SELECT next FROM line_ids WHERE id = %i", [ $idRow1 ]);
+            query("UPDATE line_ids SET next = %i WHERE id = %i", [ $oldNext1, $oldPrev1 ]);
+            if($prevOrNext == -1)
+            {
+                $oldPrev2 = selectOne("SELECT id FROM line_ids WHERE next = %i", [ $idRow2 ]);
+                query("UPDATE line_ids SET next = %i WHERE id = %i", [ $idRow1, $oldPrev2 ]);
+                query("UPDATE line_ids SET next = %i WHERE id = %i", [ $idRow2, $idRow1 ]);
+            }
+            else
+            {
+                $oldNext2 = selectOne("SELECT next FROM line_ids WHERE id = %i", [ $idRow2 ]);
+                query("UPDATE line_ids SET next = %i WHERE id = %i", [ $idRow1, $idRow2 ]);
+                query("UPDATE line_ids SET next = %i WHERE id = %i", [ $oldNext2, $idRow1 ]);
+            }
+
+            $this->myLog->add("table", "update", $idTable);
         }
         function removeRow($idRow) // Удалить строку из таблицы
         {
@@ -364,9 +382,9 @@
                 if($echo) 
                 {
                     echo json_encode($out);
-                    $this->myLog->add("table", "update", $idTableTo); // изменение основной таблицы
+                    $this->myLog->add("field", "update", $idCellTo); 
                 }
-                else $this->myLog->add("table", "script", $idTableTo); // изменение основной таблицы
+                else $this->myLog->add("field", "script", $idCellTo); 
             }
             if($operation == "cut") 
             {
@@ -379,7 +397,7 @@
                 if($echo)
                 {
                     echo json_encode([ "idTableFrom" => $idTableFrom ]);
-                    $this->myLog->add("table", "update", $idTableFrom); // изменение таблицы из которой вырезали
+                    $this->myLog->add("field", "update", $idCellFrom); // изменение таблицы из которой вырезали
                 }
                 $this->calculateStateForTable($idTableFrom);
             }
@@ -428,6 +446,7 @@
         function setStateForField($idTable, $idField, $state) // Выставить статус у ячейки
         {
             query("UPDATE fields SET state = %i WHERE id = %i AND tableId = %i", [ (int)$state, (int)$idField, (int)$idTable ]);
+            $this->myLog->add("field", "state", $idField);
             if($result = query("SELECT tableId, id FROM fields WHERE type = 'link' AND linkId = %i AND linkType = 'cell'", [ (int)$idField ]))
                 while ($row = $result->fetch_array(MYSQLI_NUM))
                     $this->setStateForField($row[0], $row[1], $state);
@@ -438,7 +457,7 @@
                 if($typeAndCode[0] == "state")
                 {
                     require_once("FASM.php"); // класс для работы с событиями
-                    $fasm = new FASM($this->myLog);
+                    $fasm = new FASM();
                     $fasm->start($typeAndCode[1], (int)$idField);
                 }
             }

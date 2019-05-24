@@ -1,11 +1,11 @@
 <?php
 class FASM
 {
-    function __construct($myLog)
+    function __construct()
     {
         global $login;
-        $this->myLog = $myLog;
-        $this->myLog->login = "system";
+        require_once("myLog.php");
+        $this->myLog = new MyLog("system");
         $this->login = $login;
         $this->current = ["id" => -1, "field" => []];
     }

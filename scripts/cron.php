@@ -12,7 +12,7 @@
         while ($row = $result->fetch_array(MYSQLI_NUM)) 
         {
             require_once("FASM.php"); // класс для работы с событиями
-            $fasm = new FASM($myLog);
+            $fasm = new FASM();
             $fasm->start($row[3], -1);
             $nextDateTime = getNextDateForEvent($row[1])->format("Y-m-d H:i:s");
             if($nextDateTime == $row[2]) query("UPDATE events SET ready = 1 WHERE id = %i", [(int)$row[0]]);

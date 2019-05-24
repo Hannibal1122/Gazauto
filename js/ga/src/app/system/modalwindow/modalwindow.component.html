@@ -34,6 +34,13 @@
                         <!-- ******************************************************************************** -->
                         <input *ngIf = "data[2] === 'checkbox'" type = "checkbox" [checked]="data[1]" [(ngModel)] = "data[1]">
                         <!-- ******************************************************************************** -->
+                        <ng-container *ngIf = "data[2] === 'multi-checkbox'">
+                            <ng-container *ngFor = "let column of data[1]">
+                                <input type = "checkbox" [checked]="column.check" [(ngModel)] = "column.check">
+                                <span style = "margin-left:5px;">{{ column.value }}</span><br>
+                            </ng-container>
+                        </ng-container>
+                        <!-- ******************************************************************************** -->
                         <div *ngIf = "data[2] === 'html'" [innerHTML] = "data[1]"></div>
                         <!-- ******************************************************************************** -->
                         <textarea *ngIf = "data[2] === 'textarea'" style = "width: 100%;" [(ngModel)] = "data[1]">{{ data[1] }}</textarea>

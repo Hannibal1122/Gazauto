@@ -34,7 +34,8 @@ export class TableEditorV2Component implements OnInit
     {
         change: false, 
         cut: false, 
-        copy: false
+        copy: false,
+        head: false
     }
     rules = {
         change: false, // Разрешено изменять
@@ -71,7 +72,7 @@ export class TableEditorV2Component implements OnInit
         set id(value) {
             this._id = value;
             this._colorId = value;
-            /* this.self.onChange.emit({ type: "bottomControlPanel", id: value }); */
+            this.self.control.id = value;
         },
         get id() {
             return this._id;
@@ -91,11 +92,11 @@ export class TableEditorV2Component implements OnInit
         close: function() {
             this.visible = false;
             this._colorId = -1;
-            /* this.self.onChange.emit({ type: "bottomControlPanel", id: -1 }); */
+            this.self.control.id = -1;
         },
         clearId: function() {
             this._colorId = -1;
-            /* this.self.onChange.emit({ type: "bottomControlPanel", id: -1 }); */
+            this.self.control.id = -1;
         },
         self: this
     }
@@ -173,6 +174,7 @@ export class TableEditorV2Component implements OnInit
             }
             this.control.error = false;
             for(let key in data.right) this.right[key] = data.right[key];
+            this.right.head = data.changeHead;
             this.nameTable = data.name;
             this.control.state = data.state;
             this.dataHeader = [];
@@ -187,14 +189,20 @@ export class TableEditorV2Component implements OnInit
                     eventId: data.head[i][3],
                     dataType: data.head[i][4]
                 };
-                // Заполнение фильтров
-                this.tableFilter.fields[_j] = { value: "", sign: "*" };
-                this.tableFilter.state[_j] = { value: "", sign: "=" };
                 this.mapHeader[this.dataHeader[_j].id] = _j;
                 this.mapFields[this.dataHeader[_j].id] = { ...this.dataHeader[_j], header: true };
             }
+            // Заполнение фильтров и удаление лишних фильтров
+            let j = 0;
+            for(; j < this.dataHeader.length; j++)
+                if(!this.dataHeader[j]) this.tableFilter.flush(j);
+                else
+                    if(!this.tableFilter.fields[j]) // Условие чтобы при update сохранить значения фильтров
+                        this.tableFilter.append(j);
+            this.tableFilter.splice(j)
+
             this.tableIds = data.tableIds;
-            this.onChange({ type: "updateTableIds", id: this.id, tableIds: this.tableIds, idLogTableOpen: data.idLogTableOpen });
+            this.onChange({ type: "updateTableIds", id: this.id, tableIds: this.tableIds, idLogTableOpen: data.idLogTableOpen, name: this.nameTable });
 
             this.firstData = data.data;
             this.updateData();
@@ -207,9 +215,6 @@ export class TableEditorV2Component implements OnInit
 
             this.needUpdate = false;
             this.loaded = true;
-            setTimeout(() => {
-                this.setScroll();
-            }, 100)
         });
     }
     updateData()
@@ -241,6 +246,7 @@ export class TableEditorV2Component implements OnInit
                 if(filterState.value != "") 
                     rowHide = this.tableFilter.checkFilterBySignState(cell.state, filterState.value, filterState.sign);
             }
+            this.tableFilter.countHide += rowHide ? 1 : 0;
             this.tableFilter.mapHideRows[key] = rowHide;
         }
     }
@@ -250,11 +256,10 @@ export class TableEditorV2Component implements OnInit
         if(scroll) 
         {
             scroll = JSON.parse(scroll);
-            this.mainContainer.nativeElement.scrollTop = scroll.top;
-            this.mainContainer.nativeElement.scrollLeft = scroll.left;
+            this.mainContainer.nativeElement.scrollBy({ ...scroll, behavior: 'smooth'});
         }
     }
-    saveScroll()
+    saveScroll() // eventListener на скролл
     {
         let scroll = 
         {
@@ -262,6 +267,8 @@ export class TableEditorV2Component implements OnInit
             left: this.mainContainer.nativeElement.scrollLeft
         }
         localStorage.setItem("table_scroll_" + this.id, JSON.stringify(scroll));
+
+        this.acceptEditField();
     }
     changeHeader() // изменить заголовок таблицы
     {
@@ -301,10 +308,15 @@ export class TableEditorV2Component implements OnInit
         this.tableFilter.state[i].value = value;
         this.updateData();
     }
+    enableFilters()
+    {
+        this.tableFilter.changeEnamle();
+        if(!this.tableFilter.enable)
+            this.clearFilters();
+    }
     clearFilters() // Очистить фильтры
     {
-        for(let i = 0; i < this.tableFilter.fields.length; i++)
-            this.tableFilter.fields[i].value = this.tableFilter.state[i].value = "";
+        this.tableFilter.clear();
         this.updateData();
     }
     getValueFromArrayById(array, id)
@@ -364,22 +376,9 @@ export class TableEditorV2Component implements OnInit
             }
         return false;
     }
-    addRow(type, prevOrNext) // Добавить в строку таблицу
-    {
-        if(this.dataHeader.length == 0) 
-        {
-            this.modal.open({ title: "Нужно добавить заголовок!", data: [], ok: "Ок", cancel: ""});
-            return;
-        }
-        let l = this.firstData.length;
-        let idRow;
-        if(type == "end") 
-            idRow = l > 0 ? this.firstData[l - 1].__ID__ : -1;
-        else idRow = this.firstData[this.createContextMenu.i].__ID__;
-        this.queue.add(257, [ this.id, idRow, prevOrNext ], (data) => { this.loadTable(); });
-    }
     acceptEditField() // пропал фокус с выделенной ячейки
     {
+        if(!this.inputProperty.visible) return;
         this.inputProperty.close();
         let cell = this.configInput.element;
         if(this.inputProperty.oldValue != this.inputProperty.value)
@@ -543,7 +542,6 @@ export class TableEditorV2Component implements OnInit
                 if(this.getPositionInTable(e.target, this.configInput))
                 {
                     let cell = this.configInput.element;
-                    trace(cell)
                     this.inputProperty.id = cell.id;
                     this.inputProperty.eventId = cell.eventId;
                     this.inputProperty.type = "value";
@@ -600,6 +598,41 @@ export class TableEditorV2Component implements OnInit
     removeRow() // Удаление строки
     {
         this.queue.add(258, [ this.id, this.firstData[this.createContextMenu.i].__ID__ ], (data) => { this.loadTable(); });
+    }
+    cutRowProperty = 
+    {
+        i: -1,
+        idRow1: -1,
+        idRow2: -1
+    }
+    cutRow() // Вырезать строку
+    {
+        this.cutRowProperty.i = this.createContextMenu.i;
+        this.cutRowProperty.idRow1 = this.firstData[this.createContextMenu.i].__ID__;
+        this.cutRowProperty.idRow2 = -1;
+    }
+    addRow(type, prevOrNext) // Добавить в строку таблицу
+    {
+        if(this.dataHeader.length == 0) 
+        {
+            this.modal.open({ title: "Нужно добавить заголовок!", data: [], ok: "Ок", cancel: ""});
+            return;
+        }
+        let l = this.firstData.length;
+        let idRow;
+        if(type == "end") 
+            idRow = l > 0 ? this.firstData[l - 1].__ID__ : -1;
+        else idRow = this.firstData[this.createContextMenu.i].__ID__;
+        this.queue.add(257, [ this.id, idRow, prevOrNext ], (data) => { this.loadTable(); });
+    }
+    addCutRow(prevOrNext) // Вставить вырезанную строку
+    {
+        if(this.cutRowProperty.idRow1 > 0)
+        {
+            this.cutRowProperty.idRow2 = this.firstData[this.createContextMenu.i].__ID__;
+            this.queue.add(269, [ this.id, this.cutRowProperty.idRow1, this.cutRowProperty.idRow2, prevOrNext ], (data) => { this.loadTable(); });
+            for(let key in this.cutRowProperty) this.cutRowProperty[key] = -1;
+        }
     }
     // Операции из контекстного меню с ячейкой
     copyField(copyOrCut) // Копирование ячейки
@@ -675,9 +708,16 @@ export class TableEditorV2Component implements OnInit
     {
         this.onChange({ type: "openFromTable", value: { type: "open", name: type, id: id }});
     }
-    onChange(out)
+    onChange(out) // Общение с главным js через localStorage
     {
-        localStorage.setItem("propertyIFrame", JSON.stringify(out));
+        let i = 0;
+        // Поиск пустого значения
+        while(i < 1000)
+        {
+            if(!localStorage.getItem("propertyIFrame_" + i)) break;
+            i++;
+        }
+        localStorage.setItem("propertyIFrame_" + i, JSON.stringify(out));
     }
     /*************************************************/
     searchCellId = -1; // Для отображения ячейки в таблице
@@ -699,9 +739,82 @@ export class TableEditorV2Component implements OnInit
             }
         }, 500);
         setTimeout(() => {
-            let td = document.getElementById(id);
-            this.mainContainer.nativeElement.scrollTop = td.offsetTop;
-            this.mainContainer.nativeElement.scrollLeft = td.scrollLeft;
+            let rect = document.getElementById(id).getBoundingClientRect();
+            let scroll = 
+            { 
+                top: rect.top - (document.documentElement.clientHeight) / 2, 
+                left: rect.left - (document.documentElement.clientWidth) / 2
+            }
+            this.mainContainer.nativeElement.scrollBy({ ...scroll, behavior: 'smooth'});
         }, 100);
+    }
+    exportToExcel()
+    {
+        this.query.protectionPost(261, { param: [ this.id ] }, (data) =>
+        {
+            function downloadURI(uri, name) 
+            {
+                var link = document.createElement("a");
+                link.download = name;
+                link.href = uri;
+                link.click();
+            }
+            downloadURI(data[0], data[1]);
+            $("#BlockLoaderPanel").fadeOut(400);
+        })
+    }
+    importFromExcel()
+    {
+        let Data:any = {
+            title: "Импорт файла",  
+            data: [
+                ["Файл", [], "uploader", 128, 118, 1]
+            ],
+            ok: "Загрузить",
+            cancel: "Отмена"
+        }
+        this.modal.open(Data, (save) =>
+        {
+            if(save)
+            {
+                if(Data.data[0][1].length == 0) return "Добавьте файл!";  
+                this.query.protectionPost(266, { param: [this.id, Data.data[0][1][0].fullName] }, (data) => 
+                { 
+                    this.modal.close(false);
+                    for(var i = 0; i < data.length; i++) data[i].checked = true;
+                    this.modal.open({
+                        title: "Импорт файла",  
+                        data: [
+                            ["Список", data, "import", true]
+                        ],
+                        ok: "Импорт",
+                        cancel: "Отмена"
+                    }, (save) =>
+                    {
+                        if(save)
+                        {
+                            let modalData = this.modal.Data[0][1];
+                            let out = {};
+                            for(var i = 0; i < modalData.length; i++)
+                                if(modalData[i].checked) 
+                                {
+                                    if(!out[modalData[i].tableId]) out[modalData[i].tableId] = [];
+                                    out[modalData[i].tableId].push({ id: modalData[i].id, value: modalData[i].value });
+                                }
+                            this.queue.add(267, [JSON.stringify(out)], () => {});
+                            this.modal.close(false);
+                        }
+                    });
+                });
+                return "Загрузка";
+            }
+        });
+    }
+    onFilterChange() // Обновить фильтр
+    {
+        this.query.protectionPost(474, { param: [this.filter.selected, this.id] }, (data) => 
+        { 
+            this.loadTable();
+        });
     }
 }

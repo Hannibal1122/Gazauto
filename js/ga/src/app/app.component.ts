@@ -4,7 +4,6 @@ import { QueryService } from "./lib/query.service";
 import { GlobalEvent } from "./system/global-event.service";
 import { SplitScreen } from "./system/screen.service";
 import { FunctionsService } from "./lib/functions.service";
-import { TableEditorComponent } from './software/table-editor/table-editor.component';
 import { EventEditorComponent } from './software/event-editor/event-editor.component';
 import { PlanEditorComponent } from './software/plan-editor/plan-editor.component';
 import { EventLogComponent } from './software/event-log/event-log.component';
@@ -60,12 +59,14 @@ export class AppComponent implements OnInit
                 this.globalEvent.subscribe("structure", -1, () => { this.refreshLeftMenu(); });
                 this.globalEvent.subscribe("iframe", -1, () => 
                 { 
-                    let data = localStorage.getItem("propertyIFrame");
-                    if(data && data != "")
+                    let i = 0;
+                    while(i < 1000)
                     {
-                        data = JSON.parse(data);
+                        if(!localStorage.getItem("propertyIFrame_" + i)) break;
+                        let data = JSON.parse(localStorage.getItem("propertyIFrame_" + i));
                         this.onChangeInSoftware(data);
-                        localStorage.setItem("propertyIFrame", "");
+                        localStorage.removeItem("propertyIFrame_" + i);
+                        i++;
                     }
                 });
                 break;
@@ -138,12 +139,15 @@ export class AppComponent implements OnInit
     closeTab(s, i) // Закрыть вкладку
     {
         let tab = this.splitScreen.screens[s].tabs[i];
-        let _i = tab.i;
-        this.removeSaveTab(_i);
+        let guid = tab.guid;
         if(tab.type == "table")
             this.globalEvent.unsubscribe("table", tab.software.inputs.id);
+        let _i = 0;
+        for(; _i < this.tabs.length; _i++)
+            if(this.tabs[_i].guid == guid) break;
         this.tabs.splice(_i, 1);
         this.splitScreen.closeTab(s, i);
+        this.removeSaveTab(_i);
     }
     leftMenuConfig = [];
     refreshLeftMenu() // обновить левое меню
@@ -217,8 +221,7 @@ export class AppComponent implements OnInit
                     });
                 break;
             case "updateTable":
-                let i = 0;
-                for(; i < this.tabs.length; i++)
+                for(let i = 0; i < this.tabs.length; i++)
                     if(this.tabs[i].type == "table" && this.tabs[i].software.inputs && this.tabs[i].software.inputs.id == e.id)
                     {
                         this.tabs[i].inputFromApp = { update: true };
@@ -226,6 +229,12 @@ export class AppComponent implements OnInit
                     }
                 break;
             case "updateTableIds":
+                for(let i = 0; i < this.tabs.length; i++)
+                    if(this.tabs[i].type == "table" && this.tabs[i].software.inputs && this.tabs[i].software.inputs.id == e.id)
+                    {
+                        this.tabs[i].software.inputs.name = e.name;
+                        break;
+                    }
                 this.globalEvent.appendTableIds(e.id, e.tableIds, e.idLogTableOpen);
                 break;
         }
@@ -237,7 +246,7 @@ export class AppComponent implements OnInit
         {
             case "explorer": i = this.getNewTab(type, { component: ExplorerComponent, inputs: input }, settings); break;
             case "table": 
-                i = this.getNewTab(type, { component: TableEditorComponent, inputs: input }, settings);
+                i = this.getNewTab(type, { inputs: input }, settings);
                 let tableId = input.id;
                 this.globalEvent.subscribe("table", tableId, (event) =>
                 {
@@ -249,8 +258,6 @@ export class AppComponent implements OnInit
                         else iframe.inputFromApp = { logins: event.logins };
                         iframe.dispatchEvent(iframe.EventUpdateFromApp);
                     }
-                    /* if(event.update) this.tabs[i].inputFromApp = { update: true, logins: event.logins };
-                    else this.tabs[i].inputFromApp = { logins: event.logins }; */
                 });
                 break;
             case "info": i = this.getNewTab(type, { component: InfoComponent, inputs: input }, settings); break;
@@ -287,7 +294,7 @@ export class AppComponent implements OnInit
                 this.tabs[i].iframe.searchObjectId = input.searchObjectId;
                 this.tabs[i].iframe.dispatchEvent(this.tabs[i].iframe.EventUpdateFromApp);
             }
-            this.splitScreen.setActiveTab(i);
+            this.splitScreen.setActiveTab(this.tabs[i].guid);
         }
         else
         {
@@ -296,7 +303,8 @@ export class AppComponent implements OnInit
                 type: type,
                 software: software,
                 inputFromApp: null,
-                i: i
+                guid: this.splitScreen.getGUID(),
+                loaded: type == "table" ? false : true
             };
             this.splitScreen.appendTab(this.tabs[i], settings);
         }
@@ -305,6 +313,9 @@ export class AppComponent implements OnInit
     }
     onLoadIframe(app, e)
     {
+        let key = e.target.id.replace("iframe_", "");
+        if(key == "") return;
+        app.loaded = true;
         app.iframe = e.target.contentWindow;
         app.iframe.EventUpdateFromApp = new CustomEvent("UpdateFromApp");
     }

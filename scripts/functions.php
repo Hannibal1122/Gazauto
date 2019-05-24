@@ -81,6 +81,8 @@
 	{  
 		return crypt($password, '$2a$10$'.$unique_salt); 
     }
+    $excelNumber = ["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"];
+    $countExcelNumber = count($excelNumber);
     function getExcelColumn($digest)
     {
         global $excelNumber, $countExcelNumber;

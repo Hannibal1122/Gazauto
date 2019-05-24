@@ -13,10 +13,12 @@
                 <div style="position:absolute; right:-25px; top: -4px; font-size: 11px; font-weight: bold;" class = "TableCreatorHeadColor">{{control.state + '%'}}</div>
             </div>
         </div>
-        <button class = "mainButton" title = "Заголовок" (click) = "changeHeader()" [disabled] = "!right.change"><i class="fas fa-heading"></i></button>
+        <button class = "mainButton" title = "Заголовок" (click) = "changeHeader()" [disabled] = "!right.change || !right.head"><i class="fas fa-heading"></i></button>
         <button class = "mainButton" title = "Экспорт в Excel" (click) = "exportToExcel()" ><i class="fas fa-file-excel"></i></button>
         <button class = "mainButton" title = "Импорт таблицы" (click) = "importFromExcel()" [disabled] = "!right.change"><i class="fas fa-download"></i></button>
         <button class = "mainButton" title = "Добавить строку" (click) = "addRow('end', 1)" [disabled] = "!right.change"><i class="fas fa-plus"></i></button>
+        <button class = "mainButton" title = "Сохраненная позиция" (click) = "setScroll()"><i class="fas fa-bookmark"></i></button>
+        <button class = "mainButton" [class.enableFilters] = "tableFilter.enable" title = "Включить фильтры" (click) = "enableFilters()"><i class="fa fa-filter"></i></button>
         <button class = "mainButton" (click) = "loadTable()" title = "Обновить"><i class="fas fa-sync-alt"></i></button>
         <select class = "mainSelect"
             style = "margin-left: 2px; height: 32px; cursor:pointer;" 
@@ -32,97 +34,108 @@
             <tbody (click) = "editField($event)">
                 <tr>
                     <th name = "clickArea" class = "TableCreatorHeadColor TableCreatorHeadBColor"></th>
-                    <th name = "clickArea" *ngFor = "let head of dataHeader; let i = index;" 
-                        class = "TableCreatorHeadColor TableCreatorHeadBColor" 
-                        id = "{{ head.id }}"
-                        (contextmenu) = "getContextmenu($event, i, 'head')">
-                        {{ head.name }}
-                        <div class="linkClass">
-                            <span *ngIf = "head.dataType == 'NUMBER'" class = "linkValueClass" style = "padding-left: 3px; padding-right: 4px;">123</span>
-                            <span *ngIf = "head.dataType == 'STRING'" class = "linkValueClass" style = "padding-left: 2px; padding-right: 2px;">str</span>
-                            <span *ngIf = "head.dataType == 'DATETIME'" class = "linkValueClass">
-                                <i class="fas fa-clock"></i>
-                            </span>
-                            <span *ngIf = "head.dataType == 'tlist'" class = "linkValueClass">
-                                <i class="fas fa-bars"></i>
-                            </span>
-                            <span *ngIf = "head.eventId" class = "linkCellClass">
-                                <i class = "fa fa-bolt"></i>
-                            </span>
-                        </div>
-                    </th>
-                </tr>
-                <tr>
-                    <td style = "padding:0px;" class = "TableCreatorHeadColor TableCreatorHeadBColor"></td>
-                    <td *ngFor = "let filter of tableFilter.fields; let i = index;" style = "padding:0px;">
-                        <select [(ngModel)] = "filter.sign" 
-                            style = "width:40px; height:22px; float:left;"
-                            (change) = "onChangeFilter(i)">
-                            <option>=</option>
-                            <option>!=</option>
-                            <option>*</option>
-                            <option>!*</option>
-                        </select>
-                        <input type = "text" 
-                            style = "width: calc(100% - 40px); height:22px; border:1px solid transparent; padding:5px;" 
-                            placeholder="Поиск"
-                            [(ngModel)] = "filter.value"
-                            (input) = "onChangeFilter(i, $event.target.value)">
-                    </td>
-                </tr>
-                <tr>
-                    <td style = "padding:0px;" class = "TableCreatorHeadColor TableCreatorHeadBColor"></td>
-                    <td *ngFor = "let filter of tableFilter.state; let i = index;" style = "padding:0px;">
-                        <select [(ngModel)] = "filter.sign" 
-                            style = "width:40px; height:22px; float:left;"
-                            (change) = "onChangeFilter(i)">
-                            <option>=</option>
-                            <option>!=</option>
-                            <option>></option>
-                            <option>>=</option>
-                            <option><</option>
-                            <option><=</option>
-                        </select>
-                        <input type = "text" 
-                            style = "width: calc(100% - 40px); height:22px; border:1px solid transparent; padding:5px;" 
-                            placeholder="Статус"
-                            [(ngModel)] = "filter.value"
-                            (input) = "onChangeFilterState(i, $event.target.value)">
-                    </td>
-                </tr>
-                <ng-container *ngFor = "let row of dataTable; let i = index;">
-                    <tr *ngIf = "!tableFilter.mapHideRows[i]">
-                        <td (contextmenu) = "getContextmenu($event, i, 'row')" class = "TableCreatorHeadColor TableCreatorHeadBColor">{{ i + 1 }}</td>
-                        <td *ngFor = "let cell of row; let j = index;" 
-                            id = "{{ cell.id }}"
-                            (contextmenu) = "getContextmenu($event, i, 'cell')"
-                            [style.background] = "cell.id == searchCellId ? '#e7f5c6' : (cell.id == inputProperty._colorId ? '#9abfe225' : none)">
-                            {{ cell != undefined && cell.listValue ? cell.listValue : cell.value }}
+                    <ng-container *ngFor = "let head of dataHeader; let i = index;">
+                        <th *ngIf = "head"
+                            name = "clickArea"  
+                            class = "TableCreatorHeadColor TableCreatorHeadBColor" 
+                            id = "{{ head.id }}"
+                            (contextmenu) = "getContextmenu($event, i, 'head')">
+                            {{ head.name }}
                             <div class="linkClass">
-                                <span *ngIf = "(cell.type == 'tlist')" class = "linkCellClass">
+                                <span *ngIf = "head.dataType == 'NUMBER'" class = "linkValueClass" style = "padding-left: 3px; padding-right: 4px;">123</span>
+                                <span *ngIf = "head.dataType == 'STRING'" class = "linkValueClass" style = "padding-left: 2px; padding-right: 2px;">str</span>
+                                <span *ngIf = "head.dataType == 'DATETIME'" class = "linkValueClass">
+                                    <i class="fas fa-clock"></i>
+                                </span>
+                                <span *ngIf = "head.dataType == 'tlist'" class = "linkValueClass">
                                     <i class="fas fa-bars"></i>
                                 </span>
-                                <span *ngIf = "cell.type == 'table'" class = "linkValueClass">
-                                    <i class = "fa fa-table"></i>
-                                </span>
-                                <span *ngIf = "cell.type == 'cell'" class = "linkCellClass" [class.linkErrorClass] = "cell.value == null">
-                                    <i class = "fa fa-link"></i>
-                                </span>
-                                <span *ngIf = "cell.type == 'file'" class = "linkValueClass">
-                                    <i class = "fa fa-file"></i>
-                                </span>
-                                <span *ngIf = "cell.eventId" class = "linkCellClass" (dblclick) = "openEventToExplorer(cell.eventId)">
+                                <span *ngIf = "head.eventId" class = "linkCellClass">
                                     <i class = "fa fa-bolt"></i>
                                 </span>
                             </div>
-                            <div style = "position:absolute; pointer-events:none; width:100%; height:100%; top:0px; left:0px;">
-                                <div *ngIf = "cell.state" [style.width] = "cell.state + '%'" class = "tableStateLoading" 
-                                    [class.tableCellStateGreen] = "cell.state == 100"
-                                    [class.tableCellStateYellow] = "cell.state >= 50 && cell.state < 100"
-                                    [class.tableCellStateRed] = "cell.state < 50">
-                                </div>
-                            </div>
+                        </th>
+                    </ng-container>
+                </tr>
+                <tr *ngIf = "tableFilter.enable">
+                    <td style = "padding:0px;" class = "TableCreatorHeadColor TableCreatorHeadBColor"></td>
+                    <ng-container *ngFor = "let filter of tableFilter.fields; let i = index;">
+                        <td *ngIf = "filter" style = "padding:0px;">
+                            <select [(ngModel)] = "filter.sign" 
+                                style = "width:40px; height:22px; float:left;"
+                                (change) = "onChangeFilter(i)">
+                                <option>=</option>
+                                <option>!=</option>
+                                <option>*</option>
+                                <option>!*</option>
+                            </select>
+                            <input type = "text" 
+                                style = "width: calc(100% - 40px); height:22px; border:1px solid transparent; padding:5px;" 
+                                placeholder="Поиск"
+                                [(ngModel)] = "filter.value"
+                                (input) = "onChangeFilter(i, $event.target.value)">
                         </td>
+                    </ng-container>
+                </tr>
+                <tr *ngIf = "tableFilter.enable">
+                    <td style = "padding:0px;" class = "TableCreatorHeadColor TableCreatorHeadBColor"></td>
+                    <ng-container *ngFor = "let filter of tableFilter.state; let i = index;">
+                        <td *ngIf = "filter" style = "padding:0px;">
+                            <select [(ngModel)] = "filter.sign" 
+                                style = "width:40px; height:22px; float:left;"
+                                (change) = "onChangeFilter(i)">
+                                <option>=</option>
+                                <option>!=</option>
+                                <option>></option>
+                                <option>>=</option>
+                                <option><</option>
+                                <option><=</option>
+                            </select>
+                            <input type = "text" 
+                                style = "width: calc(100% - 40px); height:22px; border:1px solid transparent; padding:5px;" 
+                                placeholder="Статус"
+                                [(ngModel)] = "filter.value"
+                                (input) = "onChangeFilterState(i, $event.target.value)">
+                        </td>
+                    </ng-container>
+                </tr>
+                <ng-container *ngFor = "let row of dataTable; let i = index;">
+                    <tr *ngIf = "!tableFilter.mapHideRows[i]">
+                        <td (contextmenu) = "getContextmenu($event, i, 'row')" 
+                            [class.cutRow] = "cutRowProperty.i == i"
+                            class = "TableCreatorHeadColor TableCreatorHeadBColor">{{ i + 1 }}</td>
+                        <ng-container *ngFor = "let cell of row; let j = index;">
+                            <td *ngIf = "cell" 
+                                id = "{{ cell.id }}"
+                                (contextmenu) = "getContextmenu($event, i, 'cell')"
+                                [style.background] = "cell.id == searchCellId ? '#e7f5c6' : (cell.id == inputProperty._colorId ? '#9abfe225' : none)">
+                                {{ cell != undefined && cell.listValue ? cell.listValue : cell.value }}
+                                <div class="linkClass">
+                                    <span *ngIf = "(cell.type == 'tlist')" class = "linkCellClass">
+                                        <i class="fas fa-bars"></i>
+                                    </span>
+                                    <span *ngIf = "cell.type == 'table'" class = "linkValueClass">
+                                        <i class = "fa fa-table"></i>
+                                    </span>
+                                    <span *ngIf = "cell.type == 'cell'" class = "linkCellClass" [class.linkErrorClass] = "cell.value == null">
+                                        <i class = "fa fa-link"></i>
+                                    </span>
+                                    <span *ngIf = "cell.type == 'file'" class = "linkValueClass">
+                                        <i class = "fa fa-file"></i>
+                                    </span>
+                                    <span *ngIf = "cell.eventId" class = "linkCellClass" (dblclick) = "openEventToExplorer(cell.eventId)">
+                                        <i class = "fa fa-bolt"></i>
+                                    </span>
+                                </div>
+                                <div style = "position:absolute; pointer-events:none; width:100%; height:100%; top:0px; left:0px;">
+                                    <div *ngIf = "cell.state" [style.width] = "cell.state + '%'" class = "tableStateLoading" 
+                                        [class.tableCellStateGreen] = "cell.state == 100"
+                                        [class.tableCellStateYellow] = "cell.state >= 50 && cell.state < 100"
+                                        [class.tableCellStateRed] = "cell.state < 50">
+                                    </div>
+                                </div>
+                            </td>
+                        </ng-container>
                     </tr>
                 </ng-container>
             </tbody>
@@ -134,8 +147,7 @@
                 [(ngModel)] = "inputProperty.value" 
                 (keydown)="downEnter($event)"></textarea>
             <button *ngIf = "inputProperty.type == 'table'"
-                style = "position:absolute; right:0px; top: 0px; color:red; cursor:pointer; border:none; background:none; outline: none;"
-                (click) = "inputProperty.value = ''; acceptEditField();">
+                style = "position:absolute; right:0px; top: 0px; color:red; cursor:pointer; border:none; background:none; outline: none;">
                 <i class = "fa fa-times-circle"></i>
             </button>
             <ng-container *ngIf = "inputProperty.type == 'tlist'" >
@@ -154,8 +166,8 @@
         <div class = "bottomControlPanel TableCreatorHeadColor">
             <div *ngIf = "control.error" style = "font-size:12px; background-color:#af7e7e; color:white; font-weight:bold;">Таблица не доступна!</div>
             <div *ngIf = "loaded && !control.error && dataHeader.length == 0" style = "font-size:12px; background-color:#b8b8b8; color:white; font-weight:bold;">Таблица пуста</div>
+            <div *ngIf = "loaded && !control.error && needUpdate" style = "font-size:12px; background-color:#b8b8b8; color:white; font-weight:bold;">Требуется синхронизация</div>
             <div *ngIf = "!loaded" style = "font-size:12px;">Загрузка...</div>
-            <div *ngIf = "needUpdate" style = "font-size:12px;">Требуется синхронизация</div>
             <div *ngIf = "control.id >0" style = "font-size:12px;">id: {{ control.id }}</div>
             <div *ngIf = "tableFilter.countHide > 0" style = "font-size:12px;">Показано: {{ tableFilter.count - tableFilter.countHide}} из {{ tableFilter.count }}</div>
         </div>
@@ -176,7 +188,6 @@
         <button class = "contextMenuList" (click) = "pasteObject(true, 'NUMBER')" [disabled] = "!rules.change">Назначить тип NUMBER</button>
         <button class = "contextMenuList" (click) = "pasteObject(true, 'STRING')" [disabled] = "!rules.change">Назначить тип STRING</button>
         <button class = "contextMenuList" (click) = "pasteObject(true, 'DATETIME')" [disabled] = "!rules.change">Назначить тип DATETIME</button>
-        <!-- <button class = "contextMenuList" (click) = "pasteField()" [disabled] = "!rules.paste">Вставить</button> -->
         <button class = "contextMenuList" (click) = "pasteObject(rules.event, false)" [disabled] = "!rules.object">
                 {{ rules.event ? 'Добавить событие' : 'Вставить объект' }}</button>
         <button *ngIf = "inputProperty.eventId" class = "contextMenuList" (click) = "removeEvent(true)" [disabled] = "!rules.change">Удалить событие</button>
@@ -186,6 +197,9 @@
     </ng-container>
     <ng-container *ngIf = "createContextMenu.type == 'row'">
         <button class = "contextMenuList" (click) = "removeRow()" [disabled] = "!rules.change">Удалить строку</button>
+        <button class = "contextMenuList" (click) = "cutRow()" [disabled] = "!rules.change">Вырезать строку</button>
+        <button class = "contextMenuList" (click) = "addCutRow(-1)" [disabled] = "cutRowProperty.idRow1 < 0">Вставить выше</button>
+        <button class = "contextMenuList" (click) = "addCutRow(1)" [disabled] = "cutRowProperty.idRow1 < 0">Вставить ниже</button>
         <button class = "contextMenuList" (click) = "addRow('', -1)" [disabled] = "!rules.change">Вставить строку выше</button>
         <button class = "contextMenuList" (click) = "addRow('', 1)" [disabled] = "!rules.change">Вставить строку ниже</button>
     </ng-container>

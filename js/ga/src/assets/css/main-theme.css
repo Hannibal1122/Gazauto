@@ -12,6 +12,14 @@
 {
     color: #000000;
 }
+.ExplorerBColor /*Фон рабочей области*/
+{
+    background-color: #eeeeee;
+}
+.ExplorerFolderBColor /*Фон рабочей области*/
+{
+    background-color: #ffffff;
+}
 .TabsPanelColor
 {
     background-color: #6085ac;

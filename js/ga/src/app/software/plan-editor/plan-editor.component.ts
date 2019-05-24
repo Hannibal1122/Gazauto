@@ -1,7 +1,6 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { QueryService } from '../../lib/query.service';
 //import { employees } from '../../employees';
-import { EMPLOYEES} from '../../list-employees';
 
 declare var trace:any;
 
@@ -15,7 +14,37 @@ export class PlanEditorComponent implements OnInit
     @ViewChild('modal') public modal: any;
     @ViewChild('editPlan') public editPlan: any;
 
-    employees = EMPLOYEES; //массив с данными о сотрудниках и их днях работы
+    employees = [{ //массив с данными о сотрудниках и их днях работы
+        surname: 'Петров', 
+        name: 'Петр', 
+        patronymic: 'Петрович', 
+        days: [ 8, 8, 8, 8, 8, 'Вых', 'Вых', 8, 8, 8, 8, 8, 'Вых', 'Вых', 8, 8, 8, 8, 8, 'Вых', 'Вых', 8, 8, 8, 8, 8, 'Вых', 'Вых', 8, 8, 8, 8, 8, 'Вых', 'Вых'] 
+        }, { 
+            surname: 'Иванов', 
+            name: 'Иван', 
+            patronymic: 'Иванович', 
+            days: [ 8, 8, 8, 8, 8, 'Вых', 'Вых', 8, 8, 8, 8, 8, 'Вых', 'Вых', 8, 8, 8, 8, 8, 'Вых', 'Вых', 8, 8, 8, 8, 8, 'Вых', 'Вых', 8, 8, 8, 8, 8, 'Вых', 'Вых'] 
+        }, { 
+            surname: 'Павлов', 
+            name: 'Павел', 
+            patronymic: 'Павлович', 
+            days: [ 8, 8, 8, 8, 8, 'Вых', 'Вых', 8, 8, 8, 8, 8, 'Вых', 'Вых', 8, 8, 8, 8, 8, 'Вых', 'Вых', 8, 8, 8, 8, 8, 'Вых', 'Вых', 8, 8, 8, 8, 8, 'Вых', 'Вых'] 
+        }, { 
+            surname: 'Александров', 
+            name: 'Александр', 
+            patronymic: 'Александрович', 
+            days: [ 8, 8, 8, 8, 8, 'Вых', 'Вых', 8, 8, 8, 8, 8, 'Вых', 'Вых', 8, 8, 8, 8, 8, 'Вых', 'Вых', 8, 8, 8, 8, 8, 'Вых', 'Вых', 8, 8, 8, 8, 8, 'Вых', 'Вых'] 
+        }, { 
+            surname: 'Егоров', 
+            name: 'Егор', 
+            patronymic: 'Егорович', 
+            days: [ 8, 8, 8, 8, 8, 'Вых', 'Вых', 8, 8, 8, 8, 8, 'Вых', 'Вых', 8, 8, 8, 8, 8, 'Вых', 'Вых', 8, 8, 8, 8, 8, 'Вых', 'Вых', 8, 8, 8, 8, 8, 'Вых', 'Вых']
+        }, { 
+            surname: 'Скворцов', 
+            name: 'Егор', 
+            patronymic: 'Егорович', 
+            days: [ 8, 8, 8, 8, 8, 'Вых', 'Вых', 8, 8, 8, 8, 8, 'Вых', 'Вых', 8, 8, 8, 8, 8, 'Вых', 'Вых', 8, 8, 8, 8, 8, 'Вых', 'Вых', 8, 8, 8, 8, 8, 'Вых', 'Вых']
+    }];
     outEmployees = [];
 
     month: string;

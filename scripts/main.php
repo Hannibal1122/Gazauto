@@ -316,14 +316,14 @@
                         break;
                     case 124: // Поиск в структуре элементов
                         $out = ["folder" => []];
-                        $search = $param[0];
-                        $type = $param[1];
-                        if($login == "admin") $query = "SELECT id, objectType, objectId, name, parent, priority, info, bindId, state FROM structures WHERE name LIKE %s AND objectType LIKE %s ORDER by parent, priority";
-                        else $query = "SELECT id, objectType, objectId, name, parent, priority, info, bindId, state FROM structures WHERE name LIKE %s AND objectType LIKE %s AND
-                            id IN (SELECT objectId FROM rights WHERE (login = %s OR login = %s) AND rights & 1 
+                        $search = "%$param[0]%";
+                        $type = "%$param[1]%";
+                        $query = "SELECT id, objectType, objectId, name, parent, priority, info, bindId, state, icon FROM structures WHERE name LIKE %s AND objectType LIKE %s";
+                        if($login == "admin") $query .= " ORDER by parent, priority";
+                        else $query .= " AND id IN (SELECT objectId FROM rights WHERE (login = %s OR login = %s) AND rights & 1 
                                 AND objectId NOT IN (SELECT objectId FROM rights WHERE login = %s AND (rights & 1) = 0)) ORDER by parent, priority";
                         if($result = query($query, $login == "admin" ? [ $search, $type ] : [ $search, $type, $login, $role, $login ]))
-                            while ($row = $result->fetch_array(MYSQLI_NUM)) 
+                            while ($row = $result->fetch_assoc()) 
                                 $out["folder"][] = getObjectFromStructures($row);
                         echo json_encode($out);
                         break;
@@ -375,12 +375,12 @@
                         $idElement = (int)$param[0];
                         if(($myRight->get($idElement) & 1) != 1) return; // Права на просмотр
                         $out = [];
-                        if($result = query("SELECT id, objectType, objectId, name, parent, priority, info, bindId, state FROM structures WHERE id = %i", [ $idElement ]))
-                            while ($row = $result->fetch_array(MYSQLI_NUM)) 
+                        if($result = query("SELECT id, objectType, objectId, name, parent, priority, info, bindId, state, icon FROM structures WHERE id = %i", [ $idElement ]))
+                            while ($row = $result->fetch_assoc()) 
                                 $out = getObjectFromStructures($row);
                         echo json_encode($out);
                         break;
-                    case 130: // Полное удаление из Объекта из проекта
+                    case 130: // Полное удаление Объекта из проекта
                         require_once("myObject.php");
                         require_once("copyAndRemove.php");
                         $idElement = (int)$param[0];
@@ -529,7 +529,8 @@
                             $tableRight, 
                             $allFilters["filters"], 
                             $allFilters["filterSelected"], 
-                            $allFilters["filterStr"]
+                            $allFilters["filterStr"],
+                            $allFilters["filterColumn"]
                         );
                         /* request("SELECT * FROM fields WHERE tableId = %i", [$idTable]); */
                         break;
@@ -559,16 +560,16 @@
                         $idObject = (int)$param[1];
                         if(($myRight->get($idTable) & 8) != 8) return; // Права на изменение
                         if(($myRight->get($idObject) & 4) != 4) return; // Права на наследование
-                        $idFields = (int)$param[2];
-                        $myTable->setCellByLink($idObject, $idFields);
+                        $idField = (int)$param[2];
+                        $myTable->setCellByLink($idObject, $idField);
                         break;
                     case 256: // Добавление элемента из левого меню в таблицу по значению
                         $idObject = (int)$param[1];
                         if(($myRight->get($idTable) & 8) != 8) return; // Права на изменение
                         if(($myRight->get($idObject) & 1) != 1) return; // Права на просмотр
-                        $idFields = (int)$param[2];
+                        $idField = (int)$param[2];
                         $key = (int)$param[4];
-                        $myTable->setCellByValue($idObject, $idFields, $key);
+                        $myTable->setCellByValue($idObject, $idField, $key);
                         break;
                     case 257: // Добавить строку в таблицу
                         if(($myRight->get($idTable) & 8) != 8) return; // Права на изменение
@@ -606,13 +607,17 @@
                     case 262: // Добавление события из левого меню на ячейку
                         if(($myRight->get($idTable) & 8) != 8) return; // Права на изменение
                         $eventId = (int)$param[1];
+                        $idField = (int)$param[2];
                         $type = selectOne("SELECT type FROM events WHERE id = %i", [ $eventId ]);
-                        if($type != "date") query("UPDATE fields SET eventId = %i WHERE id = %i", [$eventId, (int)$param[2]]);
+                        if($type != "date") query("UPDATE fields SET eventId = %i WHERE id = %i", [$eventId, $idField]);
                         else echo json_encode(false);
+                        $myLog->add("field", "event", $idField);
                         break;
                     case 263: // Удаление события с ячейки
                         if(($myRight->get($idTable) & 8) != 8) return; // Права на изменение
-                        query("UPDATE fields SET eventId = NULL WHERE id = %i", [(int)$param[1]]);
+                        $idField = (int)$param[1];
+                        query("UPDATE fields SET eventId = NULL WHERE id = %i", [ $idField ]);
+                        $myLog->add("field", "revent", $idField);
                         break;
                     case 264: // Назначить тип столбцу
                         if(($myRight->get($idTable) & 8) != 8) return; // Права на изменение
@@ -647,6 +652,13 @@
                         $idType = selectOne("SELECT id FROM my_values WHERE type = %s", [ $idValue ]);
                         query("UPDATE fields SET dataType = %i WHERE id = %i AND type = 'head' AND tableId = %i", [ $idType, $idField, $idTable ]);
                         query("UPDATE fields SET type = 'value', linkId = NULL, linkType = NULL WHERE idColumn = %i AND tableId = %i", [ $idField, $idTable ]);
+                        break;
+                    case 269: // Поменять местами строку
+                        if(($myRight->get($idTable) & 8) != 8) return; // Права на изменение
+                        $idRow1 = (int)$param[1]; // id строки которую надо вырезать
+                        $idRow2 = (int)$param[2]; // id строки после которой надо вставить
+                        $prevOrNext = (int)$param[3]; // -1 добавить строку выше, 1 добавить строку ниже
+                        $myTable->cutRow($idRow1, $idRow2, $prevOrNext);
                         break;
                 }
             }
@@ -710,13 +722,13 @@
                         request("SELECT NOW()", []);
                         break; 
                     case 354: // Проверка необходимости синхронизации структуры и таблиц
-                        $update = false;
+                        $updateStructure = false;
                         $time = $param[0];
                         $tables = [];
                         $NOW = selectOne("SELECT NOW()", []);
                         if($result = query("SELECT id FROM main_log WHERE type = 'structure' AND operation != 'open' AND date >= %s LIMIT 1", [ $time ]))
                             while ($row = $result->fetch_array(MYSQLI_NUM)) {
-                                $update = true;
+                                $updateStructure = true;
                                 $time = $NOW;
                             }
                         if(array_key_exists(1, $param))
@@ -751,7 +763,7 @@
                                 $tables[$idTable] = [ "update" => $update, "logins" => $logins ];
                             }
                         }
-                        echo json_encode([ "structure" => $update, "table" => $tables, "time" => $time ]);
+                        echo json_encode([ "structure" => $updateStructure, "table" => $tables, "time" => $time ]);
                         break; 
                 }
             if($nQuery >= 400 && $nQuery < 410) // Работа с План-графиком
@@ -846,11 +858,11 @@
                     case 470: // Создать фильтр
                         $idParent = (int)$param[0];
                         if(($myRight->get($idParent) & 8) != 8) return; // Права на изменение
-                        echo json_encode([ $myFilter->create($param[1]) ]);
+                        echo json_encode([ $myFilter->create($param[1], $param[2]) ]);
                         break;
                     case 471: // Обновить фильтр
                         if(($myRight->get($idFilterStructure) & 8) != 8) return; // Права на изменение
-                        $myFilter->update($idFilter, $param[1]);
+                        $myFilter->update($idFilter, $param[1], $param[2]);
                         break;
                     case 472: // Запрос значения фильтра
                         if(($myRight->get($idFilterStructure) & 1) != 1) return; // Права на просмотр
