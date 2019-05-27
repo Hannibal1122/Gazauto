@@ -73,6 +73,9 @@ export class AppComponent implements OnInit
             case "/table":
                 this.windowType = "table";
                 break;
+            case "/constructor":
+                this.windowType = "constructor";
+                break;
         }
         /*************************************************/
         let vh = window.innerHeight * 0.01;
@@ -251,7 +254,7 @@ export class AppComponent implements OnInit
                 this.globalEvent.subscribe("table", tableId, (event) =>
                 {
                     let i = this.checkRepeatSoftware(type, tableId);
-                    let iframe = this.tabs[i].iframe
+                    let iframe = this.tabs[i].iframe;
                     if(iframe)
                     {
                         if(event.update) iframe.inputFromApp = { update: true, logins: event.logins };
@@ -260,6 +263,7 @@ export class AppComponent implements OnInit
                     }
                 });
                 break;
+            case "constructor": i = this.getNewTab(type, { inputs: input }, settings); break;
             case "info": i = this.getNewTab(type, { component: InfoComponent, inputs: input }, settings); break;
             case "event": i = this.getNewTab(type, { component: EventEditorComponent, inputs: input }, settings); break;
             case "plan": i = this.getNewTab(type, { component: PlanEditorComponent, inputs: input }, settings); break;
@@ -270,14 +274,20 @@ export class AppComponent implements OnInit
     {
         var input = software.inputs;
         var name = "";
+        let param;
         switch(type)
         {
             case "explorer": name = "Проводник"; break;
             case "table": 
-                let param = "id=" + input.id;
+                param = "id=" + input.id;
                 if(input.searchObjectId) param += "&searchObjectId=" + input.searchObjectId;
                 software.securitySrc = this.sanitizer.bypassSecurityTrustResourceUrl("/table?" + param);
                 name = "Редактор таблицы"; 
+                break;
+            case "constructor": 
+                param = "id=" + input.id;
+                software.securitySrc = this.sanitizer.bypassSecurityTrustResourceUrl("/constructor?" + param);
+                name = "Конструктор шаблонов"; 
                 break;
             case "info": name = "Справка"; break;
             case "event": name = "Редактор событий"; break;
@@ -298,13 +308,16 @@ export class AppComponent implements OnInit
         }
         else
         {
+            let iframe = false;
+            if(type == "table" || type == "constructor") iframe = true;
             this.tabs[i] = {
                 name: name,
                 type: type,
                 software: software,
                 inputFromApp: null,
                 guid: this.splitScreen.getGUID(),
-                loaded: type == "table" ? false : true
+                loaded: !iframe,
+                iframe: iframe // Открывать ли приложение через iframe
             };
             this.splitScreen.appendTab(this.tabs[i], settings);
         }

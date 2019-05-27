@@ -16,6 +16,7 @@ import { UserSettingsComponent } from './software/user-settings/user-settings.co
 import { EventEditorComponent } from './software/event-editor/event-editor.component';
 import { EventLogComponent } from './software/event-log/event-log.component';
 import { ModalMovedWindowComponent } from './system/modal-moved-window/modal-moved-window.component';
+import { TemplateConstructorComponent } from './software/template-constructor/template-constructor.component';
 
 import { DateTimeModule } from "./system/datetimepicker/datetimepicker.module";
 
@@ -33,6 +34,7 @@ import { DateTimeModule } from "./system/datetimepicker/datetimepicker.module";
         EventEditorComponent,
         PlanEditorComponent,
         ModalMovedWindowComponent,
+        TemplateConstructorComponent,
         EventLogComponent
     ],
     imports: [ BrowserModule, FormsModule, ModalWindowModule, HttpClientModule, DateTimeModule ],

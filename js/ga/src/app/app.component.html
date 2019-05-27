@@ -77,6 +77,7 @@
                     <div class = "softwareIcon softwareEvent" title = "Редактор событий" (click) = "openSoftware('event', { id: 0 })"><i class = "fas fa-bolt"></i></div>
                     <div class = "softwareIcon softwareEvent" title = "План-график" (click) = "openSoftware('plan', { id: 0 })"><i class="fas fa-chart-bar"></i></div>
                     <div class = "softwareIcon softwareTasks" title = "Справка" (click) = "openSoftware('info', { id: -1 })"><i class = "fas fa-info"></i></div>
+                    <div class = "softwareIcon softwareExplorer" title = "Конструктор" (click) = "openSoftware('constructor', { id: -1 })"><i class="fas fa-pencil-ruler"></i></div>
                 </div>
             </div>
             <div *ngIf = "currentMiniApp == 'chat'"
@@ -128,6 +129,8 @@
                                 <span *ngIf = "tab.type == 'info'"> <i class = "fas fa-info colorIconEvent"></i> </span>
                                 <span *ngIf = "tab.type == 'plan'"> <i class = "fa fa-chart-bar colorIconTable"></i> </span>
                                 <span *ngIf = "tab.type == 'log'"> <i class = "fa fa-book colorIconTable"></i> </span>
+                                <span *ngIf = "tab.type == 'constructor'"> <i class="fas fa-pencil-ruler colorIconExplorer"></i> </span>
+                                
                             </ng-container>
                             <span class = "tabsLoader" *ngIf = "!tab.loaded"> <i class="fas fa-spinner tabsLoader"></i> </span>
                             {{ tab.software.inputs.name || tab.name }}
@@ -140,7 +143,7 @@
                         <div style = "height: 100%; width:100%; position:absolute;" 
                             [hidden] = "i != screen.currentSoftware">
                             <vg-dynamic-view  
-                                *ngIf = "app.type != 'table'"
+                                *ngIf = "!app.iframe"
                                 [visible] = "!splitScreen.drag && i == screen.currentSoftware"
                                 [componentData] = "app.software" 
                                 (onChange) = "onChangeInSoftware($event)" 
@@ -150,7 +153,7 @@
                                 (load) = "onLoadIframe(app, $event)"
                                 style = "width:100%; height:100%; border:none;"
                                 [attr.id] = "'iframe_' + app.guid"
-                                *ngIf = "app.type == 'table'"></iframe>
+                                *ngIf = "app.iframe"></iframe>
                         </div>
                     </ng-container>
                     <div *ngIf = "splitScreen.empty" style = "text-align: center; line-height: 16px; margin-top: 20px;">
@@ -172,5 +175,10 @@
 <ng-container *ngIf = "windowType == 'table'">
     <div class = "anotherPanelApp">
         <app-table-editor-v2></app-table-editor-v2>
+    </div>
+</ng-container>
+<ng-container *ngIf = "windowType == 'constructor'">
+    <div class = "anotherPanelApp">
+        <app-template-constructor></app-template-constructor>
     </div>
 </ng-container>

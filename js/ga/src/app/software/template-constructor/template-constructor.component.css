@@ -1,0 +1,13 @@
+.treeTable
+{
+}
+.treeTable td
+{
+    text-align: center;
+    padding: 0px 4px;
+}
+.treeTable .lineTD
+{
+    width:30px;
+    height:10px;
+}
