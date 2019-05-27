@@ -1,33 +1,73 @@
-<div style = "padding:5px;">
-    <table class = "treeTable">
-        <tbody>
-            <tr *ngFor = "let row of tableData">
-                <ng-container *ngFor = "let cell of row">
-                    <td class = "lineTD">
-                        <ng-container *ngIf = "cell && !cell.first">
-                            <svg width = "100%" height = "100%">
-                                <line x1 = "0" y1 = "50%" x2 = "100%" y2 = "50%" style = "stroke: #ff0000; stroke-width: 1px;"/>
-                            </svg>
-                        </ng-container>
+<div style = "padding:5px; height: 100vh;">
+    <div style = "width:100%; position: relative;">
+        <table class = "treeTable" style = "margin:auto;" #mainTable>
+            <tbody>
+                <tr>
+                    <td>
+                        <div
+                            (click) = "openParentNode()">
+                            <span *ngIf = "outNode.type == 'node'"><i class="fa fa-sitemap"></i></span>
+                            <span *ngIf = "outNode.type == 'table'"><i class="fa fa-table"></i></span>
+                            {{ outNode.name }}
+                        </div>
                     </td>
                     <td>
-                        <ng-container *ngIf = "cell && cell.type == 'node'">
-                            <i class="fa fa-sitemap"></i>
-                        </ng-container>
-                        <ng-container *ngIf = "cell && cell.type == 'table'">
-                            <i class="fa fa-table"></i>
-                        </ng-container>
+                        <div *ngFor = "let ch of outNode.children; let i = index"
+                            (click) = "openCurrentNote(i)">
+                            <span *ngIf = "ch.type == 'node'"><i class="fa fa-sitemap"></i></span>
+                            <span *ngIf = "ch.type == 'table'"><i class="fa fa-table"></i></span>
+                            {{ ch.name }} {{ ch.children > 0 ? '(' + ch.children + ')' : '' }}
+                        </div>
                     </td>
-                    <td >
-                        {{ cell ? cell.name : '' }} 
-                    </td>
-                    <td>
-                        <ng-container *ngIf = "cell">
-                            <i class="fas fa-plus-circle"></i>
-                        </ng-container>
-                    </td>
-                </ng-container>
-            </tr>
-        </tbody>
-    </table>
+                </tr>
+                <tr>
+                    <td><button class = "buttonAdd" (click) = "addNode()"><i class="fas fa-plus-circle"></i><br>узел</button></td>
+                    <td><button class = "buttonAdd" (click) = "addTable()"><i class="fas fa-plus-circle"></i><br>таблица</button></td>
+                </tr>
+            </tbody>
+        </table>
+        <div style = "position: absolute;"
+            [style.height] = "linePropertyes.height + 'px'" 
+            [style.width] = "linePropertyes.width + 'px'" 
+            [style.top] = "linePropertyes.top + 'px'" 
+            [style.left] = "linePropertyes.left + 'px'">
+            <svg width = "100%" height = "100%">
+                <line *ngFor = "let line of linePropertyes.lines" 
+                    style = "stroke: brown; stroke-width: 1px;"
+                    [attr.x1] = "line.x1" 
+                    [attr.y1] = "line.y1" 
+                    [attr.x2] = "line.x2" 
+                    [attr.y2] = "line.y2"/>
+            </svg>
+        </div>
+    </div>
 </div>
+
+<!-- <div style = "display:grid; grid-template-rows: 30px 1fr 30px; height:100vh; grid-template-areas: 'first' 'second' 'third';">
+    <div></div>
+    <div style = "grid-area: second; min-height: 0; position: relative;">
+        <div style = "display: grid;
+            grid-template-rows: 1fr;
+            grid-template-columns: 1fr;
+            background-color: grey;
+            overflow: auto;
+            height: 100%;"
+             (scroll) = "onScroll()">
+            <table class = "testTable" style = "width: 100%;" #mainContainer>
+                <tbody>
+                    <tr><th *ngFor = "let cell of header">{{ cell.text }}</th></tr>
+                    <tr *ngFor = "let row of dataTable"><td *ngFor = "let cell of row">{{ cell.text }}</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <table class = "testTable" style = "position: absolute; top: 0px;">
+            <tbody>
+                <tr><th *ngFor = "let cell of header" 
+                    [style.width] = "cell.width + 'px'"
+                    [style.height] = "cell.height + 'px'">
+                    {{ cell.text }}</th></tr>
+            </tbody>
+        </table>
+    </div>
+    <div></div>
+</div> -->

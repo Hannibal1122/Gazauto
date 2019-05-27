@@ -3,11 +3,36 @@
 }
 .treeTable td
 {
-    text-align: center;
-    padding: 0px 4px;
+    padding: 20px;
 }
-.treeTable .lineTD
+.treeTable td div
 {
-    width:30px;
-    height:10px;
+    cursor: pointer;
+}
+.treeTable td div:hover
+{
+    text-decoration: underline;
+}
+.buttonAdd
+{
+    border: 1px solid #bbbbbb; 
+    padding: 6px; 
+    background-color: #eeeeee; 
+    border-radius: 10px; 
+    cursor: pointer;
+    transition: 0.3s;
+}
+.buttonAdd:hover
+{
+    background-color: #ffffff; 
+}
+
+.testTable th, .testTable td
+{
+    border: 1px solid #aaaaaa;
+    padding: 4px;
+}
+.testTable th
+{
+    background-color:  red;
 }
