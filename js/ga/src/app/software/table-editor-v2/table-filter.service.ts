@@ -79,6 +79,7 @@ export class TableFilterService
     clear()
     {
         for(let i = 0; i < this.fields.length; i++)
-            this.fields[i].value = this.state[i].value = "";
+            if(this.fields[i])
+                this.fields[i].value = this.state[i].value = "";
     }
 }

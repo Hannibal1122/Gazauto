@@ -113,7 +113,10 @@ export class TableEditorV2Component implements OnInit
             if(e.target.getAttribute("name") == "clickArea")
                 this.inputProperty.close();
         }, false);
-
+        window.addEventListener("resize", (e:any) => 
+        { 
+            this.fastenHeader();
+        }, false);
         window.addEventListener("UpdateFromApp", () => this.updateFromApp() );
     }
     updateFromApp()
@@ -249,6 +252,10 @@ export class TableEditorV2Component implements OnInit
             this.tableFilter.countHide += rowHide ? 1 : 0;
             this.tableFilter.mapHideRows[key] = rowHide;
         }
+        setTimeout(() =>
+        {
+            this.fastenHeader()
+        }, 200);
     }
     setScroll()
     {
@@ -267,8 +274,50 @@ export class TableEditorV2Component implements OnInit
             left: this.mainContainer.nativeElement.scrollLeft
         }
         localStorage.setItem("table_scroll_" + this.id, JSON.stringify(scroll));
-
-        this.acceptEditField();
+        this.fastenHeader();
+        /* this.acceptEditField(); */
+    }
+    fastenHeaderProperties = 
+    {
+        scrollTop: 0,
+        offsetTop: 0,
+        number:
+        {
+            width: 0,
+            height: 0
+        }
+    }
+    fastenHeader() // Закрепить заголовок
+    {
+        /* let header = this.mainContainer.nativeElement.getElementsByTagName("tr")[0].getElementsByTagName("th");
+        this.fastenHeaderProperties.scrollTop = this.mainContainer.nativeElement.scrollTop;
+        this.fastenHeaderProperties.offsetTop = this.mainContainer.nativeElement.offsetTop;
+        let k = this.lineNumbering.enable ? 1 : 0;
+        if(k == 1)
+        {
+            let rect = header[0].getBoundingClientRect();
+            this.fastenHeaderProperties.number.width = rect.width;
+            this.fastenHeaderProperties.number.height = rect.height;
+        }
+        for(let i = 0; i < this.dataHeader.length; i++)
+            if(this.dataHeader[i])
+            {
+                let rect = header[k].getBoundingClientRect();
+                this.dataHeader[i].left = rect.left;
+                this.dataHeader[i].width = rect.width;
+                this.dataHeader[i].height = rect.height;
+                k++;
+            } */
+        /* let th = this.mainContainer.nativeElement.getElementsByTagName("tr")[0].getElementsByTagName("th");
+        let k = this.lineNumbering.enable ? 1 : 0;
+        for(let i = 0; i < this.dataHeader.length; i++)
+            if(this.dataHeader[i])
+            {
+                let rect = th[k].getBoundingClientRect();
+                this.dataHeader[i].width = rect.width;
+                this.dataHeader[i].height = rect.height;
+                k++;
+            } */
     }
     changeHeader() // изменить заголовок таблицы
     {
@@ -313,6 +362,11 @@ export class TableEditorV2Component implements OnInit
         this.tableFilter.changeEnamle();
         if(!this.tableFilter.enable)
             this.clearFilters();
+    }
+    lineNumbering = { enable: true }
+    enableLineNumbering()
+    {
+        this.lineNumbering.enable = !this.lineNumbering.enable;
     }
     clearFilters() // Очистить фильтры
     {

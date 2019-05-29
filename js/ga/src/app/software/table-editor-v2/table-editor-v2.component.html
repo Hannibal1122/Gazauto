@@ -18,7 +18,8 @@
         <button class = "mainButton" title = "Импорт таблицы" (click) = "importFromExcel()" [disabled] = "!right.change"><i class="fas fa-download"></i></button>
         <button class = "mainButton" title = "Добавить строку" (click) = "addRow('end', 1)" [disabled] = "!right.change"><i class="fas fa-plus"></i></button>
         <button class = "mainButton" title = "Сохраненная позиция" (click) = "setScroll()"><i class="fas fa-bookmark"></i></button>
-        <button class = "mainButton" [class.enableFilters] = "tableFilter.enable" title = "Включить фильтры" (click) = "enableFilters()"><i class="fa fa-filter"></i></button>
+        <button class = "mainButton" [class.enableButton] = "tableFilter.enable" title = "Включить фильтры" (click) = "enableFilters()"><i class="fa fa-filter"></i></button>
+        <button class = "mainButton" [class.enableButton] = "lineNumbering.enable" title = "Нумерация строк" (click) = "enableLineNumbering()"><i class="fas fa-list-ol"></i></button>
         <button class = "mainButton" (click) = "loadTable()" title = "Обновить"><i class="fas fa-sync-alt"></i></button>
         <select class = "mainSelect"
             style = "margin-left: 2px; height: 32px; cursor:pointer;" 
@@ -33,7 +34,10 @@
         <table class = "errorTable TableCreatorBorderColor">
             <tbody (click) = "editField($event)">
                 <tr>
-                    <th name = "clickArea" class = "TableCreatorHeadColor TableCreatorHeadBColor"></th>
+                    <th 
+                        name = "clickArea"  
+                        *ngIf = "lineNumbering.enable"
+                        class = "TableCreatorHeadColor TableCreatorHeadBColor"></th>
                     <ng-container *ngFor = "let head of dataHeader; let i = index;">
                         <th *ngIf = "head"
                             name = "clickArea"  
@@ -58,7 +62,7 @@
                     </ng-container>
                 </tr>
                 <tr *ngIf = "tableFilter.enable">
-                    <td style = "padding:0px;" class = "TableCreatorHeadColor TableCreatorHeadBColor"></td>
+                    <td *ngIf = "lineNumbering.enable" style = "padding:0px;" class = "TableCreatorHeadColor TableCreatorHeadBColor"></td>
                     <ng-container *ngFor = "let filter of tableFilter.fields; let i = index;">
                         <td *ngIf = "filter" style = "padding:0px;">
                             <select [(ngModel)] = "filter.sign" 
@@ -78,7 +82,7 @@
                     </ng-container>
                 </tr>
                 <tr *ngIf = "tableFilter.enable">
-                    <td style = "padding:0px;" class = "TableCreatorHeadColor TableCreatorHeadBColor"></td>
+                    <td *ngIf = "lineNumbering.enable" style = "padding:0px;" class = "TableCreatorHeadColor TableCreatorHeadBColor"></td>
                     <ng-container *ngFor = "let filter of tableFilter.state; let i = index;">
                         <td *ngIf = "filter" style = "padding:0px;">
                             <select [(ngModel)] = "filter.sign" 
@@ -101,7 +105,8 @@
                 </tr>
                 <ng-container *ngFor = "let row of dataTable; let i = index;">
                     <tr *ngIf = "!tableFilter.mapHideRows[i]">
-                        <td (contextmenu) = "getContextmenu($event, i, 'row')" 
+                        <td *ngIf = "lineNumbering.enable"
+                            (contextmenu) = "getContextmenu($event, i, 'row')" 
                             [class.cutRow] = "cutRowProperty.i == i"
                             class = "TableCreatorHeadColor TableCreatorHeadBColor">{{ i + 1 }}</td>
                         <ng-container *ngFor = "let cell of row; let j = index;">
@@ -177,6 +182,46 @@
             <div *ngIf = "mode == 'Global'" style = "float:right; color:#b5e498; font-size:20px;" title = "global"><i class="fas fa-cloud"></i></div>
         </div>
     </div>
+    <!-- Закрепленный заголовок -->
+    <table *ngIf = "fastenHeaderProperties.scrollTop > 0" 
+        class = "errorTable TableCreatorBorderColor"
+        style = "position: absolute; left:0px;" 
+        [style.top] = "fastenHeaderProperties.offsetTop + 'px'">
+        <tbody>
+            <tr>
+                <th name = "clickArea" 
+                    *ngIf = "lineNumbering.enable" 
+                    class = "TableCreatorHeadColor TableCreatorHeadBColor"
+                    [style.width] = "fastenHeaderProperties.number.width + 'px'" 
+                    [style.height] = "fastenHeaderProperties.number.height + 'px'"></th>
+                <ng-container *ngFor = "let head of dataHeader">
+                    <th *ngIf = "head"
+                        name = "clickArea"  
+                        class = "TableCreatorHeadColor TableCreatorHeadBColor" 
+                        id = "{{ head.id }}"
+                        [style.width] = "head.width + 'px'" 
+                        [style.height] = "head.height + 'px'"
+                        (contextmenu) = "getContextmenu($event, i, 'head')">
+                        {{ head.name }}
+                        <div class="linkClass">
+                            <span *ngIf = "head.dataType == 'NUMBER'" class = "linkValueClass" style = "padding-left: 3px; padding-right: 4px;">123</span>
+                            <span *ngIf = "head.dataType == 'STRING'" class = "linkValueClass" style = "padding-left: 2px; padding-right: 2px;">str</span>
+                            <span *ngIf = "head.dataType == 'DATETIME'" class = "linkValueClass">
+                                <i class="fas fa-clock"></i>
+                            </span>
+                            <span *ngIf = "head.dataType == 'tlist'" class = "linkValueClass">
+                                <i class="fas fa-bars"></i>
+                            </span>
+                            <span *ngIf = "head.eventId" class = "linkCellClass">
+                                <i class = "fa fa-bolt"></i>
+                            </span>
+                        </div>
+                    </th>
+                </ng-container>
+            </tr>
+        </tbody>
+    </table>
+    <!--  -->
 </div>
 <div class = "createContextMenu" 
     [hidden] = "!createContextMenu.visible" 

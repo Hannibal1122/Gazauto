@@ -10,171 +10,122 @@ declare var trace:any;
 })
 export class TemplateConstructorComponent implements OnInit 
 {
-    @ViewChild("mainContainer") mainContainer:ElementRef;
-    @ViewChild("mainTable") mainTable:ElementRef;
-    inputData = 
+    treeDB: TreeDataBase = new TreeDataBase();
+    R = 100; // Радиус минимальный
+    rNode = 40; // радиус кружков
+    currentElement = {
+        id: 0,
+        name: "root",
+        type: "node",
+        x: 0,
+        y: 0
+    };
+    circles = [];
+    parent = 0;
+    svgProperties = 
     {
-        first: true,
-        name: "test", 
-        id: -1, 
-        type: "node", // type = node / table
-        children: [
-            { name: "test", id: -1, type: "table",
-            children: [
-                { name: "test", id: -1, type: "table" },
-                { name: "test", id: -1, type: "table" },
-                { name: "test", id: -1, type: "table" },
-            ] },
-            { name: "test", id: -1, type: "table" },
-            { name: "test", 
-                id: -1, 
-                type: "table"
-            },
-            { name: "test", id: -1, type: "table" },
-            { name: "test", 
-                id: -1, 
-                type: "node", 
-                children: [
-                    { name: "test", id: -1, type: "table" },
-                ]
-            },
-        ]
+        width: 0
     }
-    data = [];
-    tableData = [];
-    outNode:any = {};
-    currentNote:any = {};
     constructor()
     {
-        this.currentNote = this.inputData;
-        this.openCurrentNote(-1);
-        /*var getRandom = (min, max) => { return Math.floor(Math.random() * (max - min)) + min; }
-        for(let i = 0; i < 400; i++)
-        {
-            this.dataTable[i] = [];
-            for(let j = 0; j < this.header.length; j++)
-                this.dataTable[i][j] = { text: ['a123', 'b321', 'v46', 'g45', 'd789', 'e876'][getRandom(0, 6)] }
-        }*/
+        this.openParent(0);
     }
     ngOnInit()
     {
     }
-    openCurrentNote(i)
+    openParent(parent)
     {
-        if(i >= 0) 
+        this.parent = parent;
+        this.calcPosition();
+    }
+    getRandom(min, max)
+    { 
+        return Math.floor(Math.random() * (max - min)) + min; 
+    }
+    calcPosition()
+    {
+        let count = this.circles.length;
+        let orbit = [];
+        let oI = 0;
+        // Должны разобрать по орбитам
+        let R = this.R;
+        let length;
+        while(count > 0)
         {
-            let parent = this.currentNote;
-            this.currentNote = this.currentNote.children[i];
-            this.currentNote.parent = parent;
-        }
-        this.outNode = {
-            name: this.currentNote.name, 
-            id: this.currentNote.id, 
-            type: this.currentNote.type,
-            children: []
-        }
-        if(this.currentNote.children)
-            for(let i = 0; i < this.currentNote.children.length; i++)
+            orbit[oI] = [];
+            length = Math.PI * R * 2;
+            let c = length / this.R;
+            for(let i = 0; i < c; i++)
             {
-                let child = this.currentNote.children[i];
-                this.outNode.children[i] = {
-                    name: child.name, 
-                    id: child.id, 
-                    type: child.type,
-                    children: child.children && child.children.length > 0 ? child.children.length : 0
-                }
+                if(count == 0) break;
+                orbit[oI].push(this.circles[count - 1])
+                count--;
             }
-        setTimeout(() =>
-        {
-            this.drawLine();
-        }, 200)
-    }
-    openParentNode()
-    {
-        if(this.currentNote.first) return;
-        this.currentNote = this.currentNote.parent;
-        this.openCurrentNote(-1);
-    }
-    addNode()
-    {
-        if(!this.currentNote.children) 
-        {
-            this.currentNote.children = [];
-            this.outNode.children = [];
+            oI++;
+            R = this.R + (oI * (this.rNode * 2 + 5));
         }
-        this.currentNote.children.push({
-            name: "test", 
-            id: -1, 
-            type: "node"
-        });
-        this.outNode.children.push({
-            name: "test", 
-            id: -1, 
-            type: "node",
-            children: 0
-        });
-    }
-    addTable()
-    {
-        if(!this.currentNote.children) 
+        let D = (R + this.rNode) * 2;
+        for(let i = 0; i < orbit.length; i++)
         {
-            this.currentNote.children = [];
-            this.outNode.children = [];
+            R = this.R + (i * (this.rNode * 2 + 5));
+            let alpha = (360 / orbit[i].length) * (Math.PI / 180);
+            let a = this.getRandom(0, 180);
+            for(let j = 0; j < orbit[i].length; j++)
+            {
+                orbit[i][j].x = (D / 2) + R * Math.cos(a);
+                orbit[i][j].y = (D / 2) + R * Math.sin(a);
+                a += alpha;
+            }
         }
-        this.currentNote.children.push({
-            name: "test", 
-            id: -1, 
-            type: "table"
-        });
-        this.outNode.children.push({
-            name: "test", 
-            id: -1, 
-            type: "table",
-            children: 0
-        });
+        this.svgProperties.width = D;
+        this.currentElement.x = this.currentElement.y = D / 2;
     }
-    linePropertyes = {
-        lines: [],
-        width: 0,
-        height: 0,
-        top: 0,
-        left: 0
-    };
-    drawLine()
+    appendCircle(type)
     {
-        /* this.lines = []; */
-        let rect = this.mainTable.nativeElement.getBoundingClientRect();
-        this.linePropertyes.width = rect.width;
-        this.linePropertyes.height = rect.height; 
-        this.linePropertyes.top = rect.y; 
-        this.linePropertyes.left = rect.x; 
-        let td = this.mainTable.nativeElement.getElementsByTagName("tr")[0].getElementsByTagName("td");
-        let first = td[0].getElementsByTagName("div")[0].getBoundingClientRect();
-        let second = td[1].getElementsByTagName("div");
-        this.linePropertyes.lines = [];
-        for(let i = 0; i < second.length; i++)
-        {
-            let rectSub = second[i].getBoundingClientRect();
-            this.linePropertyes.lines.push({
-                x1: (first.x - rect.x) + first.width,
-                y1: (first.y - rect.y) + rectSub.height / 2,
-                x2: (rectSub.x - rect.x),
-                y2: (rectSub.y - rect.y)/*  + rectSub.height / 2 */,
-            });
-        }
-
-        trace(this.linePropertyes.lines)
+        this.circles.push({ type: type, text: "" });
+        this.calcPosition();
     }
-    /* header:any = [{ text: "test 1 sdkfjh sdflhas dklfh s"}, { text: "test 2 asdkjfh asf"}, { text: "test 3"}, { text: "test 4"}, { text: "test 5"}, { text: "test 6"}];
-    dataTable = [];
-    onScroll()
+    remove(e, i)
     {
-        let th = this.mainContainer.nativeElement.getElementsByTagName("tr")[0].getElementsByTagName("th");
-        for(let i = 0; i < th.length; i++)
-        {
-            let rect = th[i].getBoundingClientRect();
-            this.header[i].width = rect.width;
-            this.header[i].height = rect.height;
+        this.circles.splice(i, 1);
+        this.calcPosition();
+        e.preventDefault();
+    }
+}
+class TreeDataBase
+{
+    db = {};
+    lastId = 1;
+    constructor()
+    {
+    }
+    push(name, type, parent)
+    {
+        this.db[this.lastId] = { 
+            name: name, 
+            type: type,
+            parent: parent
         }
-    } */
+        this.lastId++;
+    }
+    remove(id)
+    {
+        delete this.db[id];
+    }
+    get(id)
+    {
+        return this.db[id];
+    }
+    children(parent)
+    {
+        let out = [];
+        for(let id in this.db)
+            if(this.db[id].parent == parent)
+                out.push({ id: id, ...this.db[id] });
+        return out;
+    }
+    load(data)
+    {
+        // Надо вычислить и выставить lastId
+    }
 }

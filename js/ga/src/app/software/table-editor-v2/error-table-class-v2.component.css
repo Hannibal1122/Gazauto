@@ -30,7 +30,7 @@
 {
     background: #9abfe225;
 }
-.errorTable td:first-child 
+.errorTable td.TableCreatorHeadColor
 {
     vertical-align: middle;
     border: 1px solid; 

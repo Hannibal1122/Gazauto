@@ -444,6 +444,7 @@
                             $sult = unique_md5();
                             $hash = myhash($param[2], $sult);
                             query("UPDATE password SET hash = %s WHERE login = %s", [$hash, $param[0]]);
+                            query("UPDATE signin SET checkkey = '' WHERE login = %s", [$param[0]]);
                         }
                         break;
                     case 155: // Изменение роли
