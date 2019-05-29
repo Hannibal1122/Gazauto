@@ -11,15 +11,10 @@ declare var trace:any;
 export class TemplateConstructorComponent implements OnInit 
 {
     treeDB: TreeDataBase = new TreeDataBase();
-    R = 100; // Радиус минимальный
+    rMain = 50;
+    R = 110; // Радиус минимальный
     rNode = 40; // радиус кружков
-    currentElement = {
-        id: 0,
-        name: "root",
-        type: "node",
-        x: 0,
-        y: 0
-    };
+    currentElement:any = {};
     circles = [];
     parent = 0;
     svgProperties = 
@@ -28,14 +23,21 @@ export class TemplateConstructorComponent implements OnInit
     }
     constructor()
     {
-        this.openParent(0);
+        if(localStorage.getItem("constructor"))
+        {
+            this.treeDB.load(JSON.parse(localStorage.getItem("constructor")));
+        }
+        else this.treeDB.push("root", "node", 0);
+        this.openParent(1);
     }
     ngOnInit()
     {
     }
-    openParent(parent)
+    openParent(id)
     {
-        this.parent = parent;
+        this.parent = id;
+        this.currentElement = this.treeDB.get(id);
+        this.circles = this.treeDB.children(this.parent);
         this.calcPosition();
     }
     getRandom(min, max)
@@ -80,16 +82,45 @@ export class TemplateConstructorComponent implements OnInit
         this.svgProperties.width = D;
         this.currentElement.x = this.currentElement.y = D / 2;
     }
+    backToParent()
+    {
+        if(this.currentElement.parent == 0) return;
+        this.openParent(this.currentElement.parent);
+    }
     appendCircle(type)
     {
-        this.circles.push({ type: type, text: "" });
+        let copyElement;
+        if(type == "table") 
+        {
+            if(!localStorage.getItem("copyExplorer")) return;
+            copyElement = JSON.parse(localStorage.getItem("copyExplorer"));
+            if(copyElement.objectType == "table")
+            {
+                this.circles.push({ 
+                    type: type, 
+                    name: copyElement.name, 
+                    id: this.treeDB.push("", type, this.currentElement.id, copyElement.id) 
+                });
+            }
+        }
+        else
+            this.circles.push({ 
+                type: type, 
+                name: "", 
+                id: this.treeDB.push("", type, this.currentElement.id) 
+            });
         this.calcPosition();
     }
     remove(e, i)
     {
+        this.treeDB.remove(this.circles[i].id);
         this.circles.splice(i, 1);
         this.calcPosition();
         e.preventDefault();
+    }
+    saveDB()
+    {
+        localStorage.setItem("constructor", JSON.stringify(this.treeDB.db));
     }
 }
 class TreeDataBase
@@ -99,17 +130,21 @@ class TreeDataBase
     constructor()
     {
     }
-    push(name, type, parent)
+    push(name, type, parent, globalId?) // globalId - id из главной базы, для таблиц
     {
         this.db[this.lastId] = { 
             name: name, 
             type: type,
-            parent: parent
+            parent: parent,
+            globalId: globalId,
+            id: this.lastId
         }
-        this.lastId++;
+        return this.lastId++;
     }
     remove(id)
     {
+        for(let key in this.db)
+            if(this.db[key].parent == id) this.remove(this.db[key].id);
         delete this.db[id];
     }
     get(id)
@@ -119,13 +154,24 @@ class TreeDataBase
     children(parent)
     {
         let out = [];
-        for(let id in this.db)
-            if(this.db[id].parent == parent)
-                out.push({ id: id, ...this.db[id] });
+        for(let key in this.db)
+            if(this.db[key].parent == parent)
+                out.push({ children: this.getCountChildren(key), ...this.db[key] });
         return out;
+    }
+    getCountChildren(parent)
+    {
+        for(let key in this.db)
+            if(this.db[key].parent == parent)
+                return true;
+        return false;
     }
     load(data)
     {
-        // Надо вычислить и выставить lastId
+        this.db = data;
+        let max = 0;
+        for(let key in this.db)
+            if(this.db[key].id > max) max = this.db[key].id;
+        this.lastId = max + 1;
     }
 }

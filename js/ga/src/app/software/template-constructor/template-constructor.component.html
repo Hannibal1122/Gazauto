@@ -1,16 +1,15 @@
 <div style = "padding:5px; height: 100vh; overflow: auto;">
-    <button
-    (click) = "appendCircle('node')">Добавить 1</button>
-    <button
-    (click) = "appendCircle('table')">Добавить 2</button>
+    <button (click) = "appendCircle('node')"><i class="fas fa-plus-circle"></i> Node</button>
+    <button (click) = "appendCircle('table')"><i class="fas fa-plus-circle"></i> Table</button>
+    <button (click) = "saveDB()">save</button>
     <div style = "margin-left: 50%; transform: translate(-50%, 0%);" 
         [style.width] = "svgProperties.width + 'px'" 
         [style.height] = "svgProperties.width + 'px'">
         <div class = "textDiv"
-            [style.width]="rNode * 2 + 'px'" 
-            [style.height]="rNode * 2 + 'px'" 
-            [style.left]="(currentElement.x - rNode) + 'px'" 
-            [style.top]="(currentElement.y - rNode) + 'px'">
+            [style.width]="rMain * 2 + 'px'" 
+            [style.height]="rMain * 2 + 'px'" 
+            [style.left]="(currentElement.x - rMain) + 'px'" 
+            [style.top]="(currentElement.y - rMain) + 'px'">
             <div *ngIf = "currentElement.type == 'node'"><i class="fa fa-sitemap"></i></div>
             <div *ngIf = "currentElement.type == 'table'"><i class="fa fa-table"></i></div>
             {{ currentElement.name }}
@@ -23,7 +22,7 @@
             <div *ngIf = "circle.type == 'node'"><i class="fa fa-sitemap"></i></div>
             <div *ngIf = "circle.type == 'table'"><i class="fa fa-table"></i></div>
             {{ circle.name }}
-            <div>...</div>
+            <div *ngIf = "circle.children">...</div>
         </div>
         <svg width = "100%" height = "100%">
             <defs>
@@ -48,9 +47,10 @@
             <circle 
                 [attr.cx]="currentElement.x" 
                 [attr.cy]="currentElement.y" 
-                [attr.r]="rNode" 
+                [attr.r]="rMain" 
                 [class.nodeCirlce] = "currentElement.type == 'node'" 
                 [class.tableCirlce] = "currentElement.type == 'table'" 
+                (click) = "backToParent()"
                 style = "filter: url(#dropshadow)"/>
             <circle *ngFor = "let circle of circles; let i = index;"
                 [attr.cx]="circle.x" 
@@ -58,6 +58,7 @@
                 [attr.r]="rNode"
                 [class.nodeCirlce] = "circle.type == 'node'" 
                 [class.tableCirlce] = "circle.type == 'table'"
+                (click) = "openParent(circle.id)"
                 (contextmenu) = "remove($event, i)"
                 style = "filter: url(#dropshadow)">
             </circle>

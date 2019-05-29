@@ -589,7 +589,7 @@ export class TableEditorV2Component implements OnInit
             this.rules.event = copy.objectType == "event";
             this.rules.type = copy.objectType == "tlist";
         }
-        if(localStorage.getItem("copyTable")) this.rules.paste = true;
+        if(localStorage.getItem("copyTable")) this.rules.paste = true; // copyTable используется для копирования ячейки
         switch(type) // Здесь должны заполнится правила
         {
             case "cell":
