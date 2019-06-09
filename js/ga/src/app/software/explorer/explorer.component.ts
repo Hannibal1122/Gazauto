@@ -8,13 +8,11 @@ import { CreateRightService } from "../services/create-right.service";
 import { PasteObjectService } from "../services/paste-object.service";
 import { CreateFileService } from "../services/create-file.service";
 import { CreateInfoService } from "../services/create-info.service";
-import { RenameObjectService } from "../services/rename-object.service";
 import { CreateEventService } from "../services/create-event.service";
 import { CreateTableListService } from "../services/create-table-list.service";
 import { CreateFilterService } from "../services/create-filter.service";
 import { CreatePlanChartService } from "../services/create-plan-chart.service"
 
-declare var $:any;
 declare var trace:any;
 @Component({
     selector: 'app-explorer',
@@ -30,7 +28,6 @@ declare var trace:any;
         PasteObjectService,
         CreateFileService,
         CreateInfoService,
-        RenameObjectService,
         CreateTableListService,
         CreateEventService,
         CreateFilterService,
@@ -40,6 +37,7 @@ declare var trace:any;
 export class ExplorerComponent implements OnInit 
 {
     @ViewChild('modal') public modal: any;
+    @ViewChild('appTableProperty') public appTableProperty;
     set inputFromApp(value)
     {
         if(value) 
@@ -81,7 +79,6 @@ export class ExplorerComponent implements OnInit
         private pasteObject: PasteObjectService,
         private createFile: CreateFileService,
         private createInfo: CreateInfoService,
-        private renameObject: RenameObjectService,
         private createEvent: CreateEventService,
         private createTableList: CreateTableListService,
         private createFilter: CreateFilterService,
@@ -109,7 +106,6 @@ export class ExplorerComponent implements OnInit
         this.pasteObject.modal = this.modal;
         this.createFile.modal = this.modal;
         this.createInfo.modal = this.modal;
-        this.renameObject.modal = this.modal;
         this.createEvent.modal = this.modal;
         this.createTableList.modal = this.modal;
         this.createFilter.modal = this.modal;
@@ -237,14 +233,6 @@ export class ExplorerComponent implements OnInit
         iframe.onload = () => { document.body.removeChild(iframe); } // надо удалять!
         /* document.body.appendChild(iframe); */
     }
-    getRenameObject() // Переименовать объект
-    {
-        if(this.selectObjectI == -1) return;
-        var id = this.outFolders[this.selectObjectI].id;
-        var objectType = this.outFolders[this.selectObjectI].objectType;
-        var name = this.outFolders[this.selectObjectI].name;
-        this.renameObject.rename(id, name, () => { this.refresh() });
-    }
     _pasteObject()
     {
         this.load = true;
@@ -323,7 +311,7 @@ export class ExplorerComponent implements OnInit
         this.selectObjectI = i;
         var id = this.outFolders[this.selectObjectI].id;
         var objectType = this.outFolders[this.selectObjectI].objectType;
-        this.query.protectionPost(202, { param: [ id ] }, (data) =>
+        this.query.protectionPost(202, { param: [ id ] }, (data) => // Запрос прав и связей наследования
         {
             this.clearRules();
             let right = this.createRight.decodeRights(data[0]);
@@ -343,6 +331,11 @@ export class ExplorerComponent implements OnInit
                 this.selectRules.remove = false; 
             }
         });
+        if(this.tableProperty.visible)
+        {
+            if(this.appTableProperty && !this.appTableProperty.update) this.appTableProperty.update = () => { this.refresh(); };
+            this.tableProperty.listLink.visible = false;
+        }
     }
     unSelectObject() // отпустить объект
     {
@@ -479,34 +472,53 @@ export class ExplorerComponent implements OnInit
     }
     globalClick = null;
     /**************************************/
-    listLink = 
+    tableProperty = {
+        visible: true,
+        data: {},
+        listLink: 
+        {
+            visible: false,
+            empty: true,
+            fromInherit: [], // От кого наследует
+            whoInherit: [], // Кто наследует
+            whoRefer: [] // Кто ссылается
+        }
+    }
+    getTableProperty()
     {
-        visible: false,
-        fromInherit: [], // От кого наследует
-        whoInherit: [], // Кто наследует
-        whoRefer: [] // Кто ссылается
+        if(this.selectObjectI == -1) return;
+        this.tableProperty.visible = true;
+    }
+    closeTableProperty()
+    {
+        this.tableProperty.visible = false;
     }
     getListLink()
     {
         if(this.selectObjectI == -1) return;
         this.query.protectionPost(125, { param: [ this.outFolders[this.selectObjectI].id ]}, (data) =>
         {
-            this.listLink.fromInherit = data.fromInherit;
-            this.listLink.whoInherit = data.whoInherit;
-            this.listLink.whoRefer = [];
+            this.tableProperty.listLink.fromInherit = data.fromInherit;
+            this.tableProperty.listLink.whoInherit = data.whoInherit;
+            this.tableProperty.listLink.whoRefer = [];
             for(var key in data.whoRefer)
-                this.listLink.whoRefer.push({
+                this.tableProperty.listLink.whoRefer.push({
                     id: key, 
                     fields: data.whoRefer[key].fields, 
                     name: data.whoRefer[key].name
                 });
-            this.listLink.visible = true;
+            this.tableProperty.listLink.empty = 
+                this.tableProperty.listLink.fromInherit.length == 0 
+                && this.tableProperty.listLink.whoInherit.length == 0 
+                && this.tableProperty.listLink.whoRefer.length == 0;
+            this.tableProperty.listLink.visible = true;
         });
     }
-    closeListLink()
+    /* closeListLink()
     {
         this.listLink.visible = false;
-    }
+    } */
+    /**************************************/
     openTable(id)
     {
         this.onChange({ type: "openFromTable", value: { name: "table", id: id }});

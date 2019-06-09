@@ -39,7 +39,7 @@
                 $this->create([ "filter", $myFilter->create("", ""), "default filter", $idElement, 0, "" ], false);
             }
             if($out) echo json_encode(["Index", $idElement]);
-            $this->myLog->add("structure", "add", $idElement);
+            $this->myLog->add("structure", "create", $idElement);
         }
         function getWhereUsed($idElement)
         {

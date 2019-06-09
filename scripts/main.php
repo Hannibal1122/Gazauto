@@ -409,6 +409,22 @@
                         query("UPDATE signin SET checkkey = '', login = '' WHERE login = %s", [$username]);
                         $myLog->add("user", "logout", $username);
                         break;
+                    case 133: // Запросить таблицу свойств
+                        $idElement = (int)$param[0];
+                        if(($myRight->get($idElement) & 1) != 1) continue; // Права на просмотр
+                        $type = selectOne("SELECT objectType FROM structures WHERE id = %i", [ $idElement ]);
+                        $tableProperty = [
+                            "timeCreate" => selectOne("SELECT date FROM main_log WHERE type = 'structure' AND value = %s AND operation = 'create' LIMIT 1", [ $idElement ]),
+                            /* "timeUpdate" => selectOne("SELECT date FROM main_log WHERE type = %s AND value = %s AND operation = 'update' LIMIT 1", [ $type, $idElement ]), */
+                            "userProperty" => selectOne("SELECT user_property FROM structures WHERE id = %i", [ $idElement ])
+                        ];
+                        echo json_encode($tableProperty);
+                        break;
+                    case 134: // Сохранить пользовательскую таблицу свойств
+                        $idElement = (int)$param[0];
+                        if(($myRight->get($idElement) & 8) != 8) continue; // Права на изменение
+                        query("UPDATE structures SET user_property = %s WHERE id = %i", [$param[1], $idElement]);
+                        break;
                 }
             }
             if($nQuery >= 150 && $nQuery < 200) // Работа с Пользователями // Только admin
@@ -427,7 +443,7 @@
                         if(require_once("registration.php"))
                         {
                             query("INSERT INTO structures (objectType, objectId, name, parent) VALUES('user', NULL, %s, %i)", [$param[0], $param[3]]);
-                            $myLog->add("user", "add", json_encode([$param[0], $param[1]]));
+                            $myLog->add("user", "create", json_encode([$param[0], $param[1]]));
                         }
                         break;
                     case 153: // Добавление роли
@@ -498,7 +514,7 @@
                             }
                         echo json_encode($out);
                         break;
-                    case 202: // Запросить права по логину
+                    case 202: // Запросить права по логину, связи
                         echo json_encode([$paramL == "admin" ? 255 : $myRight->get( (int)$param[0] ),
                             selectOne("SELECT bindId FROM structures WHERE id = %i", [ (int)$param[0] ]), 
                             selectOne("SELECT COUNT(*) FROM structures WHERE bindId = %i", [ (int)$param[0] ])]);

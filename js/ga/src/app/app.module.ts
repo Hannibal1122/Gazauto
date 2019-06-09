@@ -17,6 +17,7 @@ import { EventEditorComponent } from './software/event-editor/event-editor.compo
 import { EventLogComponent } from './software/event-log/event-log.component';
 import { ModalMovedWindowComponent } from './system/modal-moved-window/modal-moved-window.component';
 import { TemplateConstructorComponent } from './software/template-constructor/template-constructor.component';
+import { TablePropertyComponent } from './software/explorer/tableProperty.component';
 
 import { DateTimeModule } from "./system/datetimepicker/datetimepicker.module";
 
@@ -35,7 +36,8 @@ import { DateTimeModule } from "./system/datetimepicker/datetimepicker.module";
         PlanEditorComponent,
         ModalMovedWindowComponent,
         TemplateConstructorComponent,
-        EventLogComponent
+        EventLogComponent,
+        TablePropertyComponent
     ],
     imports: [ BrowserModule, FormsModule, ModalWindowModule, HttpClientModule, DateTimeModule ],
     providers: [],

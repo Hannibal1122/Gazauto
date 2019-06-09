@@ -35,9 +35,9 @@
                         {
                             $right = [ $idElement , $row2[0], $row2[1], $row2[2] ];
                             query("INSERT INTO rights (objectId, type, login, rights) VALUES(%i, %s, %s, %i) ", $right);
-                            addLog("right", "add", json_encode($right));
+                            addLog("right", "create", json_encode($right));
                         }
-                    addLog("structure", "add", $idElement);
+                    addLog("structure", "create", $idElement);
                 }
         }
     }

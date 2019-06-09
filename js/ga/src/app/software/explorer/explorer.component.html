@@ -1,4 +1,5 @@
-<div class = "explorer ExplorerBColor">
+<div class = "explorer ExplorerBColor"
+    [class.explorerWithProperty] = "tableProperty.visible">
     <div class = "explorerControlPanel explorerFull">
         <div style = "margin-bottom:5px;">
             <ng-container *ngFor = "let path of allPath; let last = last;">
@@ -17,8 +18,8 @@
         </div> 
     </div>
     <div class = "explorerMain ExplorerFolderBColor"
-        [class.explorerDouble] = "listLink.visible"
-        [class.explorerFull] = "!listLink.visible"
+        [class.explorerDouble] = "tableProperty.visible"
+        [class.explorerFull] = "!tableProperty.visible"
         (contextmenu) = "getContextmenuMain($event)">
         <span *ngFor = "let object of outFolders; let i = index;">
             <div *ngIf = "object.visible !== false"
@@ -69,44 +70,50 @@
         </span>
         <span *ngIf = "outFolders.length == 0" style = "color:#b8b8b8; font-size:24px; font-weight:bold; margin-left: 10px;"> Папка пуста</span>
     </div>
-    <div *ngIf = "listLink.visible" 
-        style = "display: flex; color: #456486; flex-wrap: wrap; font-size:12px; border-left:1px solid #b8b8b8; position:relative; padding:5px;"> 
-        <span *ngIf = "listLink.fromInherit.length == 0 && listLink.whoInherit.length == 0 && listLink.whoRefer.length == 0" 
-            style = "color:#b8b8b8; font-size:24px; font-weight:bold"> Связи отсутсвуют</span>
-        <div *ngIf = "listLink.fromInherit.length != 0">
-            <div style = "font-size:16px; font-weight:bold;">Объект наследуется от:</div>
-            <div *ngFor = "let data of listLink.fromInherit" class = "linkTable" (click) = "openTable(data[0])">
-                <span *ngIf = "data[1] == 'table'"><i class="fas fa-table colorIconTable"></i> </span>
-                {{ data[2] }}
-            </div>
-        </div>
-        <div *ngIf = "listLink.whoInherit.length != 0">
-            <div style = "font-size:16px; font-weight:bold;">Объект наследуют:</div>
-            <div *ngFor = "let data of listLink.whoInherit" class = "linkTable" (click) = "openTable(data[0])">
-                <span *ngIf = "data[1] == 'table'"><i class="fas fa-table colorIconTable"></i> </span>
-                {{ data[2] }}
-            </div>
-        </div>
-        <div *ngIf = "listLink.whoRefer.length != 0">
-            <div style = "font-size:16px; font-weight:bold;">Объект используется:</div>
-            <div *ngFor = "let data of listLink.whoRefer">
-                <div (click) = "openTable(data.id)" class = "linkTable">
-                    <i class="fas fa-table colorIconTable"></i> {{ data.name }}
+    <div *ngIf = "tableProperty.visible && selectObjectI != -1" 
+        class = "tableProperty"> 
+        <div style = "width:100%; height:50%; overflow: auto; display: flex; flex-wrap: wrap; position: relative;">
+            <div *ngIf = "!tableProperty.listLink.visible"
+                (click) = "getListLink()"
+                class = "wordCenter">Показать связи</div>
+            <ng-container *ngIf = "tableProperty.listLink.visible">
+                <div *ngIf = "tableProperty.listLink.empty" 
+                    class = "wordCenter">Связи отсутсвуют</div>
+                <div *ngIf = "tableProperty.listLink.fromInherit.length != 0">
+                    <div style = "font-size:16px; font-weight:bold;">Объект наследуется от:</div>
+                    <div *ngFor = "let data of tableProperty.listLink.fromInherit" class = "linkTable" (click) = "openTable(data[0])">
+                        <span *ngIf = "data[1] == 'table'"><i class="fas fa-table colorIconTable"></i> </span>
+                        {{ data[2] }}
+                    </div>
                 </div>
-                <div *ngFor = "let _data of data.fields" class = "linkField" (click) = "openField(_data, data.id)">
-                    <i class="fas fa-cube"></i> Ячейка {{ _data }}
+                <div *ngIf = "tableProperty.listLink.whoInherit.length != 0">
+                    <div style = "font-size:16px; font-weight:bold;">Объект наследуют:</div>
+                    <div *ngFor = "let data of tableProperty.listLink.whoInherit" class = "linkTable" (click) = "openTable(data[0])">
+                        <span *ngIf = "data[1] == 'table'"><i class="fas fa-table colorIconTable"></i> </span>
+                        {{ data[2] }}
+                    </div>
                 </div>
-            </div>
+                <div *ngIf = "tableProperty.listLink.whoRefer.length != 0">
+                    <div style = "font-size:16px; font-weight:bold;">Объект используется:</div>
+                    <div *ngFor = "let data of tableProperty.listLink.whoRefer">
+                        <div (click) = "openTable(data.id)" class = "linkTable">
+                            <i class="fas fa-table colorIconTable"></i> {{ data.name }}
+                        </div>
+                        <div *ngFor = "let _data of data.fields" class = "linkField" (click) = "openField(_data, data.id)">
+                            <i class="fas fa-cube"></i> Ячейка {{ _data }}
+                        </div>
+                    </div>
+                </div>
+            </ng-container>
         </div>
-        <div class = "ModalButtonExitColor" style = "position:absolute; right:5px; top:5px; font-size:16px; cursor:pointer;" (click) = "closeListLink()">
+        <app-table-property #appTableProperty [mainData] = "outFolders[selectObjectI]"></app-table-property>
+        <div class = "ModalButtonExitColor" style = "position:absolute; right:5px; top:5px; font-size:16px; cursor:pointer;" (click) = "closeTableProperty()">
             <i class="fas fa-times-circle"></i>
         </div>
     </div>
 </div>
 <div class = "createContextMenu" [hidden] = "!createContextMenu.visible" [style.top] = "createContextMenu.top" [style.left] = "createContextMenu.left">
-    <button class = "contextMenuList" (click) = "getRenameObject()" [disabled] = "!selectRules.rename">
-         Переименовать</button>
-    <button class = "contextMenuList" (click) = "getListLink()">Показать связи</button>
+    <button class = "contextMenuList" (click) = "getTableProperty()">Таблица свойств</button>
     <ng-container *ngIf = "createContextMenu.type == 'table'">
         <button class = "contextMenuList" (click) = "openTableFilter()">
             Открыть фильтры</button>

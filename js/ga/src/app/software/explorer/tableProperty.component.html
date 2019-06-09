@@ -1,0 +1,29 @@
+<div style = "height:50%; display:grid; grid-template-rows: 1fr auto;">
+    <div style="overflow:auto; width:100%;">
+        <table class = "tableProperty">
+            <tbody>
+                <tr><td colspan="3" style = "font-weight: bold;">Основные</td></tr>
+                <tr *ngFor = "let p of mainProperty">
+                    <td colspan="2">{{p.desc}}</td>
+                    <td *ngIf = "p.type == 'block'">{{p.value}}</td>
+                    <td *ngIf = "p.type == 'edit'" class = "tdInput"><input type = "text" [(ngModel)] = "p.value" (change) = "onInputChange(p)"></td>
+                    <td *ngIf = "p.type == 'user'"></td>
+                </tr>
+                <tr><td colspan="3" style = "font-weight: bold;">Пользовательские</td></tr>
+                <tr *ngFor = "let p of userProperty; let i = index;">
+                    <td style = "color:red; cursor: pointer;" (click) = "removeUserProperty(i)"><i class="fas fa-minus-circle"></i></td>
+                    <td class = "tdInput"><input type = "text" [(ngModel)] = "p.name" (change) = "onInputChangeUser(p)"></td>
+                    <td class = "tdInput"><input type = "text" [(ngModel)] = "p.value" (change) = "onInputChangeUser(p)"></td>
+                </tr>
+                <tr>
+                    <td colspan="3" style = "text-align: center;">
+                        <button class = "propertyBtn" (click) = "addUserProperty()" style = "width:50%; margin-bottom:5px;">Добавить</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div>
+        <button class = "propertyBtn" [disabled] = "!change" (click) = "saveProperty()">Сохранить</button>
+    </div>
+</div>

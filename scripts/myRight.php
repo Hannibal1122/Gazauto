@@ -9,7 +9,7 @@
         {
             $rightProp = [ $idElement , $type, $login, $right ];
             query("INSERT INTO rights (objectId, type, login, rights) VALUES(%i, %s, %s, %i) ", $rightProp);
-            $this->myLog->add("right", "add", json_encode($right));
+            $this->myLog->add("right", "create", json_encode($right));
         }
         function get($objectId, $useFilter = false)
         {
