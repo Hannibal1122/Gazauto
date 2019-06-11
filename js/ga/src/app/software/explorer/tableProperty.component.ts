@@ -25,12 +25,43 @@ export class TablePropertyComponent implements OnInit
             }
             this.query.protectionPost(133, { param: [ value.id ] }, (data) => // Запрос таблицы свойств
             {
+                this.mainProperty[2].value = data.hashtag;
                 this.mainProperty[4].value = data.timeCreate;
                 this.userProperty = data.userProperty ? JSON.parse(data.userProperty) : [];
-                
             });
             this.change = false;
             /* this.property = [ ...this.mainProperty ]; */
+        }
+    }
+    selectRules = {
+        new: true, 
+        copy: false, 
+        paste: false, 
+        cut: false, 
+        rights: false, 
+        remove: false,
+        download: false,
+        info: false,
+        rename: false
+    };
+    @Input() set rules(value)
+    {
+        if(value) 
+        {
+            this.selectRules = value;
+            for(let i = 0; i < this.mainProperty.length; i++)
+            {
+                if(this.mainProperty[i].name == "name")
+                {
+                    if(!this.selectRules.rename) this.mainProperty[i].type = "block";
+                    else this.mainProperty[i].type = "edit";
+                }
+                if(this.mainProperty[i].name == "#")
+                {
+                    if(!this.selectRules.remove) this.mainProperty[i].type = "block"; // remove используется потому что содержит оригинальное право на изменение
+                    else this.mainProperty[i].type = "edit";
+                }
+            }
         }
     }
     update = null;
@@ -69,6 +100,10 @@ export class TablePropertyComponent implements OnInit
                         { 
                             if(this.update) this.update();
                         });
+                    break;
+                case "#":
+                    if(this.saveQueue[key] != "")
+                        this.query.protectionPost(135, { param: [ this.id, this.saveQueue[key] ] });
                     break;
             }
         }

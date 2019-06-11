@@ -55,69 +55,7 @@ export class ModalWindowComponent
         $(this.modal.nativeElement).fadeIn(0);
         $(this.modal.nativeElement).animate({marginTop: "0px"}, 400);
         $("#BlockModalPanel").fadeIn(400);
-        this.refreshFromListTable();
     }
-    /******************************************************/
-    inputInListTable = { id: -1, value: ""};
-    selectInListTable;
-    changeInListTable = false;
-    inputInListTableOld = "";
-    addToListTable(i)
-    {
-        if(!this.changeInListTable)
-        {
-            this.Data[i][1].push({ value: this.inputInListTable.value });
-        }
-        else
-        {
-            let j = this.searchInListTable(i, this.selectInListTable);
-            if(!this.Data[i][1][j].oldValue) this.Data[i][1][j].oldValue = this.Data[i][1][j].value;
-            this.Data[i][1][j].value = this.inputInListTable.value;
-        }
-        this.refreshFromListTable();
-    }
-    removeFromListTable(i)
-    {
-        var j = this.searchInListTable(i, this.selectInListTable);
-        this.Data[i][3].push(this.Data[i][1][j].id)
-        this.Data[i][1].splice(j, 1);
-    }
-    upFromListTable(i)
-    {
-        if(this.selectInListTable == "") return;
-        var j = this.searchInListTable(i, this.selectInListTable);
-        if(j == 0) return;
-        let a = this.Data[i][1][j];
-        this.Data[i][1][j] = this.Data[i][1][j - 1];
-        this.Data[i][1][j - 1] = a;
-    }
-    downFromListTable(i)
-    {
-        if(this.selectInListTable == "") return;
-        var j = this.searchInListTable(i, this.selectInListTable);
-        if(j == this.Data[i][1].length - 1) return;
-        let a = this.Data[i][1][j];
-        this.Data[i][1][j] = this.Data[i][1][j + 1];
-        this.Data[i][1][j + 1] = a;
-    }
-    selectFromListTable(i)
-    {
-        this.inputInListTable = this.Data[i][1][this.searchInListTable(i, this.selectInListTable)];
-        this.changeInListTable = true;
-    }
-    refreshFromListTable()
-    {
-        this.inputInListTable = { id: -1, value: ""};
-        this.selectInListTable = "";
-        this.changeInListTable = false;
-    }
-    searchInListTable(i, id)
-    {
-        for(var j = 0; j < this.Data[i][1].length; j++)
-            if(this.Data[i][1][j].id == id) break;
-        return j;
-    }
-    /******************************************************/
     close(save)
     {
         var out;

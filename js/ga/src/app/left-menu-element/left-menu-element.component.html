@@ -23,44 +23,46 @@
         placeholder = "Поиск">
 </div>
 <div *ngIf = "!hide" style = "padding: 5px; padding-left: 15px;">
-    <div *ngFor = "let data of outData; let i = index;" [hidden] = "(search == '' && data.hide) || (search != '' && data.searchHide)">
-        <div class = "leftItem" [style.marginLeft.px] = "search == '' ? (15 * data.level) : 0">
-            <div class = "leftItemText" 
-                (click) = "getInfo(data)"
-                (dblclick) = "openElement(data)" 
-                [title] = "data.name"
-                style = "user-select:none;">
-                <span *ngIf = "data.objectType == 'folder' && !data.open" style = "cursor: pointer; margin-right:2px;" (click) = "openCollapse(i, data.level)">
-                    <i class="fas fa-folder"></i>
-                </span>
-                <span *ngIf = "data.objectType == 'folder' && data.open" style = "cursor: pointer;" (click) = "openCollapse(i, data.level)">
-                    <i class="fas fa-folder-open"></i>
-                </span>
+    <ng-container *ngFor = "let data of outData; let i = index;">
+        <div *ngIf = "!(search == '' && data.hide) && !(search != '' && data.searchHide)">
+            <div class = "leftItem" [style.marginLeft.px] = "search == '' ? (15 * data.level) : 0">
+                <div class = "leftItemText" 
+                    (click) = "getInfo(data)"
+                    (dblclick) = "openElement(data)" 
+                    [title] = "data.name"
+                    style = "user-select:none;">
+                    <span *ngIf = "data.objectType == 'folder' && !data.open" style = "cursor: pointer; margin-right:2px;" (click) = "openCollapse(i, data.level)">
+                        <i class="fas fa-folder"></i>
+                    </span>
+                    <span *ngIf = "data.objectType == 'folder' && data.open" style = "cursor: pointer;" (click) = "openCollapse(i, data.level)">
+                        <i class="fas fa-folder-open"></i>
+                    </span>
 
-                <i *ngIf = "data.objectType == 'user'" class="fas fa-user colorIconRole"></i>
-                <i *ngIf = "data.objectType == 'role'" class="fas fa-address-book colorIconRole"></i>
-                <i *ngIf = "data.objectType == 'log'" class="fas fa-book colorIconTable"></i>
-                <i *ngIf = "data.objectType == 'plan'" class="fa fa-chart-bar colorIconTable"></i>
-                
-                <span *ngIf = "data.objectType == 'table'" style = "cursor: pointer;" (click) = "openCollapse(i, data.level)">
-                    <i class="fas fa-table colorIconTable"></i>
-                </span>
-                
-                <i *ngIf = "data.objectType == 'filter'" class="fas fa-filter colorIconTable"></i>
-                <i *ngIf = "data.objectType == 'event'" class="fas fa-bolt colorIconEvent"></i>
-                <i *ngIf = "data.objectType == 'right'" class="fas fa-address-card"></i>
+                    <i *ngIf = "data.objectType == 'user'" class="fas fa-user colorIconRole"></i>
+                    <i *ngIf = "data.objectType == 'role'" class="fas fa-address-book colorIconRole"></i>
+                    <i *ngIf = "data.objectType == 'log'" class="fas fa-book colorIconTable"></i>
+                    <i *ngIf = "data.objectType == 'plan'" class="fa fa-chart-bar colorIconTable"></i>
+                    
+                    <span *ngIf = "data.objectType == 'table'" style = "cursor: pointer;" (click) = "openCollapse(i, data.level)">
+                        <i class="fas fa-table colorIconTable"></i>
+                    </span>
+                    
+                    <i *ngIf = "data.objectType == 'filter'" class="fas fa-filter colorIconTable"></i>
+                    <i *ngIf = "data.objectType == 'event'" class="fas fa-bolt colorIconEvent"></i>
+                    <i *ngIf = "data.objectType == 'right'" class="fas fa-address-card"></i>
 
-                <i *ngIf = "data.fileType == 'img'" class="fas fa-file-image colorIconFile"></i>
-                <i *ngIf = "data.fileType == 'xls'" class="fas fa-file-excel colorIconFile"></i>
-                <i *ngIf = "data.fileType == 'doc'" class="fas fa-file-word colorIconFile"></i>
-                <i *ngIf = "data.objectType == 'tlist'" class="fas fa-list-alt colorIconTlist"></i>
-                <i *ngIf = "data.objectType == 'label'" class="fas fa-share-square colorIconRole"></i>
-                {{data.name}}
-            </div>
-            <div class = "copyButton" (click) = "copyObject(data)">
-                <i class="fas fa-copy" title = "Копировать"></i>
+                    <i *ngIf = "data.fileType == 'img'" class="fas fa-file-image colorIconFile"></i>
+                    <i *ngIf = "data.fileType == 'xls'" class="fas fa-file-excel colorIconFile"></i>
+                    <i *ngIf = "data.fileType == 'doc'" class="fas fa-file-word colorIconFile"></i>
+                    <i *ngIf = "data.objectType == 'tlist'" class="fas fa-list-alt colorIconTlist"></i>
+                    <i *ngIf = "data.objectType == 'label'" class="fas fa-share-square colorIconRole"></i>
+                    {{data.name}}
+                </div>
+                <div class = "copyButton" (click) = "copyObject(data)">
+                    <i class="fas fa-copy" title = "Копировать"></i>
+                </div>
             </div>
         </div>
-    </div>
+    </ng-container>
     <div [hidden] = "outData.length != 0" style = "text-align:center;">Нет данных</div>
 </div>

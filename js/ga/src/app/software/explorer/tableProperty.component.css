@@ -7,6 +7,10 @@
     border: 1px solid #eeeeee;
     padding: 0px 5px;
 }
+.blockTD
+{
+    background-color: #f8f8f8;
+}
 /* .tableProperty td:first-child
 {
     min-width:100px;
@@ -20,26 +24,4 @@
 .tdInput
 {
     padding: 0px !important;
-}
-/*******************************************************/
-.propertyBtn
-{
-    width:100%; 
-    border-radius: 5px; 
-    height:24px; 
-    border:none; 
-    background-color: #007bff; 
-    color:white; 
-    margin-top:5px; 
-    cursor: pointer;
-    transition: 0.3s;
-}
-.propertyBtn:hover
-{
-    background-color: #2b91ff; 
-}
-.propertyBtn:disabled
-{
-    background-color: #dfdfdf; 
-    color:rgb(182, 182, 182);
 }

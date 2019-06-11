@@ -34,7 +34,7 @@ export class EventLogComponent implements OnInit
         this.query.protectionPost(480, { param: [this.inputs.id] }, (data) =>
         {
             this.inputs.name = "Журнал";
-            this.log = data.reverse();
+            this.log = data/* .reverse() */;
             let time;
             for(let i = 0; i < this.log.length; i++)
             {
@@ -51,6 +51,48 @@ export class EventLogComponent implements OnInit
             this.first = true;
             this.start();
         });
+    }
+    filterSettings = 
+    {
+        beginDate: null, 
+        endDate: null,
+        beginDateText: null, 
+        endDateText: null,
+        show: false
+    }
+    showFilterSettings = false;
+    openFilterSettings()
+    {
+        this.filterSettings.show = true;
+        clearTimeout(this.timer);
+    }
+    searchByFilter()
+    {
+        this.filterSettings.show = false;
+        this.query.protectionPost(481, { param: [this.inputs.id, this.filterSettings.beginDate, this.filterSettings.endDate] }, (data) =>
+        {
+            this.log = data/* .reverse() */;
+            let time;
+            for(let i = 0; i < this.log.length; i++)
+            {
+                time = this.func.getFormat(this.log[i][0]);
+                this.log[i][0] = time.split(" ")[1];
+                this.log[i].push(time);
+            }
+        });
+    }
+    clearFilterSettings()
+    {
+        this.filterSettings.show = false;
+        this.update();
+    }
+    changeBeginDate(date)
+    {
+        this.filterSettings.beginDate = this.func.getFormatForMilliseconds(date.milliseconds);
+    }
+    changeEndDate(date)
+    {
+        this.filterSettings.endDate = this.func.getFormatForMilliseconds(date.milliseconds);
     }
     ngOnDestroy() 
     {

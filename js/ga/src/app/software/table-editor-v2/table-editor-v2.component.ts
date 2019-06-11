@@ -319,7 +319,12 @@ export class TableEditorV2Component implements OnInit
                 k++;
             } */
     }
+    headerEditorShow = false;
     changeHeader() // изменить заголовок таблицы
+    {
+        this.headerEditorShow = !this.headerEditorShow;
+    }
+    /* changeHeader() // изменить заголовок таблицы
     {
         var header = [];
         for(var i = 0; i < this.dataHeader.length; i++) header[i] = { id: this.dataHeader[i].id, value: this.dataHeader[i].name };
@@ -346,7 +351,7 @@ export class TableEditorV2Component implements OnInit
                 });
             }
         });
-    }
+    } */
     onChangeFilter(i, value) // В строку фильтра вводят значение
     {
         if(value !== undefined) this.tableFilter.fields[i].value = value;

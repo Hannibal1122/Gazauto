@@ -80,3 +80,24 @@ select
 {
     background-color: white;
 }
+/*******************************************************/
+.propertyBtn
+{
+    border-radius: 5px; 
+    height:24px; 
+    border:none; 
+    background-color: #007bff; 
+    color:white; 
+    margin-top:5px; 
+    cursor: pointer;
+    transition: 0.3s;
+}
+.propertyBtn:hover
+{
+    background-color: #2b91ff; 
+}
+.propertyBtn:disabled
+{
+    background-color: #dfdfdf; 
+    color:rgb(182, 182, 182);
+}

@@ -18,3 +18,31 @@
         </tbody>
     </table>
 </div>
+<div style = "position:absolute; right:25px; top: 5px;">
+    <button (click) = "openFilterSettings()" class = "propertyBtn"><i class = "fa fa-filter"></i></button>
+</div>
+<div *ngIf = "filterSettings.show" style = "position:absolute; left:0px; top: 0px; width:100%; height:100%; background-color: rgba(96, 133, 172, 0.8);">
+    <table style = "margin:auto; margin-top:30px;">
+        <tbody>
+            <tr>
+                <td colspan="2"><datetimepicker (onChange) = "changeBeginDate($event)" [setValue] = "filterSettings.beginDateText"></datetimepicker></td>
+            </tr>
+            <tr>
+                <td colspan="2"><datetimepicker (onChange) = "changeEndDate($event)" [setValue] = "filterSettings.endDateText"></datetimepicker></td>
+            </tr>
+            <!-- <tr>
+                <td colspan="2"><input type = "text" placeholder="логин"></td>
+            </tr>
+            <tr>
+                <td colspan="2"><select></select></td>
+            </tr>
+            <tr>
+                <td colspan="2"><select></select></td>
+            </tr> -->
+            <tr>
+                <td><button (click) = "clearFilterSettings()" class = "propertyBtn">Сбросить фильтры</button></td>
+                <td><button (click) = "searchByFilter()" class = "propertyBtn">Поиск</button></td>
+            </tr>
+        </tbody>
+    </table>
+</div>

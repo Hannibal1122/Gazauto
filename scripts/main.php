@@ -316,9 +316,17 @@
                         break;
                     case 124: // Поиск в структуре элементов
                         $out = ["folder" => []];
-                        $search = "%$param[0]%";
                         $type = "%$param[1]%";
-                        $query = "SELECT id, objectType, objectId, name, parent, priority, info, bindId, state, icon FROM structures WHERE name LIKE %s AND objectType LIKE %s";
+                        if($param[0][0] == "#")
+                        {
+                            $search = str_replace("#", "", $param[0]);
+                            $query = "SELECT id, objectType, objectId, name, parent, priority, info, bindId, state, icon FROM structures WHERE hashtag = %s AND objectType LIKE %s";
+                        }
+                        else
+                        {
+                            $search = "%$param[0]%";
+                            $query = "SELECT id, objectType, objectId, name, parent, priority, info, bindId, state, icon FROM structures WHERE name LIKE %s AND objectType LIKE %s";
+                        }
                         if($login == "admin") $query .= " ORDER by parent, priority";
                         else $query .= " AND id IN (SELECT objectId FROM rights WHERE (login = %s OR login = %s) AND rights & 1 
                                 AND objectId NOT IN (SELECT objectId FROM rights WHERE login = %s AND (rights & 1) = 0)) ORDER by parent, priority";
@@ -416,6 +424,7 @@
                         $tableProperty = [
                             "timeCreate" => selectOne("SELECT date FROM main_log WHERE type = 'structure' AND value = %s AND operation = 'create' LIMIT 1", [ $idElement ]),
                             /* "timeUpdate" => selectOne("SELECT date FROM main_log WHERE type = %s AND value = %s AND operation = 'update' LIMIT 1", [ $type, $idElement ]), */
+                            "hashtag" => selectOne("SELECT hashtag FROM structures WHERE id = %i", [ $idElement ]),
                             "userProperty" => selectOne("SELECT user_property FROM structures WHERE id = %i", [ $idElement ])
                         ];
                         echo json_encode($tableProperty);
@@ -424,6 +433,11 @@
                         $idElement = (int)$param[0];
                         if(($myRight->get($idElement) & 8) != 8) continue; // Права на изменение
                         query("UPDATE structures SET user_property = %s WHERE id = %i", [$param[1], $idElement]);
+                        break;
+                    case 135: // Обновить хэштег
+                        $idElement = (int)$param[0];
+                        if(($myRight->get($idElement) & 8) != 8) continue; // Права на изменение
+                        query("UPDATE structures SET hashtag = %s WHERE id = %i", [$param[1], $idElement]);
                         break;
                 }
             }
@@ -902,9 +916,15 @@
                 $idElement = (int)$param[0];
                 switch($nQuery)
                 {
-                    case 480:
+                    case 480: // Отображение последних 100 сообщений
                         if(($myRight->get($idElement) & 1) != 1) continue; // Права на просмотр
-                        request("SELECT date, login, type, operation, value FROM main_log ORDER by date DESC LIMIT 100", [ ]);
+                        request("SELECT date, login, type, operation, value FROM main_log ORDER by date LIMIT 100", [ ]);
+                        break;
+                    case 481: // Запрос сообщений по дате
+                        if(($myRight->get($idElement) & 1) != 1) continue; // Права на просмотр
+                        $beginDate = $param[1];
+                        $endDate = $param[2]; 
+                        request("SELECT date, login, type, operation, value FROM main_log WHERE date >= %s AND date <= %s ORDER by date", [ $beginDate, $endDate ]);
                         break;
                 }
             }

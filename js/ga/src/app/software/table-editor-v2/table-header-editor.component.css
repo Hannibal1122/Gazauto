@@ -1,0 +1,30 @@
+.headerEditor
+{
+    /* width:100%; */
+}
+.headerEditor td
+{
+    border: 1px solid #eeeeee;
+    padding: 0px 5px;
+}
+.headerEditor td input
+{
+    width:100%;
+    border: none;
+    padding: 0px 5px;
+}
+.tdInput
+{
+    padding: 0px !important;
+}
+
+.caretColor
+{
+    cursor: pointer;
+    color: #007bff;
+    transition: 0.3s;
+}
+.caretDisabled
+{
+    color: #dfdfdf;
+}

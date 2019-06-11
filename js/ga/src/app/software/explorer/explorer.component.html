@@ -106,7 +106,7 @@
                 </div>
             </ng-container>
         </div>
-        <app-table-property #appTableProperty [mainData] = "outFolders[selectObjectI]"></app-table-property>
+        <app-table-property #appTableProperty [mainData] = "outFolders[selectObjectI]" [rules] = "selectRules"></app-table-property>
         <div class = "ModalButtonExitColor" style = "position:absolute; right:5px; top:5px; font-size:16px; cursor:pointer;" (click) = "closeTableProperty()">
             <i class="fas fa-times-circle"></i>
         </div>

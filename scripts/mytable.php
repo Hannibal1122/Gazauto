@@ -113,7 +113,17 @@
         {
             global $mysqli;
             $idTable = $this->idTable;
-            for($i = 0, $c = count($data); $i < $c; $i++)
+            $count = count($data);
+            //Проверка на дубликаты
+            for ($i = 0; $i < $count; $i++) 
+                for ($k = $i + 1; $k < $count; $k++) 
+                    if ($data[$i]->value == $data[$k]->value) 
+                    {
+                        echo "ERROR_DUBLICATE";
+                        return;
+                    }
+            
+            for($i = 0; $i < $count; $i++)
             {
                 $idColumn = -1;
                 if(isset($data[$i]->id))
