@@ -3,46 +3,64 @@
         <tbody *ngIf = "visible">
             <tr *ngFor = "let row of log"
                 class = "colorWhite"
-                [class.colorBlue] = "row[3] == 'enter'"
-                [class.colorGray] = "row[3] == 'open' || row[3] == 'text'"
-                [class.colorYellow] = "row[3] == 'warning'"
-                [class.colorRed] = "row[3] == 'error'"
-                [class.colorViolet] = "row[3] == 'remove'"
-                [class.colorGreen] = "row[3] == 'update' || row[3] == 'state' || row[3] == 'script'">
-                <td title="{{ row[5] }}">{{ row[0] }}</td>
-                <td>{{ row[1] }}</td>
-                <td>{{ row[2] }}</td>
-                <td>{{ row[3] }}</td>
-                <td>{{ row[4] }}</td>
+                [class.colorBlue] = "row.eventType == 'enter'"
+                [class.colorGray] = "row.eventType == 'open' || row.eventType == 'text'"
+                [class.colorYellow] = "row.eventType == 'warning'"
+                [class.colorRed] = "row.eventType == 'error'"
+                [class.colorViolet] = "row.eventType == 'remove'"
+                [class.colorGreen] = "row.eventType == 'update' || row.eventType == 'state' || row.eventType == 'script'">
+                <td title="{{ row.date }}">{{ row.time }}</td>
+                <td>{{ row.login }}</td>
+                <td>{{ row.objectType }}</td>
+                <td>{{ row.eventType }}</td>
+                <td>{{ row.data }}</td>
             </tr>
         </tbody>
     </table>
 </div>
 <div style = "position:absolute; right:25px; top: 5px;">
-    <button (click) = "openFilterSettings()" class = "propertyBtn"><i class = "fa fa-filter"></i></button>
+    <button (click) = "openFilterSettings()" class = "propertyBtn hideButton"><i class = "fa fa-filter"></i></button>
 </div>
-<div *ngIf = "filterSettings.show" style = "position:absolute; left:0px; top: 0px; width:100%; height:100%; background-color: rgba(96, 133, 172, 0.8);">
-    <table style = "margin:auto; margin-top:30px;">
+<div *ngIf = "filterSettings.show" style = "position:absolute; left:0px; top: 0px; width:100%; height:100%; background-color: #292929eb; overflow: auto; padding-bottom: 30px;">
+    <table style = "margin:auto; margin-top:30px; color:white;">
         <tbody>
             <tr>
+                <td colspan="2">Фильтры</td>
+            </tr>
+            <tr>
+                <td><input type = "checkbox" [(ngModel)] = "filterSettings.eventTypes.enter" (change) = "onChangeFilterEventType()">enter</td>
+                <td><input type = "checkbox" [(ngModel)] = "filterSettings.eventTypes.open" (change) = "onChangeFilterEventType()">open</td></tr>
+            <tr>
+                <td><input type = "checkbox" [(ngModel)] = "filterSettings.eventTypes.text" (change) = "onChangeFilterEventType()">text</td>
+                <td><input type = "checkbox" [(ngModel)] = "filterSettings.eventTypes.warning" (change) = "onChangeFilterEventType()">warning</td>
+            </tr>
+            <tr>
+                <td><input type = "checkbox" [(ngModel)] = "filterSettings.eventTypes.error" (change) = "onChangeFilterEventType()">error</td>
+                <td><input type = "checkbox" [(ngModel)] = "filterSettings.eventTypes.remove" (change) = "onChangeFilterEventType()">remove</td>
+            </tr>
+            <tr>
+                <td><input type = "checkbox" [(ngModel)] = "filterSettings.eventTypes.update" (change) = "onChangeFilterEventType()">update</td>
+                <td><input type = "checkbox" [(ngModel)] = "filterSettings.eventTypes.state" (change) = "onChangeFilterEventType()">state</td>
+            </tr>
+            <tr>
+                <td><input type = "checkbox" [(ngModel)] = "filterSettings.eventTypes.script" (change) = "onChangeFilterEventType()">script</td><td>
+            </tr>
+            <tr>
+                <td colspan="2">Поиск по дате</td>
+            </tr>
+            <tr style = "color:black;">
                 <td colspan="2"><datetimepicker (onChange) = "changeBeginDate($event)" [setValue] = "filterSettings.beginDateText"></datetimepicker></td>
             </tr>
-            <tr>
+            <tr style = "color:black;">
                 <td colspan="2"><datetimepicker (onChange) = "changeEndDate($event)" [setValue] = "filterSettings.endDateText"></datetimepicker></td>
             </tr>
-            <!-- <tr>
-                <td colspan="2"><input type = "text" placeholder="логин"></td>
-            </tr>
             <tr>
-                <td colspan="2"><select></select></td>
-            </tr>
-            <tr>
-                <td colspan="2"><select></select></td>
-            </tr> -->
-            <tr>
-                <td><button (click) = "clearFilterSettings()" class = "propertyBtn">Сбросить фильтры</button></td>
-                <td><button (click) = "searchByFilter()" class = "propertyBtn">Поиск</button></td>
+                <td style = "text-align: center;"><button (click) = "clearFilterSettings()" class = "propertyBtn">Сбросить фильтры</button></td>
+                <td style = "text-align: center;"><button (click) = "searchByFilter()" class = "propertyBtn">Поиск</button></td>
             </tr>
         </tbody>
     </table>
+</div>
+<div *ngIf = "filterSettings.show" class = "ModalButtonExitColor" style = "position:absolute; right:5px; top:5px; font-size:16px; cursor:pointer;" (click) = "closeFilterSettings()">
+    <i class="fas fa-times-circle"></i>
 </div>

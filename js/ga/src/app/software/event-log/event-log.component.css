@@ -31,3 +31,12 @@
 {
     color:rgb(245, 88, 174);
 }
+
+.hideButton
+{
+    opacity: 0.5;
+}
+.hideButton:hover
+{
+    opacity: 1;
+}
