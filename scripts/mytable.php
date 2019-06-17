@@ -243,7 +243,7 @@
                     }
                 }
                 $linkId = $linkType != "value" && $linkType != "tlist" ? $idObject : (int)$valueData[0];
-                
+                $oldValue = query("SELECT * FROM fields WHERE id = %i", [ $idField ])->fetch_assoc();
                 query("UPDATE fields SET value = %s, linkId = %i, linkType = %s, type = 'link', state = %i WHERE tableId = %i AND id = %i", [ $fieldValue, $linkId, $linkType, $fieldState, $idTable, $idField ]);
                 echo json_encode([ 
                     "id" => $idField, 
@@ -253,30 +253,8 @@
                     "listValue" => $linkType == "tlist" ? "" : NULL,
                     "state" => $fieldState 
                 ]);
+                $this->myLog->add("field", "update", $idField, $oldValue);
             }
-            $this->myLog->add("field", "update", $idField);
-        }
-        function setCellByValue($idObject, $idField, $key) // Добавление элемента из левого меню в таблицу по значению
-        {
-            $idTable = $this->idTable; 
-            if($result = query("SELECT objectType, objectId FROM structures WHERE id = %i", [ $idObject ]))
-            {
-                $row = $result->fetch_array(MYSQLI_NUM);
-                switch($row[0])
-                {
-                    case "value":
-                        if($value = query("SELECT value, type FROM my_values WHERE id = %i", [ (int)$row[1] ]))
-                        {
-                            $valueData = $value->fetch_array(MYSQLI_NUM);
-                            if($valueData[1] == "array") $fieldValue = getListValueByKey((int)$row[1], $key);
-                            else $fieldValue = $valueData[0];
-                            query("UPDATE fields SET value = %s, type = 'value', linkId = NULL, linkType = NULL WHERE tableId = %i AND id = %i", [ $fieldValue, $idTable, $idField]);
-                            echo json_encode([ "id" => $idField, "value" => $fieldValue ]);
-                        }
-                        break;
-                }
-            }
-            $this->myLog->add("field", "update", $idField);
         }
         function addRow($idPrevRow, $prevOrNext, $echo) // Добавить строку в таблицу
         {
@@ -369,6 +347,8 @@
         {
             if($result = query("SELECT type, value, linkId, linkType, state FROM fields WHERE id = %i", [$idCellFrom])) 
                 $valueData = $result->fetch_array(MYSQLI_NUM);
+            $oldValue = query("SELECT * FROM fields WHERE id = %i", [ $idCellTo ])->fetch_assoc();
+            $oldValueFrom = query("SELECT * FROM fields WHERE id = %i", [ $idCellFrom ])->fetch_assoc();
             if($operation == "copy") 
             {
                 $out = ["id" => $idCellTo];
@@ -394,7 +374,6 @@
                             $out["value"] = $valueData[1];
                             if($_valueData[1] == "tlist") $out["listValue"] = getTableListValueByKey((int)$out["value"], (int)$_valueData[2]);
                             else $out["value"] = $_valueData[0];
-
                         }
                     }
                     else
@@ -411,9 +390,9 @@
                 if($echo) 
                 {
                     echo json_encode($out);
-                    $this->myLog->add("field", "update", $idCellTo); 
+                    $this->myLog->add("field", "update", $idCellTo, $oldValue); 
                 }
-                else $this->myLog->add("field", "script", $idCellTo); 
+                else $this->myLog->add("field", "script", $idCellTo, $oldValue); 
             }
             if($operation == "cut") 
             {
@@ -426,7 +405,8 @@
                 if($echo)
                 {
                     echo json_encode([ "idTableFrom" => $idTableFrom ]);
-                    $this->myLog->add("field", "update", $idCellFrom); // изменение таблицы из которой вырезали
+                    $this->myLog->add("field", "update", $idCellTo, $oldValue); 
+                    $this->myLog->add("field", "update", $idCellFrom, $oldValueFrom); // изменение таблицы из которой вырезали
                 }
                 $this->calculateStateForTable($idTableFrom);
             }

@@ -592,14 +592,7 @@
                         if(($myRight->get($idObject) & 4) != 4) return; // Права на наследование
                         $myTable->setCellByLink($idObject, $idField);
                         break;
-                    case 256: // Добавление элемента из левого меню в таблицу по значению
-                        $idObject = (int)$param[1];
-                        $idField = (int)$param[2];
-                        $idTable = selectOne("SELECT tableId FROM fields WHERE id = %i", [ $idField ]);
-                        if(($myRight->get($idTable) & 8) != 8) return; // Права на изменение
-                        if(($myRight->get($idObject) & 1) != 1) return; // Права на просмотр
-                        $key = (int)$param[4];
-                        $myTable->setCellByValue($idObject, $idField, $key);
+                    case 256: // резерв
                         break;
                     case 257: // Добавить строку в таблицу
                         if(($myRight->get($idTable) & 8) != 8) return; // Права на изменение
