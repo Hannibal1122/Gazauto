@@ -1,23 +1,32 @@
-<table class = "headerEditor">
-    <tbody>
+<div style = "max-height: 300px; overflow: auto;">
+    <table class = "headerEditor">
         <tr>
             <th>Имя</th>
             <th>Тип</th>
             <th></th>
             <th></th>
             <th></th>
+            <th></th>
         </tr>
         <tr *ngFor = "let h of dataHeader; let i = index; let first = first; let last = last;">
-            <td><input type = "text" class = "tdInput" [(ngModel)] = "h.value" (change) = "onChangeInput(i)"></td>
-            <td>{{ h.type ? h.type : "Общий" }}</td>
-            <td class = "caretColor" [class.caretDisabled] = "first" (click) = "growUp(i)"><i class = "fas fa-caret-up"></i></td>
-            <td class = "caretColor" [class.caretDisabled] = "last" (click) = "growDown(i)"><i class = "fas fa-caret-down"></i></td>
-            <td style = "color: red; cursor: pointer;" (click) = "removeRow(i)"><i class = "fa fa-minus-circle"></i></td>
+            <ng-container *ngIf = "h">
+                <td class = "tdInput">
+                    <input type = "text" [disabled] = "readonly" [(ngModel)] = "h.value" (change) = "onChangeInput(i)">
+                </td>
+                <td>{{ h.type ? h.type : "Общий" }}</td>
+                <td class = "caretColor" [class.caretDisabled] = "readonly || first" (click) = "growUp(i)"><i class = "fas fa-caret-up"></i></td>
+                <td class = "caretColor" [class.caretDisabled] = "readonly || last" (click) = "growDown(i)"><i class = "fas fa-caret-down"></i></td>
+                <td (click) = "changeShow(i)">
+                    <span *ngIf = "h.show" class = "caretColor"><i class="fas fa-eye"></i></span>
+                    <span *ngIf = "!h.show" class = "caretColor caretDisabled"><i class="fas fa-eye-slash"></i></span>
+                </td>
+                <td class = "removeColor" [class.caretDisabled] = "readonly" (click) = "removeRow(i)"><i class = "fa fa-minus-circle"></i></td>
+            </ng-container>
         </tr>
-    </tbody>
-</table>
-<div style="margin-top:5px; margin-bottom: 5px;">
-    <button class = "propertyBtn" (click) = "addHead()"><i class="fas fa-plus-circle"></i></button>
-    <button class = "propertyBtn" [disabled] = "!change" (click) = "saveHead()" style = "margin-left:5px;">Сохранить</button>
-    <div *ngIf = "error" style = "font-size: 10px; color:red;">Заголовки не могут быть одинаковыми!</div>
+    </table>
+    <div style="margin-top:5px; margin-bottom: 5px;">
+        <button class = "propertyBtn" [disabled] = "readonly" (click) = "addHead()"><i class="fas fa-plus-circle"></i></button>
+        <button class = "propertyBtn" [disabled] = "!change" (click) = "saveHead()" style = "margin-left:5px;">Сохранить</button>
+        <div *ngIf = "error" style = "font-size: 10px; color:red;">Заголовки не могут быть одинаковыми!</div>
+    </div>
 </div>

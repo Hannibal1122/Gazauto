@@ -45,6 +45,8 @@ export class PasteObjectService {
                 selectValue = ["Копировать", "Копировать структуру", "Наследовать"];
                 break; */
             case "folder":
+                selectValue = ["Копировать", "Копировать структуру"];
+                break;
             case "table":
                 selectValue = ["Копировать"];
                 if(copyExplorer.bindId == null) selectValue.push("Наследовать"); // Нельзя наследовать от наследуемой

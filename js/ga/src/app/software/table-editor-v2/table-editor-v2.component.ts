@@ -60,6 +60,7 @@ export class TableEditorV2Component implements OnInit
     dataTable = [];
     firstData = []; // Ссылка на изначальные данные для фильтров
     mapFields = {}; // Сохраняется id для быстрого поиска ячейки
+    hiddenColumn = { }; // Объект для скрытия столбцов, хранит номер столбца
 
     configInput = {
         width: "100px",
@@ -164,6 +165,17 @@ export class TableEditorV2Component implements OnInit
             out[b[0]] = b[1];
         }
         return out;
+    }
+    updateEventFromHeader(e)
+    {
+        switch(e.type)
+        {
+            case "data": this.loadTable(); break;
+            case "column": 
+                if(this.hiddenColumn[e.i] === undefined) this.hiddenColumn[e.i] = false;
+                this.hiddenColumn[e.i] = !this.hiddenColumn[e.i];
+                break;
+        }
     }
     loadTable()
     {
@@ -324,34 +336,6 @@ export class TableEditorV2Component implements OnInit
     {
         this.headerEditorShow = !this.headerEditorShow;
     }
-    /* changeHeader() // изменить заголовок таблицы
-    {
-        var header = [];
-        for(var i = 0; i < this.dataHeader.length; i++) header[i] = { id: this.dataHeader[i].id, value: this.dataHeader[i].name };
-        var Data:any = {
-            title: "Редактор заголовка",  
-            data: [
-                ["Столбцы", header, "listTable", []]
-            ],
-            ok: "Изменить",
-            cancel: "Отмена"
-        };
-        this.modal.open(Data, (save) =>
-        {
-            if(save)
-            {
-                let out = [];
-                for(var i = 0; i < Data.data[0][1].length; i++)
-                out.push({ id: Data.data[0][1][i].id, value: Data.data[0][1][i].value, oldValue: Data.data[0][1][i].oldValue, i: i});
-                let changes = Data.data[0][3];
-                this.loaded = false;
-                this.query.protectionPost(251, { param: [ this.id, JSON.stringify(out), changes ]}, (data) => 
-                {
-                    this.loadTable();
-                });
-            }
-        });
-    } */
     onChangeFilter(i, value) // В строку фильтра вводят значение
     {
         if(value !== undefined) this.tableFilter.fields[i].value = value;
@@ -473,7 +457,11 @@ export class TableEditorV2Component implements OnInit
                 cell.listValue = data.value.listValue;
                 cell.value = data.value.value;
             }
-            else cell.value = data.value;
+            else 
+            {
+                cell.listValue = undefined;
+                cell.value = data.value;
+            }
         });
     }
     openDatetimeModal() // Открыть модальное окно с вставкой времени
@@ -871,6 +859,7 @@ export class TableEditorV2Component implements OnInit
     }
     onFilterChange() // Обновить фильтр
     {
+        this.headerEditorShow = false;
         this.query.protectionPost(474, { param: [this.filter.selected, this.id] }, (data) => 
         { 
             this.loadTable();

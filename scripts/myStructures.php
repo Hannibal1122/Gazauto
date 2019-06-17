@@ -21,17 +21,12 @@
             
             if($login != "admin") $this->myRight->create($idElement, "user", $login, 255);
             if($param[0] == "folder" || $param[0] == "table") // Проверка на то что объект наследуется
-            {
-                require_once("myObject.php");
-                $myObject = new MyObject($idElement);
-                $myObject->checkAdd();
                 if($param[0] == "table") // Если таблица создаем фильтр по умолчанию с правами пользователя
                 {
                     require_once("myFilter.php");
                     $myFilter = new MyFilter();
                     $this->create([ "filter", $myFilter->create("", ""), "default filter", $idElement, 0, "" ]);
                 }
-            }
             if($param[0] == "plan") // План можно открывать как таблицу, но нельзя наследовать
             {
                 require_once("myFilter.php");

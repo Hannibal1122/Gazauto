@@ -24,6 +24,11 @@
     color: #007bff;
     transition: 0.3s;
 }
+.removeColor
+{
+    color: red; 
+    cursor: pointer;
+}
 .caretDisabled
 {
     color: #dfdfdf;

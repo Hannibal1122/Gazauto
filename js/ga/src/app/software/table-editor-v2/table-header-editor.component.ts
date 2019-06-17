@@ -22,12 +22,18 @@ export class TableHeaderEditorComponent implements OnInit
         {
             this.dataHeader = [];
             for(let i = 0; i < value.length; i++)
-                this.dataHeader[i] = { value: value[i].name, type: value[i].dataType, id: value[i].id };
+                if(value[i])
+                    this.dataHeader[i] = { value: value[i].name, type: value[i].dataType, id: value[i].id, show: true };
             this.change = false;
             this.changes = [];
             this.error = false;
         }
     }
+    @Input() set disabled(value)
+    {
+        this.readonly = value === true;
+    }
+    readonly = false;
     id = -1;
     dataHeader = [];
     change = false;
@@ -41,7 +47,7 @@ export class TableHeaderEditorComponent implements OnInit
     }
     growUp(i)
     {
-        if(i == 0) return;
+        if(this.readonly || i == 0) return;
         let a = this.dataHeader[i - 1];
         this.dataHeader[i - 1] = this.dataHeader[i];
         this.dataHeader[i] = a;
@@ -49,14 +55,20 @@ export class TableHeaderEditorComponent implements OnInit
     }
     growDown(i)
     {
-        if(i == this.dataHeader.length - 1) return;
+        if(this.readonly || i == this.dataHeader.length - 1) return;
         let a = this.dataHeader[i + 1];
         this.dataHeader[i + 1] = this.dataHeader[i];
         this.dataHeader[i] = a;
         this.onChangeInput();
     }
+    changeShow(i)
+    {
+        this.dataHeader[i].show = !this.dataHeader[i].show;
+        this.updateTable.emit({ type: "column", i: i });
+    }
     removeRow(i)
     {
+        if(this.readonly) return;
         if(this.dataHeader[i].id) this.changes.push(this.dataHeader[i].id);
         this.dataHeader.splice(i, 1);
         this.onChangeInput();
@@ -87,7 +99,7 @@ export class TableHeaderEditorComponent implements OnInit
                 this.error = true;
                 return;
             }
-            this.updateTable.emit();
+            this.updateTable.emit({ type: "data" });
             this.change = false;
             this.changes = [];
             this.error = false;

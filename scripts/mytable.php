@@ -11,16 +11,18 @@
             $idTable = $this->idTable; 
             $nameTable = "";
             $stateTable = 0;
+            $objectType = "";
             $head = [];
             $data = [];
             $enableLines = "";
-            $bindId = -1;
-            if($result = query("SELECT name, bindId, state FROM structures WHERE id = %i", [$idTable]))
+            $bindId;
+            if($result = query("SELECT name, bindId, state, objectType FROM structures WHERE id = %i", [$idTable]))
                 while ($row = $result->fetch_array(MYSQLI_NUM)) 
                 { 
                     $nameTable = $row[0]; 
                     $bindId = $row[1]; 
                     $stateTable = (int)$row[2]; 
+                    $objectType = $row[3]; 
                 }
             if($result = query("SELECT i, id, value, eventId, dataType FROM fields WHERE tableId = %i AND type = 'head' $filterColumn[0] ORDER by i", [$idTable]))
                 while ($row = $result->fetch_array(MYSQLI_NUM))
@@ -103,7 +105,7 @@
                 "name" => $nameTable, 
                 "right" => $tableRight,
                 "idLogTableOpen" => $this->myLog->add("table", "open", $idTable), 
-                "changeHead" => $filterColumn[0] == "", // Если столбцы скрыты фильтром, то нельзя менять
+                "changeHead" => $filterColumn[0] == "" && is_null($bindId) && $objectType != "plan", // Если столбцы скрыты фильтром ИЛИ таблица наследуется ИЛИ это редактор плана, то нельзя менять
                 "state" => $stateTable,
                 "filters" => $filters,
                 "filter" => $filterSelected
@@ -122,7 +124,10 @@
                         echo "ERROR_DUBLICATE";
                         return;
                     }
-            
+            $bindTables = []; // Поиск всех наследников
+            if($result = query("SELECT id FROM structures WHERE bindId = %i", [ $idTable ]))
+                while($row = $result->fetch_assoc()) 
+                    $bindTables[] = $row["id"];
             for($i = 0; $i < $count; $i++)
             {
                 $idColumn = -1;
@@ -130,34 +135,50 @@
                     $idColumn = (int)$data[$i]->id;
                 if($idColumn == -1)
                 {
-                    query("INSERT INTO fields (tableId, value, type) VALUES(%i, %s, %s) ", [ $idTable, $data[$i]->value, "head" ]);
-                    $idColumn = $mysqli->insert_id;
-                    if($result = query("SELECT DISTINCT i FROM fields WHERE tableId = %i AND type != 'head'", [ $idTable ]))
-                        while($row = $result->fetch_array(MYSQLI_NUM))
-                            query("INSERT INTO fields (tableId, i, idColumn, type, value) VALUES(%i, %i, %s, %s, %s) ", [ $idTable, $row[0], $idColumn, "value", "" ]);
+                    $idColumn = $this->addNewHead($idTable, $data[$i]->value, false);
+                    for($j = 0, $c = count($bindTables); $j < $c; $j++)
+                        $this->addNewHead($bindTables[$j], $data[$i]->value, $idColumn);
                 }
                 else
                     if(isset($data[$i]->oldValue)) // Изменить имя у столбца
+                    {
                         query("UPDATE fields SET value = %s WHERE id = %i", [ $data[$i]->oldValue, $idColumn ]);
+                        query("UPDATE fields SET value = %s WHERE bindId = %i", [ $data[$i]->oldValue, $idColumn ]);
+                    }
                 // Изменить порядок
                 query("UPDATE fields SET i = %i WHERE id = %i", [ $i, $idColumn ]);
+                query("UPDATE fields SET i = %i WHERE bindId = %i", [ $i, $idColumn ]);
                 // Если это новый столбец, то создать по всем строкам
                 // удаление ячеек и заголовка
             }
             for($i = 0, $c = count($changes); $i < $c; $i++)
             {
-                query("DELETE FROM fields WHERE id = %i", [ $changes[$i] ]);
-                query("DELETE FROM fields WHERE idColumn = %i", [ $changes[$i] ]);
+                query("DELETE FROM fields WHERE id = %i OR idColumn = %i", [ $changes[$i], $changes[$i] ]);
+                if($result = query("SELECT id FROM fields WHERE bindId =  %i", [ (int)$changes[$i] ]))
+                    while($row = $result->fetch_assoc()) 
+                        query("DELETE FROM fields WHERE id = %i OR idColumn = %i", [ (int)$row["id"], (int)$row["id"] ]);
             }
             $this->myLog->add("table", "update", $idTable);
+        }
+        function addNewHead($idTable, $headName, $link)
+        {
+            global $mysqli;
+            query("INSERT INTO fields (tableId, value, type, bindId) VALUES(%i, %s, %s, %s) ", [ $idTable, $headName, "head", $link ? $link : NULL ]);
+            $idColumn = $mysqli->insert_id;
+            if($result = query("SELECT DISTINCT i FROM fields WHERE tableId = %i AND type != 'head'", [ $idTable ]))
+                while($row = $result->fetch_array(MYSQLI_NUM))
+                    query("INSERT INTO fields (tableId, i, idColumn, type, value) VALUES(%i, %i, %s, %s, %s) ", [ $idTable, $row[0], $idColumn, "value", "" ]);
+            return $idColumn;
         }
         function setCell($data, $echo, $event = true) // Изменить ячейки в таблице
         {
             $idTable = $this->idTable; 
             $value = $data->value;
             $idField = (int)$data->id;
-
             $typeField = is_object($value) ? "tlist" : "value";
+
+            // TODO Добавить механизм сохранения значения
+            $oldValue = query("SELECT * FROM fields WHERE id = %i", [ $idField ])->fetch_assoc();
             if($typeField == "value")
                 query("UPDATE fields SET value = %s, linkId = NULL, linkType = NULL, type = 'value' WHERE tableId = %i AND id = %i", [ 
                     $value, 
@@ -176,10 +197,9 @@
             if($echo) 
             {
                 echo json_encode([ "id" => $idField, "value" => $value ]);
-                $this->myLog->add("field", "update", $idField);
+                $this->myLog->add("field", "update", $idField, $oldValue);
             }
-            else $this->myLog->add("field", "script", $idField);
-            /* $this->calculateStateForTable($idTable); */
+            else $this->myLog->add("field", "script", $idField, $oldValue);
         }
         function checkEvent($idField) // Нужно вызывать при изменении ячейки, проверяет наличие событий
         {
@@ -385,7 +405,6 @@
                         if($valueData[3] == "cell" || $valueData[3] == "file" || $valueData[3] == "table") $out["type"] = $valueData[3];
                         if($valueData[3] == "table") if((int)$value["tableId"] == (int)$idTableTo) { echo "ERROR"; return; } // Нельзя вставить ссылку в таблицу на себя
                     }
-                    
                     query("UPDATE fields SET type=%s, value=%s, linkId=%i, linkType=%s, state=%i WHERE id = %i", [ 
                         $valueData[0], $valueData[1], $valueData[2], $valueData[3], $valueData[4], $idCellTo ]);
                 }
@@ -419,11 +438,20 @@
             $idTable = $this->idTable;
             $idNewRow = -1;
             $newIdColumn = [];
-            if($result = query("SELECT i, value, id FROM fields WHERE tableId = %i AND type = 'head'", [ $idTableFrom ])) // Копирование заголовка
-                while ($row = $result->fetch_array(MYSQLI_NUM))
+            if($result = query("SELECT id, i, value, linkId, linkType, dataType, eventId FROM fields WHERE tableId = %i AND type = 'head'", [ $idTableFrom ])) // Копирование заголовка
+                while ($row = $result->fetch_assoc())
                 {
-                    query("INSERT INTO fields (tableId, i, value, type) VALUES(%i, %i, %s, 'head') ", [ $idTable, $row[0], $row[1] ]);
-                    $newIdColumn[$row[2]] = $mysqli->insert_id;
+                    query("INSERT INTO fields (tableId, i, value, type, linkId, linkType, bindId, dataType, eventId) VALUES(%i, %i, %s, 'head', %i, %i, %i, %i, %i) ", [ 
+                        $idTable, 
+                        $row["i"], 
+                        $row["value"], 
+                        $row["linkId"], 
+                        $row["linkType"], 
+                        $link ? $row["id"] : NULL, 
+                        $row["dataType"], 
+                        $row["eventId"]
+                    ]);
+                    $newIdColumn[$row["id"]] = $mysqli->insert_id;
                 }
         
             $data = [];

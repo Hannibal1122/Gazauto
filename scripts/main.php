@@ -212,7 +212,7 @@
                                 break;
                         }
                         break;
-                    case 112: // Удаление элемента структуры // Права на изменение
+                    case 130: // Удаление элемента структуры // Права на изменение
                         $idElement = (int)$param[0];
                         if(($myRight->get($idElement) & 8) != 8) return; // Права на изменение
                         query("UPDATE structures SET trash = 1 WHERE id = %i", [$idElement]);
@@ -388,16 +388,12 @@
                                 $out = getObjectFromStructures($row);
                         echo json_encode($out);
                         break;
-                    case 130: // Полное удаление Объекта из проекта
-                        require_once("myObject.php");
+                    case 112: // Полное удаление Объекта из проекта
                         require_once("copyAndRemove.php");
                         $idElement = (int)$param[0];
                         $structures = new CopyAndRemove(null, null, null, $myLog);
                         $out = [ $idElement ];
                         getRemoveElementbyStructure($out, $idElement);
-                        
-                        $myObject = new MyObject($idElement);
-                        $myObject->checkRemove($out);
                         for($i = 0, $c = count($out); $i < $c; $i++)
                         {
                             if(($myRight->get($out[$i]) & 8) != 8) continue; // Права на изменение
@@ -567,15 +563,16 @@
                         break;
                     case 251: // Добавить/Удалить заголовок
                         if(($myRight->get($idTable) & 8) != 8) return; // Права на изменение
-                        if($result = query("SELECT bindId FROM structures WHERE id = %i", [ $idTable ]))
-                            if(!is_null($result->fetch_array(MYSQLI_NUM)[0])) return;
+                        if(!is_null(selectOne("SELECT bindId FROM structures WHERE id = %i", [ $idTable ]))) return; // Если таблица наследуется
                         $data = json_decode($param[1]);
                         $changes = array_key_exists(2, $param) ? $param[2] : [];
                         $myTable->setAndRemoveHeader($data, $changes);
                         break;
-                    case 252: // Изменить ячейки в таблице
-                        if(($myRight->get($idTable) & 8) != 8) return; // Права на изменение
+                    case 252: // Изменить значение ячейки в таблице
                         $data = json_decode($param[1]);
+                        $idField = (int)$data->id;
+                        $idTable = selectOne("SELECT tableId FROM fields WHERE id = %i", [ $idField ]); // Проверка прав должна идти от ячейки
+                        if(($myRight->get($idTable) & 8) != 8) return; // Права на изменение
                         $myTable->setCell($data, true);
                         break;
                     case 253: // Запрос списка колонок
@@ -589,16 +586,18 @@
                         break;
                     case 255: // Добавление элемента из левого меню в таблицу по ссылке
                         $idObject = (int)$param[1];
+                        $idField = (int)$param[2];
+                        $idTable = selectOne("SELECT tableId FROM fields WHERE id = %i", [ $idField ]);
                         if(($myRight->get($idTable) & 8) != 8) return; // Права на изменение
                         if(($myRight->get($idObject) & 4) != 4) return; // Права на наследование
-                        $idField = (int)$param[2];
                         $myTable->setCellByLink($idObject, $idField);
                         break;
                     case 256: // Добавление элемента из левого меню в таблицу по значению
                         $idObject = (int)$param[1];
+                        $idField = (int)$param[2];
+                        $idTable = selectOne("SELECT tableId FROM fields WHERE id = %i", [ $idField ]);
                         if(($myRight->get($idTable) & 8) != 8) return; // Права на изменение
                         if(($myRight->get($idObject) & 1) != 1) return; // Права на просмотр
-                        $idField = (int)$param[2];
                         $key = (int)$param[4];
                         $myTable->setCellByValue($idObject, $idField, $key);
                         break;
@@ -628,6 +627,7 @@
                         break;
                     case 260: // Выставить статус
                         $idField = (int)$param[1];
+                        $idTable = selectOne("SELECT tableId FROM fields WHERE id = %i", [ $idField ]);
                         if(($myRight->get($idTable) & 8) != 8) return; // Права на изменение
                         $myTable->setStateForField($idTable, $idField, $param[2]);
                         break;
@@ -636,31 +636,40 @@
                         $myTable->export();
                         break;
                     case 262: // Добавление события из левого меню на ячейку
-                        if(($myRight->get($idTable) & 8) != 8) return; // Права на изменение
                         $eventId = (int)$param[1];
                         $idField = (int)$param[2];
+                        $idTable = selectOne("SELECT tableId FROM fields WHERE id = %i", [ $idField ]);
+                        if(($myRight->get($idTable) & 8) != 8) return; // Права на изменение
                         $type = selectOne("SELECT type FROM events WHERE id = %i", [ $eventId ]);
-                        if($type != "date") query("UPDATE fields SET eventId = %i WHERE id = %i", [$eventId, $idField]);
+                        if($type != "date") 
+                            query("UPDATE fields SET eventId = %i WHERE id = %i OR bindId = %i", [$eventId, $idField, $idField]);
                         else echo json_encode(false);
                         $myLog->add("field", "event", $idField);
                         break;
                     case 263: // Удаление события с ячейки
-                        if(($myRight->get($idTable) & 8) != 8) return; // Права на изменение
                         $idField = (int)$param[1];
-                        query("UPDATE fields SET eventId = NULL WHERE id = %i", [ $idField ]);
+                        $idTable = selectOne("SELECT tableId FROM fields WHERE id = %i", [ $idField ]);
+                        if(($myRight->get($idTable) & 8) != 8) return; // Права на изменение
+                        query("UPDATE fields SET eventId = NULL WHERE id = %i OR bindId = %i", [ $idField, $idField ]);
                         $myLog->add("field", "revent", $idField);
                         break;
                     case 264: // Назначить тип столбцу
-                        if(($myRight->get($idTable) & 8) != 8) return; // Права на изменение
                         $idField = (int)$param[1]; // id ячейки
                         $idValue = (int)$param[2]; // id из структуры
+                        $idTable = selectOne("SELECT tableId FROM fields WHERE id = %i", [ $idField ]);
+                        if(($myRight->get($idTable) & 8) != 8) return; // Права на изменение
                         $idTlist = selectOne("SELECT id FROM my_values WHERE id = (SELECT objectId FROM structures WHERE id = %i)", [ $idValue ]); // id из my_values
                         query("UPDATE fields SET dataType = %i WHERE id = %i AND type = 'head' AND tableId = %i", [ $idTlist, $idField, $idTable ]);
                         query("UPDATE fields SET type = 'link', linkId = %i, linkType = 'tlist', value = '' WHERE idColumn = %i AND tableId = %i", [ $idTlist, $idField, $idTable ]);
+                        // Выставление типа у всех наследников, чтобы не затирать возможные данные обновления ячеек не происходит
+                        query("UPDATE fields SET dataType = %i WHERE bindId = %i AND type = 'head'", [ $idTlist, $idField ]);
                         break;
                     case 265: // Сбросить тип столбца
                         $idField = (int)$param[1];
+                        $idTable = selectOne("SELECT tableId FROM fields WHERE id = %i", [ $idField ]);
+                        if(($myRight->get($idTable) & 8) != 8) return; // Права на изменение
                         query("UPDATE fields SET dataType = NULL WHERE id = %i AND type = 'head' AND tableId = %i", [ $idField, $idTable ]);
+                        query("UPDATE fields SET dataType = NULL WHERE bindId = %i AND type = 'head'", [ $idField ]);
                         break;
                     case 266: // Импорт файла
                         $nameFile = $param[1];
@@ -677,12 +686,14 @@
                         }
                         break;
                     case 268: // Назначить примитивный тип столбцу
-                        if(($myRight->get($idTable) & 8) != 8) return; // Права на изменение
                         $idField = (int)$param[1]; // id ячейки
                         $idValue = $param[2]; // имя из структуры
+                        $idTable = selectOne("SELECT tableId FROM fields WHERE id = %i", [ $idField ]);
+                        if(($myRight->get($idTable) & 8) != 8) return; // Права на изменение
                         $idType = selectOne("SELECT id FROM my_values WHERE type = %s", [ $idValue ]);
                         query("UPDATE fields SET dataType = %i WHERE id = %i AND type = 'head' AND tableId = %i", [ $idType, $idField, $idTable ]);
                         query("UPDATE fields SET type = 'value', linkId = NULL, linkType = NULL WHERE idColumn = %i AND tableId = %i", [ $idField, $idTable ]);
+                        query("UPDATE fields SET dataType = %i WHERE bindId = %i AND type = 'head'", [ $idType, $idField ]);
                         break;
                     case 269: // Поменять местами строку
                         if(($myRight->get($idTable) & 8) != 8) return; // Права на изменение

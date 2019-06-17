@@ -489,6 +489,10 @@ export class ExplorerComponent implements OnInit
         if(this.selectObjectI == -1) return;
         this.tableProperty.visible = true;
     }
+    openTableProperty()
+    {
+        this.tableProperty.visible = !this.tableProperty.visible;
+    }
     closeTableProperty()
     {
         this.tableProperty.visible = false;

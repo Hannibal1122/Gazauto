@@ -33,7 +33,6 @@ export class ModalMovedWindowComponent implements OnInit
     }
     constructor()
     {
-        // TODO Удалять слушатель
         document.addEventListener("mousemove", this.onMouseMove);
     }
     ngOnInit()
