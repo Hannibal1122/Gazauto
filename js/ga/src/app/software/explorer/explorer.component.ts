@@ -322,6 +322,10 @@ export class ExplorerComponent implements OnInit
             this.selectRules.paste = Boolean(right.change) && this.selectObjectCopy.id != -1;
             this.selectRules.info = Boolean(right.change);
             this.selectRules.rename = Boolean(right.change) && objectType != "user" && objectType != "role" && objectType != "file";
+            this.tableProperty.rules = { 
+                change: Boolean(right.change),
+                rename: this.selectRules.rename
+            };
             if(objectType == "file") this.selectRules.download = true;
 
             if(this.inputs.bind)
@@ -475,6 +479,10 @@ export class ExplorerComponent implements OnInit
     tableProperty = {
         visible: true,
         data: {},
+        rules: {
+            change: false,
+            rename: false
+        },
         listLink: 
         {
             visible: false,

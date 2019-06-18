@@ -61,3 +61,43 @@
 {
     color:rgb(173, 173, 173);
 }
+/*****************************************/
+.tableProperty
+{
+    position: absolute;
+    right:5px;
+    top: 5px;
+    min-width: 260px;
+    color: #456486; 
+    font-size:12px;
+    padding:5px;
+    background: white;
+    margin-left: 5px;
+    border-radius: 10px;
+    box-shadow: 0px 0px 3px 0px #aaaaaa;
+    transition: 0.3s;
+    height: calc(100% - 10px);
+    max-height: 500px;
+}
+.wordCenter
+{
+    position: absolute; 
+    top:50%; 
+    left:50%; 
+    transform: translate(-50%, -50%); 
+    cursor: pointer;
+    color:#b8b8b8; 
+    font-size:20px; 
+    font-weight:bold;
+    white-space: nowrap;
+}
+.linkField
+{
+    cursor: pointer;
+    font-size:12px;
+    margin-left:15px;
+}
+.linkField:hover
+{
+    text-decoration: underline;
+}

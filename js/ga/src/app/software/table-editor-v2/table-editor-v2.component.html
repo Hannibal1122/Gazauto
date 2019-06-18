@@ -17,6 +17,7 @@
         <button class = "mainButton" title = "Экспорт в Excel" (click) = "exportToExcel()" ><i class="fas fa-file-excel"></i></button>
         <button class = "mainButton" title = "Импорт таблицы" (click) = "importFromExcel()" [disabled] = "!right.change"><i class="fas fa-download"></i></button>
         <button class = "mainButton" title = "Добавить строку" (click) = "addRow('end', 1)" [disabled] = "!right.change"><i class="fas fa-plus"></i></button>
+        <button class = "mainButton" [class.enableButton] = "tableProperty.visible" title = "Таблица свойств" (click) = "openTableProperty()"><i class="fas fa-briefcase"></i></button>
         <button class = "mainButton" title = "Сохраненная позиция" (click) = "setScroll()"><i class="fas fa-bookmark"></i></button>
         <button class = "mainButton" [class.enableButton] = "tableFilter.enable" title = "Включить фильтры" (click) = "enableFilters()"><i class="fa fa-filter"></i></button>
         <button class = "mainButton" [class.enableButton] = "lineNumbering.enable" title = "Нумерация строк" (click) = "enableLineNumbering()"><i class="fas fa-list-ol"></i></button>
@@ -30,7 +31,7 @@
     </div>
     <app-table-header-editor *ngIf = "headerEditorShow" [tableId] = "id" [header] = "dataHeader" [disabled] = "!right.change || !right.head" (updateTable) = "updateEventFromHeader($event)"></app-table-header-editor>
     <div name = "clickArea" #mainContainer 
-        style = "overflow: auto;"
+        style = "overflow: auto; position: relative;"
         (scroll) = "saveScroll()">
         <table class = "errorTable TableCreatorBorderColor" (click) = "editField($event)">
             <tr>
@@ -107,13 +108,13 @@
                 <tr *ngIf = "!tableFilter.mapHideRows[i]">
                     <td *ngIf = "lineNumbering.enable"
                         (contextmenu) = "getContextmenu($event, i, 'row')" 
-                        [class.cutRow] = "cutRowProperty.i == i"
+                        [class.cutRow] = "cutCopyRowProperty.i == i"
                         class = "TableCreatorHeadColor TableCreatorHeadBColor">{{ i + 1 }}</td>
                     <ng-container *ngFor = "let cell of row; let j = index;">
                         <td *ngIf = "cell && hiddenColumn[j] !== true" 
                             id = "{{ cell.id }}"
                             (contextmenu) = "getContextmenu($event, i, 'cell')"
-                            [style.background] = "cell.id == searchCellId ? '#e7f5c6' : (cell.id == inputProperty._colorId ? '#9abfe225' : none)">
+                            [style.background] = "cell.id == searchCellId ? '#e7f5c6' : (cell.id == inputProperty._colorId ? '#9abfe225' : cell.color)">
                             {{ cell && cell.listValue ? cell.listValue : cell.value }}
                             <div class="linkClass">
                                 <span *ngIf = "(cell.type == 'tlist')" class = "linkCellClass">
@@ -165,6 +166,26 @@
                 </select>
             </ng-container>
         </div>
+        <div [hidden] = "!tableProperty.visible" 
+            [style.transform] = "'translateY(' + tableProperty.top + ')'"
+            class = "tableProperty"> 
+            <div style = "width:100%; height:50%; overflow: auto; display: flex; flex-wrap: wrap; position: relative;">
+                <div *ngIf = "!tableProperty.listLink.visible" (click) = "getListLink()" class = "wordCenter">Показать связи</div>
+                <ng-container *ngIf = "tableProperty.listLink.visible">
+                    <div *ngIf = "tableProperty.listLink.empty" class = "wordCenter">Связи отсутсвуют</div>
+                    <div *ngIf = "tableProperty.listLink.whoRefer.length != 0">
+                        <div style = "font-size:16px; font-weight:bold;">Объект используется:</div>
+                        <div *ngFor = "let field of tableProperty.listLink.whoRefer" class = "linkField" (click) = "openToExplorer({ type: 'cell', linkId: field })">
+                            <i class="fas fa-cube"></i> Ячейка {{ field }}
+                        </div>
+                    </div>
+                </ng-container>
+            </div>
+            <app-table-property #appTableProperty [mainDataField] = "tableProperty.data" [rules] = "tableProperty.rules" (onSave) = "updateCell($event)"></app-table-property>
+            <div class = "ModalButtonExitColor" style = "position:absolute; right:5px; top:5px; font-size:16px; cursor:pointer;" (click) = "closeTableProperty()">
+                <i class="fas fa-times-circle"></i>
+            </div>
+        </div>
     </div>
     <div name = "clickArea">
         <div class = "bottomControlPanel TableCreatorHeadColor">
@@ -172,7 +193,6 @@
             <div *ngIf = "loaded && !control.error && dataHeader.length == 0" style = "font-size:12px; background-color:#b8b8b8; color:white; font-weight:bold;">Таблица пуста</div>
             <div *ngIf = "loaded && !control.error && needUpdate" style = "font-size:12px; background-color:#b8b8b8; color:white; font-weight:bold;">Требуется синхронизация</div>
             <div *ngIf = "!loaded" style = "font-size:12px;">Загрузка...</div>
-            <div *ngIf = "control.id >0" style = "font-size:12px;">id: {{ control.id }}</div>
             <div *ngIf = "tableFilter.countHide > 0" style = "font-size:12px;">Показано: {{ tableFilter.count - tableFilter.countHide}} из {{ tableFilter.count }}</div>
         </div>
         <div class = "bottomControlPanel right">
@@ -243,9 +263,10 @@
     </ng-container>
     <ng-container *ngIf = "createContextMenu.type == 'row'">
         <button class = "contextMenuList" (click) = "removeRow()" [disabled] = "!rules.change">Удалить строку</button>
-        <button class = "contextMenuList" (click) = "cutRow()" [disabled] = "!rules.change">Вырезать строку</button>
-        <button class = "contextMenuList" (click) = "addCutRow(-1)" [disabled] = "cutRowProperty.idRow1 < 0">Вставить выше</button>
-        <button class = "contextMenuList" (click) = "addCutRow(1)" [disabled] = "cutRowProperty.idRow1 < 0">Вставить ниже</button>
+        <button class = "contextMenuList" (click) = "cutCopyRow('copy')" [disabled] = "!rules.change">Копировать строку</button>
+        <button class = "contextMenuList" (click) = "cutCopyRow('cut')" [disabled] = "!rules.change">Вырезать строку</button>
+        <button class = "contextMenuList" (click) = "addCutRow(-1)" [disabled] = "cutCopyRowProperty.idRow1 < 0">Вставить выше</button>
+        <button class = "contextMenuList" (click) = "addCutRow(1)" [disabled] = "cutCopyRowProperty.idRow1 < 0">Вставить ниже</button>
         <button class = "contextMenuList" (click) = "addRow('', -1)" [disabled] = "!rules.change">Вставить строку выше</button>
         <button class = "contextMenuList" (click) = "addRow('', 1)" [disabled] = "!rules.change">Вставить строку ниже</button>
     </ng-container>

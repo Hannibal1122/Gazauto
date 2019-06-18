@@ -1,4 +1,4 @@
-import { Component, OnInit, Injector, ViewChild, Input } from '@angular/core';
+import { Component, OnInit, Injector, ViewChild, Input, EventEmitter, Output } from '@angular/core';
 import { QueryService } from "../../lib/query.service";
 
 declare var trace:any;
@@ -11,18 +11,14 @@ declare var trace:any;
 export class TablePropertyComponent implements OnInit 
 {
     id = -1;
+    type = "main";
+    @Output() onSave = new EventEmitter<any>();
     @Input() set mainData(value)
     {
         if(value)
         {
-            this.id = value.id;
-            for(let i = 0; i < this.mainProperty.length; i++)
-            {
-                if(this.mainProperty[i].name in value)
-                {
-                    this.mainProperty[i].value = value[this.mainProperty[i].name];
-                }
-            }
+            this.type = "main";
+            this.setDefaultProperty(value);
             this.query.protectionPost(133, { param: [ value.id ] }, (data) => // Запрос таблицы свойств
             {
                 this.mainProperty[2].value = data.hashtag;
@@ -33,15 +29,33 @@ export class TablePropertyComponent implements OnInit
             /* this.property = [ ...this.mainProperty ]; */
         }
     }
+    @Input() set mainDataField(value)
+    {
+        if(value)
+        {
+            this.type = "field";
+            this.setDefaultProperty(value);
+            this.query.protectionPost(272, { param: [ value.id ] }, (data) => // Запрос таблицы свойств
+            {
+                /* this.mainProperty[2].value = data.hashtag;
+                this.mainProperty[4].value = data.timeCreate; */
+                this.userProperty = data.userProperty ? JSON.parse(data.userProperty) : [];
+            });
+            this.change = false;
+            /* this.property = [ ...this.mainPropertyField ]; */
+        }
+    }
+    setDefaultProperty(data)
+    {
+        this.id = data.id;
+        if(this.type == "main") this.property = [ ...this.mainProperty ];
+        if(this.type == "field") this.property = [ ...this.mainPropertyField ];
+        for(let i = 0; i < this.property.length; i++)
+            if(this.property[i].name in data)
+                this.property[i].value = data[this.property[i].name];
+    }
     selectRules = {
-        new: true, 
-        copy: false, 
-        paste: false, 
-        cut: false, 
-        rights: false, 
-        remove: false,
-        download: false,
-        info: false,
+        change: false,
         rename: false
     };
     @Input() set rules(value)
@@ -58,7 +72,7 @@ export class TablePropertyComponent implements OnInit
                 }
                 if(this.mainProperty[i].name == "#")
                 {
-                    if(!this.selectRules.remove) this.mainProperty[i].type = "block"; // remove используется потому что содержит оригинальное право на изменение
+                    if(!this.selectRules.change) this.mainProperty[i].type = "block"; // remove используется потому что содержит оригинальное право на изменение
                     else this.mainProperty[i].type = "edit";
                 }
             }
@@ -66,6 +80,7 @@ export class TablePropertyComponent implements OnInit
     }
     update = null;
     change = false; // Есть ли изменения
+    // Для объекта структуры
     mainProperty =
     [
         { name: "id", desc: "id", value: "", type: "block"},
@@ -74,8 +89,13 @@ export class TablePropertyComponent implements OnInit
         { name: "objectType", desc: "Тип", value: "", type: "block"},
         { name: "timeCreate", desc: "Создан", value: "", type: "block"}
     ]
+    mainPropertyField =
+    [
+        { name: "id", desc: "id", value: "", type: "block"},
+        { name: "color", desc: "цвет", value: "", type: "edit"},
+    ]
     userProperty = [];
-    property = []
+    property = [];
     constructor(private query:QueryService)
     {
     }
@@ -90,24 +110,45 @@ export class TablePropertyComponent implements OnInit
     }
     saveProperty()
     {
-        for(let key in this.saveQueue)
+        if(this.type == "main") // Для проводника
         {
-            switch(key)
+            for(let key in this.saveQueue)
             {
-                case "name":
-                    if(this.saveQueue[key] != "")
-                        this.query.protectionPost(120, { param: [ this.id, this.saveQueue[key] ] }, (data) => 
-                        { 
-                            if(this.update) this.update();
-                        });
-                    break;
-                case "#":
-                    if(this.saveQueue[key] != "")
-                        this.query.protectionPost(135, { param: [ this.id, this.saveQueue[key] ] });
-                    break;
+                switch(key)
+                {
+                    case "name":
+                        if(this.saveQueue[key] != "")
+                            this.query.protectionPost(120, { param: [ this.id, this.saveQueue[key] ] }, (data) => 
+                            { 
+                                if(this.update) this.update();
+                            });
+                        break;
+                    case "#":
+                        if(this.saveQueue[key] != "")
+                            this.query.protectionPost(135, { param: [ this.id, this.saveQueue[key] ] });
+                        break;
+                }
             }
+            this.query.protectionPost(134, { param: [ this.id, JSON.stringify(this.userProperty) ] });
         }
-        this.query.protectionPost(134, { param: [ this.id, JSON.stringify(this.userProperty) ] });
+        if(this.type == "field") // Для ячейки
+        {
+            for(let key in this.saveQueue)
+            {
+                switch(key)
+                {
+                    case "color":
+                        let color = this.saveQueue[key].length == 7 ? this.saveQueue[key] : null;
+                        this.query.protectionPost(271, { param: [ this.id, color === null ? "NULL" : color ] }, (data) => 
+                        { 
+                            this.onSave.emit({ color: color });
+                        });
+                        break;
+                }
+            }
+            this.query.protectionPost(273, { param: [ this.id, JSON.stringify(this.userProperty) ] });
+        }
+        this.saveQueue = {};
         this.change = false;
     }
     addUserProperty()
@@ -117,6 +158,7 @@ export class TablePropertyComponent implements OnInit
     removeUserProperty(i)
     {
         this.userProperty.splice(i, 1);
+        this.change = true;
     }
     onInputChangeUser()
     {

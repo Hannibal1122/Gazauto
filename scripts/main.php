@@ -532,10 +532,11 @@
                 }
             if($nQuery >= 250 && $nQuery < 300) // Работа с таблицой 
             {
-                require_once("myTable.php"); // $myTable класс для работы с таблицей
-                if($nQuery != 267) // В 267 id таблицы нужно получить по ячейке 
+                $queryWhoNeedClass = [ 250, 251, 252, 255, 257, 258, 259, 260, 261, 266, 267, 269, 270 ]; // набор запросов, которые требуют классов
+                $idTable = (int)$param[0];
+                if(array_search($nQuery, $queryWhoNeedClass) !== false) 
                 {
-                    $idTable = (int)$param[0];
+                    require_once("myTable.php"); // $myTable класс для работы с таблицей
                     $myTable = new MyTable($idTable, $myLog);
                 }
                 switch($nQuery)
@@ -694,6 +695,48 @@
                         $idRow2 = (int)$param[2]; // id строки после которой надо вставить
                         $prevOrNext = (int)$param[3]; // -1 добавить строку выше, 1 добавить строку ниже
                         $myTable->cutRow($idRow1, $idRow2, $prevOrNext);
+                        break;
+                    case 270: // Скопировать строку и вставить после
+                        if(($myRight->get($idTable) & 8) != 8) return; // Права на изменение
+                        $idRowFrom = (int)$param[1]; // id строки которую надо копировать
+                        $idRowTo = (int)$param[2]; // id строки после которой надо вставить
+                        $prevOrNext = (int)$param[3]; // -1 добавить строку выше, 1 добавить строку ниже
+                        $myTable->copyRow($idRowFrom, $idRowTo, $prevOrNext);
+                        break;
+                    case 271: // Выставить цвет у ячейки
+                        $idField = (int)$param[0]; // id ячейки
+                        $idTable = selectOne("SELECT tableId FROM fields WHERE id = %i", [ $idField ]);
+                        if(($myRight->get($idTable) & 8) != 8) continue; // Права на изменение
+                        query("UPDATE fields SET color = %s WHERE id = %i", [ $param[1] === "NULL" ? null : $param[1], $idField ]);
+                        break;
+                    case 272: // Запрос пользовательскй таблицы свойств
+                        $idField = (int)$param[0]; // id ячейки
+                        $idTable = selectOne("SELECT tableId FROM fields WHERE id = %i", [ $idField ]);
+                        if(($myRight->get($idTable) & 1) != 1) continue; // Права на просмотр
+                        $tableProperty = [
+                            "userProperty" => selectOne("SELECT user_property FROM fields WHERE id = %i", [ $idField ])
+                        ];
+                        echo json_encode($tableProperty);
+                        break;
+                    case 273: // Изменить пользовательскую таблицу свойств
+                        $idField = (int)$param[0]; // id ячейки
+                        $idTable = selectOne("SELECT tableId FROM fields WHERE id = %i", [ $idField ]);
+                        if(($myRight->get($idTable) & 8) != 8) continue; // Права на изменение
+                        query("UPDATE fields SET user_property = %s WHERE id = %i", [ $param[1], $idField ]);
+                        break;
+                    case 274: // Получить список элементов, которые ссылаются на ячейку
+                        $idField = (int)$param[0]; // id ячейки
+                        $idTable = selectOne("SELECT tableId FROM fields WHERE id = %i", [ $idField ]);
+                        if(($myRight->get($idTable) & 1) != 1) continue; // Права на просмотр
+                        $tableProperty = [
+                            "link" => null,
+                            "event" => null,
+                            "whoRefer" => []
+                        ];
+                        if($result = query("SELECT id FROM fields WHERE linkType = 'cell' AND linkId = %i", [ $idField ]))
+                            while($row = $result->fetch_assoc())
+                                $tableProperty["whoRefer"][] = $row["id"];
+                        echo json_encode($tableProperty);
                         break;
                 }
             }

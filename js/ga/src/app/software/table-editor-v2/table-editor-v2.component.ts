@@ -25,9 +25,8 @@ export class TableEditorV2Component implements OnInit
     loaded = false;
     control = 
     {
-        state: 0,
-        error: false,
-        id: -1
+        state: 0, // общее состояние таблицы
+        error: false
     }
     tableFilter:TableFilterService = new TableFilterService();
     right = 
@@ -73,7 +72,6 @@ export class TableEditorV2Component implements OnInit
         set id(value) {
             this._id = value;
             this._colorId = value;
-            this.self.control.id = value;
         },
         get id() {
             return this._id;
@@ -93,11 +91,9 @@ export class TableEditorV2Component implements OnInit
         close: function() {
             this.visible = false;
             this._colorId = -1;
-            this.self.control.id = -1;
         },
         clearId: function() {
             this._colorId = -1;
-            this.self.control.id = -1;
         },
         self: this
     }
@@ -190,6 +186,7 @@ export class TableEditorV2Component implements OnInit
             this.control.error = false;
             for(let key in data.right) this.right[key] = data.right[key];
             this.right.head = data.changeHead;
+            this.tableProperty.rules.change = this.right.change;
             this.nameTable = data.name;
             this.control.state = data.state;
             this.dataHeader = [];
@@ -285,6 +282,7 @@ export class TableEditorV2Component implements OnInit
             top: this.mainContainer.nativeElement.scrollTop,
             left: this.mainContainer.nativeElement.scrollLeft
         }
+        this.tableProperty.top = scroll.top + 'px';
         localStorage.setItem("table_scroll_" + this.id, JSON.stringify(scroll));
         this.fastenHeader();
         /* this.acceptEditField(); */
@@ -415,6 +413,12 @@ export class TableEditorV2Component implements OnInit
                     this.inputProperty.visible = false;
                 }
                 setTimeout(() => { this.mainInputElement.nativeElement.focus(); }, 20);
+                
+                this.tableProperty.listLink.visible = false;
+                this.tableProperty.data = {
+                    id: this.inputProperty.id,
+                    color: cell.color
+                };
                 return true;
             }
         return false;
@@ -479,7 +483,10 @@ export class TableEditorV2Component implements OnInit
         let id = element.getAttribute("id");
         if(this.mapFields[id] && !this.mapFields[id].header)
         {
+            let rect = this.mainContainer.nativeElement.getBoundingClientRect();
             let offset = $(element).offset();
+            offset.top += this.mainContainer.nativeElement.scrollTop - rect.y + 1;
+            offset.left += this.mainContainer.nativeElement.scrollLeft - rect.x;
             out.top = offset.top + "px";
             out.left = offset.left + "px";
             out.width = element.clientWidth + "px";
@@ -646,17 +653,19 @@ export class TableEditorV2Component implements OnInit
     {
         this.queue.add(258, [ this.id, this.firstData[this.createContextMenu.i].__ID__ ], (data) => { this.loadTable(); });
     }
-    cutRowProperty = 
+    cutCopyRowProperty = 
     {
         i: -1,
         idRow1: -1,
-        idRow2: -1
+        idRow2: -1,
+        type: ""
     }
-    cutRow() // Вырезать строку
+    cutCopyRow(type) // Вырезать строку
     {
-        this.cutRowProperty.i = this.createContextMenu.i;
-        this.cutRowProperty.idRow1 = this.firstData[this.createContextMenu.i].__ID__;
-        this.cutRowProperty.idRow2 = -1;
+        this.cutCopyRowProperty.i = this.createContextMenu.i;
+        this.cutCopyRowProperty.idRow1 = this.firstData[this.createContextMenu.i].__ID__;
+        this.cutCopyRowProperty.idRow2 = -1;
+        this.cutCopyRowProperty.type = type;
     }
     addRow(type, prevOrNext) // Добавить в строку таблицу
     {
@@ -674,11 +683,14 @@ export class TableEditorV2Component implements OnInit
     }
     addCutRow(prevOrNext) // Вставить вырезанную строку
     {
-        if(this.cutRowProperty.idRow1 > 0)
+        if(this.cutCopyRowProperty.idRow1 > 0)
         {
-            this.cutRowProperty.idRow2 = this.firstData[this.createContextMenu.i].__ID__;
-            this.queue.add(269, [ this.id, this.cutRowProperty.idRow1, this.cutRowProperty.idRow2, prevOrNext ], (data) => { this.loadTable(); });
-            for(let key in this.cutRowProperty) this.cutRowProperty[key] = -1;
+            this.cutCopyRowProperty.idRow2 = this.firstData[this.createContextMenu.i].__ID__;
+            if(this.cutCopyRowProperty.type == "cut")
+                this.queue.add(269, [ this.id, this.cutCopyRowProperty.idRow1, this.cutCopyRowProperty.idRow2, prevOrNext ], (data) => { this.loadTable(); });
+            if(this.cutCopyRowProperty.type == "copy")
+                this.queue.add(270, [ this.id, this.cutCopyRowProperty.idRow1, this.cutCopyRowProperty.idRow2, prevOrNext ], (data) => { this.loadTable(); });
+            for(let key in this.cutCopyRowProperty) this.cutCopyRowProperty[key] = -1;
         }
     }
     // Операции из контекстного меню с ячейкой
@@ -765,6 +777,46 @@ export class TableEditorV2Component implements OnInit
             i++;
         }
         localStorage.setItem("propertyIFrame_" + i, JSON.stringify(out));
+    }
+    /*************************************************/
+    tableProperty = {
+        visible: false,
+        data: {},
+        top: "0px",
+        rules: {
+            change: false
+        },
+        listLink: 
+        {
+            visible: false,
+            empty: true,
+            link: null,
+            event: null,
+            whoRefer: [] // Кто ссылается
+        }
+    }
+    openTableProperty()
+    {
+        this.tableProperty.visible = !this.tableProperty.visible;
+    }
+    closeTableProperty()
+    {
+        this.tableProperty.visible = false;
+    }
+    updateCell(e) // При изменении таблицы свойств
+    {
+        let cell = this.configInput.element;
+        if(cell)
+            cell.color = e.color;
+    }
+    getListLink()
+    {
+        this.query.protectionPost(274, { param: [ this.inputProperty.id ]}, (data) =>
+        {
+            this.tableProperty.listLink.whoRefer = data.whoRefer;
+            this.tableProperty.listLink.empty = this.tableProperty.listLink.whoRefer.length == 0;
+            this.tableProperty.listLink.visible = true;
+        });
     }
     /*************************************************/
     searchCellId = -1; // Для отображения ячейки в таблице

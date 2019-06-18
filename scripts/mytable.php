@@ -43,13 +43,13 @@
             if($result = query("SELECT i, next FROM fields LEFT JOIN line_ids ON line_ids.id = fields.i WHERE tableId = %i AND type != 'head'", [$idTable]))
                 while ($row = $result->fetch_array(MYSQLI_NUM))
                     $data[(int)$row[0]]["__NEXT__"] = $row[1]; 
-            $queryStr = "SELECT i, idColumn, value, type, linkId, linkType, fields.id, state, eventId FROM fields WHERE tableId = %i AND type != 'head' $filterColumn[1] ";
+            $queryStr = "SELECT i, idColumn, value, type, linkId, linkType, fields.id, state, eventId, color FROM fields WHERE tableId = %i AND type != 'head' $filterColumn[1] ";
             if($enableLines != "") $queryStr .= "AND i IN ($enableLines)";
             /* else if($filterStr == "") $queryStr .= "AND i IN (-1)"; */ // Если это оставить, то фильтр по умолчанию все скрывает
             if($result = query($queryStr, [$idTable]))
                 while ($row = $result->fetch_array(MYSQLI_NUM)) 
                 {
-                    $field = [ "id" => (int)$row[6], "value" => $row[2], "state" => $row[7], "eventId" => $row[8] ];
+                    $field = [ "id" => (int)$row[6], "value" => $row[2], "state" => $row[7], "eventId" => $row[8], "color" => $row[9] ];
                     if($row[3] == "link")
                     {
                         $field["linkId"] = (int)$row[4];
@@ -326,7 +326,19 @@
                 query("UPDATE line_ids SET next = %i WHERE id = %i", [ $idRow1, $idRow2 ]);
                 query("UPDATE line_ids SET next = %i WHERE id = %i", [ $oldNext2, $idRow1 ]);
             }
-
+            $this->myLog->add("table", "update", $idTable);
+        }
+        function copyRow($idRowFrom, $idRowTo, $prevOrNext)
+        {
+            global $mysqli;
+            $idTable = $this->idTable; 
+            $dataRow = []; // Данные копируемой строки
+            if($result = query("SELECT id, idColumn FROM fields WHERE i = %i", [ $idRowFrom ]))
+                while ($row = $result->fetch_array(MYSQLI_NUM)) 
+                    $dataRow[(int)$row[1]] = (int)$row[0];
+            $newRow = $this->addRow($idRowTo, $prevOrNext, false);
+            foreach($dataRow as $idColumn => $id)
+                $this->copyCell($newRow[$idColumn]["id"], $idTable, $id, $idTable, "copy", "value", false);
             $this->myLog->add("table", "update", $idTable);
         }
         function removeRow($idRow) // Удалить строку из таблицы
