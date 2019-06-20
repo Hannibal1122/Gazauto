@@ -37,13 +37,17 @@ export class DateTimeComponent implements AfterViewInit/* , OnChanges */ /*  imp
             let timeValue = value.split(" ");
             let date:any = timeValue[0].split(".");
             if(this.availabilityTime) this.selectTime = timeValue[1];
-            this.ClickDay({day: Number(date[0]), month: Number(date[1]) - 1, year: Number(date[2]), set: true});
+            let day = {day: Number(date[0]), month: Number(date[1]) - 1, year: Number(date[2]), set: true};
+            let error = false;
+            for(let key in day) if(isNaN(day[key])) error = true;
+            if(!error)
+            {
+                this.ClickDay(day);
+                return;
+            }
         }
-        else
-        {
-            let date = new Date();
-            this.ClickDay({day: date.getDate(), month: date.getMonth(), year: date.getFullYear(), time: "00:00", set: true});
-        }
+        let date = new Date();
+        this.ClickDay({day: date.getDate(), month: date.getMonth(), year: date.getFullYear(), time: "00:00", set: true});
     }
     error = false;
     block = false;

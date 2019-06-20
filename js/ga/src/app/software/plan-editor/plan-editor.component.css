@@ -1,34 +1,48 @@
-.colorRed 
-{ 
-    background-color:#d35661; 
-    text-align: center;
-}
-.colorGreen 
-{ 
-    background-color:#2cce6a;
-    text-align: center; 
-}
-.colorGray 
-{ 
-    background-color:#5c606694;
-    text-align: center; 
-}
-.colorBlue 
-{ 
-    background-color:#7be8f7c7;
-    text-align: center; 
-}
-.PlanEditor
+.planEditor
 {
+    padding: 5px; 
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+    height: 100%;
 }
-.PlanEditor td:first-child, th:first-child
+.planControlPanel
+{
+    position:relative; 
+    padding-bottom:3px;
+}
+.planControlPanel button, .planControlPanel select
+{
+    margin-top:3px;
+    margin-right:5px;
+}
+.PlanEditorTable
+{
+    margin: auto;
+    background-color:white;
+}
+.TDHover
+{
+    transition: 0.3s;
+}
+.TDHover:hover
+{
+    background-color: #e2e2e2 !important;
+}
+.colorBlue
+{
+    background-color: #e2e2e2 !important;
+}
+.PlanEditorTable td:first-child, th:first-child
 {
     text-align:left !important;
 }
-.PlanEditor th, td
+.PlanEditorTable th, td
 {
     min-width:30px;
     text-align:center;
     padding: 5px;
     font-size: 14px;
+    cursor: pointer;
+    border: 1px solid #eaeaea;
 }

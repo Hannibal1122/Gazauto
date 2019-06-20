@@ -103,7 +103,7 @@
                             <i class="fas fa-sign-out-alt"></i>
                         </span>
                     </div>
-                    <user-settings></user-settings>
+                    <user-settings (onChange) = "onChangeInSoftware($event)"></user-settings>
                 </div>
             </div>
         </div>
@@ -140,7 +140,8 @@
                 </div>
                 <div style = "width:100%; height:calc(100% - 30px); position: absolute; top: 30px;" class = "WorkspaceBColor WorkspaceColor">
                     <ng-container *ngFor="let app of screen.tabs; let i = index;">
-                        <div style = "height: 100%; width:100%; position:absolute;" 
+                        <div class = "customBack" 
+                            [ngStyle] = "theme.style"
                             [hidden] = "i != screen.currentSoftware">
                             <vg-dynamic-view  
                                 *ngIf = "!app.iframe"

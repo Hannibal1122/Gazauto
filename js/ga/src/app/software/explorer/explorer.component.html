@@ -1,15 +1,15 @@
 <div class = "explorer ExplorerBColor"
     [class.explorerWithProperty] = "tableProperty.visible">
     <div class = "explorerControlPanel explorerFull">
-        <div style = "margin-bottom:5px;">
+        <div class = "pathStroke MainBColor">
             <ng-container *ngFor = "let path of allPath; let last = last;">
-                <span *ngIf = "!last" class = "pathRow" (click) = "openObject({objectType: 'folder', id: path.id})" style = "cursor:pointer;">{{ path.name }} / </span>
-                <div *ngIf = "last">
+                <span *ngIf = "!last" class = "pathRow" (click) = "openObject({objectType: 'folder', id: path.id})" style = "cursor:pointer;">{{ path.name }}/</span>
+                <div *ngIf = "last" style = "padding-bottom: 2px;">
                     <div class = "pathRow" style = "font-size:14px; cursor: pointer; margin-top:8px; float:left; margin-left: 5px;" title = "Назад" (click) = "openBackFolder()"><i class="fas fa-arrow-left"></i></div>
                     <div style = "font-size:20px; float:left; height:32px; margin-left:10px; margin-right:10px; margin-top:3px;">{{ path.name }}</div>
                     <button class = "mainButton" title = "Добавить элемент" (click) = "newObject()" [disabled] = "!selectRules.new"><i class="fas fa-file"></i></button>
                     <button class = "mainButton" title = "Вставить" (click) = "_pasteObject()" [disabled] = "!selectRules.paste || inputs.parentBind"><i class="fas fa-paste"></i></button>
-                    <button class = "mainButton" title = "Таблица свойств" (click) = "openTableProperty()"><i class="fas fa-briefcase"></i></button>
+                    <button class = "mainButton" [class.enableButton] = "tableProperty.visible" title = "Таблица свойств" (click) = "openTableProperty()"><i class="fas fa-briefcase"></i></button>
                     <button class = "mainButton" title = "Поиск" (click) = "openSearch()"><i class="fas fa-search"></i></button>
                     <button class = "mainButton" title = "Удалить" (click) = "removeObject()" [disabled] = "!selectRules.remove"><i class="fas fa-trash"></i></button>
                     <button class = "mainButton" title = "Обновить" (click) = "refresh(true)"><i class="fas fa-sync-alt"></i></button>
@@ -17,7 +17,7 @@
             </ng-container>
         </div> 
     </div>
-    <div class = "explorerMain ExplorerFolderBColor"
+    <div class = "explorerMain MainBColor"
         [class.explorerDouble] = "tableProperty.visible"
         [class.explorerFull] = "!tableProperty.visible"
         (contextmenu) = "getContextmenuMain($event)">
@@ -68,7 +68,7 @@
                 <div class = "elementExplorerText">{{ object.name }}</div>
             </div>
         </span>
-        <span *ngIf = "outFolders.length == 0" style = "color:#b8b8b8; font-size:24px; font-weight:bold; margin-left: 10px;"> Папка пуста</span>
+        <span *ngIf = "outFolders.length == 0" style = "color:#7e7e7e; font-size:24px; font-weight:bold; margin-left: 10px;"> Папка пуста</span>
     </div>
     <div *ngIf = "tableProperty.visible && selectObjectI != -1" 
         class = "tableProperty"> 

@@ -1,0 +1,17 @@
+.themeTab
+{
+    width:80px; 
+    height:80px; 
+    cursor:pointer; 
+    margin-left:2px; 
+    margin-right:2px;
+    transition: 0.3s;
+}
+.themeImage
+{
+    padding-top:18px; 
+}
+.themeTab:hover
+{
+    background-color: rgba(255, 255, 255, 0.6);
+}

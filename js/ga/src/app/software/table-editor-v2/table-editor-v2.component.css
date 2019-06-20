@@ -6,13 +6,13 @@
     padding: 5px; 
     display: grid;
     grid-template-columns: 1fr;
-    grid-template-rows: auto 1fr 30px;
+    grid-template-rows: auto 1fr 27px;
     grid-template-areas: 'header' 'content' 'bottom';
     height: 100%;
 }
 .tableGridWidthHeaderEditor
 {
-    grid-template-rows: auto auto 1fr 30px;
+    grid-template-rows: auto auto 1fr 27px;
 }
 .tableControlPanel
 {
@@ -60,6 +60,20 @@
 .cutRow
 {
     color:rgb(173, 173, 173);
+}
+.nameTableClass
+{
+    float: left;
+    padding: 4px;
+    margin-bottom: -5px;
+    margin-right: 5px;
+    width: 200px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    position: relative;
+    background-color: white;
+    border-radius: 5px 5px 0px 0px;
 }
 /*****************************************/
 .tableProperty

@@ -3,7 +3,6 @@
     {
         function __construct()
         {
-            
         }
         function create($value, $column)
         {

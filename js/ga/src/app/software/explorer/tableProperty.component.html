@@ -10,12 +10,12 @@
                 </tr>
                 <tr><td colspan="3" style = "font-weight: bold;">Пользовательские</td></tr>
                 <tr *ngFor = "let p of userProperty; let i = index;">
-                    <ng-container *ngIf = "selectRules.change">
+                    <ng-container *ngIf = "p.type !== 'block' && selectRules.change">
                         <td style = "color:red; cursor: pointer;" (click) = "removeUserProperty(i)"><i class="fas fa-minus-circle"></i></td>
                         <td class = "tdInput"><input type = "text" [(ngModel)] = "p.name" (change) = "onInputChangeUser(p)"></td>
                         <td class = "tdInput"><input type = "text" [(ngModel)] = "p.value" (change) = "onInputChangeUser(p)"></td>
                     </ng-container>
-                    <ng-container *ngIf = "!selectRules.change">
+                    <ng-container *ngIf = "p.type == 'block' || !selectRules.change">
                         <td></td>
                         <td class = "blockTD">{{p.name}}</td>
                         <td class = "blockTD">{{p.value}}</td>

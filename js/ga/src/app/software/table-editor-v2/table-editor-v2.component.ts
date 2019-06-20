@@ -52,6 +52,7 @@ export class TableEditorV2Component implements OnInit
         selected: -1,
         list: []
     };
+    firstLoaded = true; // Параметр нужен для определения кол-ва строк в таблице
     needUpdate = false;
     listLogin = [];
     dataHeader = [];
@@ -115,6 +116,10 @@ export class TableEditorV2Component implements OnInit
             this.fastenHeader();
         }, false);
         window.addEventListener("UpdateFromApp", () => this.updateFromApp() );
+
+        //Загрузка свойств по умолчанию
+        this.loadTableProperty("lineNumbering");
+        this.loadTableProperty("tableFilter");
     }
     updateFromApp()
     {
@@ -176,8 +181,27 @@ export class TableEditorV2Component implements OnInit
     loadTable()
     {
         this.loaded = false;
-        this.query.protectionPost(250, { param: [ this.id ]}, (data) => 
+        this.query.protectionPost(250, { param: [ this.id, Number(this.firstLoaded) ]}, (data) => 
         {
+            if(data.error === "MORE_300") // Проверка на кол-во загружаемых строк
+            {
+                this.modal.open({ title: "Таблица содержит более 300 строк. Вы хотите загрузить ее?", data: [], ok: "Да", cancel: "Нет"}, (save) =>
+                {
+                    if(save)
+                    {
+                        this.firstLoaded = false;
+                        this.loadTable();
+                    }
+                    else 
+                    {
+                        this.filter.selected = data.filter;
+                        this.filter.list = [];
+                        for(i = 0; i < data.filters.length; i++)
+                            this.filter.list.push({ id: data.filters[i][0], value: data.filters[i][2]});
+                    }
+                })
+                return;
+            }
             if(data.head == undefined) 
             {
                 this.control.error = true;
@@ -199,7 +223,8 @@ export class TableEditorV2Component implements OnInit
                     id: data.head[i][1], 
                     name: data.head[i][2],
                     eventId: data.head[i][3],
-                    dataType: data.head[i][4]
+                    dataType: data.head[i][4],
+                    sort: false
                 };
                 this.mapHeader[this.dataHeader[_j].id] = _j;
                 this.mapFields[this.dataHeader[_j].id] = { ...this.dataHeader[_j], header: true };
@@ -261,19 +286,52 @@ export class TableEditorV2Component implements OnInit
             this.tableFilter.countHide += rowHide ? 1 : 0;
             this.tableFilter.mapHideRows[key] = rowHide;
         }
+        // Сортировка по рейтингу
+        if(this.sortProperty.column >= 0)
+        {
+            let column = this.sortProperty.column;
+            switch(this.dataHeader[column].dataType)
+            {
+                case "NUMBER":
+                    this.dataTable.sort((_a, _b) => { // Сортировка по числу
+                        let a = Number(_a[column].value);
+                        let b = Number(_b[column].value);
+                        if(this.dataHeader[column].sort)
+                            return b - a;
+                        else return a - b;
+                    });
+                    break;
+                case "DATETIME":
+                    this.dataTable.sort((_a, _b) => { // Сортировка по числу
+                        let partsA = _a[column].value.match(/(\d+)/g);
+                        let partsB = _b[column].value.match(/(\d+)/g);
+                        let a = new Date(partsA[2], partsA[1]-1, partsA[0], partsA[3], partsA[4]).getTime();
+                        let b = new Date(partsB[2], partsB[1]-1, partsB[0], partsB[3], partsB[4]).getTime();
+                        if(this.dataHeader[column].sort) return b - a;
+                        else return a - b;
+                    });
+                    break;
+                default:
+                    this.dataTable.sort((a, b) => { // Сортировка по имени
+                        if(this.dataHeader[column].sort)
+                        {
+                            if (a[column].value > b[column].value) return -1;
+                            if (a[column].value < b[column].value) return 1;
+                        }
+                        else
+                        {
+                            if (a[column].value < b[column].value) return -1;
+                            if (a[column].value > b[column].value) return 1;
+                        }
+                        return 0;
+                    });
+                    break;
+            }
+        }
         setTimeout(() =>
         {
             this.fastenHeader()
         }, 200);
-    }
-    setScroll()
-    {
-        let scroll:any = localStorage.getItem("table_scroll_" + this.id);
-        if(scroll) 
-        {
-            scroll = JSON.parse(scroll);
-            this.mainContainer.nativeElement.scrollBy({ ...scroll, behavior: 'smooth'});
-        }
     }
     saveScroll() // eventListener на скролл
     {
@@ -282,10 +340,39 @@ export class TableEditorV2Component implements OnInit
             top: this.mainContainer.nativeElement.scrollTop,
             left: this.mainContainer.nativeElement.scrollLeft
         }
-        this.tableProperty.top = scroll.top + 'px';
-        localStorage.setItem("table_scroll_" + this.id, JSON.stringify(scroll));
+        this.tableProperty.translate = "translateY(" + scroll.top + "px) translateX(" + scroll.left + "px)";
+        this.saveTableProperty("scroll", scroll);
         this.fastenHeader();
         /* this.acceptEditField(); */
+    }
+    saveTableProperty(property, value)
+    {
+        let prop:any = localStorage.getItem("table_" + this.id);
+        if(prop) prop = JSON.parse(prop);
+        else prop = {};
+        prop[property] = value;
+        localStorage.setItem("table_" + this.id, JSON.stringify(prop));
+    }
+    loadTableProperty(property)
+    {
+        let prop:any = localStorage.getItem("table_" + this.id);
+        if(prop)
+        {
+            prop = JSON.parse(prop);
+            if(prop[property] === undefined) return;
+            switch(property)
+            {
+                case "tableFilter":
+                    this.tableFilter.enable = prop.tableFilter;
+                    break;
+                case "lineNumbering":
+                    this.lineNumbering.enable = prop.lineNumbering;
+                    break;
+                case "scroll":
+                    this.mainContainer.nativeElement.scrollBy({ ...prop.scroll, behavior: 'smooth'});
+                    break;
+            }
+        }
     }
     fastenHeaderProperties = 
     {
@@ -344,19 +431,31 @@ export class TableEditorV2Component implements OnInit
         this.tableFilter.state[i].value = value;
         this.updateData();
     }
+    sortProperty:any = 
+    {
+        column: -1
+    }
+    onChangeSort(i) // Применть сортировку по столбцу
+    {
+        this.sortProperty.column = i;
+        this.dataHeader[i].sort = !this.dataHeader[i].sort;
+        this.updateData();
+    }
     enableFilters()
     {
         this.tableFilter.changeEnamle();
-        if(!this.tableFilter.enable)
-            this.clearFilters();
+        if(!this.tableFilter.enable) this.clearFilters();
+        this.saveTableProperty("tableFilter", this.tableFilter.enable);
     }
     lineNumbering = { enable: true }
     enableLineNumbering()
     {
         this.lineNumbering.enable = !this.lineNumbering.enable;
+        this.saveTableProperty("lineNumbering", this.lineNumbering.enable);
     }
-    clearFilters() // Очистить фильтры
+    clearFilters() // Очистить фильтры и сортировку
     {
+        this.sortProperty.column = -1;
         this.tableFilter.clear();
         this.updateData();
     }
@@ -425,7 +524,7 @@ export class TableEditorV2Component implements OnInit
     }
     acceptEditField() // пропал фокус с выделенной ячейки
     {
-        if(!this.inputProperty.visible) return;
+        if(!this.inputProperty.visible && !this.modalMovedWindow.open) return;
         this.inputProperty.close();
         let cell = this.configInput.element;
         if(this.inputProperty.oldValue != this.inputProperty.value)
@@ -782,7 +881,7 @@ export class TableEditorV2Component implements OnInit
     tableProperty = {
         visible: false,
         data: {},
-        top: "0px",
+        translate: "",
         rules: {
             change: false
         },

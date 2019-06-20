@@ -25,10 +25,29 @@
     font-size:12px; 
     position:relative; 
     padding:5px;
-    background: white;
     margin-left: 5px;
     border-radius: 10px;
     box-shadow: 0px 0px 3px 0px #aaaaaa;
+    max-height: 500px;
+    background-color: white;
+}
+.enableButton
+{
+    background-color: rgb(187, 230, 139);
+}
+.pathStroke
+{
+    box-shadow: 0px 0px 3px 0px #aaaaaa;
+    border-radius: 10px; 
+    margin-bottom:5px;
+}
+.pathStroke span:first-child
+{
+    margin-left:5px;
+}
+.pathStroke span:last-of-type
+{
+    margin-right:5px;
 }
 @media screen and (max-width: 500px) {
     .explorer
@@ -108,7 +127,7 @@
 .elementExplorer:hover
 {
     transition: 0s;
-    background-color: #f5f5f5;
+    background-color: white;
 }
 /* .elementExplorer:active
 {
@@ -148,8 +167,8 @@
 }
 .selectElementExplorer
 {
-    /* border: 2px solid #cccccc; */
-    background-color: #f2f2f2 !important;
+    /* border: 1px solid #cccccc; */
+    background-color: white !important;
     user-select: none;
 }
 .selectCopyElementExplorer

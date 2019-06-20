@@ -6,3 +6,15 @@
     </select>
 </div>
 <hr style = "margin-top: 5px; margin-bottom: 5px;">
+<div style = "padding-left: 10px; font-weight:bold; font-size:14px; position: relative;">
+    Темы:
+    <div style = "width:280px; max-height: 280px; overflow: auto; display: flex; flex-wrap: wrap; align-items: center; justify-content: center;">
+        <div class = "themeTab" *ngFor = "let theme of themes" [class.themeImage] = "theme.type == 'image'" (click) = "setTheme(theme)">
+            <img *ngIf = "theme.type == 'image'" width = "100%" src = "{{ '/assets/img/theme/thumbs/_' + theme.name }}">
+            <div *ngIf = "theme.type == 'color'" style = "width: 100%; height:80%; margin-top:10%;" [style.background-color] = "theme.name"></div>
+        </div>
+        <div class = "themeTab" style = "text-align: center; line-height: 80px; padding: 0px; font-size: 24px;"(click) = "setTheme('')">
+            <i class="far fa-minus-square"></i>
+        </div>
+    </div>
+</div>

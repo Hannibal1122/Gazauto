@@ -33,12 +33,14 @@
             /* Применить фильтр и узнать набор строк которые надо включить */
             /* Должны найти первый доступный фильтр */
             if($filterStr != "")
+            {
                 if($result = query("SELECT DISTINCT i FROM fields WHERE tableId = %i AND type != 'head' AND ($filterStr)", [$idTable]))
                     while ($row = $result->fetch_array(MYSQLI_NUM)) 
                     {
                         if($enableLines != "") $enableLines .= ",";
                         $enableLines .= $row[0];
                     }
+            }
             /* Подготавливаем массив со строками без данных */
             if($result = query("SELECT i, next FROM fields LEFT JOIN line_ids ON line_ids.id = fields.i WHERE tableId = %i AND type != 'head'", [$idTable]))
                 while ($row = $result->fetch_array(MYSQLI_NUM))

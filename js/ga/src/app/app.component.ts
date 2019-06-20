@@ -42,6 +42,21 @@ export class AppComponent implements OnInit
     {
         return this._currentSoftware;
     }
+    theme = 
+    {
+        set current(value)
+        {
+            if(value.type == "image") this.style["background-image"] = 'url(/assets/img/theme/' + value.name + ')';
+            else
+            if(value.type == "color")
+            {
+                this.style["background-image"] = "linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.3))";
+                this.style["background-color"] = value.name;
+            }
+            else this.style = {};
+        },
+        style: {}
+    }
     splitScreen: SplitScreen = new SplitScreen();
     constructor(private query: QueryService, 
         private lib: FunctionsService, 
@@ -123,6 +138,10 @@ export class AppComponent implements OnInit
             window.addEventListener("resize", () => { this.resizeWindow() });
         }
         ////////////////////////////////////////////////////////////////////
+        this.query.protectionPost(451, { param: ["theme"] }, (data) =>
+        {
+            if(data != "") this.theme.current = data;
+        });
     }
     resizeWindow()
     {
@@ -239,6 +258,9 @@ export class AppComponent implements OnInit
                         break;
                     }
                 this.globalEvent.appendTableIds(e.id, e.tableIds, e.idLogTableOpen);
+                break;
+            case "changeTheme": // смена темы
+                this.theme.current = e.value;
                 break;
         }
     }

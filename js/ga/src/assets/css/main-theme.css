@@ -14,15 +14,15 @@
 }
 .ExplorerBColor /*Фон рабочей области*/
 {
-    background-color: #eeeeee;
+    /* background-color: #eeeeee; */
 }
-.ExplorerFolderBColor /*Фон рабочей области*/
+.MainBColor /*Фон рабочей области*/
 {
-    background-color: #ffffff;
+    background-color: rgba(255, 255, 255, 0.8);
 }
 .TabsPanelColor
 {
-    background-color: #6085ac;
+    background-color: #252526;
 }
 .VersionPanelColor
 {
@@ -30,22 +30,22 @@
 }
 .TabsColor
 {
-    color: #daf1ff;
-    background-color: #6085ac;
+    color: #cacaca;
+    background-color: #252526;
 }
 .TabsActiveColor /* Цвета активной вкладки*/
 {
     color: #ffffff;
-    background-color: #456486;
+    background-color: #383838;
 }
 .TabsButtonExitColor
 {
-    color: #ffffff;
+    color: #a7a7a7;
     transition: 0.3s;
 }
 .TabsButtonExitColor:hover
 {
-    color: #faa9a9;
+    color: #b35454;
 }
 /*******************************************************/
 .ModalButtonExitColor
@@ -61,24 +61,24 @@
 .PanelAppColor /*Основной цвет шрифта и фона у открытого меню*/
 {
     color:#ffffff;
-    background-color: #456486;
+    background-color: #252526;
 }
 .PanelAppTitleColor /*Фон и цвет у заголовка открытого меню*/
 {
-    color:#ffffff;
-    background-color: #6085ac;
+    color:#cacaca;
+    background-color: #252526;
 }
 .PanelMiniAppBColor /*Фон у панели слева где иконки приложений*/
 {
-    background-color: #5378a0;
+    background-color: #333333;
 }
 .leftMenuTitleBColor
 {
-    background-color: #456486;
+    background-color: #383838;
 }
 .ButtonMiniAppColor
 {
-    color:#daf1ff;
+    color:#cacaca;
 }
 .ButtonMiniAppActiveColor
 {
@@ -98,7 +98,7 @@
 {
     color: #566b86;
 }
-.TableCreatorBorderColor td, th/*Цвет границ таблицы*/
+.TableCreatorBorderColor td, .TableCreatorBorderColor th/*Цвет границ таблицы*/
 {
     border-color: #ececec !important;
 }

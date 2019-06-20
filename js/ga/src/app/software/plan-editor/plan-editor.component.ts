@@ -12,136 +12,244 @@ declare var trace:any;
 export class PlanEditorComponent implements OnInit 
 {
     @ViewChild('modal') public modal: any;
-    @ViewChild('editPlan') public editPlan: any;
 
-    employees = [{ //массив с данными о сотрудниках и их днях работы
-        surname: 'Петров', 
-        name: 'Петр', 
-        patronymic: 'Петрович', 
-        days: [ 8, 8, 8, 8, 8, 'Вых', 'Вых', 8, 8, 8, 8, 8, 'Вых', 'Вых', 8, 8, 8, 8, 8, 'Вых', 'Вых', 8, 8, 8, 8, 8, 'Вых', 'Вых', 8, 8, 8, 8, 8, 'Вых', 'Вых'] 
-        }, { 
-            surname: 'Иванов', 
-            name: 'Иван', 
-            patronymic: 'Иванович', 
-            days: [ 8, 8, 8, 8, 8, 'Вых', 'Вых', 8, 8, 8, 8, 8, 'Вых', 'Вых', 8, 8, 8, 8, 8, 'Вых', 'Вых', 8, 8, 8, 8, 8, 'Вых', 'Вых', 8, 8, 8, 8, 8, 'Вых', 'Вых'] 
-        }, { 
-            surname: 'Павлов', 
-            name: 'Павел', 
-            patronymic: 'Павлович', 
-            days: [ 8, 8, 8, 8, 8, 'Вых', 'Вых', 8, 8, 8, 8, 8, 'Вых', 'Вых', 8, 8, 8, 8, 8, 'Вых', 'Вых', 8, 8, 8, 8, 8, 'Вых', 'Вых', 8, 8, 8, 8, 8, 'Вых', 'Вых'] 
-        }, { 
-            surname: 'Александров', 
-            name: 'Александр', 
-            patronymic: 'Александрович', 
-            days: [ 8, 8, 8, 8, 8, 'Вых', 'Вых', 8, 8, 8, 8, 8, 'Вых', 'Вых', 8, 8, 8, 8, 8, 'Вых', 'Вых', 8, 8, 8, 8, 8, 'Вых', 'Вых', 8, 8, 8, 8, 8, 'Вых', 'Вых'] 
-        }, { 
-            surname: 'Егоров', 
-            name: 'Егор', 
-            patronymic: 'Егорович', 
-            days: [ 8, 8, 8, 8, 8, 'Вых', 'Вых', 8, 8, 8, 8, 8, 'Вых', 'Вых', 8, 8, 8, 8, 8, 'Вых', 'Вых', 8, 8, 8, 8, 8, 'Вых', 'Вых', 8, 8, 8, 8, 8, 'Вых', 'Вых']
-        }, { 
-            surname: 'Скворцов', 
-            name: 'Егор', 
-            patronymic: 'Егорович', 
-            days: [ 8, 8, 8, 8, 8, 'Вых', 'Вых', 8, 8, 8, 8, 8, 'Вых', 'Вых', 8, 8, 8, 8, 8, 'Вых', 'Вых', 8, 8, 8, 8, 8, 'Вых', 'Вых', 8, 8, 8, 8, 8, 'Вых', 'Вых']
-    }];
-    outEmployees = [];
-
-    month: string;
-    coldays: number;
-
-    inputs = { id: -1, searchObjectId: -1 };
-    dataPlan = [];
-
+    planProperty = {
+        error: false,
+        month: "",
+        year: ""
+    }
+    loaded = false;
+    right: any = {};
+    name;
+    dataHeader;
+    dataHeaderDays = [];
+    mapHeader = {};
+    dataTable;
+    inputs = { id: -1 };
+    interval = {
+        i: -1,
+        begin: -1,
+        end: -1,
+        firstJ: -1
+    }
     constructor(public query: QueryService) { }
     ngOnInit() 
     {
-        this.convertEmployees();
+        this.loadTable();
     }
+    loadTable()
+    {
+        this.loaded = false;
+        this.query.protectionPost(250, { param: [ this.inputs.id ]}, (data) => 
+        {
+            if(data.head == undefined) 
+            {
+                this.planProperty.error = true;
+                return;
+            }
+            this.planProperty.error = false;
+            for(let key in data.right) this.right[key] = data.right[key];
+            this.right.head = data.changeHead;
+            this.name = data.name;
+            this.dataHeader = [];
+            this.dataTable = [];
+            // Формирование заголовка
+            for(let i = 0; i < data.head.length; i++)
+            {
+                let _j = data.head[i][0];
+                this.dataHeader[_j] = { 
+                    id: data.head[i][1], 
+                    name: data.head[i][2]
+                };
+                this.mapHeader[this.dataHeader[_j].id] = _j;
+            }
+            for(let i = 0; i < data.data.length; i++)
+            {
+                this.dataTable[i] = [];
+                for(let j in data.data[i])
+                    this.dataTable[i][this.mapHeader[j]] = data.data[i][j];
+            }
+            this.convertEmployees();
+            this.query.protectionPost(133, { param: [ this.inputs.id ]}, (data) => 
+            {
+                let property = JSON.parse(data.userProperty);
+                for(let i = 0; i < property.length; i++)
+                {
+                    if(property[i].name == "месяц") this.planProperty.month = property[i].value;
+                    if(property[i].name == "год") this.planProperty.year = property[i].value;
+                }
+                this.dataHeaderDays[0] = "";
+                for(let i = 1; i < this.dataHeader.length; i++)
+                    this.dataHeaderDays[i] = this.getWeekDay(new Date(Number(this.planProperty.year), this.getMonth(this.planProperty.month), i));
+                this.loaded = true;
+            });
+        });
+        /* var date = ; // 3 января 2014
+        alert( getWeekDay(date) ); // 'пт' */
+    }
+    outEmployees = [];
     convertEmployees()
     {
         this.outEmployees = [];
-        for(let i = 0; i < this.employees.length; i++)
+        for(let i = 0; i < this.dataTable.length; i++)
         {
             this.outEmployees[i] = {
-                name: this.employees[i].surname + " " + this.employees[i].surname + " " + this.employees[i].patronymic,
+                name: this.dataTable[i][0].value,
                 days: []
             }
             let newLiteral = false;
-            let day;
+            let day, lastDay;
             let lastI;
-            for(let j = 0; j < this.employees[i].days.length; j++)
+            for(let j = 1; j < this.dataTable[i].length; j++)
             {
-                day = this.employees[i].days[j];
-                if(day == "К" || day == "Вых" || day == "От")
+                lastDay = j == 1 ? false : this.dataTable[i][j - 1];
+                day = this.dataTable[i][j];
+                if((day.value == "К" || day.value == "Вых" || day.value == "От") && (lastDay.value === day.value))
                 {
-                    if(!newLiteral)
-                    {
-                        lastI = this.outEmployees[i].days.length;
-                        this.outEmployees[i].days[lastI] = { 
-                            value: day, 
-                            colspan: 0
-                        };
-                    }
                     this.outEmployees[i].days[lastI].colspan++;
-                    newLiteral = true;
+                    continue;
                 }
-                else this.outEmployees[i].days.push({ 
-                    value: day, 
+                lastI = this.outEmployees[i].days.length;
+                this.outEmployees[i].days[lastI] = { 
+                    value: day.value, 
+                    color: day.color,
+                    day: j,
                     colspan: 1 
-                });
-                newLiteral = false;
+                };
             }
         }
     }
-    showPlan(month) //Показать план-график 
+    updateInterval(j)
     {
-      
-    }
-    editEmployee() //Добавить сотрудника 
-    {
-      //var currentDate = new Date();
-        var today = [];
-        var dayvalue = [];
-        
-        var fio = [];
-        var fioId = [];
-        for(var i = 0; i < this.outEmployees.length; i++) 
-        { 
-            fio[i] = this.outEmployees[i].name;
-            fioId[i] = i;
-        }
-        var Data:any = {
-            title: "Добавление сотрудника",  
-            data: [
-            ["Сотрудник", { selected: fio[0].id, data: fio, value: fioId }, "select"],
-            ["От", "", "datetime", null, { time: false }],
-            ["До", "", "datetime", null, { time: false }],
-            ["Значение", "", "text"]
-            ],
-            ok: "Изменить",
-            cancel: "Отмена"
-        };
-
-        this.modal.open(Data, (save) =>
+        if(this.interval.i != -1)
         {
-            /* trace(Data.data[0][1].selected) // id Сотрудника
-            trace(Data.data[1][1]) // От (миллисекунды)
-            trace(Data.data[2][1]) // До (миллисекунды)
-            trace(Data.data[3][1]) // Значение */
-            if(save == true)
+            if(this.interval.firstJ > j)
             {
-                let from = new Date(Data.data[1][1]).getDate() - 1;
-                let to = new Date(Data.data[2][1]).getDate();
-                let i = Number(Data.data[0][1].selected);
-                for(let j = from; j < to; j++)
-                    this.employees[i].days[j] = Data.data[3][1];
-                this.convertEmployees();
-                /* trace(this.employees)
-                trace(Data.data[0][1].selected)
-                trace(from)
-                trace(to) */
+                this.interval.end = this.interval.firstJ;
+                this.interval.begin = j;
+            }
+            else 
+            {
+                this.interval.begin = this.interval.firstJ;
+                this.interval.end = j;
+            }
+        }
+    }
+    selectInterval(i, j)
+    {
+        if(this.interval.i == -1)
+        {
+            this.interval.i = i;
+            this.interval.firstJ = j;
+            this.interval.begin = j;
+        }
+        else 
+        {
+            let days = this.outEmployees[this.interval.i].days;
+            let titleText;
+            let begin = days[this.interval.begin].day;
+            let end = days[this.interval.end].day;
+            let month = "";
+            let lMonth = this.planProperty.month.length;
+            let lastLit = this.planProperty.month[lMonth - 1];
+            if(lastLit == "ь" || lastLit == "й") month = this.planProperty.month.slice(0, lMonth - 1) + "я";
+            else month = this.planProperty.month + "а";
+            end += days[this.interval.end].colspan - 1;
+            if(begin == end) titleText = `Изменить на ${ begin } ${ month }`;
+            else titleText = `Изменить с ${ begin } по ${ end } ${ month }`;
+
+            let Data:any = {
+                title: titleText,  
+                data: [
+                    ["Значение", "", "text"],
+                    ["Цвет", "", "text"]
+                ],
+                ok: "Изменить",
+                cancel: "Отмена"
             };
+
+            this.modal.open(Data, (save) =>
+            {
+                if(save == true)
+                {
+                    let value = Data.data[0][1];
+                    let color = Data.data[1][1];
+                    let out = [];
+                    for(let j = begin; j <= end; j++)
+                        out.push({
+                            id: this.dataTable[this.interval.i][j].id,
+                            value: value,
+                            color: color
+                        });
+                    this.query.protectionPost(402, { param: [ JSON.stringify(out) ]}, (data) => 
+                    {
+                        this.loadTable();
+                    });
+                };
+                for(let key in this.interval) this.interval[key] = -1;
+            });
+        }
+    }
+    getMonth(month)
+    {
+        return { 
+            "январь": 0, 
+            "февраль": 1, 
+            "март": 2, 
+            "апрель": 3, 
+            "май": 4, 
+            "июнь": 5, 
+            "июль": 6, 
+            "август": 7,
+            "сентябрь": 8,
+            "октябрь": 9,
+            "ноябрь": 10,
+            "декабрь": 11,
+        }[month];
+    }
+    getWeekDay(date) 
+    {
+        var days = ['вс', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб'];
+        return days[date.getDay()];
+    }
+    setPresentDays() // Вычислить все выходные и выставить значения
+    {
+        let out = [];
+        let workDay = "9";
+        let shortWorkDay = "8:15";
+        for(let i = 0; i < this.dataTable.length; i++)
+            for(let j = 1; j < this.dataTable[i].length; j++)
+            {
+                switch(this.dataHeaderDays[j])
+                {
+                    case "пн":
+                    case "вт":
+                    case "ср":
+                    case "чт":
+                        if(this.dataTable[i][j].value == "") out.push({ id: this.dataTable[i][j].id, value: workDay });  
+                        break;
+                    case "пт":
+                        if(this.dataTable[i][j].value == "") out.push({ id: this.dataTable[i][j].id, value: shortWorkDay });  
+                        break;
+                    case "сб":
+                    case "вс":
+                        if(this.dataTable[i][j].value != "Вых") out.push({ id: this.dataTable[i][j].id, value: "Вых" });  
+                        break;
+                }
+            }
+        /* trace(this.dataTable)
+        trace(out) */
+        this.query.protectionPost(402, { param: [ JSON.stringify(out) ]}, (data) => 
+        {
+            this.loadTable();
         });
+    }
+    clearPlan()
+    {
+        let out = [];
+        for(let i = 0; i < this.dataTable.length; i++)
+            for(let j = 1; j < this.dataTable[i].length; j++)
+                out.push({ id: this.dataTable[i][j].id, value: "" });  
+        this.query.protectionPost(402, { param: [ JSON.stringify(out) ]}, (data) => { this.loadTable(); });
     }
 }

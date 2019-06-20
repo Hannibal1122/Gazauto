@@ -553,6 +553,18 @@
                         require_once("myFilter.php");
                         $myFilter = new MyFilter();
                         $allFilters = $myFilter->getAllFilters($idTable);
+                        if(array_key_exists(1, $param) && $allFilters["filterStr"] == "" && (int)$param[1] == 1) 
+                        {
+                            if(selectOne("SELECT count(DISTINCT i) FROM fields WHERE tableId = %i AND type != 'head'", [$idTable]) > 300)
+                            {
+                                echo json_encode([
+                                    "error" => "MORE_300",
+                                    "filters" => $allFilters["filters"],
+                                    "filter" => $allFilters["filterSelected"]
+                                ]);
+                                return;
+                            }
+                        }
                         $myTable->getTable(
                             $tableRight, 
                             $allFilters["filters"], 
@@ -851,15 +863,32 @@
                 switch($nQuery)
                 {
                     case 400: // Создание план-графика
-                        $idParent = (int)$param[0];
-                        if(($myRight->get($idParent) & 8) != 8) return; // Права на изменение
-                        $idTable = (int)$param[1];
-                        $month = (int)$param[2];
-                        $year = (int)$param[3];
+                        $idTable = (int)$param[0];
+                        if(($myRight->get($idTable) & 8) != 8) return; // Права на изменение
+                        $month = (int)$param[1];
+                        $year = (int)$param[2];
+                        $monthName = [
+                            1 => "январь", 
+                            2 => "февраль", 
+                            3 => "март", 
+                            4 => "апрель", 
+                            5 => "май", 
+                            6 => "июнь",
+                            7 => "июль",
+                            8 => "август",
+                            9 => "сентябрь",
+                            10 => "октябрь",
+                            11 => "ноябрь",
+                            12 => "декабрь"
+                        ];
                         $number = cal_days_in_month(CAL_GREGORIAN, $month, $year);
-                        // Должен быть update имени
+                        /* // Должен быть update имени
                         $name = selectOne("SELECT name FROM structures WHERE id = %i", [ $idTable ]);
-                        query("UPDATE structures SET name = %s WHERE id = %i", [ $name." ($month.$year)", $idTable ]);
+                        query("UPDATE structures SET name = %s WHERE id = %i", [ $name." ($month.$year)", $idTable ]); */
+                        $tableProperty = [];
+                        $tableProperty[] = [ "name" => "месяц", "value" => $monthName[$month], "type" => "block" ];
+                        $tableProperty[] = [ "name" => "год", "value" => $year, "type" => "block" ];
+                        query("UPDATE structures SET user_property = %s WHERE id = %i", [ json_encode($tableProperty), $idTable ]);
                         // Создание заголовка
                         $myTable = new MyTable($idTable, $myLog);
                         $data = [];
@@ -868,9 +897,20 @@
                             $data[] = (object)["value" => $i, "i" => $i];
                         $myTable->setAndRemoveHeader($data, []);
                         break;
-                    case 401: // Запрос план графика как таблицы
+                    case 401: // резерв
                         break;
                     case 402: // Изменение данных, поддержка интервального изменения одинаковым значением
+                        $data = json_decode($param[0]);
+                        require_once("myTable.php"); // $myTable класс для работы с таблицей
+                        for($i = 0, $c = count($data); $i < $c; $i++)
+                        {
+                            $idField = (int)$data[$i]->id;
+                            $idTable = selectOne("SELECT tableId FROM fields WHERE id = %i", [ $idField ]);
+                            if(($myRight->get($idTable) & 8) != 8) return; // Права на изменение
+                            $myTable = new MyTable($idTable, $myLog);
+                            $myTable->setCell($data[$i], false);
+                            if(!is_null($data[$i]->color)) query("UPDATE fields SET color = %s WHERE id = %i", [ $data[$i]->color, $idField ]);
+                        }
                         break;
                 }
             }
@@ -924,6 +964,17 @@
                 }
             if($nQuery >= 450 && $nQuery < 470) // Работа с настройками пользователя
             {
+                switch($nQuery)
+                {
+                    case 450: // Установить уникальное свойство в настройках
+                        $value = selectOne("SELECT value FROM user_settings WHERE login = %s AND type = %s", [ $login, $param[0] ]);
+                        if(is_null($value)) query("INSERT INTO user_settings (login, id, type, value) VALUES(%s, %i, %s, %s)", [$login, -1, $param[0], $param[1]]);
+                        else query("UPDATE user_settings SET value = %s WHERE login = %s AND type = %s", [ $param[1], $login, $param[0] ]);
+                        break;
+                    case 451: // Запросить значение свойства
+                        echo selectOne("SELECT value FROM user_settings WHERE login = %s AND type = %s", [ $login, $param[0] ]);
+                        break;
+                }
             }
             if($nQuery >= 470 && $nQuery < 480) // Работа с фильтрами
             {

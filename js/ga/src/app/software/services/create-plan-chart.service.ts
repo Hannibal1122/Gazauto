@@ -28,7 +28,7 @@ export class CreatePlanChartService
                 this.query.protectionPost(100, { param: ["plan", "NULL", Data.data[0][1], idParent, 0, ""] }, (data) => 
                 {  
                     if(data[0] == "Index")
-                        this.query.protectionPost(400, { param: [idParent, data[1], date.getMonth() + 1, date.getFullYear()] }, (data) => 
+                        this.query.protectionPost(400, { param: [data[1], date.getMonth() + 1, date.getFullYear()] }, (data) => 
                         {  
                             update();
                         });

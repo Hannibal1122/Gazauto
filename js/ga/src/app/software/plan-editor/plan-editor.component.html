@@ -1,89 +1,34 @@
 <!-- Plan Editor-->
-<div class = "col-md-4 col-sm-12" style = "user-select:none; margin-top:4px; padding-right:5px; padding-left:5px;">
-    <label>Показать план-график за  
-        <select style = "height: 36px; border: 1px solid #eeeeee; border-radius:5px;">
-            <option value = "all">Год</option>
-            <option value = "jan">Январь</option>
-            <option value = "feb">Февраль</option>
-            <option value = "mar">Март</option>
-            <option value = "apr">Апрель</option>
-            <option value = "may">Май</option>
-            <option value = "jun">Июнь</option>
-            <option value = "jul">Июль</option>
-            <option value = "aug">Август</option>
-            <option value = "sep">Сентябрь</option>
-            <option value = "oct">Октябрь</option>
-            <option value = "nov">Ноябрь</option>
-            <option value = "dec">Декабрь</option>
-        </select>
-    </label>
-    <button class = "mainButton" title = "Показать" (click) = "showPlan('all')" ><i class="fas fa-check"></i></button>
-    <!--<button class = "mainButton" title = "Добавить сотрудника" (click) = "editEmployee()"><i class="fas fa-user-plus"></i></button> -->
-    <button class = "mainButton" title = "Редактирование" (click) = "editEmployee()"><i class="fas fa-cog"></i></button>
+<div class="planEditor">
+    <div class = "planControlPanel">
+        <div class = "MainBColor" style = "float:left; margin-right:5px; line-height: 32px; padding: 4px; border-radius: 5px; box-shadow: 0px 0px 3px 0px #aaaaaa;">{{ name + " (" + planProperty.month + " " + planProperty.year + ")" }}</div>
+        <button class = "mainButton" (click) = "loadTable()" title = "Обновить"><i class="fas fa-sync-alt"></i></button>
+        <button class = "mainButton" (click) = "setPresentDays()" title = "Выставить рабочие недели"><i class="fa fa-calendar-alt"></i></button>
+        <button class = "mainButton" (click) = "clearPlan()" title = "Очистить все данные"><i class="fas fa-eraser"></i></button>
+    </div>
+    <div style = "overflow:auto;"> 
+        <table class = "PlanEditorTable">
+            <tbody>
+                <tr style = "color:rgb(160, 160, 160);">
+                    <td *ngFor = "let h of dataHeaderDays">{{ h }}</td>
+                </tr>
+                <tr>
+                    <th *ngFor = "let h of dataHeader">{{ h.name }}</th>
+                </tr>
+                <tr *ngFor="let employee of outEmployees; let i = index"> 
+                    <td>{{employee.name}}</td>
+                    <td *ngFor="let day of employee.days; let j = index"
+                        (click) = "selectInterval(i, j)"
+                        (mouseover) = "updateInterval(j)"
+                        class = "TDHover"
+                        [attr.colspan]="day.colspan"
+                        [class.colorBlue] = "(j >= interval.begin && j <= interval.end) && i == interval.i"
+                        [style.background-color] = "day.color">{{day.value}}
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 </div>
-<div style = "overflow:auto;"> 
-    <table class = "PlanEditor">
-        <tbody>
-            <tr>
-                <th>ФИО сотрудника</th>
-                <th>1</th>
-                <th>2</th>
-                <th>3</th>
-                <th>4</th>
-                <th>5</th>
-                <th>6</th>
-                <th>7</th>
-                <th>8</th>
-                <th>9</th>
-                <th>10</th>
-                <th>11</th>
-                <th>12</th>
-                <th>13</th>
-                <th>14</th>
-                <th>15</th>
-                <th>16</th>
-                <th>17</th>
-                <th>18</th>
-                <th>19</th>
-                <th>20</th>
-                <th>21</th>
-                <th>22</th>
-                <th>23</th>
-                <th>24</th>
-                <th>25</th>
-                <th>26</th>
-                <th>27</th>
-                <th>28</th>
-                <th>29</th>
-                <th>30</th>
-                <th>31</th>
-            </tr>
-            <tr *ngFor="let employee of outEmployees"> 
-                <td>{{employee.name}}</td>
-                <td *ngFor="let day of employee.days" 
-                    [attr.colspan]="day.colspan"
-                    [class.colorRed] = "day.value == 'К'"
-                    [class.colorGreen] = "day.value == '8'"
-                    [class.colorGray] = "day.value == 'Вых'"
-                    [class.colorBlue] = "day.value == 'От'"> {{day.value}}
-                </td>
-               <!-- <td> <button class = "mainButton" title = "Редактировать" (click) = "editEmployee()" ><i class="fas fa-cog"></i></button> </td> -->
-            </tr>
-        </tbody>
-    </table>
-</div>
-
-
-<!-- тест
-<br>
-<div>
-    <table>
-        <tr>
-            <td> {{ today }} </td>
-        </tr>
-    </table>
-</div>
---> 
-
 
 <modalwindow #modal></modalwindow>
