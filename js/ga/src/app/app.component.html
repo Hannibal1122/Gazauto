@@ -74,10 +74,7 @@
                 <div style = "width:100%; height:60px; display: flex; flex-wrap: wrap; align-items: center; justify-content: center;">
                     <div class = "softwareIcon softwareExplorer" title = "Проводник" (click) = "openSoftware('explorer', { id: 0 })"><i class = "fas fa-sitemap"></i></div>
                     <div class = "softwareIcon softwareStatistics" title = "Статистика"><i class = "fas fa-chart-line"></i></div>
-                    <div class = "softwareIcon softwareEvent" title = "Редактор событий" (click) = "openSoftware('event', { id: 0 })"><i class = "fas fa-bolt"></i></div>
-                    <div class = "softwareIcon softwareEvent" title = "План-график" (click) = "openSoftware('plan', { id: 0 })"><i class="fas fa-chart-bar"></i></div>
                     <div class = "softwareIcon softwareTasks" title = "Справка" (click) = "openSoftware('info', { id: -1 })"><i class = "fas fa-info"></i></div>
-                    <div class = "softwareIcon softwareExplorer" title = "Конструктор" (click) = "openSoftware('constructor', { id: -1 })"><i class="fas fa-pencil-ruler"></i></div>
                 </div>
             </div>
             <div *ngIf = "currentMiniApp == 'chat'"
@@ -129,7 +126,7 @@
                                 <span *ngIf = "tab.type == 'info'"> <i class = "fas fa-info colorIconEvent"></i> </span>
                                 <span *ngIf = "tab.type == 'plan'"> <i class = "fa fa-chart-bar colorIconTable"></i> </span>
                                 <span *ngIf = "tab.type == 'log'"> <i class = "fa fa-book colorIconTable"></i> </span>
-                                <span *ngIf = "tab.type == 'constructor'"> <i class="fas fa-pencil-ruler colorIconExplorer"></i> </span>
+                                <span *ngIf = "tab.type == 'class'"> <i class="fas fa-pencil-ruler colorIconExplorer"></i> </span>
                                 
                             </ng-container>
                             <span class = "tabsLoader" *ngIf = "!tab.loaded"> <i class="fas fa-spinner tabsLoader"></i> </span>

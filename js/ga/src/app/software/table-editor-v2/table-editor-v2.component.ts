@@ -101,7 +101,7 @@ export class TableEditorV2Component implements OnInit
     cacheListValues = {};
     constructor(private query:QueryService, private queue:QueueService) 
     { 
-        let param:any = this.getValueBySrc(location.search);
+        let param:any = this.query.getValueBySrc(location.search);
         this.id = param.id ? Number(param.id) : -1;
         if(param.searchObjectId) this.searchCellId = param.searchObjectId;
 
@@ -120,6 +120,8 @@ export class TableEditorV2Component implements OnInit
         //Загрузка свойств по умолчанию
         this.loadTableProperty("lineNumbering");
         this.loadTableProperty("tableFilter");
+        this.loadTableProperty("tableProperty");
+        this.loadTableProperty("headerEditorShow");
     }
     updateFromApp()
     {
@@ -154,18 +156,6 @@ export class TableEditorV2Component implements OnInit
     ngOnInit() 
     {
         this.loadTable();
-    }
-    getValueBySrc(src) // Разбить параметры строки
-    {
-        let a = src.replace("?", "");
-        let out = {};
-        a = a.split("&");
-        for(let i = 0; i < a.length; i++)
-        {
-            let b = a[i].split("=");
-            out[b[0]] = b[1];
-        }
-        return out;
     }
     updateEventFromHeader(e)
     {
@@ -239,7 +229,7 @@ export class TableEditorV2Component implements OnInit
             this.tableFilter.splice(j)
 
             this.tableIds = data.tableIds;
-            this.onChange({ type: "updateTableIds", id: this.id, tableIds: this.tableIds, idLogTableOpen: data.idLogTableOpen, name: this.nameTable });
+            this.query.onChange({ type: "updateTableIds", id: this.id, tableIds: this.tableIds, idLogTableOpen: data.idLogTableOpen, name: this.nameTable });
 
             this.firstData = data.data;
             this.updateData();
@@ -371,6 +361,12 @@ export class TableEditorV2Component implements OnInit
                 case "scroll":
                     this.mainContainer.nativeElement.scrollBy({ ...prop.scroll, behavior: 'smooth'});
                     break;
+                case "tableProperty":
+                    this.tableProperty.visible = prop.tableProperty;
+                    break;
+                case "headerEditorShow":
+                    this.headerEditorShow = prop.headerEditorShow;
+                    break;
             }
         }
     }
@@ -420,6 +416,7 @@ export class TableEditorV2Component implements OnInit
     changeHeader() // изменить заголовок таблицы
     {
         this.headerEditorShow = !this.headerEditorShow;
+        this.saveTableProperty("headerEditorShow", this.headerEditorShow);
     }
     onChangeFilter(i, value) // В строку фильтра вводят значение
     {
@@ -712,6 +709,10 @@ export class TableEditorV2Component implements OnInit
             case "head":
                 this.inputProperty.id = this.dataHeader[data].id;
                 this.inputProperty.eventId = this.dataHeader[data].eventId;
+                this.tableProperty.listLink.visible = false;
+                this.tableProperty.data = {
+                    id: this.inputProperty.id
+                };
                 break;
             case "row":
                 break;
@@ -813,7 +814,7 @@ export class TableEditorV2Component implements OnInit
                     {
                         this.loadTable();
                         if(this.id != data.idTableFrom)
-                            this.onChange({ type: "updateTable", id: data.idTableFrom}); // Чтобы таблица с вырезанной ячейкой обновилась
+                            this.query.onChange({ type: "updateTable", id: data.idTableFrom}); // Чтобы таблица с вырезанной ячейкой обновилась
                     }
                     else 
                     {
@@ -850,7 +851,7 @@ export class TableEditorV2Component implements OnInit
     }
     openEventToExplorer(eventId) // Найти событие в таблице
     {
-        this.onChange({ type: "openFromTable", value: { name: "event", id: eventId }});
+        this.query.onChange({ type: "openFromTable", value: { name: "event", id: eventId }});
     }
     openToExplorer(data) // Найти в таблице
     {
@@ -858,24 +859,13 @@ export class TableEditorV2Component implements OnInit
             this.query.protectionPost(111, { param: [ "cell", data.linkId ]}, (idParent) => 
             {
                 if(this.id == idParent[0][0]) this.searchCell(data.linkId);
-                else this.onChange({ type: "openFromTable", value: { name: "cell", id: data.linkId }});
+                else this.query.onChange({ type: "openFromTable", value: { name: "cell", id: data.linkId }});
             });
-        else this.onChange({ type: "openFromTable", value: { name: data.type, id: data.linkId }});
+        else this.query.onChange({ type: "openFromTable", value: { name: data.type, id: data.linkId }});
     }
     openSoftware(type, id) // Открыть объект
     {
-        this.onChange({ type: "openFromTable", value: { type: "open", name: type, id: id }});
-    }
-    onChange(out) // Общение с главным js через localStorage
-    {
-        let i = 0;
-        // Поиск пустого значения
-        while(i < 1000)
-        {
-            if(!localStorage.getItem("propertyIFrame_" + i)) break;
-            i++;
-        }
-        localStorage.setItem("propertyIFrame_" + i, JSON.stringify(out));
+        this.query.onChange({ type: "openFromTable", value: { type: "open", name: type, id: id }});
     }
     /*************************************************/
     tableProperty = {
@@ -897,10 +887,12 @@ export class TableEditorV2Component implements OnInit
     openTableProperty()
     {
         this.tableProperty.visible = !this.tableProperty.visible;
+        this.saveTableProperty("tableProperty", this.tableProperty.visible);
     }
     closeTableProperty()
     {
         this.tableProperty.visible = false;
+        this.saveTableProperty("tableProperty", this.tableProperty.visible);
     }
     updateCell(e) // При изменении таблицы свойств
     {
@@ -1011,6 +1003,7 @@ export class TableEditorV2Component implements OnInit
     onFilterChange() // Обновить фильтр
     {
         this.headerEditorShow = false;
+        this.saveTableProperty("headerEditorShow", this.headerEditorShow);
         this.query.protectionPost(474, { param: [this.filter.selected, this.id] }, (data) => 
         { 
             this.loadTable();

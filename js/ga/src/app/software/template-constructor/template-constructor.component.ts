@@ -10,168 +10,87 @@ declare var trace:any;
 })
 export class TemplateConstructorComponent implements OnInit 
 {
-    treeDB: TreeDataBase = new TreeDataBase();
-    rMain = 50;
-    R = 110; // Радиус минимальный
-    rNode = 40; // радиус кружков
-    currentElement:any = {};
-    circles = [];
-    parent = 0;
-    svgProperties = 
+    @ViewChild("modal") modal;
+    /* treeDB: TreeDataBase = new TreeDataBase(); */
+    id = -1;
+    mainList = [];
+    library = [];
+    constructor(private query:QueryService)
     {
-        width: 0
-    }
-    constructor()
-    {
-        if(localStorage.getItem("constructor"))
-        {
-            this.treeDB.load(JSON.parse(localStorage.getItem("constructor")));
-        }
-        else this.treeDB.push("root", "node", 0);
-        this.openParent(1);
+        let param:any = this.query.getValueBySrc(location.search);
+        this.id = param.id ? Number(param.id) : -1;
     }
     ngOnInit()
     {
+        this.loadData();
     }
-    openParent(id)
+    loadData()
     {
-        this.parent = id;
-        this.currentElement = this.treeDB.get(id);
-        this.circles = this.treeDB.children(this.parent);
-        this.calcPosition();
-    }
-    getRandom(min, max)
-    { 
-        return Math.floor(Math.random() * (max - min)) + min; 
-    }
-    calcPosition()
-    {
-        let count = this.circles.length;
-        let orbit = [];
-        let oI = 0;
-        // Должны разобрать по орбитам
-        let R = this.R;
-        let length;
-        while(count > 0)
+        this.query.protectionPost(491, { param: [ this.id ] }, (data) =>
         {
-            orbit[oI] = [];
-            length = Math.PI * R * 2;
-            let c = length / this.R;
-            for(let i = 0; i < c; i++)
-            {
-                if(count == 0) break;
-                orbit[oI].push(this.circles[count - 1])
-                count--;
-            }
-            oI++;
-            R = this.R + (oI * (this.rNode * 2 + 5));
-        }
-        let D = (R + this.rNode) * 2;
-        for(let i = 0; i < orbit.length; i++)
+            this.query.onChange({ type: "updateClassName", id: this.id, name: data.name });
+            this.library = data.lib;
+            if(data.structure == "") this.mainList = [{ id: 1, name: "root", type: "node", bindId: -1, parent: 0, level: 0 }];
+            else this.mainList = JSON.parse(data.structure);
+            /* this.treeDB.load(data.structure == "" ? {} : data.structure); */
+        });
+    }
+    saveData()
+    {
+        this.query.protectionPost(492, { param: [ this.id, JSON.stringify(this.mainList) ] }, (data) =>
         {
-            R = this.R + (i * (this.rNode * 2 + 5));
-            let alpha = (360 / orbit[i].length) * (Math.PI / 180);
-            let a = this.getRandom(0, 180);
-            for(let j = 0; j < orbit[i].length; j++)
-            {
-                orbit[i][j].x = (D / 2) + R * Math.cos(a);
-                orbit[i][j].y = (D / 2) + R * Math.sin(a);
-                a += alpha;
-            }
+        });
+        trace(this.mainList)
+    }
+    appendNode(i)
+    {
+        let Data:any = {
+            title: "",  
+            data: [
+                ["Имя", "", "text"],
+                ["Кол-во потомков", "", "text"],
+                ["Тип", { selected: "node", data: ["Узел", "Таблица"], value: ["node", "table"]}, "select", { onselect: (value) =>
+                {
+                    if(value == "table")
+                    {
+                        let values = []
+                        let data = [];
+                        for(let i = 0; i < this.library.length; i++)
+                        {
+                            values[i] = this.library[i].id;
+                            data[i] = this.library[i].name;
+                        }
+                        this.modal.Data[3] = ["Тип", {  selected: "", data: data, value: values }, "select" ];
+                    }
+                    else this.modal.Data.splice(3, 1);
+                }}],
+            ],
+            ok: "Ок",
+            cancel: "Отмена"
         }
-        this.svgProperties.width = D;
-        this.currentElement.x = this.currentElement.y = D / 2;
-    }
-    backToParent()
-    {
-        if(this.currentElement.parent == 0) return;
-        this.openParent(this.currentElement.parent);
-    }
-    appendCircle(type)
-    {
-        let copyElement;
-        if(type == "table") 
+        this.modal.open(Data, (save) =>
         {
-            if(!localStorage.getItem("copyExplorer")) return;
-            copyElement = JSON.parse(localStorage.getItem("copyExplorer"));
-            if(copyElement.objectType == "table")
+            if(save)
             {
-                this.circles.push({ 
-                    type: type, 
-                    name: copyElement.name, 
-                    id: this.treeDB.push("", type, this.currentElement.id, copyElement.id) 
-                });
+                if(Data.data[0][1] == "") return "Введите имя!";
+                let name = Data.data[0][1];
+                let bindId = -1;
+                if(Data.data[1][1].selected == "table") 
+                {
+                    for(let i = 0; i < this.library.length; i++)
+                        if(this.library[i].id == Data.data[2][1].selected) name += "(" + this.library[i].name + ")";
+                    bindId = Data.data[2][1].selected;
+                }
+                // TO DO добавить проверку
+                this.mainList.splice(i + 1, 0, { id: this.getId(), name: name, type: Data.data[1][1].selected, bindId: bindId, parent: this.mainList[i].parent, level: this.mainList[i].level + 1 });
             }
-        }
-        else
-            this.circles.push({ 
-                type: type, 
-                name: "", 
-                id: this.treeDB.push("", type, this.currentElement.id) 
-            });
-        this.calcPosition();
+        });
     }
-    remove(e, i)
+    getId()
     {
-        this.treeDB.remove(this.circles[i].id);
-        this.circles.splice(i, 1);
-        this.calcPosition();
-        e.preventDefault();
-    }
-    saveDB()
-    {
-        localStorage.setItem("constructor", JSON.stringify(this.treeDB.db));
-    }
-}
-class TreeDataBase
-{
-    db = {};
-    lastId = 1;
-    constructor()
-    {
-    }
-    push(name, type, parent, globalId?) // globalId - id из главной базы, для таблиц
-    {
-        this.db[this.lastId] = { 
-            name: name, 
-            type: type,
-            parent: parent,
-            globalId: globalId,
-            id: this.lastId
-        }
-        return this.lastId++;
-    }
-    remove(id)
-    {
-        for(let key in this.db)
-            if(this.db[key].parent == id) this.remove(this.db[key].id);
-        delete this.db[id];
-    }
-    get(id)
-    {
-        return this.db[id];
-    }
-    children(parent)
-    {
-        let out = [];
-        for(let key in this.db)
-            if(this.db[key].parent == parent)
-                out.push({ children: this.getCountChildren(key), ...this.db[key] });
-        return out;
-    }
-    getCountChildren(parent)
-    {
-        for(let key in this.db)
-            if(this.db[key].parent == parent)
-                return true;
-        return false;
-    }
-    load(data)
-    {
-        this.db = data;
-        let max = 0;
-        for(let key in this.db)
-            if(this.db[key].id > max) max = this.db[key].id;
-        this.lastId = max + 1;
+        let max = 1;
+        for(let i = 0; i < this.mainList.length; i++)
+            if(max < this.mainList[i].id) max = this.mainList[i].id;
+        return max + 1;
     }
 }

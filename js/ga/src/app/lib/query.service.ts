@@ -87,4 +87,27 @@ export class QueryService
             if(func) func(out);
         });
     }
+    public getValueBySrc(src) // Разбить параметры строки
+    {
+        let a = src.replace("?", "");
+        let out = {};
+        a = a.split("&");
+        for(let i = 0; i < a.length; i++)
+        {
+            let b = a[i].split("=");
+            out[b[0]] = b[1];
+        }
+        return out;
+    }
+    public onChange(out) // Общение iframe-ов с главным js через localStorage
+    {
+        let i = 0;
+        // Поиск пустого значения
+        while(i < 1000)
+        {
+            if(!localStorage.getItem("propertyIFrame_" + i)) break;
+            i++;
+        }
+        localStorage.setItem("propertyIFrame_" + i, JSON.stringify(out));
+    }
 }

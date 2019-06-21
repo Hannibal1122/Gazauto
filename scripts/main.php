@@ -1029,6 +1029,43 @@
                         break;
                 }
             }
+            if($nQuery >= 490 && $nQuery < 500) // Работа с конструктором классов
+            {
+                switch($nQuery)
+                {
+                    case 490: // Создать пустой класс
+                        $idParent = (int)$param[0];
+                        if(($myRight->get($idParent) & 8) != 8) return; // Права на изменение
+                        $idElement = (int)$param[1];
+                        query("INSERT INTO classes (id, structure) VALUES(%i, %s)", [ $idElement, "" ]);
+                        break;
+                    case 491: // Запрос класса
+                        $idElement = (int)$param[0];
+                        if(($myRight->get($idElement) & 1) != 1) return; // Права на просмотр
+                        $out = [];
+                        if($result = query("SELECT structure FROM classes WHERE id = %i", $param))
+                            $out = $result->fetch_assoc();
+                        $out["name"] = selectOne("SELECT name FROM structures WHERE id = %i", $param);
+                        $out["readonly"] = ($myRight->get($idElement) & 8) != 8;
+                        // Поиск всех таблиц, которые находятся в той же дирректории
+                        $idParent = selectOne("SELECT parent FROM structures WHERE id = %i", $param);
+                        $out["lib"] = [];
+                        getElementFromStructureByType($out["lib"], "table", $idParent);
+                        echo json_encode($out);
+                        break;
+                    case 492: // Обновление структуры класса
+                        $idElement = (int)$param[0];
+                        if(($myRight->get($idElement) & 8) != 8) return; // Права на изменение
+                        query("UPDATE classes SET structure = %s WHERE id = %i", [ $param[1], $idElement ]);
+                        break;
+                    case 493: // Создание структуры на основе класса(должно удалять предидущую структуру)
+                        
+                        break;
+                    case 494: // Обновление структуры при изменении основной
+                        
+                        break;
+                }
+            }
         }
         /* else query("UPDATE signin SET checkkey = '', login = '' WHERE id = %s", [$paramI]); // Если пользователь послал не тот id  */
     }
@@ -1120,6 +1157,15 @@
             {
                 $out[] = (int)$row[0];
                 getRemoveElementbyStructure($out, (int)$row[0]);
+            }
+    }
+    function getElementFromStructureByType(&$out, $type, $parent) // По типу собирает все id и имена элементов
+    {
+        if($result = query("SELECT id, name, objectType FROM structures WHERE parent = %i", [$parent]))
+            while ($row = $result->fetch_assoc()) 
+            {
+                if($row["objectType"] == $type) $out[] = $row;
+                getElementFromStructureByType($out, $type, (int)$row["id"]);
             }
     }
     $countCycle = 0; // необходимо обнулять для правильной работы

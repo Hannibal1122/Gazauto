@@ -108,6 +108,9 @@
                 case "event":
                     query("DELETE FROM events WHERE id = %i", [ (int)$idElement ]);
                     break;
+                case "class":
+                    query("DELETE FROM classes WHERE id = %i", [ (int)$idElement ]);
+                    break;
                 case "tlist":
                     query("DELETE FROM my_values WHERE id = %i", [ (int)$element[2] ]);
                     break;

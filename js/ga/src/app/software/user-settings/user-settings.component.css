@@ -11,6 +11,11 @@
 {
     padding-top:18px; 
 }
+.themeSmall
+{
+    width:40px; 
+    height:40px;
+}
 .themeTab:hover
 {
     background-color: rgba(255, 255, 255, 0.6);

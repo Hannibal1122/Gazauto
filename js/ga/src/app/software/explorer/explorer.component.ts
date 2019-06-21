@@ -11,7 +11,8 @@ import { CreateInfoService } from "../services/create-info.service";
 import { CreateEventService } from "../services/create-event.service";
 import { CreateTableListService } from "../services/create-table-list.service";
 import { CreateFilterService } from "../services/create-filter.service";
-import { CreatePlanChartService } from "../services/create-plan-chart.service"
+import { CreatePlanChartService } from "../services/create-plan-chart.service";
+import { CreateClassService } from "../services/create-class.service";
 
 declare var trace:any;
 @Component({
@@ -31,7 +32,8 @@ declare var trace:any;
         CreateTableListService,
         CreateEventService,
         CreateFilterService,
-        CreatePlanChartService
+        CreatePlanChartService,
+        CreateClassService
     ]
 })
 export class ExplorerComponent implements OnInit 
@@ -83,6 +85,7 @@ export class ExplorerComponent implements OnInit
         private createTableList: CreateTableListService,
         private createFilter: CreateFilterService,
         private createPlanChart: CreatePlanChartService,
+        private createClassService: CreateClassService,
     ) {}
     ngOnInit() 
     { 
@@ -110,6 +113,7 @@ export class ExplorerComponent implements OnInit
         this.createTableList.modal = this.modal;
         this.createFilter.modal = this.modal;
         this.createPlanChart.modal = this.modal;
+        this.createClassService.modal = this.modal;
         this.globalClick = (e) => 
         { 
             if(e.target.classList[0] == "explorerMain"  && this.selectObjectI != -1) this.unSelectObject(); 
@@ -159,6 +163,7 @@ export class ExplorerComponent implements OnInit
             case "event":
             case "plan":
             case "table":
+            case "class":
                 this.onChange({ type: "open", value: { name: object.objectType, id: object.id }});
                 break;
             case "user":
@@ -214,6 +219,9 @@ export class ExplorerComponent implements OnInit
                 break;
             case "План-график":
                 this.createPlanChart.create(id, () => { this.refresh() });
+                break;
+            case "Класс":
+                this.createClassService.create(id, () => { this.refresh() });
                 break;
         }
     }
@@ -271,6 +279,9 @@ export class ExplorerComponent implements OnInit
                 break;
             case "plan":
                 this.createPlanChart.remove(id, () => { this.refresh() });
+                break;
+            case "class":
+                this.createClassService.remove(id, () => { this.refresh() });
                 break;
         }
     }

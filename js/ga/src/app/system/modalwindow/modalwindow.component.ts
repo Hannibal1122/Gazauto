@@ -33,6 +33,7 @@ export class ModalWindowComponent
         { name: "Файл", class: "fas fa-file-alt"}, 
         { name: "Фильтр", class: "fas fa-filter"}, 
         { name: "План-график", class: "fa fa-chart-bar"}, 
+        { name: "Класс", class: "fa fa-pencil-ruler"}, 
         /* { name: "Справка", class: "fas fa-info"}, */ 
     ]
     constructor(private lib:FunctionsService)

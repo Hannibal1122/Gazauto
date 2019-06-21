@@ -1,0 +1,182 @@
+/*******************************************************/
+/*Main*/
+.MainTitleColor
+{
+    color:#ffffff;
+}
+.WorkspaceBColor /*Фон рабочей области*/
+{
+    background-color: #ffffff;
+}
+.WorkspaceColor /*Цвет рабочей области*/
+{
+    color: #000000;
+}
+.ExplorerBColor /*Фон рабочей области*/
+{
+    /* background-color: #eeeeee; */
+}
+.MainBColor /*Фон рабочей области*/
+{
+    background-color: rgba(255, 255, 255, 0.8);
+}
+.TabsPanelColor
+{
+    background-color: #6085ac;
+}
+.VersionPanelColor
+{
+    background-color: #456486;
+}
+.TabsColor
+{
+    color: #daf1ff;
+    background-color: #6085ac;
+}
+.TabsActiveColor /* Цвета активной вкладки*/
+{
+    color: #ffffff;
+    background-color: #456486;
+}
+.TabsButtonExitColor
+{
+    color: #ffffff;
+    transition: 0.3s;
+}
+.TabsButtonExitColor:hover
+{
+    color: #faa9a9;
+}
+/*******************************************************/
+.ModalButtonExitColor
+{
+    color: #faa9a9;
+    transition: 0.3s;
+}
+.ModalButtonExitColor:hover
+{
+    color: #ff3333;
+}
+/*******************************************************/
+.PanelAppColor /*Основной цвет шрифта и фона у открытого меню*/
+{
+    color:#ffffff;
+    background-color: #456486;
+}
+.PanelAppTitleColor /*Фон и цвет у заголовка открытого меню*/
+{
+    color:#ffffff;
+    background-color: #6085ac;
+}
+.PanelMiniAppBColor /*Фон у панели слева где иконки приложений*/
+{
+    background-color: #5378a0;
+}
+.leftMenuTitleBColor
+{
+    background-color: #456486;
+}
+.ButtonMiniAppColor
+{
+    color:#daf1ff;
+}
+.ButtonMiniAppActiveColor
+{
+    color:#ffffff;
+}
+/*Event Creator*/
+.EventCreatorColor
+{
+    color: #ffffff;
+}
+/*Table Creator*/
+.TableCreatorHeadBColor /*Фон заголовка*/
+{
+    background-color: #f6faff;
+}
+.TableCreatorHeadColor /*Цвет текста заголовка, цвет нижнего статуса и цвет процентов*/
+{
+    color: #566b86;
+}
+.TableCreatorBorderColor td, .TableCreatorBorderColor th/*Цвет границ таблицы*/
+{
+    border-color: #ececec !important;
+}
+.TableCreatorInputColor
+{
+    color: #000000;
+    background-color: #ffffff;
+}
+.TableCreatorStateColor
+{
+    color: #566b86;
+    background-color: #ffffff;
+}
+.tableCellStateGreen
+{
+    background-color: rgba(184, 255, 107, 0.66);
+}
+.tableCellStateYellow
+{
+    background-color: rgba(241, 255, 44, 0.66);
+}
+.tableCellStateRed
+{
+    background-color: rgba(255, 133, 117, 0.66);
+}
+.substrate
+{
+    background-color: #dfdfdf;
+}
+/*******************************************************/
+.colorIconFolder
+{
+    color: #6085ac;
+}
+.colorIconEvent
+{
+    color: #caca5d;
+}
+.colorIconValue
+{
+    color: #d38dca;
+}
+.colorIconTable
+{
+    color: #9dd165;
+}
+.colorIconRole
+{
+    color: #c2c2c2;
+}
+.colorIconExplorer
+{
+    color: #c77373;
+}
+.colorIconFile
+{
+    color: #9dd165;
+}
+.colorIconTlist
+{
+    color: #7eb2be;
+}
+/*******************************************************/
+.LowState
+{
+    color:#eb7e7e;
+}
+.MiddleState
+{
+    color:#edf06a;
+}
+.HightState
+{
+    color:#def7c2;
+}
+.mainSelect
+{
+    color: #456486;
+    border: 1px solid #b9c5d1; 
+    border-radius:5px;
+}

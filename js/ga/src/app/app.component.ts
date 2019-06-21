@@ -100,6 +100,26 @@ export class AppComponent implements OnInit
             let vh = window.innerHeight * 0.01;
             document.documentElement.style.setProperty('--vh', `${vh}px`);
         });
+
+        ///////////////////////УСТАНОВКА ТЕМЫ/////////////////////
+        this.query.protectionPost(451, { param: ["theme"] }, (data) =>
+        {
+            if(data != "") this.theme.current = data;
+            if(data.theme) this.applyTheme(data.theme);
+        });
+        this.applyTheme("blue");
+    }
+    applyTheme(value)
+    {
+        let mainThemeCss = document.getElementById("MainThemeCSS");
+        if(!mainThemeCss)
+        {
+            mainThemeCss = document.createElement("link");
+            mainThemeCss.setAttribute("id", "MainThemeCSS");
+            mainThemeCss.setAttribute("rel", "stylesheet");
+            document.getElementsByTagName('head')[0].appendChild(mainThemeCss);
+        }
+        mainThemeCss.setAttribute("href", "/assets/css/main-theme-" + value + ".css");
     }
     leftMenuScroll = 
     {
@@ -137,11 +157,6 @@ export class AppComponent implements OnInit
             this.resizeWindow();
             window.addEventListener("resize", () => { this.resizeWindow() });
         }
-        ////////////////////////////////////////////////////////////////////
-        this.query.protectionPost(451, { param: ["theme"] }, (data) =>
-        {
-            if(data != "") this.theme.current = data;
-        });
     }
     resizeWindow()
     {
@@ -200,8 +215,10 @@ export class AppComponent implements OnInit
                 this.openSoftware(e.value.name, { id: e.value.id });
                 break;
             case "info":
-                /* if(this.tabs[this.currentSoftware] && this.tabs[this.currentSoftware].type == "info")
-                    this.tabs[this.currentSoftware].inputFromApp = e.value.id; */
+                let screen = this.splitScreen.screens[this.splitScreen.currentScreen];
+                let currentSoftware = screen.tabs[screen.currentSoftware];
+                if(currentSoftware && currentSoftware.type == "info")
+                    currentSoftware.inputFromApp = e.value.id;
                 break;
         }
     }
@@ -259,8 +276,17 @@ export class AppComponent implements OnInit
                     }
                 this.globalEvent.appendTableIds(e.id, e.tableIds, e.idLogTableOpen);
                 break;
+            case "updateClassName":
+                for(let i = 0; i < this.tabs.length; i++)
+                    if(this.tabs[i].type == "class" && this.tabs[i].software.inputs && this.tabs[i].software.inputs.id == e.id)
+                    {
+                        this.tabs[i].software.inputs.name = e.name;
+                        break;
+                    }
+                break;
             case "changeTheme": // смена темы
                 this.theme.current = e.value;
+                if(e.value.theme) this.applyTheme(e.value.theme);
                 break;
         }
     }
@@ -285,7 +311,7 @@ export class AppComponent implements OnInit
                     }
                 });
                 break;
-            case "constructor": i = this.getNewTab(type, { inputs: input }, settings); break;
+            case "class": i = this.getNewTab(type, { inputs: input }, settings); break;
             case "info": i = this.getNewTab(type, { component: InfoComponent, inputs: input }, settings); break;
             case "event": i = this.getNewTab(type, { component: EventEditorComponent, inputs: input }, settings); break;
             case "plan": i = this.getNewTab(type, { component: PlanEditorComponent, inputs: input }, settings); break;
@@ -306,7 +332,7 @@ export class AppComponent implements OnInit
                 software.securitySrc = this.sanitizer.bypassSecurityTrustResourceUrl("/table?" + param);
                 name = "Редактор таблицы"; 
                 break;
-            case "constructor": 
+            case "class": 
                 param = "id=" + input.id;
                 software.securitySrc = this.sanitizer.bypassSecurityTrustResourceUrl("/constructor?" + param);
                 name = "Конструктор шаблонов"; 
@@ -331,7 +357,7 @@ export class AppComponent implements OnInit
         else
         {
             let iframe = false;
-            if(type == "table" || type == "constructor") iframe = true;
+            if(type == "table" || type == "class") iframe = true;
             this.tabs[i] = {
                 name: name,
                 type: type,

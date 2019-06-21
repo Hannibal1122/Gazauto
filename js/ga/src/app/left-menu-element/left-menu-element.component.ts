@@ -95,9 +95,6 @@ export class LeftMenuElementComponent implements OnInit
             case "folder":
                 this.onChange.emit({ type: "open", value: { name: "explorer", id: data.id }});
                 break;
-            case "table":
-                this.onChange.emit({ type: "open", value: { name: "table", id: data.id }});
-                break;
             case "tlist":
                 this.query.protectionPost(111, { param: [ "folder", data.id ]}, // folder потому что id тут из структуры  
                 (idParent) => 
@@ -119,10 +116,10 @@ export class LeftMenuElementComponent implements OnInit
                 });
                 break;
             case "event":
-                this.onChange.emit({ type: "open", value: { name: "event", id: data.id }});
-                break;
             case "log":
-                this.onChange.emit({ type: "open", value: { name: "log", id: data.id }});
+            case "table":
+            case "class":
+                this.onChange.emit({ type: "open", value: { name: data.objectType, id: data.id }});
                 break;
         }
     }

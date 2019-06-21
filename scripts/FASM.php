@@ -91,8 +91,8 @@ class FASM
                 }
                 else 
                 {
-                    $idField = (int)$current["operand"][0];
-                    $value = $this->getField($idField);
+                    $value = $this->getField($current["operand"][0]);
+                    $idField = $value["id"];
                 }
             }
             switch($current["operator"])
@@ -103,7 +103,7 @@ class FASM
                 case "set": // выставить значение
                     require_once("myTable.php");
                     $myTable = new MyTable($value["tableId"], $this->myLog);
-                    $operand = $this->getFunction($current["operand"][1], $idLine);
+                    $operand = $this->getFunction($current["operand"][1], $idLine, $value["tableId"]);
                     if(array_key_exists(2, $current["operand"]) && $current["operand"][2] == "link")
                     {
                         if($value["type"] == "head") $idCellTo = $this->getFieldByHead($idField, $idLine);
@@ -156,11 +156,16 @@ class FASM
             $limit++;
         }
     }
-    function getField($id)
+    function getField($_id)
     {
+        $id = (int)$_id;
         $field = [];
-        $row = selectArray("SELECT value, type, linkId, linkType, state, tableId FROM fields WHERE id = %i", [ (int)$id ]);
-        $field["id"] = $id;
+        if($id === 0) $row = selectArray("SELECT value, type, linkId, linkType, state, tableId, id FROM fields WHERE tableId = %i AND type = 'head' AND value = %s", [ 
+            $this->current["field"]["tableId"],
+            $_id
+        ]);
+        else $row = selectArray("SELECT value, type, linkId, linkType, state, tableId, id FROM fields WHERE id = %i", [ (int)$id ]);
+        $field["id"] = (int)$row[6];
         $field["value"] = $row[0];
         $field["state"] = $row[4];
         $field["type"] = $row[1];
@@ -189,11 +194,11 @@ class FASM
         }
         return $field;
     }
-    function getFieldByHead($idColumn, $idLine)
+    function getFieldByHead($idColumn, $idLine) // по заголовку и линии получить текущую ячейку
     {
         return selectOne("SELECT id FROM fields WHERE idColumn = %i AND i = %i", [ $idColumn, $idLine ]);
     }
-    function getFunction($value, $idLine)
+    function getFunction($value, $idLine, $idTable = -1)
     {
         // Проверка на функцию
         $enableFunc = ["unite", "get"]; // Доступные функции
@@ -208,11 +213,13 @@ class FASM
                 case "unite": // Объединяет строки и значения ячеек. Так же можно получить значение по заголовку
                     for($i = 0, $c = count($strArray); $i < $c; $i++)
                     {
+                        // символ _ перед строкой означает заголовок
                         $outValue = "";
                         if($strArray[$i][0] == "\"") $outValue = str_replace("\"", "", $strArray[$i]); // Если строка
                         else 
                         {
                             $id = (int)$strArray[$i];
+                            if($strArray[$i][0] == "_") $id = selectOne("SELECT id FROM fields WHERE tableId = %i AND type = 'head' AND value = %s", [ $idTable, substr(str_replace("\"", "", $strArray[$i]), 1) ]); // Если заголовок дан текстом
                             $type = selectOne("SELECT type FROM fields WHERE id = %i", [ $id ]);
                             if($type == "head") $outValue = $this->getField((int)$this->getFieldByHead($id, $idLine))["value"];
                             else $outValue = $this->getField($id)["value"];

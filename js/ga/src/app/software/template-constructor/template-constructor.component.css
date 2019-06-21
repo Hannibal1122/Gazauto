@@ -1,44 +1,13 @@
-.lineCircle
+.constructorControlPanel
 {
-    stroke-width: 1; 
-    stroke: rgb(163, 163, 163);
-    transition: 0.3s;
+    position:relative; 
+    padding-bottom:3px;
 }
-.nodeCirlce
+.constructorControlPanel button
 {
-    fill: #eeeeee;
+    margin-right: 5px;
+}
+.removeColor {
+    color: red;
     cursor: pointer;
-    transition: 0.3s;
-}
-.nodeCirlce:hover
-{
-    fill: #ffffff; 
-}
-.tableCirlce
-{
-    fill: #6cbd70;
-    cursor: pointer;
-    transition: 0.3s;
-}
-.tableCirlce:hover
-{
-    fill: #b4e4b6; 
-}
-.textDiv
-{
-    position: absolute; 
-    transition: 0.3s; 
-    pointer-events: none; 
-    text-align: center;
-    padding-top:5px;
-}
-/************************************************/
-.testTable th, .testTable td
-{
-    border: 1px solid #aaaaaa;
-    padding: 4px;
-}
-.testTable th
-{
-    background-color:  red;
 }

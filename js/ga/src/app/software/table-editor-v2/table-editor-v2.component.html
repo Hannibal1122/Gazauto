@@ -2,7 +2,7 @@
     <div name = "clickArea" class = "tableControlPanel">
         <div class = "nameTableClass" 
             title="{{nameTable}}">
-            {{nameTable}}
+            <!-- {{nameTable}} -->
             <div style="position:relative; width:170px; height:6px; border-radius:3px;" class = "substrate">
                 <div style="position:absolute; top:0px; height:6px; left:0px; border-radius:3px;" 
                     [style.width] = "control.state + '%'"
@@ -13,15 +13,15 @@
                 <div style="position:absolute; right:-25px; top: -4px; font-size: 11px; font-weight: bold;" class = "TableCreatorHeadColor">{{control.state + '%'}}</div>
             </div>
         </div>
-        <button class = "mainButton" [class.enableButton] = "headerEditorShow" title = "Заголовок" (click) = "changeHeader()"><i class="fas fa-heading"></i></button>
+        <button class = "mainButton" (click) = "loadTable()" title = "Обновить"><i class="fas fa-sync-alt"></i></button>
         <button class = "mainButton" title = "Экспорт в Excel" (click) = "exportToExcel()" ><i class="fas fa-file-excel"></i></button>
         <button class = "mainButton" title = "Импорт таблицы" (click) = "importFromExcel()" [disabled] = "!right.change"><i class="fas fa-download"></i></button>
-        <button class = "mainButton" title = "Добавить строку" (click) = "addRow('end', 1)" [disabled] = "!right.change"><i class="fas fa-plus"></i></button>
         <button class = "mainButton" [class.enableButton] = "tableProperty.visible" title = "Таблица свойств" (click) = "openTableProperty()"><i class="fas fa-briefcase"></i></button>
         <button class = "mainButton" title = "Сохраненная позиция" (click) = "loadTableProperty('scroll')"><i class="fas fa-bookmark"></i></button>
-        <button class = "mainButton" [class.enableButton] = "tableFilter.enable" title = "Включить фильтры" (click) = "enableFilters()"><i class="fa fa-filter"></i></button>
         <button class = "mainButton" [class.enableButton] = "lineNumbering.enable" title = "Нумерация строк" (click) = "enableLineNumbering()"><i class="fas fa-list-ol"></i></button>
-        <button class = "mainButton" (click) = "loadTable()" title = "Обновить"><i class="fas fa-sync-alt"></i></button>
+        <button class = "mainButton" [class.enableButton] = "tableFilter.enable" title = "Включить фильтры" (click) = "enableFilters()"><i class="fa fa-filter"></i></button>
+        <button class = "mainButton" title = "Добавить строку" (click) = "addRow('end', 1)" [disabled] = "!right.change"><i class="fas fa-plus"></i></button>
+        <button class = "mainButton" [class.enableButton] = "headerEditorShow" title = "Заголовок" (click) = "changeHeader()"><i class="fas fa-heading"></i></button>
         <select class = "mainSelect"
             style = "margin-left: 2px; height: 32px; cursor:pointer;" 
             [(ngModel)] = "filter.selected"

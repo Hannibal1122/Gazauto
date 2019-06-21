@@ -37,6 +37,7 @@
 }
 .pathStroke
 {
+    float: left;
     box-shadow: 0px 0px 3px 0px #aaaaaa;
     border-radius: 10px; 
     margin-bottom:5px;
@@ -69,6 +70,10 @@
         grid-column: 1 / 3;
         margin-left: 0px;
         margin-top: 5px;
+    }
+    .pathStroke
+    {
+        width: 100%;
     }
 }
 .explorerMain
@@ -116,7 +121,6 @@
 .elementExplorer
 {
     text-align:center;
-    width:104px;
     overflow: hidden;
     margin: 5px; 
     cursor: pointer;
@@ -127,6 +131,16 @@
 .elementExplorer:hover
 {
     transition: 0s;
+    background-color: white;
+}
+.elementExplorerIcon
+{
+    width: 80px; 
+    height:80px; 
+    line-height: 80px; 
+    border-radius: 40px; 
+    padding-top:12px;
+    margin-bottom: 2px;
     background-color: white;
 }
 /* .elementExplorer:active
@@ -148,7 +162,7 @@
 }
 .elementExplorerText
 {
-    width: 90px; 
+    width: 80px; 
     text-overflow: ellipsis; 
     overflow: hidden; 
     white-space: nowrap;
@@ -232,12 +246,12 @@
 /************************************************/
 .explorerControlPanel
 {
-    user-select:none; 
-    display: flex; 
-    flex-wrap: wrap; 
+    position: relative;
+    padding-bottom: 3px;
 }
-.explorerControlPanel button, input, select
+.explorerControlPanel button
 {
-    margin-top:3px;
-    margin-right:5px;
+    float:right;
+    margin-bottom: 3px;
+    margin-left:5px;
 }

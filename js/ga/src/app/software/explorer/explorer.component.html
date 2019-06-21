@@ -7,15 +7,16 @@
                 <div *ngIf = "last" style = "padding-bottom: 2px;">
                     <div class = "pathRow" style = "font-size:14px; cursor: pointer; margin-top:8px; float:left; margin-left: 5px;" title = "Назад" (click) = "openBackFolder()"><i class="fas fa-arrow-left"></i></div>
                     <div style = "font-size:20px; float:left; height:32px; margin-left:10px; margin-right:10px; margin-top:3px;">{{ path.name }}</div>
-                    <button class = "mainButton" title = "Добавить элемент" (click) = "newObject()" [disabled] = "!selectRules.new"><i class="fas fa-file"></i></button>
-                    <button class = "mainButton" title = "Вставить" (click) = "_pasteObject()" [disabled] = "!selectRules.paste || inputs.parentBind"><i class="fas fa-paste"></i></button>
-                    <button class = "mainButton" [class.enableButton] = "tableProperty.visible" title = "Таблица свойств" (click) = "openTableProperty()"><i class="fas fa-briefcase"></i></button>
-                    <button class = "mainButton" title = "Поиск" (click) = "openSearch()"><i class="fas fa-search"></i></button>
-                    <button class = "mainButton" title = "Удалить" (click) = "removeObject()" [disabled] = "!selectRules.remove"><i class="fas fa-trash"></i></button>
-                    <button class = "mainButton" title = "Обновить" (click) = "refresh(true)"><i class="fas fa-sync-alt"></i></button>
+                    
                 </div>
             </ng-container>
         </div> 
+        <button class = "mainButton" title = "Вставить" (click) = "_pasteObject()" [disabled] = "!selectRules.paste || inputs.parentBind"><i class="fas fa-paste"></i></button>
+        <button class = "mainButton" [class.enableButton] = "tableProperty.visible" title = "Таблица свойств" (click) = "openTableProperty()"><i class="fas fa-briefcase"></i></button>
+        <button class = "mainButton" title = "Поиск" (click) = "openSearch()"><i class="fas fa-search"></i></button>
+        <button class = "mainButton" title = "Удалить" (click) = "removeObject()" [disabled] = "!selectRules.remove"><i class="fas fa-trash"></i></button>
+        <button class = "mainButton" title = "Обновить" (click) = "refresh(true)"><i class="fas fa-sync-alt"></i></button>
+        <button class = "mainButton" title = "Добавить элемент" (click) = "newObject()" [disabled] = "!selectRules.new"><i class="fas fa-file"></i></button>
     </div>
     <div class = "explorerMain MainBColor"
         [class.explorerDouble] = "tableProperty.visible"
@@ -33,24 +34,25 @@
                 [class.selectCopyElementExplorer] = "i != selectObjectI && object.id == selectObjectCopy.id"
                 [class.selectCopyElementExplorerOpacity] = "i != selectObjectI && object.id == selectObjectCopy.id && selectObjectCopy.type == 'cut'"
                 title = "{{ object.name }}">
-                <div *ngIf = "viewType == 'table'" style = "width: 90px;">
+                <div *ngIf = "viewType == 'table'" class = "elementExplorerIcon">
                     <span *ngIf = "object.objectType == 'folder'"><i class="fas fa-folder colorIconFolder" style = "font-size: 55px;"></i></span>
-                    <span *ngIf = "object.objectType == 'filter'"><i class="fas fa-filter colorIconTable" style = "font-size: 55px;"></i></span>
-                    <span *ngIf = "object.objectType == 'table'"><i class="fas fa-table colorIconTable" style = "font-size: 55px;"></i></span>
-                    <span *ngIf = "object.objectType == 'user'"><i class="fas fa-user colorIconRole" style = "font-size: 55px;"></i></span>
-                    <span *ngIf = "object.objectType == 'event'"><i class="fas fa-bolt colorIconEvent" style = "font-size: 50px; margin-bottom:5px;"></i></span>
-                    <span *ngIf = "object.objectType == 'role'"><i class="fas fa-address-book colorIconRole" style = "font-size: 55px;"></i></span>
-                    <span *ngIf = "object.objectType == 'log'"><i class="fas fa-book colorIconTable" style = "font-size: 55px;"></i></span>
-                    <span *ngIf = "object.objectType == 'plan'"><i class="fa fa-chart-bar colorIconTable" style = "font-size: 55px;"></i></span>
+                    <span *ngIf = "object.objectType == 'filter'"><i class="fas fa-filter colorIconTable" style = "font-size: 45px;"></i></span>
+                    <span *ngIf = "object.objectType == 'table'"><i class="fas fa-table colorIconTable" style = "font-size: 45px;"></i></span>
+                    <span *ngIf = "object.objectType == 'class'"><i class="fa fa-pencil-ruler colorIconExplorer" style = "font-size: 40px;"></i></span>
+                    <span *ngIf = "object.objectType == 'user'"><i class="fas fa-user colorIconRole" style = "font-size: 45px;"></i></span>
+                    <span *ngIf = "object.objectType == 'event'"><i class="fas fa-bolt colorIconEvent" style = "font-size: 40px; margin-top:10px;"></i></span>
+                    <span *ngIf = "object.objectType == 'role'"><i class="fas fa-address-book colorIconRole" style = "font-size: 45px;"></i></span>
+                    <span *ngIf = "object.objectType == 'log'"><i class="fas fa-book colorIconTable" style = "font-size: 45px;"></i></span>
+                    <span *ngIf = "object.objectType == 'plan'"><i class="fa fa-chart-bar colorIconTable" style = "font-size: 45px;"></i></span>
                     <span *ngIf = "object.objectType == 'file'">
-                        <i *ngIf = "object.fileType == 'img'" class="fas fa-file-image colorIconFile" style = "font-size: 55px;"></i>
-                        <i *ngIf = "object.fileType == 'xls'" class="fas fa-file-excel colorIconFile" style = "font-size: 55px;"></i>
-                        <i *ngIf = "object.fileType == 'doc'" class="fas fa-file-word colorIconFile" style = "font-size: 55px;"></i>
+                        <i *ngIf = "object.fileType == 'img'" class="fas fa-file-image colorIconFile" style = "font-size: 45px;"></i>
+                        <i *ngIf = "object.fileType == 'xls'" class="fas fa-file-excel colorIconFile" style = "font-size: 45px;"></i>
+                        <i *ngIf = "object.fileType == 'doc'" class="fas fa-file-word colorIconFile" style = "font-size: 45px;"></i>
                     </span>
-                    <span *ngIf = "object.objectType == 'tlist'"><i class="fas fa-list-alt colorIconTlist" style = "font-size: 55px;"></i></span>
-                    <span *ngIf = "object.objectType == 'label'"><i class="fas fa-share-square colorIconRole" style = "font-size: 55px;"></i></span>
+                    <span *ngIf = "object.objectType == 'tlist'"><i class="fas fa-list-alt colorIconTlist" style = "font-size: 45px;"></i></span>
+                    <span *ngIf = "object.objectType == 'label'"><i class="fas fa-share-square colorIconRole" style = "font-size: 45px;"></i></span>
                 </div>
-                <div style = "position:relative; width:90px; height:2px;" [class.substrate] = "object.state > 0">
+                <div style = "position:relative; width:80px; height:2px;" [class.substrate] = "object.state > 0">
                     <div style = "position:absolute; top:0px; left:0px; height:100%;" 
                     [style.width] = "object.state + '%'"
                     [class.tableCellStateRed] = "object.state < 50"

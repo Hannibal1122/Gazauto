@@ -12,7 +12,8 @@ declare var $:any;
 export class UserSettingsComponent implements OnInit 
 {
     @Output() onChange = new EventEmitter<any>();
-    themes = [
+    theme = "blue";
+    backgrounds = [
         { type: "image", name: "theme1.png"},
         { type: "image", name: "theme2.jpg"},
         { type: "image", name: "theme3.jpg"},
@@ -27,6 +28,7 @@ export class UserSettingsComponent implements OnInit
         { type: "image", name: "theme12.jpg"},
         { type: "image", name: "theme13.jpg"},
         { type: "image", name: "theme14.jpg"},
+        { type: "image", name: "theme15.jpg"},
         { type: "color", name: "#41b2f4"},
         { type: "color", name: "#75e5a1"},
         { type: "color", name: "#bae575"},
@@ -37,6 +39,10 @@ export class UserSettingsComponent implements OnInit
     ]
     constructor(private query:QueryService) 
     {
+        this.query.protectionPost(451, { param: ["theme"] }, (data) =>
+        {
+            if(data.theme) this.theme = data.theme;
+        });
     }
     ngOnInit() 
     {
@@ -44,7 +50,13 @@ export class UserSettingsComponent implements OnInit
     }
     setTheme(theme)
     {
-        this.query.protectionPost(450, { param: [ "theme", JSON.stringify(theme) ] });
-        this.onChange.emit({ type: "changeTheme", value: theme });
+        this.theme = theme;
+        this.query.protectionPost(450, { param: [ "theme", JSON.stringify({ theme: this.theme }) ] });
+        this.onChange.emit({ type: "changeTheme", value: { theme: this.theme } });
+    }
+    setBackground(background)
+    {
+        this.query.protectionPost(450, { param: [ "theme", JSON.stringify({ ...background, theme: this.theme }) ] });
+        this.onChange.emit({ type: "changeTheme", value: { ...background, theme: this.theme } });
     }
 }
