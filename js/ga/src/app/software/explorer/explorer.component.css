@@ -28,7 +28,7 @@
     margin-left: 5px;
     border-radius: 10px;
     box-shadow: 0px 0px 3px 0px #aaaaaa;
-    max-height: 500px;
+    max-height: 520px;
     background-color: white;
 }
 .enableButton
@@ -230,7 +230,7 @@
     width:76px; 
     display:flex; 
     position: absolute; 
-    top: 44px; 
+    top: 64px; 
     margin-left: 7px; 
     justify-content:flex-end;
 }

@@ -2,14 +2,13 @@
     <div class = "constructorControlPanel">
         <button class = "mainButton" (click) = "loadData()" title = "Обновить"><i class="fas fa-sync-alt"></i></button>
         <button class = "mainButton" (click) = "saveData()" title = "Сохранить"><i class="fas fa-save"></i></button>
-        
     </div>
     <div class = "MainBColor" style = "padding-left: 5px;">
-        <div *ngFor = "let node of mainList; let i = index" [style.margin-left] = "node.level * 10 + 'px'">
-            <span *ngIf = "node.type == 'table'"><i class="fa fa-table colorIconTable"></i></span>
-            {{ node.name }}
+        <div *ngFor = "let node of mainList; let i = index" [style.margin-left] = "node.l * 10 + 'px'">
+            <span *ngIf = "node.t == 'table'"><i class="fa fa-table colorIconTable"></i></span>
+            {{ node.n }}
             <span (click) = "appendNode(i)" style = "margin-left:5px; cursor: pointer;"><i class="fas fa-plus-square"></i></span>
-            <!-- <span (click) = "appendNode(i)" style = "margin-left:5px; cursor: pointer;"><i class="fas fa-table"></i></span> -->
+            <span *ngIf = "i > 0" (click) = "appendNode(i, node)" style = "margin-left:5px; cursor: pointer;"><i class="fas fa-cog"></i></span>
             <span *ngIf = "i > 0" (click) = "removeNode(i)" class = "removeColor" style = "margin-left:5px; cursor: pointer;"><i class="fas fa-minus-circle"></i></span>
         </div>
     </div>

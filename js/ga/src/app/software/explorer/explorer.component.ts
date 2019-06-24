@@ -56,7 +56,7 @@ export class ExplorerComponent implements OnInit
     outFolders = [];
     selectObjectI = -1;
     load = false;
-    selectObjectCopy = { id: -1, type: "" };
+    selectObjectCopy = { id: -1, type: "", objectType: "" };
     selectRules = 
     {
         new: true, 
@@ -354,7 +354,7 @@ export class ExplorerComponent implements OnInit
     }
     unSelectObject() // отпустить объект
     {
-        this.selectObjectCopy = { id: -1, type: "" };
+        this.selectObjectCopy = { id: -1, type: "", objectType: "" };
         this.selectObjectI = -1;
         this.clearRules();
     }
@@ -367,8 +367,10 @@ export class ExplorerComponent implements OnInit
             {
                 if(localStorage.getItem("copyExplorer") != null)
                 {
-                    this.selectObjectCopy.id = JSON.parse(localStorage.getItem("copyExplorer")).id;
+                    let data = JSON.parse(localStorage.getItem("copyExplorer"));
+                    this.selectObjectCopy.id = data.id;
                     this.selectObjectCopy.type = localStorage.getItem("lastOperationExplorer");
+                    this.selectObjectCopy.objectType = data.objectType
                 }
                 let right = this.createRight.decodeRights(data[0]);
                 this.selectRules.paste = Boolean(right.change) && this.selectObjectCopy.id != -1;

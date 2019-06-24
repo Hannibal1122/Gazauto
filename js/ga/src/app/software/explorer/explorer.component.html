@@ -150,8 +150,9 @@
     <button class = "contextMenuList" (click) = "newObject()" [disabled] = "!selectRules.new">
         Создать</button>
     <button class = "contextMenuList" (click) = "_pasteObject()" [disabled] = "!selectRules.paste || inputs.parentBind">
-        <span *ngIf = "!selectRules.paste || inputs.parentBind"><i class="fas fa-lock" style = "font-size:10px;"></i></span>
         Вставить</button>
+    <button *ngIf = "selectObjectCopy.objectType == 'class'" class = "contextMenuList" (click) = "createProjectByClass()" [disabled] = "!selectRules.paste || inputs.parentBind">
+        Создать проект</button>
     <button class = "contextMenuList" (click) = "refresh(true)">
         Обновить</button>
     <button class = "contextMenuList" (click) = "openBackFolder()">

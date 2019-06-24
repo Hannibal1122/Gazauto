@@ -416,12 +416,14 @@
                     case 133: // Запросить таблицу свойств
                         $idElement = (int)$param[0];
                         if(($myRight->get($idElement) & 1) != 1) continue; // Права на просмотр
-                        $type = selectOne("SELECT objectType FROM structures WHERE id = %i", [ $idElement ]);
+                        $data = query("SELECT objectType, priority, icon, user_property, hashtag FROM structures WHERE id = %i", [ $idElement ])->fetch_assoc();
                         $tableProperty = [
                             "timeCreate" => selectOne("SELECT date FROM main_log WHERE type = 'structure' AND value = %s AND operation = 'create' LIMIT 1", [ $idElement ]),
                             /* "timeUpdate" => selectOne("SELECT date FROM main_log WHERE type = %s AND value = %s AND operation = 'update' LIMIT 1", [ $type, $idElement ]), */
-                            "hashtag" => selectOne("SELECT hashtag FROM structures WHERE id = %i", [ $idElement ]),
-                            "userProperty" => selectOne("SELECT user_property FROM structures WHERE id = %i", [ $idElement ])
+                            "hashtag" => $data["hashtag"],
+                            "userProperty" => $data["user_property"],
+                            "priority" => (int)$data["priority"],
+                            "icon" => (int)$data["icon"]
                         ];
                         echo json_encode($tableProperty);
                         break;

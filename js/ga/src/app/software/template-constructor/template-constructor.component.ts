@@ -30,7 +30,7 @@ export class TemplateConstructorComponent implements OnInit
         {
             this.query.onChange({ type: "updateClassName", id: this.id, name: data.name });
             this.library = data.lib;
-            if(data.structure == "") this.mainList = [{ id: 1, name: "root", type: "node", bindId: -1, parent: 0, level: 0 }];
+            if(data.structure == "") this.mainList = [{ id: 1, n: "root", t: "node", p: 0, l: 0 }];
             else this.mainList = JSON.parse(data.structure);
             /* this.treeDB.load(data.structure == "" ? {} : data.structure); */
         });
@@ -42,31 +42,41 @@ export class TemplateConstructorComponent implements OnInit
         });
         trace(this.mainList)
     }
-    appendNode(i)
+    appendNode(i, data)
     {
+        let values = [];
+        let _i, _j;
+        for(_i = 0; _i < this.library.length; _i++)
+            values[_i] = { id: this.library[_i].id, value: this.library[_i].name, check: false};
+        let typeNode = 
+        {
+            data: ["Узел", "Таблица"],
+            values: ["node", "table"]
+        }
+        if(this.mainList[i].t == "table")
+        {
+            typeNode.data = ["Таблица"];
+            typeNode.values = ["table"];
+        }
         let Data:any = {
             title: "",  
             data: [
                 ["Имя", "", "text"],
-                ["Кол-во потомков", "", "text"],
-                ["Тип", { selected: "node", data: ["Узел", "Таблица"], value: ["node", "table"]}, "select", { onselect: (value) =>
-                {
-                    if(value == "table")
-                    {
-                        let values = []
-                        let data = [];
-                        for(let i = 0; i < this.library.length; i++)
-                        {
-                            values[i] = this.library[i].id;
-                            data[i] = this.library[i].name;
-                        }
-                        this.modal.Data[3] = ["Тип", {  selected: "", data: data, value: values }, "select" ];
-                    }
-                    else this.modal.Data.splice(3, 1);
-                }}],
+                ["Тип", { selected: typeNode.values[0], data: typeNode.data, value: typeNode.values}, "select"],
+                ["Разрешения", values, "multi-checkbox"]
             ],
             ok: "Ок",
             cancel: "Отмена"
+        }
+        if(data)
+        {
+            Data.data[0][1] = data.n;
+            Data.data[1][1].selected = data.t;
+            trace(data.pmt)
+            for(_i = 0; _i < data.pmt.length; _i++)
+                for(_j = 0; _j < values.length; _j++)
+                    if(values[_j].id == data.pmt[_i])
+                        values[_j].check = true;
         }
         this.modal.open(Data, (save) =>
         {
@@ -74,17 +84,31 @@ export class TemplateConstructorComponent implements OnInit
             {
                 if(Data.data[0][1] == "") return "Введите имя!";
                 let name = Data.data[0][1];
-                let bindId = -1;
-                if(Data.data[1][1].selected == "table") 
-                {
-                    for(let i = 0; i < this.library.length; i++)
-                        if(this.library[i].id == Data.data[2][1].selected) name += "(" + this.library[i].name + ")";
-                    bindId = Data.data[2][1].selected;
-                }
                 // TO DO добавить проверку
-                this.mainList.splice(i + 1, 0, { id: this.getId(), name: name, type: Data.data[1][1].selected, bindId: bindId, parent: this.mainList[i].parent, level: this.mainList[i].level + 1 });
+                let permit = [];
+                for(_i = 0; _i < Data.data[2][1].length; _i++)
+                    if(Data.data[2][1][_i].check) permit.push(Data.data[2][1][_i].id);
+                if(data)
+                {
+                    data.n = Data.data[0][1];
+                    data.t = Data.data[1][1].selected;
+                    data.pmt = permit;
+                }
+                else this.mainList.splice(i + 1, 0, { id: this.getId(), n: name, t: Data.data[1][1].selected, pmt: permit, p: this.mainList[i].id, l: this.mainList[i].l + 1 });
+                // n - name
+                // t - type
+                // pmt - permit
+                // p - parent
+                // l - level
             }
         });
+    }
+    removeNode(begin)
+    {
+        let end = begin;
+        for(end = begin + 1; end < this.mainList.length; end++)
+            if(this.mainList[end].l <= this.mainList[begin].l) break;
+        this.mainList.splice(begin, end - begin);
     }
     getId()
     {

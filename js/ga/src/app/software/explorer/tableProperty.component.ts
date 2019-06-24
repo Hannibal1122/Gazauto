@@ -22,7 +22,16 @@ export class TablePropertyComponent implements OnInit
             this.query.protectionPost(133, { param: [ value.id ] }, (data) => // Запрос таблицы свойств
             {
                 this.mainProperty[2].value = data.hashtag;
-                this.mainProperty[4].value = data.timeCreate;
+                this.mainProperty[3].value = data.priority;
+                let icon = 
+                {
+                    state: (data.icon & 1) == 1,
+                    count: (data.icon & 2) == 2
+                }
+                this.mainProperty[4].value = icon.state; // Нумерация используется при сохранении, при сдвиге основного массива учитывать
+                this.mainProperty[5].value = icon.count;
+
+                this.mainProperty[7].value = data.timeCreate;
                 this.userProperty = data.userProperty ? JSON.parse(data.userProperty) : [];
             });
             this.change = false;
@@ -37,8 +46,6 @@ export class TablePropertyComponent implements OnInit
             this.setDefaultProperty(value);
             this.query.protectionPost(272, { param: [ value.id ] }, (data) => // Запрос таблицы свойств
             {
-                /* this.mainProperty[2].value = data.hashtag;
-                this.mainProperty[4].value = data.timeCreate; */
                 this.userProperty = data.userProperty ? JSON.parse(data.userProperty) : [];
             });
             this.change = false;
@@ -86,6 +93,9 @@ export class TablePropertyComponent implements OnInit
         { name: "id", desc: "id", value: "", type: "block"},
         { name: "name", desc: "Имя", value: "", type: "edit"},
         { name: "#", desc: "#", value: "", type: "edit"},
+        { name: "priority", desc: "Приоритет", value: "", type: "edit"},
+        { name: "state", desc: "Статус", value: false, type: "checkbox"},
+        { name: "count", desc: "Количество", value: false, type: "checkbox"},
         { name: "objectType", desc: "Тип", value: "", type: "block"},
         { name: "timeCreate", desc: "Создан", value: "", type: "block"}
     ]
@@ -126,6 +136,12 @@ export class TablePropertyComponent implements OnInit
                     case "#":
                         if(this.saveQueue[key] != "")
                             this.query.protectionPost(135, { param: [ this.id, this.saveQueue[key] ] });
+                        break;
+                    case "priority":
+                    case "state":
+                    case "count":
+                        let icon = 12 | (Number(this.mainProperty[4].value)) | (Number(this.mainProperty[5].value) << 1)
+                        this.query.protectionPost(116, { param: [ this.mainProperty[3].value, icon, this.id ] });
                         break;
                 }
             }

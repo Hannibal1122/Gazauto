@@ -7,6 +7,7 @@
                     <td colspan="2">{{p.desc}}</td>
                     <td class = "blockTD" *ngIf = "p.type == 'block'">{{p.value}}</td>
                     <td *ngIf = "p.type == 'edit'" class = "tdInput"><input type = "text" [(ngModel)] = "p.value" (change) = "onInputChange(p)"></td>
+                    <td *ngIf = "p.type == 'checkbox'" ><input type = "checkbox" [(ngModel)] = "p.value" (change) = "onInputChange(p)"></td>
                 </tr>
                 <tr><td colspan="3" style = "font-weight: bold;">Пользовательские</td></tr>
                 <tr *ngFor = "let p of userProperty; let i = index;">
