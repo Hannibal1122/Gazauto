@@ -1066,6 +1066,20 @@
                     case 494: // Обновление структуры при изменении основной
                         
                         break;
+                    case 495: // Загрузить колонки таблицы 
+                        $idTable = (int)$param[0];
+                        if(($myRight->get($idTable) & 1) != 1) return; // Права на просмотр
+                        request("SELECT id, value FROM fields WHERE tableId = %i AND type = 'head'", [ $idTable ]);
+                        break;
+                    case 496: // Загрузить значение типа 
+                        $idColumn = (int)$param[0];
+                        $idTable = selectOne("SELECT tableId FROM fields WHERE id = %i", [ $idColumn ]);
+                        if(($myRight->get($idTable) & 1) != 1) return; // Права на просмотр
+                        if($result = query("SELECT id, value FROM fields WHERE idColumn = %i AND value != ''", [ $idColumn ]))
+                            while ($row = $result->fetch_array(MYSQLI_NUM)) 
+                                $out[] = [ "id" => $row[0], "name" => $row[1]];
+                        echo json_encode($out);
+                        break;
                 }
             }
         }

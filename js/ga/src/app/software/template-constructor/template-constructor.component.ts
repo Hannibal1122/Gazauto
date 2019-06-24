@@ -13,7 +13,7 @@ export class TemplateConstructorComponent implements OnInit
     @ViewChild("modal") modal;
     /* treeDB: TreeDataBase = new TreeDataBase(); */
     id = -1;
-    mainList = [];
+    /* mainList = []; */
     library = [];
     constructor(private query:QueryService)
     {
@@ -30,19 +30,55 @@ export class TemplateConstructorComponent implements OnInit
         {
             this.query.onChange({ type: "updateClassName", id: this.id, name: data.name });
             this.library = data.lib;
-            if(data.structure == "") this.mainList = [{ id: 1, n: "root", t: "node", p: 0, l: 0 }];
-            else this.mainList = JSON.parse(data.structure);
+            /* if(data.structure == "") this.mainList = [{ id: 1, n: "root", t: "node", p: 0, l: 0 }];
+            else this.mainList = JSON.parse(data.structure); */
             /* this.treeDB.load(data.structure == "" ? {} : data.structure); */
         });
     }
     saveData()
     {
-        this.query.protectionPost(492, { param: [ this.id, JSON.stringify(this.mainList) ] }, (data) =>
+        /* this.query.protectionPost(492, { param: [ this.id, JSON.stringify(this.mainList) ] }, (data) =>
         {
         });
-        trace(this.mainList)
+        trace(this.mainList) */
     }
-    appendNode(i, data)
+    libraryId;
+    columnList = [];
+    mainFields = [
+        {id: -1, name: "Наименование"},
+        {id: -1, name: "Тип"}
+    ]
+    typeList = [];
+    setFromCopy()
+    {
+        if(localStorage.getItem("copyExplorer"))
+            this.libraryId = JSON.parse(localStorage.getItem("copyExplorer")).id;
+    }
+    loadLibrary()
+    {
+        if(this.libraryId > 0)
+            this.query.protectionPost(495, { param: [ this.libraryId ] }, (data) =>
+            {
+                this.columnList = [];
+                for(let i = 0; i < data.length; i++)
+                    this.columnList.push({ id: data[i][0], name: data[i][1] });
+            });
+    }
+    loadTypeByColumn()
+    {
+        this.query.protectionPost(496, { param: [ this.mainFields[1].id ] }, (data) =>
+        {
+            this.typeList = [];
+            for(let i = 0; i < data.length; i++)
+                this.typeList.push({ id: data[i].id, name: data[i].name, templateId: null, children: "none" });
+        });
+    }
+    pasteTemplate(row)
+    {
+        if(localStorage.getItem("copyExplorer"))
+            row.templateId = JSON.parse(localStorage.getItem("copyExplorer")).id;
+    }
+    /* appendNode(i, data)
     {
         let values = [];
         let _i, _j;
@@ -116,5 +152,5 @@ export class TemplateConstructorComponent implements OnInit
         for(let i = 0; i < this.mainList.length; i++)
             if(max < this.mainList[i].id) max = this.mainList[i].id;
         return max + 1;
-    }
+    } */
 }
