@@ -19,7 +19,7 @@ import { ModalMovedWindowComponent } from './system/modal-moved-window/modal-mov
 import { TemplateConstructorComponent } from './software/template-constructor/template-constructor.component';
 import { TablePropertyComponent } from './software/explorer/tableProperty.component';
 import { TableHeaderEditorComponent } from './software/table-editor-v2/table-header-editor.component';
-
+import { CreateTemplateComponent } from './software/explorer/create-template.component'
 import { DateTimeModule } from "./system/datetimepicker/datetimepicker.module";
 
 @NgModule({
@@ -39,7 +39,8 @@ import { DateTimeModule } from "./system/datetimepicker/datetimepicker.module";
         TemplateConstructorComponent,
         EventLogComponent,
         TablePropertyComponent,
-        TableHeaderEditorComponent
+        TableHeaderEditorComponent,
+        CreateTemplateComponent
     ],
     imports: [ BrowserModule, FormsModule, ModalWindowModule, HttpClientModule, DateTimeModule ],
     providers: [],

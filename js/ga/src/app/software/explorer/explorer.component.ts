@@ -571,6 +571,15 @@ export class ExplorerComponent implements OnInit
         }});
     }
     /**************************************/
+    projectByClassSetting = 
+    {
+        open: false
+    }
+    createProjectByClass()
+    {
+        this.projectByClassSetting.open = true;
+    }
+    /**************************************/
     createContextMenu = 
     {
         top: "", 

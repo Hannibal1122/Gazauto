@@ -1,0 +1,46 @@
+<div *ngIf = "_open" style = "position:fixed; width:100%; height:100%; background: rgba(255, 255, 255, 0.6); top:0px; left: 0px;">
+    <div style = "width:500px; height:400px; margin: auto; margin-top: 60px; background: white; box-shadow: 0 3px 9px rgba(0, 0, 0, 0.5); padding: 5px;">
+        <div>Конструктор</div>
+        <div>
+            
+        </div>
+        <div>
+            <table>
+                <tr>
+                    <td>Имя</td>
+                    <td>
+                        <input type = "text" [(ngModel)] = "createSetting.name">
+                    </td>
+                </tr>
+                <tr>
+                    <td>Родитель</td>
+                    <td>
+                        <select [(ngModel)] = "createSetting.parent" (change) = "onChangeParentList()">
+                            <option value = "none">Не выбрано</option>
+                            <option *ngFor = "let parent of parentList; let i = index;" value = "{{ i }}">{{ parent.name }}</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Тип</td>
+                    <td>
+                        <select [(ngModel)] = "createSetting.type" (change) = "onChangeTypeList()">
+                            <option value = "none">Не выбрано</option>
+                            <option *ngFor = "let type of typeList" value = "{{ type.id }}">{{ type.name }}</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td>Таблица</td>
+                    <td>
+                        <select [(ngModel)] = "createSetting.table">
+                            <option value = "none">Не выбрано</option>
+                            <option *ngFor = "let table of tableList" value = "{{ table.id }}">{{ table.name }}</option>
+                        </select>
+                    </td>
+                </tr>
+            </table>
+            <button (click) = "appendNode()">Добавить</button>
+        </div>
+    </div>
+</div>
