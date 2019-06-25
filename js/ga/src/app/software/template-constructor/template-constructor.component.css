@@ -1,13 +1,29 @@
-.constructorControlPanel
+.constructorMainPanel
 {
-    position:relative; 
-    padding-bottom:3px;
+    padding: 5px;
 }
-.constructorControlPanel button
+.constructorMainPanel button
 {
-    margin-right: 5px;
+    margin-left: 5px;
 }
-.removeColor {
-    color: red;
-    cursor: pointer;
+.constructorMainPanel input
+{
+    padding: 1px 4px;
+}
+.subPanel
+{
+    margin: auto;
+    width: 350px;
+}
+.headerStyle
+{
+    font-size: 18px;
+    font-weight: 600;
+    margin-top:5px;
+    margin-bottom:5px;
+}
+.applyColor
+{
+    color: rgb(103, 196, 103);
+    border-color: rgb(103, 196, 103);
 }

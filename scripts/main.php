@@ -1051,8 +1051,8 @@
                         $out["readonly"] = ($myRight->get($idElement) & 8) != 8;
                         // Поиск всех таблиц, которые находятся в той же дирректории
                         $idParent = selectOne("SELECT parent FROM structures WHERE id = %i", $param);
-                        $out["lib"] = [];
-                        getElementFromStructureByType($out["lib"], "table", $idParent);
+                        /* $out["lib"] = [];
+                        getElementFromStructureByType($out["lib"], "table", $idParent); */
                         echo json_encode($out);
                         break;
                     case 492: // Обновление структуры класса
@@ -1078,6 +1078,20 @@
                         if($result = query("SELECT id, value FROM fields WHERE idColumn = %i AND value != ''", [ $idColumn ]))
                             while ($row = $result->fetch_array(MYSQLI_NUM)) 
                                 $out[] = [ "id" => $row[0], "name" => $row[1]];
+                        echo json_encode($out);
+                        break;
+                    case 497: // Загрузить библиотеку
+                        $idColumnName = (int)$param[0];
+                        $idColumnType = (int)$param[1];
+                        $idTable = selectOne("SELECT tableId FROM fields WHERE id = %i", [ $idColumnName ]);
+                        if(($myRight->get($idTable) & 1) != 1) return; // Права на просмотр
+                        $out = [];
+                        $out[$idColumnName] = [];
+                        $out[$idColumnType] = [];
+                        $i = 0;
+                        if($result = query("SELECT id, value, idColumn FROM fields WHERE (idColumn = %i OR idColumn = %i)", [ $idColumnName, $idColumnType ]))
+                            while ($row = $result->fetch_array(MYSQLI_NUM)) 
+                                $out[$row[2]][] = [ "id" => $row[0], "name" => $row[1]];
                         echo json_encode($out);
                         break;
                 }

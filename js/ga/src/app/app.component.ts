@@ -7,6 +7,7 @@ import { FunctionsService } from "./lib/functions.service";
 import { EventEditorComponent } from './software/event-editor/event-editor.component';
 import { PlanEditorComponent } from './software/plan-editor/plan-editor.component';
 import { EventLogComponent } from './software/event-log/event-log.component';
+import { TemplateConstructorComponent } from './software/template-constructor/template-constructor.component'
 import { InfoComponent } from './software/info/info.component';
 import { environment } from '../environments/environment';
 import { DomSanitizer } from '@angular/platform-browser';
@@ -88,9 +89,9 @@ export class AppComponent implements OnInit
             case "/table":
                 this.windowType = "table";
                 break;
-            case "/constructor":
+            /* case "/constructor":
                 this.windowType = "constructor";
-                break;
+                break; */
         }
         /*************************************************/
         let vh = window.innerHeight * 0.01;
@@ -311,7 +312,7 @@ export class AppComponent implements OnInit
                     }
                 });
                 break;
-            case "class": i = this.getNewTab(type, { inputs: input }, settings); break;
+            case "class": i = this.getNewTab(type, { component: TemplateConstructorComponent, inputs: input }, settings); break;
             case "info": i = this.getNewTab(type, { component: InfoComponent, inputs: input }, settings); break;
             case "event": i = this.getNewTab(type, { component: EventEditorComponent, inputs: input }, settings); break;
             case "plan": i = this.getNewTab(type, { component: PlanEditorComponent, inputs: input }, settings); break;
@@ -332,11 +333,7 @@ export class AppComponent implements OnInit
                 software.securitySrc = this.sanitizer.bypassSecurityTrustResourceUrl("/table?" + param);
                 name = "Редактор таблицы"; 
                 break;
-            case "class": 
-                param = "id=" + input.id;
-                software.securitySrc = this.sanitizer.bypassSecurityTrustResourceUrl("/constructor?" + param);
-                name = "Конструктор шаблонов"; 
-                break;
+            case "class": name = "Конструктор шаблонов"; break;
             case "info": name = "Справка"; break;
             case "event": name = "Редактор событий"; break;
             case "plan": name = "План-график"; break;
@@ -357,7 +354,7 @@ export class AppComponent implements OnInit
         else
         {
             let iframe = false;
-            if(type == "table" || type == "class") iframe = true;
+            if(type == "table") iframe = true;
             this.tabs[i] = {
                 name: name,
                 type: type,

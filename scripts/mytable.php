@@ -428,6 +428,7 @@
         }
         function copy($idTableFrom, $link) // Копировать таблицу
         {
+            // Добавить проверку на наследование от наследуемой проверять bindId таблицы
             global $mysqli;
             $idTable = $this->idTable;
             $idNewRow = -1;

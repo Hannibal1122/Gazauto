@@ -393,6 +393,10 @@ export class ExplorerComponent implements OnInit
             });
         });
     }
+    closeClassSetting()
+    {
+        this.projectByClassSetting.open = false;
+    }
     addInfo() // Добавить справку
     {
         if(this.selectObjectI != -1)
