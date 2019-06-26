@@ -62,13 +62,13 @@ export class CreateTemplateComponent implements OnInit
             {
                 let j = 0;
                 for(; j < this.template.typeList.length; j++)
-                    if(Number[this.template.typeList[j].children] == this.template.typeList[j].id) break;
+                    if(this.template.typeList[j].children == this.template.typeList[j].name) break;
                 if(j == this.template.typeList.length) break;
             }
             this.typeByLevel = [this.template.typeList[i]];
             let k = 0;
             while(k < this.template.typeList.length - 1)
-                this.typeByLevel.push(this.searchFromArrayById(this.template.typeList, Number(this.typeByLevel[k++].children)));
+                this.typeByLevel.push(this.searchFromArrayByName(this.template.typeList, this.typeByLevel[k++].children));
             trace(this.typeByLevel)
             /* for(let i = 0; i < data.lib.length; i++)
                 this.library[data.lib[i].id] = data.lib[i];
@@ -79,11 +79,11 @@ export class CreateTemplateComponent implements OnInit
             this.mapParentType.push(this.template[0].id); */
         });
     }
-    searchFromArrayById(array, id)
+    searchFromArrayByName(array, name)
     {
         let i = 0
         for(; i < array.length; i++) // Поиск первого
-            if(array[i].id == id) break;
+            if(array[i].name == name) break;
         return array[i];
     }
     selectParent(i)

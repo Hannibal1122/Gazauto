@@ -35,7 +35,7 @@ export class TemplateConstructorComponent implements OnInit
                     this.loadTypeByColumn(() => {
                         for(let i = 0; i < this.typeList.length; i++)
                             for(let j = 0; j < loadData.typeList.length; j++)
-                                if(this.typeList[i].id == loadData.typeList[j].id)
+                                if(this.typeList[i].name == loadData.typeList[j].name)
                                 {
                                     this.typeList[i].templateId = loadData.typeList[j].templateId;
                                     this.typeList[i].children = loadData.typeList[j].children;
@@ -75,7 +75,7 @@ export class TemplateConstructorComponent implements OnInit
         {
             this.typeList = [];
             for(let i = 0; i < data.length; i++)
-                this.typeList.push({ id: data[i].id, name: data[i].name, templateId: null, children: "none", templateColumn: [] });
+                this.typeList.push({ name: data[i], templateId: null, children: "none", templateColumn: [] });
             if(func) func();
         });
     }
@@ -91,10 +91,6 @@ export class TemplateConstructorComponent implements OnInit
             row.templateColumn = [];
             for(let i = 0; i < data.length; i++)
                 row.templateColumn.push({ id: data[i][0], name: data[i][1] });
-            /* this.typeList = [];
-            for(let i = 0; i < data.length; i++)
-                this.typeList.push({ id: data[i].id, name: data[i].name, templateId: null, children: "none", templateColumn: [] });
-            if(func) func(); */
         });
     }
     saveData()

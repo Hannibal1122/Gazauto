@@ -1094,9 +1094,9 @@
                         $idColumn = (int)$param[0];
                         $idTable = selectOne("SELECT tableId FROM fields WHERE id = %i", [ $idColumn ]);
                         if(($myRight->get($idTable) & 1) != 1) return; // Права на просмотр
-                        if($result = query("SELECT id, value FROM fields WHERE idColumn = %i AND value != ''", [ $idColumn ]))
+                        if($result = query("SELECT DISTINCT value FROM fields WHERE idColumn = %i AND value != ''", [ $idColumn ]))
                             while ($row = $result->fetch_array(MYSQLI_NUM)) 
-                                $out[] = [ "id" => $row[0], "name" => $row[1]];
+                                $out[] = $row[0];
                         echo json_encode($out);
                         break;
                     case 497: // Загрузить библиотеку

@@ -1,55 +1,55 @@
 <div class = "constructorMainPanel">
     <div style = "padding: 5px;" class = "MainBColor">
-        <div class = "subPanel">
-            <div class = "headerStyle">
-                1. Укажите библиотеку
-                <button class = "mainButton applyColor" (click) = "loadLibrary()"><i class="fas fa-check-circle"></i></button>
+        <div style = "display: flex; width:60%; min-width: 400px; margin: auto; flex-wrap: wrap;">
+            <div class = "subPanel">
+                <div class = "headerStyle">
+                    1. Укажите библиотеку
+                    <button class = "mainButton applyColor" (click) = "loadLibrary()"><i class="fas fa-check-circle"></i></button>
+                </div>
+                <input class = "mainSelect" type = "text" placeholder="id" (change)="loadLibrary()" [(ngModel)] = "libraryId">
+                <button class = "mainButton" (click) = "setFromCopy()"><i class="fas fa-paste"></i></button>
+            <!-- </div>
+            <div class = "subPanel"> -->
+                <div class = "headerStyle">
+                    2. Укажите поля
+                    <button class = "mainButton applyColor" (click) = "loadTypeByColumn()"><i class="fas fa-check-circle"></i></button>
+                </div>
+                <table>
+                    <tr *ngFor = "let row of mainFields">
+                        <td>{{ row.name }}</td>
+                        <td>
+                            <select class = "mainSelect" [(ngModel)] = "row.id">
+                                <option *ngFor = "let o of columnList" value = "{{ o.id }}">{{ o.name }}</option>
+                            </select>
+                        </td>
+                    </tr>
+                </table>
+            <!-- </div>
+            <div class = "subPanel"> -->
+                <div class = "headerStyle">
+                    3. Укажите связи
+                </div>
+                <table>
+                    <tr>
+                        <th>Родитель</th>
+                        <th>Потомок</th>
+                    </tr>
+                    <tr *ngFor = "let row of typeList">
+                        <td>{{ row.name }}</td>
+                        <td>
+                            <select class = "mainSelect" [(ngModel)] = "row.children">
+                                <option value = "none">Без потомка</option>
+                                <option *ngFor = "let o of typeList" value = "{{ o.name }}">{{ o.name }}</option>
+                            </select>
+                        </td>
+                    </tr>
+                </table>
             </div>
-            <input class = "mainSelect" type = "text" placeholder="id" (change)="loadLibrary()" [(ngModel)] = "libraryId">
-            <button class = "mainButton" (click) = "setFromCopy()"><i class="fas fa-paste"></i></button>
-        </div>
-        <div class = "subPanel">
-            <div class = "headerStyle">
-                2. Укажите поля
-                <button class = "mainButton applyColor" (click) = "loadTypeByColumn()"><i class="fas fa-check-circle"></i></button>
-            </div>
-            <table>
-                <tr *ngFor = "let row of mainFields">
-                    <td>{{ row.name }}</td>
-                    <td>
-                        <select class = "mainSelect" [(ngModel)] = "row.id">
-                            <option *ngFor = "let o of columnList" value = "{{ o.id }}">{{ o.name }}</option>
-                        </select>
-                    </td>
-                </tr>
-            </table>
-        </div>
-        <div class = "subPanel">
-            <div class = "headerStyle">
-                3. Укажите связи
-            </div>
-            <table>
-                <tr>
-                    <th>Родитель</th>
-                    <th>Потомок</th>
-                </tr>
-                <tr *ngFor = "let row of typeList">
-                    <td>{{ row.name }}</td>
-                    <td>
-                        <select class = "mainSelect" [(ngModel)] = "row.children">
-                            <option value = "none">Без потомка</option>
-                            <option *ngFor = "let o of typeList" value = "{{ o.id }}">{{ o.name }}</option>
-                        </select>
-                    </td>
-                </tr>
-            </table>
-        </div>
-        <div class = "subPanel">
-            <div class = "headerStyle">
-                4. Укажите шаблоны
-            </div>
-            <table>
-                <ng-container *ngFor = "let row of typeList">
+            <div class = "subPanel">
+                <div class = "headerStyle">
+                    4. Укажите шаблоны
+                </div>
+                <table *ngFor = "let row of typeList">
                     <tr>
                         <td>{{ row.name }}</td>
                         <td>
@@ -66,11 +66,11 @@
                             </select>
                         </td>
                     </tr>
-                </ng-container>
-            </table>
+                </table>
+            </div>
         </div>
         <div>
-            <button class="propertyBtn" style = "width:400px; height:30px; margin-left: 50%; transform: translateX(-50%);" (click) = "saveData()">Сохранить</button>
+            <button class="propertyBtn" style = "height:30px; min-width: 400px; margin-top:15px; margin-left: 50%; transform: translateX(-50%);" (click) = "saveData()">Сохранить</button>
         </div>
     </div>
 </div>
