@@ -1060,8 +1060,27 @@
                         if(($myRight->get($idElement) & 8) != 8) return; // Права на изменение
                         query("UPDATE classes SET structure = %s WHERE id = %i", [ $param[1], $idElement ]);
                         break;
-                    case 493: // Создание структуры на основе класса(должно удалять предидущую структуру)
-                        
+                    case 493: // Создание структуры на основе класса(должно удалять предыдущую структуру)
+                        $structure = json_decode($param[0]);
+                        $parent = (int)$param[1];
+                        require_once("myStructures.php");
+                        require_once("copyAndRemove.php");
+                        require_once("myTable.php");
+                        $myStructures = new MyStructures($myRight, $myLog);
+                        $folderId = $myStructures->create(["folder", NULL, $structure[0]->name, $parent, 0, ""], false);
+                        $tableIdByLevel = [ $folderId ];
+                        for($i = 1, $c = count($structure); $i < $c; $i++)
+                        {
+                            $structures = new CopyAndRemove($structure[$i]->templateId, $tableIdByLevel[$structure[$i]->level - 1], "inherit", $myLog);
+                            $idNewElement = $structures->copy($structure[$i]->name);
+                            $tableIdByLevel[$structure[$i]->level] = $idNewElement;
+                            if($i > 1) // проставляем строки
+                            {
+                                $myTable = new MyTable($tableIdByLevel[$structure[$i]->level - 1], $myLog);
+                                $row = $myTable->addRow(-1, -1, false);
+                                print_r($row);
+                            }
+                        }
                         break;
                     case 494: // Обновление структуры при изменении основной
                         

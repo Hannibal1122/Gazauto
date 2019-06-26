@@ -8,12 +8,13 @@
 }
 .constructorMainPanel input
 {
+    width:80px;
     padding: 1px 4px;
 }
 .subPanel
 {
     margin: auto;
-    width: 350px;
+    width: 400px;
 }
 .headerStyle
 {

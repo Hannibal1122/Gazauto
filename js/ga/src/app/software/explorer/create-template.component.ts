@@ -20,6 +20,7 @@ export class CreateTemplateComponent implements OnInit
     template:any = [];
     typeByLevel = [];
     name = "";
+    parent;
     @Input() set open(value)
     {
         this._open = Boolean(value);
@@ -30,6 +31,7 @@ export class CreateTemplateComponent implements OnInit
     }
     @Input() set config(value)
     {
+        this.parent = value;
         if(localStorage.getItem("copyExplorer"))
             this.settings = JSON.parse(localStorage.getItem("copyExplorer"));
     }
@@ -46,6 +48,7 @@ export class CreateTemplateComponent implements OnInit
         this.query.protectionPost(491, { param: [ this.settings.id ] }, (data) =>
         {
             this.name = data.name;
+            trace(data)
             this.template = JSON.parse(data.structure);
             trace(this.template)
             this.mainList = [{ id: 0, name: "root", parent: -1, level: 0 }];
@@ -54,7 +57,6 @@ export class CreateTemplateComponent implements OnInit
                 this.library.name = data[this.template.mainFields[0].id];
                 this.library.type = data[this.template.mainFields[1].id];
             });
-            let firstType;
             let i = 0;
             for(; i < this.template.typeList.length; i++) // Поиск первого
             {
@@ -138,7 +140,10 @@ export class CreateTemplateComponent implements OnInit
     }
     Create()
     {
-
+        this.query.protectionPost(493, { param: [ JSON.stringify(this.mainList), this.parent ] }, (data) =>
+        {
+            trace(data)
+        });
     }
     getId()
     {

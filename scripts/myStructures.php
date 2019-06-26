@@ -35,6 +35,7 @@
             }
             if($out) echo json_encode(["Index", $idElement]);
             $this->myLog->add("structure", "create", $idElement);
+            return $idElement;
         }
         function getWhereUsed($idElement)
         {

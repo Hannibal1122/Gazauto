@@ -49,17 +49,28 @@
                 4. Укажите шаблоны
             </div>
             <table>
-                <tr *ngFor = "let row of typeList">
-                    <td>{{ row.name }}</td>
-                    <td>
-                        <input class = "mainSelect" type = "text" [(ngModel)] = "row.templateId">
-                        <button class = "mainButton" (click) = "pasteTemplate(row)"><i class="fas fa-paste"></i></button>
-                    </td>
-                </tr>
+                <ng-container *ngFor = "let row of typeList">
+                    <tr>
+                        <td>{{ row.name }}</td>
+                        <td>
+                            <input class = "mainSelect" type = "text" [(ngModel)] = "row.templateId">
+                            <button class = "mainButton" (click) = "pasteTemplate(row)"><i class="fas fa-paste"></i></button>
+                            <button class = "mainButton applyColor" (click) = "loadTemplate(row)"><i class="fas fa-check-circle"></i></button>
+                        </td>
+                    </tr>
+                    <tr *ngFor = "let column of row.templateColumn">
+                        <td>{{ column.name }}</td>
+                        <td>
+                            <select class = "mainSelect" [(ngModel)] = "column.selectId">
+                                <option *ngFor = "let o of columnList" value = "{{ o.id }}">{{ o.name }}</option>
+                            </select>
+                        </td>
+                    </tr>
+                </ng-container>
             </table>
         </div>
         <div>
-            <button class="propertyBtn" style = "width:350px; height:30px; margin-left: 50%; transform: translateX(-50%);" (click) = "saveData()">Сохранить</button>
+            <button class="propertyBtn" style = "width:400px; height:30px; margin-left: 50%; transform: translateX(-50%);" (click) = "saveData()">Сохранить</button>
         </div>
     </div>
 </div>

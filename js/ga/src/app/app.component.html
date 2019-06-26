@@ -139,6 +139,7 @@
                     <ng-container *ngFor="let app of screen.tabs; let i = index;">
                         <div class = "customBack" 
                             [ngStyle] = "theme.style"
+                            [style.overflow] = "app.iframe ? 'none' : 'auto'"
                             [hidden] = "i != screen.currentSoftware">
                             <vg-dynamic-view  
                                 *ngIf = "!app.iframe"

@@ -39,6 +39,7 @@ export class TemplateConstructorComponent implements OnInit
                                 {
                                     this.typeList[i].templateId = loadData.typeList[j].templateId;
                                     this.typeList[i].children = loadData.typeList[j].children;
+                                    this.typeList[i].templateColumn = loadData.typeList[j].templateColumn;
                                 }
                     })
                 })
@@ -74,7 +75,7 @@ export class TemplateConstructorComponent implements OnInit
         {
             this.typeList = [];
             for(let i = 0; i < data.length; i++)
-                this.typeList.push({ id: data[i].id, name: data[i].name, templateId: null, children: "none" });
+                this.typeList.push({ id: data[i].id, name: data[i].name, templateId: null, children: "none", templateColumn: [] });
             if(func) func();
         });
     }
@@ -82,6 +83,19 @@ export class TemplateConstructorComponent implements OnInit
     {
         if(localStorage.getItem("copyExplorer"))
             row.templateId = JSON.parse(localStorage.getItem("copyExplorer")).id;
+    }
+    loadTemplate(row)
+    {
+        this.query.protectionPost(495, { param: [ row.templateId ] }, (data) =>
+        {
+            row.templateColumn = [];
+            for(let i = 0; i < data.length; i++)
+                row.templateColumn.push({ id: data[i][0], name: data[i][1] });
+            /* this.typeList = [];
+            for(let i = 0; i < data.length; i++)
+                this.typeList.push({ id: data[i].id, name: data[i].name, templateId: null, children: "none", templateColumn: [] });
+            if(func) func(); */
+        });
     }
     saveData()
     {
