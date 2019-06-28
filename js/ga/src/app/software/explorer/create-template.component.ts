@@ -78,7 +78,10 @@ export class CreateTemplateComponent implements OnInit
             trace(this.typeByLevel)
             this.mainList = this.myTree.straighten();
 
-            trace(this.folderId)
+            if(this.folderId > 0)
+            {
+                
+            }
         });
     }
     searchFromArrayByName(array, name)
