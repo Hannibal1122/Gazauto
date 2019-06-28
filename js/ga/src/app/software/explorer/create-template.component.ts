@@ -16,24 +16,26 @@ export class CreateTemplateComponent implements OnInit
         name: [],
         type: []
     };
+    libraryId = -1;
     mainList = [];
     template:any = [];
     typeByLevel = [];
     name = "";
     parent;
-    @Input() set open(value)
-    {
-        this._open = Boolean(value);
-        if(this._open === true)
-        {
-            this.initData();
-        }
-    }
+    folderId;
+    myTree:MyTree = new MyTree();
     @Input() set config(value)
     {
-        this.parent = value;
-        if(localStorage.getItem("copyExplorer"))
-            this.settings = JSON.parse(localStorage.getItem("copyExplorer"));
+        if(value)
+        {
+            this._open = Boolean(value.open);
+            if(this._open === true)
+            {
+                this.initData();
+            }
+            this.parent = value.parent;
+            this.folderId = value.folderId;
+        }
     }
     @Output() onChange = new EventEmitter<any>();
     constructor(private query:QueryService)
@@ -45,13 +47,17 @@ export class CreateTemplateComponent implements OnInit
     mapParentType = [];
     initData()
     {
+        if(localStorage.getItem("copyExplorer"))
+            this.settings = JSON.parse(localStorage.getItem("copyExplorer"));
         this.query.protectionPost(491, { param: [ this.settings.id ] }, (data) =>
         {
             this.name = data.name;
             trace(data)
             this.template = JSON.parse(data.structure);
+            this.libraryId = data.libraryId;
             trace(this.template)
-            this.mainList = [{ id: 0, name: "root", parent: -1, level: 0 }];
+            /* this.mainList = []; */
+            this.myTree.push(-1, { name: "root" });
             this.query.protectionPost(497, { param: [ this.template.mainFields[0].id, this.template.mainFields[1].id ] }, (data) =>
             {
                 this.library.name = data[this.template.mainFields[0].id];
@@ -70,13 +76,9 @@ export class CreateTemplateComponent implements OnInit
             while(k < this.template.typeList.length - 1)
                 this.typeByLevel.push(this.searchFromArrayByName(this.template.typeList, this.typeByLevel[k++].children));
             trace(this.typeByLevel)
-            /* for(let i = 0; i < data.lib.length; i++)
-                this.library[data.lib[i].id] = data.lib[i];
-            this.template = JSON.parse(data.structure);
-            trace(this.library)
-            trace(this.template)
-            this.parentList.push({ name: this.template[0].n });
-            this.mapParentType.push(this.template[0].id); */
+            this.mainList = this.myTree.straighten();
+
+            trace(this.folderId)
         });
     }
     searchFromArrayByName(array, name)
@@ -90,8 +92,9 @@ export class CreateTemplateComponent implements OnInit
     {
         this.createSetting.parent = i;
         this.createSetting.table = 'none';
-        let type = this.typeByLevel[this.mainList[i].level].name;
         this.tableList = [];
+        if(!this.typeByLevel[this.mainList[i].level]) return;
+        let type = this.typeByLevel[this.mainList[i].level].name;
         for(let j = 0; j < this.library.type.length; j++)
             if(this.library.type[j].name == type)
                 this.tableList.push(this.library.name[j]);
@@ -111,22 +114,13 @@ export class CreateTemplateComponent implements OnInit
         let j = 0;
         for(; j < this.tableList.length; j++)
             if(this.tableList[j].id == Number(this.createSetting.table)) break;
-        this.mainList.splice(i + 1, 0, { 
-            id: this.getId(), 
-            parent: this.mainList[i].id,
-            name: this.tableList[j].name,
-            level: this.mainList[i].level + 1,
-            fieldId: this.tableList[j].id,
-            templateId: this.typeByLevel[this.mainList[i].level].templateId
-        });
-        trace(this.mainList)
+        this.myTree.push(this.mainList[i].id, { name: this.tableList[j].name, fieldId: this.tableList[j].id, templateId: this.typeByLevel[this.mainList[i].level].templateId });
+        this.mainList = this.myTree.straighten();
     }
     removeItem(i)
     {
-        let end = i;
-        for(let j = i; j < this.mainList.length; j++)
-            if(this.mainList[j].level > this.mainList[i].level) end = j;
-        this.mainList.splice(i, end - i + 1);
+        this.myTree.remove(this.mainList[i].id);
+        this.mainList = this.myTree.straighten();
         this.clearSelect();
     }
     clearSelect()
@@ -140,16 +134,56 @@ export class CreateTemplateComponent implements OnInit
     }
     Create()
     {
-        this.query.protectionPost(493, { param: [ JSON.stringify(this.mainList), this.parent ] }, (data) =>
+        if(this.inputName != "") this.mainList[0].name = this.inputName;
+        this.query.protectionPost(493, { param: [ JSON.stringify(this.mainList), JSON.stringify(this.template.typeList), this.libraryId, this.parent, this.settings.id ] }, (data) =>
         {
             trace(data)
         });
     }
+    
+}
+class MyTree
+{
+    data = [];
+    constructor()
+    {
+    }
+    push(parent, data)
+    {
+        this.data.push({ id: this.getId(), parent: parent, ...data });
+    }
+    remove(id)
+    {
+        for(let i = 1; i < this.data.length; i++) 
+            if(this.data[i].id == id) 
+            {
+                this.data.splice(i, 1);
+                break;
+            }
+    }
+    getRecursionRemove(out, parent, level)
+    {
+        out.push({ ...parent, level: level });
+        for(let i = 1; i < this.data.length; i++) 
+            if(this.data[i].parent == parent.id) this.getRecursion(out, this.data[i], level + 1);
+    }
+    straighten()
+    {
+        let out = [];
+        this.getRecursion(out, this.data[0], 0); // Первый элемент всегда корневой, поэтому не надо искать минимальный id
+        return out;
+    }
+    getRecursion(out, parent, level)
+    {
+        out.push({ ...parent, level: level });
+        for(let i = 1; i < this.data.length; i++) 
+            if(this.data[i].parent == parent.id) this.getRecursion(out, this.data[i], level + 1);
+    }
     getId()
     {
         let max = 0;
-        for(let i = 0; i < this.mainList.length; i++)
-            if(this.mainList[i].id > max) max = this.mainList[i].id;
+        for(let i = 0; i < this.data.length; i++)
+            if(this.data[i].id > max) max = this.data[i].id;
         return max + 1;
     }
 }

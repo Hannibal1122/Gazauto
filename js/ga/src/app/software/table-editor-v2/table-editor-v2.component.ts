@@ -942,6 +942,7 @@ export class TableEditorV2Component implements OnInit
     {
         this.query.protectionPost(261, { param: [ this.id ] }, (data) =>
         {
+            trace(data)
             function downloadURI(uri, name) 
             {
                 var link = document.createElement("a");

@@ -52,7 +52,7 @@ export class ExplorerComponent implements OnInit
         parentBind: false // Если папка наследуется кем-то
     };
     allPath = [];
-    parent = 0;
+    parent;
     outFolders = [];
     selectObjectI = -1;
     load = false;
@@ -395,7 +395,7 @@ export class ExplorerComponent implements OnInit
     }
     closeClassSetting()
     {
-        this.projectByClassSetting.open = false;
+        this.projectByClassSetting = { open: false, parent: -1, folderId: -1 };
     }
     addInfo() // Добавить справку
     {
@@ -577,11 +577,13 @@ export class ExplorerComponent implements OnInit
     /**************************************/
     projectByClassSetting = 
     {
-        open: false
+        open: false,
+        parent: -1,
+        folderId: -1
     }
-    createProjectByClass()
+    createProjectByClass(folder?)
     {
-        this.projectByClassSetting.open = true;
+        this.projectByClassSetting = { open: true, parent: this.parent, folderId: folder ? folder.id : -1 };
     }
     /**************************************/
     createContextMenu = 

@@ -153,7 +153,7 @@
         $myLog = new MyLog($login);
         /* Работа с правами */
         require_once("myRight.php");
-        $myRight = new MyRight($login, $myLog);
+        $myRight = new MyRight($myLog);
 
         if($result = query("SELECT checkkey FROM signin WHERE id = %s AND login = %s", [$paramI, $paramL]))
             while ($row = $result->fetch_array(MYSQLI_NUM)) $checkKey = $row[0];
@@ -501,19 +501,24 @@
                     case 200: // Добавить права
                         if(($myRight->get((int)$param[0]) & 8) != 8) return; // Права на изменение
                         $id = (int)$param[0];
-                        $myRight->remove($id);
-                        $rights = json_decode($param[1]);
-                        for($i = 0, $c = count($rights); $i < $c; $i++)
+                        $elements = [ $id ];
+                        if($param[2] == "true") getRemoveElementbyStructure($elements, $id);
+                        for($j = 0, $countElements = count($elements); $j < $countElements; $j++)
                         {
-                            $login = $rights[$i]->login;
-                            $type = $rights[$i]->type;
-                            $_rights = (int)($rights[$i]->rights);
-                            $myRight->create($id, $type, $login, $_rights);
+                            $id = $elements[$j];
+                            $myRight->remove($id);
+                            $rights = json_decode($param[1]);
+                            for($i = 0, $c = count($rights); $i < $c; $i++)
+                            {
+                                $login = $rights[$i]->login;
+                                $type = $rights[$i]->type;
+                                $_rights = (int)($rights[$i]->rights);
+                                $myRight->create($id, $type, $login, $_rights);
+                            }
                         }
                         break;
                     case 201: // Запросить права
                         if(($myRight->get((int)$param[0]) & 1) != 1) return; // Права на просмотр
-
                         $out = [];
                         if($result = query("SELECT type, login, rights FROM rights WHERE objectId = %i", $param))
                             while ($row = $result->fetch_array(MYSQLI_NUM)) 
@@ -1061,29 +1066,71 @@
                         query("UPDATE classes SET structure = %s WHERE id = %i", [ $param[1], $idElement ]);
                         break;
                     case 493: // Создание структуры на основе класса(должно удалять предыдущую структуру)
+                        $parent = (int)$param[3];
+                        if(($myRight->get($parent) & 8) != 8) return; // Права на изменение
                         $structure = json_decode($param[0]);
-                        $parent = (int)$param[1];
+                        $template = json_decode($param[1]);
+                        $libraryId = (int)$param[2]; // Таблица с описаниями
+                        $bindId = (int)$param[4];
+                        $templateMap = [];
+                        for($i = 0, $c = count($template); $i < $c; $i++)
+                            $templateMap[$template[$i]->templateId] = $template[$i];
                         require_once("myStructures.php");
                         require_once("copyAndRemove.php");
                         require_once("myTable.php");
                         $myStructures = new MyStructures($myRight, $myLog);
-                        $folderId = $myStructures->create(["folder", NULL, $structure[0]->name, $parent, 0, ""], false);
-                        $tableIdByLevel = [ $folderId ];
-                        for($i = 1, $c = count($structure); $i < $c; $i++)
+                        $tableIdByLevel = [];
+                        $lastRowByLevel = [];
+                        $myTable = new MyTable(-1, $myLog); // Общий класс для работы с таблицами
+                        for($i = 0, $c = count($structure); $i < $c; $i++)
                         {
-                            $structures = new CopyAndRemove($structure[$i]->templateId, $tableIdByLevel[$structure[$i]->level - 1], "inherit", $myLog);
-                            $idNewElement = $structures->copy($structure[$i]->name);
-                            $tableIdByLevel[$structure[$i]->level] = $idNewElement;
-                            if($i > 1) // проставляем строки
+                            if($i == 0)
                             {
-                                $myTable = new MyTable($tableIdByLevel[$structure[$i]->level - 1], $myLog);
+                                $tableIdByLevel[$structure[$i]->level] = $myStructures->create(["folder", NULL, $structure[0]->name, $parent, 0, ""], false);
+                                query("UPDATE structures SET bindId = %i, class = 1 WHERE id = %i", [ $bindId, $tableIdByLevel[$structure[$i]->level] ]);
+                            }
+                            else
+                            {
+                                if(!array_key_exists($structure[$i]->level, $tableIdByLevel))
+                                {
+                                    $structures = new CopyAndRemove($structure[$i]->templateId, $tableIdByLevel[$structure[$i]->level - 1], "inherit", $myLog);
+                                    $tableIdByLevel[$structure[$i]->level] = $structures->copy($structure[$i]->name, 1);
+                                    // Добавить ссылку в родительскую таблицу
+                                    if($structure[$i]->level - 1 > 0)
+                                    {
+                                        $idColumn = $myStructures->getLastColumnByTable($tableIdByLevel[$structure[$i]->level - 1]);
+                                        $idRow = $lastRowByLevel[$structure[$i]->level - 1];
+                                        $myTable->idTable = $tableIdByLevel[$structure[$i]->level - 1];
+                                        $myTable->setCellByLink(
+                                            $tableIdByLevel[$structure[$i]->level], 
+                                            selectOne("SELECT id FROM fields WHERE idColumn = %i AND i = %i", [(int)$idColumn, (int)$idRow])
+                                        );
+                                    }
+                                }
+                                $myTable->idTable = $tableIdByLevel[$structure[$i]->level];
                                 $row = $myTable->addRow(-1, -1, false);
-                                print_r($row);
+                                $lastRowByLevel[$structure[$i]->level] = (int)$row["__ID__"];
+                                $templateColumn = $templateMap[$structure[$i]->templateId]->templateColumn;
+                                $idRowFromLibrary = (int)selectOne("SELECT i FROM fields WHERE id = %i", [$structure[$i]->fieldId]);
+                                unset($tableIdByLevel[$structure[$i]->level + 1]);
+                                for($j = 0, $c2 = count($templateColumn); $j < $c2; $j++)
+                                {
+                                    if(property_exists($templateColumn[$j], "selectId"))
+                                    {
+                                        $idColumn = selectOne("SELECT id FROM fields WHERE tableId = %i AND bindId = %i", [$myTable->idTable, (int)$templateColumn[$j]->id]);
+                                        $idCellTo = selectOne("SELECT id FROM fields WHERE idColumn = %i AND i = %i", [$idColumn, $lastRowByLevel[$structure[$i]->level]]);
+                                        $idTableTo = $myTable->idTable;
+                                        $idCellFrom = selectOne("SELECT id FROM fields WHERE idColumn = %i AND i = %i", [(int)$templateColumn[$j]->selectId, $idRowFromLibrary]);
+                                        $idTableFrom = $libraryId;
+                                        $myTable->copyCell($idCellTo, $idTableTo, $idCellFrom, $idTableFrom, "copy", "cell", false);
+                                    }
+                                }
                             }
                         }
                         break;
-                    case 494: // Обновление структуры при изменении основной
-                        
+                    case 494: // Загрузка структуры по folderId
+                        $folderId = (int)$param[0];
+                        if(($myRight->get($folderId) & 1) != 1) return; // Права на просмотр
                         break;
                     case 495: // Загрузить колонки таблицы 
                         $idTable = (int)$param[0];

@@ -8,7 +8,7 @@
             $this->typeOperation = $typeOperation;
             $this->myLog = $myLog;
         }
-        function copy($newName) // Скопировать элемент структуры, по типам
+        function copy($newName, $class = 0) // Скопировать элемент структуры, по типам
         {
             global $login, $mysqli;
             $idElement = $this->idElement;
@@ -31,6 +31,7 @@
                 case "folder": $this->copyFolder($idNewElement); break;
                 case "event": $this->copyEvent($idNewElement); break;
             }
+            if($class == 1) query("UPDATE structures SET class = 1 WHERE id = %i", [ $idNewElement ]);
             return $idNewElement;
         }
         function copyTable($idNewElement) // Скопировать таблицу

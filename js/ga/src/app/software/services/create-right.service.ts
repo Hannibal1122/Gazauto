@@ -45,8 +45,9 @@ export class CreateRightService
                                 });
                         } // Добавить в список пользователя
                     ], 
-                    ["Права", -1, "rightObject", []]
-                    ],
+                    ["Права", -1, "rightObject", []],
+                    ["ко всем потомкам", false, "checkbox"]
+                ],
                 ok: "Сохранить",
                 cancel: "Отмена"
             };
@@ -67,7 +68,7 @@ export class CreateRightService
                     {
                         for(var i = 0; i < Data.data[2][3].length; i++)
                             Data.data[2][3][i].rights = this.encodeRights(Data.data[2][3][i].view, Data.data[2][3][i].copy, Data.data[2][3][i].link, Data.data[2][3][i].change);
-                        var param = [id, JSON.stringify(Data.data[2][3])];
+                        var param = [id, JSON.stringify(Data.data[2][3]), Data.data[3][1]];
                         this.query.protectionPost(200, { param: param }, () => { });
                     }
                 });

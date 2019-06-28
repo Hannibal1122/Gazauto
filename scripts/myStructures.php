@@ -56,5 +56,10 @@
             }
             return $count;
         }
+        function getLastColumnByTable($idTable)
+        {
+            $max = selectOne("SELECT MAX(i) FROM fields WHERE tableId = %i AND type = 'head'", [ $idTable ]);
+            return selectOne("SELECT id FROM fields WHERE tableId = %i AND type = 'head' AND i = %i", [ $idTable, (int)$max ]);
+        }
     }
 ?>

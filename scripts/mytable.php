@@ -528,21 +528,26 @@
             query("DELETE FROM fields WHERE tableId = %i", [ $idTable ]);
             query("UPDATE structures SET bindId = NULL WHERE bindId = %i AND objectType = 'table'", [ $idTable ]);
         }
-        function getArrayTable() // Получить таблицу в виде массива
+        function getHeadFromTable()
+        {
+            $idTable = $this->idTable;
+            $outData = []; // на выходе
+            if($result = query("SELECT i, value, id FROM fields WHERE tableId = %i AND type = 'head' ORDER by i", [$idTable]))
+                while ($row = $result->fetch_array(MYSQLI_NUM)) 
+                    $outData[(int)$row[0]] = [ "type" => "head", "value" => $row[1], "id" => (int)$row[2] ];
+            return $outData;
+        }
+        function getDataFromTable(&$dataLevelFail, $globalI, $globalJ, &$headLevelFail, $level) // Получить таблицу в виде массива, если в последней строке присутсвуют ссылки на таблицы, они раскрываются
         {
             $myField = new MyField();
             $idTable = $this->idTable;
             $data = [];
             $outData = [[]]; // на выходе
             $headMap = [];
-            if($result = query("SELECT name FROM structures WHERE id = %i", [$idTable]))
-                while ($row = $result->fetch_array(MYSQLI_NUM)) $nameTable = $row[0];
+            $headLevelFail[$level] = $this->getHeadFromTable();
             if($result = query("SELECT i, value, id FROM fields WHERE tableId = %i AND type = 'head' ORDER by i", [$idTable]))
                 while ($row = $result->fetch_array(MYSQLI_NUM)) 
-                {
                     $headMap[$row[2]] = $row[0];
-                    $outData[0][(int)$row[0]] = [ "type" => "head", "value" => $row[1], "id" => (int)$row[2] ];
-                }
             if($result = query("SELECT i, idColumn, value, type, linkId, linkType, fields.id, state, next FROM fields LEFT JOIN line_ids ON line_ids.id = fields.i WHERE tableId = %i AND type != 'head'", [$idTable]))
                 while ($row = $result->fetch_array(MYSQLI_NUM)) 
                 {
@@ -566,38 +571,71 @@
             foreach($data as $key => $value) if(array_key_exists("__NEXT__", $value) && $value["__NEXT__"] == null) break; //Находим null
             for($i = $l - 1; $i >= 0; $i--) // Тут сортировка по next
             {
-                $outData[$i + 1] = $data[$key];
-                unset($outData[$i + 1]["__NEXT__"]);
+                $outData[$i + 0] = $data[$key];
+                unset($outData[$i + 0]["__NEXT__"]);
                 $key = $this->getNextI($data, $key);
             }
-            $myArray = new MyArray($outData);
-            for($i = 1; $i < count($myArray->myArray); $i++)
-                for($j = 0; $j < count($myArray->myArray[$i]); $j++)
+            $myTable = new MyTable(-1, $this->myLog);
+            for($i = 0; $i < count($outData); $i++)
+                for($j = 0; $j < count($outData[$i]); $j++)
                 {
-                    if(!array_key_exists($j, $myArray->myArray[$i])) $myArray->myArray[$i][$j] = null;
-                    if(!is_null($myArray->myArray[$i][$j]) && array_key_exists("type", $myArray->myArray[$i][$j]) && $myArray->myArray[$i][$j]["type"] == "table")
-                    {
-                        $myTable = new MyTable((int)$myArray->myArray[$i][$j]["linkId"], $this->myLog);
-                        $myArray->insertArrayInField($i, $j, $myTable->getArrayTable());
-                    }
+                    $dataLevelFail[$globalI + $i][$globalJ + $j] = $outData[$i][$j];
+                    if($j == count($outData[$i]) - 1)
+                        if(!is_null($outData[$i][$j]) && array_key_exists("type", $outData[$i][$j]) && $outData[$i][$j]["type"] == "table")
+                        {
+                            $myTable->idTable = (int)$outData[$i][$j]["linkId"];
+                            $globalI = $myTable->getDataFromTable($dataLevelFail, $globalI + $i, $globalJ + $j, $headLevelFail, $level + 1);
+                        }
                 }
-            return $myArray->myArray;
+            return $globalI + $i - 1;
         }
         function getNextI($object, $next) { foreach($object as $key => $value) if($value["__NEXT__"] == $next) return $key; }
         function export()
         {
             require_once("WorkWithExcel.php");
             require_once("myField.php");
-            $data = $this->getArrayTable();
+            $headLevelFail = [];
+            $data = [];
+            $this->getDataFromTable($data, 0, 0, $headLevelFail, 0);
+            $upHead = [];
+            $head = [];
+            $j = 0;
+            $k = 0;
+            $countHead = count($headLevelFail);
+            if($countHead == 1) // Если один заголовок
+                array_unshift($data, $headLevelFail[0]);
+            else // Если сводная таблица
+            {
+                for($i = 0; $i < $countHead; $i++)
+                {
+                    for($j = 0, $c = count($headLevelFail[$i]); $j < $c; $j++)
+                    {
+                        if($j == 0 && !array_key_exists($k, $upHead) || $j > 0) $upHead[$k] = null;
+                        if($j == $c - 1 && $i < $countHead - 1) $upHead[$k] = $headLevelFail[$i][$j];
+                        $head[$k++] = $headLevelFail[$i][$j];
+                    }
+                    $k--;
+                }
+                array_unshift($data, $head);
+                array_unshift($data, $upHead);
+            }
             $out = [];
             $metaData = [];
             $i = 0;
-            for($i = 0, $h = count($data); $i < $h; $i++)
+            $lengthRow = count($data);
+            $lengthColumn = 0;
+            foreach($data as $row)
+            {
+                $max = max(array_keys($row));
+                if($lengthColumn < $max) $lengthColumn = $max;
+            }
+            for($i = 0; $i < $lengthRow; $i++)
             {
                 $out[$i] = [];
                 $metaData[$i] = [];
-                for($j = 0, $c = count($data[$i]); $j < $c; $j++) 
+                for($j = 0; $j < $lengthColumn; $j++) 
                 {
+                    if(!array_key_exists($j, $data[$i])) $data[$i][$j] = null;
                     $out[$i][$j] = $data[$i][$j];
                     if(!is_null($data[$i][$j]))
                     {
