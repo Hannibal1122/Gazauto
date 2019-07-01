@@ -322,6 +322,8 @@ export class ExplorerComponent implements OnInit
         this.selectObjectI = i;
         var id = this.outFolders[this.selectObjectI].id;
         var objectType = this.outFolders[this.selectObjectI].objectType;
+        if(localStorage.getItem("chooseToCompare") != null)
+            this.choose = JSON.parse(localStorage.getItem("chooseToCompare"));
         this.query.protectionPost(202, { param: [ id ] }, (data) => // Запрос прав и связей наследования
         {
             this.clearRules();
@@ -483,6 +485,10 @@ export class ExplorerComponent implements OnInit
         this.searchInput = "";
         this.clearSearch();
     }
+    setFilterByGlobal(filter)
+    {
+        this.query.protectionPost(450, { param: [ "filter", JSON.stringify({ id: filter.objectId, name: filter.name }) ] });
+    }
     globalClick = null;
     /**************************************/
     tableProperty = {
@@ -540,6 +546,11 @@ export class ExplorerComponent implements OnInit
         this.listLink.visible = false;
     } */
     /**************************************/
+    searchCellByTable(id)
+    {
+        this.onChange({ type: "openFromTable", value: { name: "cell", id: id }});
+    }
+    /**************************************/
     openTable(id)
     {
         this.onChange({ type: "openFromTable", value: { name: "table", id: id }});
@@ -576,6 +587,42 @@ export class ExplorerComponent implements OnInit
     createProjectByClass(folder?)
     {
         this.projectByClassSetting = { open: true, parent: this.parent, folder: folder ? { id: folder.id, bindId: folder.bindId } : null };
+    }
+    /**************************************/
+    choose = {
+        id: -1,
+        name: "",
+        objectType: "",
+        open: false,
+        data: {
+            tables: {},
+            fields: []
+        }
+    }
+    chooseToCompare(type, object)
+    {
+        if(type == "choose")
+        {
+            this.choose.id = object.id;
+            this.choose.name = object.name;
+            this.choose.objectType = object.objectType;
+            localStorage.setItem("chooseToCompare", JSON.stringify(this.choose));
+        }
+        if(type == "compare")
+        {
+            if(this.choose.id == object.id) return;
+            if(this.choose.objectType != object.objectType) return;
+            if(this.choose.objectType == "table")
+                this.query.protectionPost(136, { param: [ this.choose.id, object.id ] }, (data) =>
+                {
+                    if(data.length != 2) return;
+                    this.choose.open = true;
+                    this.choose.data = {
+                        tables: { tableA: this.choose.name, tableB: object.name },
+                        fields: data[1]
+                    }
+                });
+        }
     }
     /**************************************/
     createContextMenu = 

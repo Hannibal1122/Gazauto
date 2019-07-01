@@ -445,6 +445,7 @@ export class TableEditorV2Component implements OnInit
     }
     onChangeSort(i) // Применть сортировку по столбцу
     {
+        if(this.tableFilter.fields[i].value != "" || this.tableFilter.state[i].value != "") return;
         this.sortProperty.column = i;
         this.dataHeader[i].sort = !this.dataHeader[i].sort;
         this.updateData();

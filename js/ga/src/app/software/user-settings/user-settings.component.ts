@@ -37,16 +37,31 @@ export class UserSettingsComponent implements OnInit
         { type: "color", name: "#e175e5"},
         { type: "color", name: "#eeeeee"},
     ]
+    filter = {
+        id: -1,
+        name: ""
+    }
     constructor(private query:QueryService) 
     {
         this.query.protectionPost(451, { param: ["theme"] }, (data) =>
         {
             if(data.theme) this.theme = data.theme;
         });
+        this.query.protectionPost(451, { param: ["filter"] }, (data) =>
+        {
+            if(data.id) this.filter = data;
+        });
     }
     ngOnInit() 
     {
         
+    }
+    removeFilter()
+    {
+        this.query.protectionPost(450, { param: ["filter", ""] }, (data) =>
+        {
+            this.filter = { id: -1, name: "" }
+        });
     }
     setTheme(theme)
     {

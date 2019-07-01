@@ -85,6 +85,40 @@
                 }
             return $str;
         }
+        function getFilterStrByFolder($idFilter, $idParent)
+        {
+            global $login;
+            $str = "";
+            $expression = json_decode(selectOne("SELECT value FROM filter WHERE id = %i", [ $idFilter ]));
+            for($i = 0, $c = count($expression); $i < $c; $i++)
+                if($expression[$i]->type === "group")
+                {
+                    if($expression[$i]->begin) $str .= "(";
+                    if(!$expression[$i]->begin) 
+                    {
+                        $str .= ")";
+                        if(array_key_exists($i + 1, $expression))
+                            $str += $this->getOperator($expression[$i]->operator);
+                    }
+                }
+                else
+                {
+                    $operand = $this->getOperand($expression[$i]->operand, $expression[$i]->value); // защита от инъекции
+                    $value = ["1" => "name", "2" => "objectType", "3" => "hashtag"][$expression[$i]->field];
+                    $strId = "";
+                    if($result = query("SELECT id FROM structures WHERE parent = %i AND $value ".$operand[0]." %s", [ $idParent, $operand[1] ]))
+                    while($row = $result->fetch_array(MYSQLI_NUM))
+                        {
+                            if($strId != "") $strId .= ",";
+                            $strId .= $row[0];
+                        }
+                    if($strId == "") $strId = "-1";
+                    $str .= "id IN ($strId)";
+                    if(array_key_exists($i + 1, $expression) && ($expression[$i + 1]->type === "condition" || $expression[$i + 1]->begin))
+                        $str .= $this->getOperator($expression[$i]->operator);
+                }
+            return $str;
+        }
         function getFilterColumn($idFilter)
         {
             global $login;

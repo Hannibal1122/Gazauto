@@ -4,6 +4,13 @@
         <option>Русский</option>
         <option>Английский</option>
     </select>
+    <div *ngIf = "filter.id > 0" style = "margin-top:5px;">
+        <div style = "float:left;">Фильтр:</div>
+        <div style = "background-color: #6085ac; border-radius: 5px; padding:0px 3px; margin-left:4px; margin-right:4px; float:left;">{{ filter.name }}</div>
+        <div class = "ModalButtonExitColor" style = "font-size:16px; cursor:pointer;" (click) = "removeFilter()">
+            <i class="fas fa-times-circle"></i>
+        </div>
+    </div>
 </div>
 <hr style = "margin-top: 5px; margin-bottom: 5px;">
 <div style = "padding-left: 10px; font-weight:bold; font-size:14px; position: relative;">

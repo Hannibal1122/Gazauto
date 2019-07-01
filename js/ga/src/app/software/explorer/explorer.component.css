@@ -255,3 +255,23 @@
     margin-bottom: 3px;
     margin-left:5px;
 }
+
+.tableInequality
+{
+    width:100%;
+}
+.tableInequality th
+{
+    font-size: 12px;
+    text-align: center;
+}
+.tableInequality td
+{
+    border: 1px solid #eeeeee;
+    padding: 0px 5px;
+    cursor: pointer;
+}
+.tableInequality td:hover
+{
+    background-color: #eeeeee;
+}

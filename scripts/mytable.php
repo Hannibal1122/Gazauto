@@ -535,6 +535,7 @@
         }
         function getDataFromTable(&$dataLevelFail, $globalI, $globalJ, &$headLevelFail, $level) // Получить таблицу в виде массива, если в последней строке присутсвуют ссылки на таблицы, они раскрываются
         {
+            require_once("myField.php");
             $myField = new MyField();
             $idTable = $this->idTable;
             $data = [];
@@ -617,7 +618,6 @@
         function export()
         {
             require_once("WorkWithExcel.php");
-            require_once("myField.php");
             $headLevelFail = [];
             $data = [];
             $this->getDataFromTable($data, 0, 0, $headLevelFail, 0);

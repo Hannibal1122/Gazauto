@@ -177,9 +177,19 @@
                         $myStructures->create($param);
                         break;
                     case 110: // Загрузка структуры // Права на просмотр
-                        $out = ["folder" => [], "path" => []];
                         $idParent = (int)$param[0];
-                        $query = "SELECT id, objectType, objectId, name, parent, priority, info, bindId, state, icon FROM structures WHERE parent = %i AND trash = 0";
+                        $out = ["folder" => [], "path" => []];
+                        $filterStr = "";
+                        $filter = selectOne("SELECT value FROM user_settings WHERE login = %s AND type = %s", [ $login, "filter" ]);
+                        if(!is_null($filter) && $filter != "") 
+                        {
+                            $filter = json_decode($filter);
+                            require_once("myFilter.php");
+                            $filterClass = new MyFilter();
+                            $filterStr = $filterClass->getFilterStrByFolder($filter->id, $idParent);
+                            if($filterStr != "") $filterStr = " AND ($filterStr)";
+                        };
+                        $query = "SELECT id, objectType, objectId, name, parent, priority, info, bindId, state, icon FROM structures WHERE parent = %i AND trash = 0 $filterStr";
                         if($login == "admin") $query .= " ORDER by parent, priority";
                         else $query .= " AND
                             id IN (SELECT objectId FROM rights WHERE (login = %s OR login = %s) AND rights & 1 
@@ -442,6 +452,44 @@
                         if(($myRight->get($idElement) & 8) != 8) continue; // Права на изменение
                         query("UPDATE structures SET hashtag = %s WHERE id = %i", [$param[1], $idElement]);
                         break;
+                    case 136: // Сравнение двух таблиц
+                        $idTable1 = (int)$param[0];
+                        $idTable2 = (int)$param[1];
+                        if(($myRight->get($idTable1) & 1) != 1) continue; // Права на просмотр
+                        if(($myRight->get($idTable2) & 1) != 1) continue; // Права на просмотр
+                        require_once("myTable.php");
+                        $myTable1 = new MyTable($idTable1, $myLog);
+                        $myTable2 = new MyTable($idTable2, $myLog);
+
+                        $headTable1 = [];
+                        $dataTable1 = [];
+                        $headTable2 = [];
+                        $dataTable2 = [];
+                        $myTable1->getDataFromTable($dataTable1, 0, 0, $headTable1, 0);
+                        $myTable2->getDataFromTable($dataTable2, 0, 0, $headTable2, 0);
+                        $countRowData1 = count($dataTable1);
+                        $countRowData2 = count($dataTable2);
+                        $countRow = $countRowData1 <= $countRowData2 ? $countRowData1 : $countRowData2;
+                        $headEquality = false;
+                        if(count($headTable1) == count($headTable2)) // Проверка заголовка
+                        {
+                            for($i = 0, $c = count($headTable1); $i < $c; $i++)
+                            {
+                                for($j = 0, $c2 = count($headTable1[$i]); $j < $c2; $j++)
+                                    if($headTable1[$i][$j]["value"] != $headTable2[$i][$j]["value"]) break;
+                                if($j != $c2) break;
+                            }
+                            $headEquality = $i == count($headTable1);
+                        }
+                        $inequality = [];
+                        if($headEquality)
+                        {
+                            for($i = 0; $i < $countRow; $i++)
+                                foreach($dataTable1[$i] as $key => $value)
+                                    if($dataTable1[$i][$key]["value"] != $dataTable2[$i][$key]["value"]) $inequality[] = [ "A" => $dataTable1[$i][$key], "B" => $dataTable2[$i][$key] ];
+                        }
+                        echo json_encode([$headEquality, $inequality]);
+                        break;
                 }
             }
             if($nQuery >= 150 && $nQuery < 200) // Работа с Пользователями // Только admin
@@ -603,8 +651,12 @@
                     case 253: // Запрос списка колонок
                         if(($myRight->get($idTable) & 1) != 1) return; // Права на просмотр
                         $head = [];
-                        if($result = query("SELECT id, value FROM fields WHERE tableId = %i AND type = 'head' ORDER by i", [$idTable]))
-                            while ($row = $result->fetch_array(MYSQLI_NUM)) $head[] = $row;
+                        if(selectOne("SELECT objectType FROM structures WHERE id = %i", [ $idTable ]) == "table")
+                        {
+                            if($result = query("SELECT id, value FROM fields WHERE tableId = %i AND type = 'head' ORDER by i", [$idTable]))
+                                while ($row = $result->fetch_array(MYSQLI_NUM)) $head[] = $row;
+                        }
+                        else $head = [[1, "Имя"], [2, "Тип"], [3, "Хэштег"]];
                         echo json_encode($head);
                         break;
                     case 254: // резерв
