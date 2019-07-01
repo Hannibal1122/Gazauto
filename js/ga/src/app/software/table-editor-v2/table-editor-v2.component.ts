@@ -881,6 +881,7 @@ export class TableEditorV2Component implements OnInit
     }
     /*************************************************/
     tableProperty = {
+        loaded:true,
         visible: false,
         data: {},
         translate: "",
@@ -914,11 +915,13 @@ export class TableEditorV2Component implements OnInit
     }
     getListLink()
     {
+        this.tableProperty.loaded = false;
         this.query.protectionPost(274, { param: [ this.inputProperty.id ]}, (data) =>
         {
             this.tableProperty.listLink.whoRefer = data.whoRefer;
             this.tableProperty.listLink.empty = this.tableProperty.listLink.whoRefer.length == 0;
             this.tableProperty.listLink.visible = true;
+            this.tableProperty.loaded = true;
         });
     }
     /*************************************************/

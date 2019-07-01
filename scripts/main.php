@@ -180,12 +180,13 @@
                         $idParent = (int)$param[0];
                         $out = ["folder" => [], "path" => []];
                         $filterStr = "";
-                        $filter = selectOne("SELECT value FROM user_settings WHERE login = %s AND type = %s", [ $login, "filter" ]);
+                        $filter = selectOne("SELECT value FROM user_settings WHERE login = %s AND type = %s", [ $login, "filter_global" ]);
                         if(!is_null($filter) && $filter != "") 
                         {
                             $filter = json_decode($filter);
                             require_once("myFilter.php");
                             $filterClass = new MyFilter();
+                            print_r($filter); 
                             $filterStr = $filterClass->getFilterStrByFolder($filter->id, $idParent);
                             if($filterStr != "") $filterStr = " AND ($filterStr)";
                         };
@@ -679,6 +680,7 @@
                         break;
                     case 258: // Удалить строку из таблицы
                         if(($myRight->get($idTable) & 8) != 8) return; // Права на изменение
+                        if(selectOne("SELECT class FROM structures WHERE id = %i", [ $idTable ]) == 1) return; // Ограничение для удаления в таблицах созданных конструктором
                         $idRow = (int)$param[1];
                         $myTable->removeRow($idRow);
                         break;

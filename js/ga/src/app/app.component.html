@@ -129,7 +129,7 @@
                                 <span *ngIf = "tab.type == 'class'"> <i class="fas fa-pencil-ruler colorIconExplorer"></i> </span>
                                 
                             </ng-container>
-                            <span class = "tabsLoader" *ngIf = "!tab.loaded"> <i class="fas fa-spinner tabsLoader"></i> </span>
+                            <span *ngIf = "!tab.loaded"> <i class="fas fa-spinner spinnerLoader"></i> </span>
                             {{ tab.software.inputs.name || tab.name }}
                         </div>
                         <span (click) = "closeTab(s, i)"><i class="fas fa-times-circle tubExitButton TabsButtonExitColor"></i></span>

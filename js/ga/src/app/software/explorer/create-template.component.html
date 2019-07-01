@@ -31,7 +31,10 @@
         </div>
         <div style = "text-align: right;">
             <button class = "propertyBtn" (click) = "Cancel()">Отмена</button>
-            <button class = "propertyBtn" (click) = "Create()">Создать</button>
+            <button class = "propertyBtn" (click) = "Create()" style = "width:75px;">
+                <span *ngIf = "!loaded"><i class="fas fa-spinner spinnerLoader"></i></span>
+                <span *ngIf = "loaded">Создать</span>
+            </button>
         </div>
     </div>
 </div>
