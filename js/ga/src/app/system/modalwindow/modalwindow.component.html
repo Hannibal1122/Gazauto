@@ -68,6 +68,8 @@
                                         <td title = "Копирование"> <i class="fas fa-copy"></i> </td>
                                         <td title = "Наследование"> <i class="fas fa-link"></i> </td>
                                         <td title = "Изменение"> <i class="fas fa-exchange-alt"></i> </td>
+                                        <td title = "Права"> <i class="fas fa-hand-point-up"></i> </td>
+                                        <td title = "Фильтры">  <i class="fas fa-filter"></i> </td>
                                         <td> </td>
                                     </tr>
                                     <tr *ngFor = "let login of data[3]; let j = index;">
@@ -76,6 +78,8 @@
                                         <td><input type = "checkbox" [(ngModel)] = "login.copy"></td>
                                         <td><input type = "checkbox" [(ngModel)] = "login.link"></td>
                                         <td><input type = "checkbox" [(ngModel)] = "login.change"></td>
+                                        <td><input type = "checkbox" [(ngModel)] = "login.right"></td>
+                                        <td><input type = "checkbox" [(ngModel)] = "login.filter"></td>
                                         <td style = "color:#920909; cursor:pointer;" (click) = "removeRights(data[3], j)"><i class="fas fa-trash-alt"></i></td>
                                     </tr>
                                 </tbody>

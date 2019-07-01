@@ -1,33 +1,40 @@
 <div class="tableGrid" [class.tableGridWidthHeaderEditor] = "headerEditorShow">
     <div name = "clickArea" class = "tableControlPanel">
-        <div class = "nameTableClass" 
-            title="{{nameTable}}">
-            <!-- {{nameTable}} -->
-            <div style="position:relative; width:170px; height:6px; border-radius:3px;" class = "substrate">
-                <div style="position:absolute; top:0px; height:6px; left:0px; border-radius:3px;" 
-                    [style.width] = "control.state + '%'"
-                    [class.tableCellStateGreen] = "control.state == 100"
-                    [class.tableCellStateYellow] = "control.state >= 50 && control.state < 100"
-                    [class.tableCellStateRed] = "control.state < 50">
+        <ng-container *ngIf = "!smallHeader.mode || smallHeader.close"> <!-- Чтобы не менять класс tableGrid -->
+            <div *ngIf = "!smallHeader.mode" class = "nameTableClass" 
+                title="{{nameTable}}">
+                <!-- {{nameTable}} -->
+                <div style="position:relative; width:170px; height:6px; border-radius:3px;" class = "substrate">
+                    <div style="position:absolute; top:0px; height:6px; left:0px; border-radius:3px;" 
+                        [style.width] = "control.state + '%'"
+                        [class.tableCellStateGreen] = "control.state == 100"
+                        [class.tableCellStateYellow] = "control.state >= 50 && control.state < 100"
+                        [class.tableCellStateRed] = "control.state < 50">
+                    </div>
+                    <div style="position:absolute; right:-25px; top: -4px; font-size: 11px; font-weight: bold;" class = "TableCreatorHeadColor">{{control.state + '%'}}</div>
                 </div>
-                <div style="position:absolute; right:-25px; top: -4px; font-size: 11px; font-weight: bold;" class = "TableCreatorHeadColor">{{control.state + '%'}}</div>
             </div>
-        </div>
-        <button class = "mainButton" (click) = "loadTable()" title = "Обновить"><i class="fas fa-sync-alt"></i></button>
-        <button class = "mainButton" title = "Экспорт в Excel" (click) = "exportToExcel()" ><i class="fas fa-file-excel"></i></button>
-        <button class = "mainButton" title = "Импорт таблицы" (click) = "importFromExcel()" [disabled] = "!right.change"><i class="fas fa-download"></i></button>
-        <button class = "mainButton" [class.enableButton] = "tableProperty.visible" title = "Таблица свойств" (click) = "openTableProperty()"><i class="fas fa-briefcase"></i></button>
-        <button class = "mainButton" title = "Сохраненная позиция" (click) = "loadTableProperty('scroll')"><i class="fas fa-bookmark"></i></button>
-        <button class = "mainButton" [class.enableButton] = "lineNumbering.enable" title = "Нумерация строк" (click) = "enableLineNumbering()"><i class="fas fa-list-ol"></i></button>
-        <button class = "mainButton" [class.enableButton] = "tableFilter.enable" title = "Включить фильтры" (click) = "enableFilters()"><i class="fa fa-filter"></i></button>
-        <button class = "mainButton" title = "Добавить строку" (click) = "addRow('end', 1)" [disabled] = "!right.change"><i class="fas fa-plus"></i></button>
-        <button class = "mainButton" [class.enableButton] = "headerEditorShow" title = "Заголовок" (click) = "changeHeader()"><i class="fas fa-heading"></i></button>
-        <select class = "mainSelect"
-            style = "margin-left: 2px; height: 32px; cursor:pointer;" 
-            [(ngModel)] = "filter.selected"
-            (change) = "onFilterChange()">
-            <option *ngFor = "let o of filter.list" [value] = "o.id">{{ o.value }}</option>
-        </select>
+            <div style = "float: right;">
+                <button class = "mainButton" (click) = "loadTable()" title = "Обновить"><i class="fas fa-sync-alt"></i></button>
+                <button class = "mainButton" title = "Экспорт в Excel" (click) = "exportToExcel()" ><i class="fas fa-file-excel"></i></button>
+                <button class = "mainButton" title = "Импорт таблицы" (click) = "importFromExcel()" [disabled] = "!right.change"><i class="fas fa-download"></i></button>
+                <button class = "mainButton" [class.enableButton] = "tableProperty.visible" title = "Таблица свойств" (click) = "openTableProperty()"><i class="fas fa-briefcase"></i></button>
+                <button class = "mainButton" title = "Сохраненная позиция" (click) = "loadTableProperty('scroll')"><i class="fas fa-bookmark"></i></button>
+                <button class = "mainButton" [class.enableButton] = "lineNumbering.enable" title = "Нумерация строк" (click) = "enableLineNumbering()"><i class="fas fa-list-ol"></i></button>
+                <button class = "mainButton" [class.enableButton] = "tableFilter.enable" title = "Включить фильтры" (click) = "enableFilters()"><i class="fa fa-filter"></i></button>
+                <button class = "mainButton" title = "Добавить строку" (click) = "addRow('end', 1)" [disabled] = "!right.change"><i class="fas fa-plus"></i></button>
+                <button class = "mainButton" [class.enableButton] = "headerEditorShow" title = "Заголовок" (click) = "changeHeader()"><i class="fas fa-heading"></i></button>
+                <select class = "mainSelect"
+                    style = "margin-left: 2px; height: 32px; cursor:pointer;" 
+                    [(ngModel)] = "filter.selected"
+                    (change) = "onFilterChange()">
+                    <option *ngFor = "let o of filter.list" [value] = "o.id">{{ o.value }}</option>
+                </select>
+                <div *ngIf = "smallHeader.mode" class = "nameTableClass" style="width: 32px; float: right; padding: 8px 2px;">
+                    <div style="font-size: 11px; font-weight: bold;" class = "TableCreatorHeadColor">{{control.state + '%'}}</div>
+                </div>
+            </div>
+        </ng-container>
     </div>
     <app-table-header-editor *ngIf = "headerEditorShow" [tableId] = "id" [header] = "dataHeader" [disabled] = "!right.change || !right.head" (updateTable) = "updateEventFromHeader($event)"></app-table-header-editor>
     <div name = "clickArea" #mainContainer 
@@ -197,6 +204,7 @@
     </div>
     <div name = "clickArea">
         <div class = "bottomControlPanel TableCreatorHeadColor">
+            <button *ngIf = "smallHeader.mode" class = "mainButton" style = "height:26px;" title = "Открыть меню" (click) = "openHeader()"><i class="fas fa-ellipsis-v"></i></button>
             <div *ngIf = "control.error" style = "font-size:12px; background-color:#af7e7e; color:white; font-weight:bold;">Таблица не доступна!</div>
             <div *ngIf = "loaded && !control.error && dataHeader.length == 0" style = "font-size:12px; background-color:#b8b8b8; color:white; font-weight:bold;">Таблица пуста</div>
             <div *ngIf = "loaded && !control.error && needUpdate" style = "font-size:12px; background-color:#b8b8b8; color:white; font-weight:bold;">Требуется синхронизация</div>

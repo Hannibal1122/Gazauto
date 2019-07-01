@@ -27,7 +27,9 @@ export class CreateRightService
                                     view: false,
                                     copy: false,
                                     link: false,
-                                    change: false 
+                                    change: false, 
+                                    right: false, 
+                                    filter: false 
                                 });
                         } // Добавить в список пользователя
                     ], 
@@ -41,7 +43,9 @@ export class CreateRightService
                                     view: false,
                                     copy: false,
                                     link: false,
-                                    change: false 
+                                    change: false, 
+                                    right: false, 
+                                    filter: false  
                                 });
                         } // Добавить в список пользователя
                     ], 
@@ -60,14 +64,27 @@ export class CreateRightService
                     data[i].copy = rights.copy;
                     data[i].link = rights.link;
                     data[i].change = rights.change;
+                    data[i].right = rights.right;
+                    data[i].filter = rights.filter;
                 }
                 Data.data[2][3] = data;
                 this.modal.open(Data, (save)=>
                 {
                     if(save)
                     {
+                        let right;
                         for(var i = 0; i < Data.data[2][3].length; i++)
-                            Data.data[2][3][i].rights = this.encodeRights(Data.data[2][3][i].view, Data.data[2][3][i].copy, Data.data[2][3][i].link, Data.data[2][3][i].change);
+                        {
+                            right = Data.data[2][3][i];
+                            Data.data[2][3][i].rights = this.encodeRights(
+                                right.view, 
+                                right.copy,
+                                right.link, 
+                                right.change,
+                                right.right,
+                                right.filter
+                            );
+                        }
                         var param = [id, JSON.stringify(Data.data[2][3]), Data.data[3][1]];
                         this.query.protectionPost(200, { param: param }, () => { });
                     }
@@ -75,9 +92,11 @@ export class CreateRightService
             });
         });
     }
-    encodeRights(view, copy, link, change) // декодировать
+    encodeRights(view, copy, link, change, right, filter) // декодировать
     {
         var out = 0;
+        out = out | (Number(filter) << 5);
+        out = out | (Number(right) << 4);
         out = out | (Number(change) << 3);
         out = out | (Number(link) << 2);
         out = out | (Number(copy) << 1);
@@ -91,6 +110,8 @@ export class CreateRightService
         out.copy = (rights & 2) >> 1;
         out.link = (rights & 4) >> 2;
         out.change = (rights & 8) >> 3;
+        out.right = (rights & 16) >> 4;
+        out.filter = (rights & 32) >> 5;
         return out;
     }
     checkRepeat(array, login, type)

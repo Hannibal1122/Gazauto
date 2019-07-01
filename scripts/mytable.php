@@ -33,14 +33,12 @@
             /* Применить фильтр и узнать набор строк которые надо включить */
             /* Должны найти первый доступный фильтр */
             if($filterStr != "")
-            {
                 if($result = query("SELECT DISTINCT i FROM fields WHERE tableId = %i AND type != 'head' AND ($filterStr)", [$idTable]))
                     while ($row = $result->fetch_array(MYSQLI_NUM)) 
                     {
                         if($enableLines != "") $enableLines .= ",";
                         $enableLines .= $row[0];
                     }
-            }
             /* Подготавливаем массив со строками без данных */
             if($result = query("SELECT i, next FROM fields LEFT JOIN line_ids ON line_ids.id = fields.i WHERE tableId = %i AND type != 'head'", [$idTable]))
                 while ($row = $result->fetch_array(MYSQLI_NUM))
@@ -48,6 +46,7 @@
             $queryStr = "SELECT i, idColumn, value, type, linkId, linkType, fields.id, state, eventId, color FROM fields WHERE tableId = %i AND type != 'head' $filterColumn[1] ";
             if($enableLines != "") $queryStr .= "AND i IN ($enableLines)";
             /* else if($filterStr == "") $queryStr .= "AND i IN (-1)"; */ // Если это оставить, то фильтр по умолчанию все скрывает
+            else if($filterSelected == -1) $queryStr .= "AND i IN (-1)";
             if($result = query($queryStr, [$idTable]))
                 while ($row = $result->fetch_array(MYSQLI_NUM)) 
                 {
@@ -109,7 +108,7 @@
                 "idLogTableOpen" => $this->myLog->add("table", "open", $idTable), 
                 "changeHead" => $filterColumn[0] == "" && is_null($bindId) && $objectType != "plan", // Если столбцы скрыты фильтром ИЛИ таблица наследуется ИЛИ это редактор плана, то нельзя менять
                 "state" => $stateTable,
-                "filters" => $filters,
+                "filters" => $filters, // Список фильтров
                 "filter" => $filterSelected
             ]);
         }
@@ -179,7 +178,6 @@
             $idField = (int)$data->id;
             $typeField = is_object($value) ? "tlist" : "value";
 
-            // TODO Добавить механизм сохранения значения
             $oldValue = query("SELECT * FROM fields WHERE id = %i", [ $idField ])->fetch_assoc();
             if($typeField == "value")
                 query("UPDATE fields SET value = %s, linkId = NULL, linkType = NULL, type = 'value' WHERE tableId = %i AND id = %i", [ 
@@ -199,7 +197,7 @@
             if($echo) 
             {
                 echo json_encode([ "id" => $idField, "value" => $value ]);
-                $this->myLog->add("field", "update", $idField, $oldValue);
+                $this->myLog->add("field", "update", $idField, $oldValue); // Добавлен механизм сохранения значения 
             }
             else $this->myLog->add("field", "script", $idField, $oldValue);
         }
@@ -239,10 +237,7 @@
                 {
                     $fieldValue = $row[0];
                     if($linkType == "table") 
-                    {
                         $fieldState = (int)$row[3];
-                        $this->calculateStateForTable($idTable);
-                    }
                 }
                 $linkId = $linkType != "value" && $linkType != "tlist" ? $idObject : (int)$valueData[0];
                 $oldValue = query("SELECT * FROM fields WHERE id = %i", [ $idField ])->fetch_assoc();
@@ -255,6 +250,7 @@
                     "listValue" => $linkType == "tlist" ? "" : NULL,
                     "state" => $fieldState 
                 ]);
+                $this->calculateStateForTable($idTable);
                 $this->myLog->add("field", "update", $idField, $oldValue);
             }
         }
@@ -528,13 +524,13 @@
             query("DELETE FROM fields WHERE tableId = %i", [ $idTable ]);
             query("UPDATE structures SET bindId = NULL WHERE bindId = %i AND objectType = 'table'", [ $idTable ]);
         }
-        function getHeadFromTable()
+        function getHeadFromTable($filterColumn)
         {
             $idTable = $this->idTable;
             $outData = []; // на выходе
-            if($result = query("SELECT i, value, id FROM fields WHERE tableId = %i AND type = 'head' ORDER by i", [$idTable]))
+            if($result = query("SELECT i, value, id FROM fields WHERE tableId = %i AND type = 'head' $filterColumn[0] ORDER by i", [$idTable]))
                 while ($row = $result->fetch_array(MYSQLI_NUM)) 
-                    $outData[(int)$row[0]] = [ "type" => "head", "value" => $row[1], "id" => (int)$row[2] ];
+                    $outData[/* (int)$row[0] */] = [ "type" => "head", "value" => $row[1], "id" => (int)$row[2] ];
             return $outData;
         }
         function getDataFromTable(&$dataLevelFail, $globalI, $globalJ, &$headLevelFail, $level) // Получить таблицу в виде массива, если в последней строке присутсвуют ссылки на таблицы, они раскрываются
@@ -544,11 +540,37 @@
             $data = [];
             $outData = [[]]; // на выходе
             $headMap = [];
-            $headLevelFail[$level] = $this->getHeadFromTable();
-            if($result = query("SELECT i, value, id FROM fields WHERE tableId = %i AND type = 'head' ORDER by i", [$idTable]))
+
+            require_once("myFilter.php");
+            $myFilter = new MyFilter();
+            $allFilters = $myFilter->getAllFilters($idTable);
+            $filterStr = $allFilters["filterStr"];
+            $filterColumn = $allFilters["filterColumn"];
+            $filterSelected = $allFilters["filterSelected"];
+            $enableLines = "";
+
+            $headLevelFail[$level] = $this->getHeadFromTable($filterColumn);
+            $i = 0; // Нельзя доверять нумерации в хаголовке, потому что столбцы могут быть скрыты
+            if($result = query("SELECT i, value, id FROM fields WHERE tableId = %i AND type = 'head' $filterColumn[0] ORDER by i", [$idTable]))
                 while ($row = $result->fetch_array(MYSQLI_NUM)) 
-                    $headMap[$row[2]] = $row[0];
-            if($result = query("SELECT i, idColumn, value, type, linkId, linkType, fields.id, state, next FROM fields LEFT JOIN line_ids ON line_ids.id = fields.i WHERE tableId = %i AND type != 'head'", [$idTable]))
+                    $headMap[$row[2]] = $i++/* $row[0] */;
+            /* Применить фильтр и узнать набор строк которые надо включить */
+            if($filterStr != "")
+                if($result = query("SELECT DISTINCT i FROM fields WHERE tableId = %i AND type != 'head' AND ($filterStr)", [$idTable]))
+                    while ($row = $result->fetch_array(MYSQLI_NUM)) 
+                    {
+                        if($enableLines != "") $enableLines .= ",";
+                        $enableLines .= $row[0];
+                    }
+            /* Подготавливаем массив со строками без данных */
+            if($result = query("SELECT i, next FROM fields LEFT JOIN line_ids ON line_ids.id = fields.i WHERE tableId = %i AND type != 'head'", [$idTable]))
+                while ($row = $result->fetch_array(MYSQLI_NUM))
+                    $data[(int)$row[0]]["__NEXT__"] = $row[1]; 
+            $queryStr = "SELECT i, idColumn, value, type, linkId, linkType, fields.id, state FROM fields WHERE tableId = %i AND type != 'head' $filterColumn[1] ";
+            if($enableLines != "") $queryStr .= "AND i IN ($enableLines)";
+            else if($filterSelected == -1) $queryStr .= "AND i IN (-1)";
+
+            if($result = query($queryStr, [$idTable]))
                 while ($row = $result->fetch_array(MYSQLI_NUM)) 
                 {
                     $field = [ "id" => (int)$row[6], "value" => $row[2], "state" => $row[7], "tableId" => $idTable ];
@@ -565,14 +587,16 @@
                         }
                     }
                     $data[(int)$row[0]][(int)$headMap[$row[1]]] = $field;
-                    $data[(int)$row[0]]["__NEXT__"] = $row[8];
                 }
             $l = count($data);
             foreach($data as $key => $value) if(array_key_exists("__NEXT__", $value) && $value["__NEXT__"] == null) break; //Находим null
             for($i = $l - 1; $i >= 0; $i--) // Тут сортировка по next
             {
-                $outData[$i + 0] = $data[$key];
-                unset($outData[$i + 0]["__NEXT__"]);
+                // Так как столбцы могут отсутствовать, позицию надо высчитывать самостоятельно
+                $outData[$i + 0] = [];
+                foreach($data[$key] as $_key => $value) // Тут сортировка по next
+                    if($_key !== "__NEXT__")
+                        $outData[$i + 0][] = $value;
                 $key = $this->getNextI($data, $key);
             }
             $myTable = new MyTable(-1, $this->myLog);
@@ -623,12 +647,7 @@
             $metaData = [];
             $i = 0;
             $lengthRow = count($data);
-            $lengthColumn = 0;
-            foreach($data as $row)
-            {
-                $max = max(array_keys($row));
-                if($lengthColumn < $max) $lengthColumn = $max;
-            }
+            $lengthColumn = count($data[0]);
             for($i = 0; $i < $lengthRow; $i++)
             {
                 $out[$i] = [];

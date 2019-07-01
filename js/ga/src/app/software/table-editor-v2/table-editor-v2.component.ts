@@ -380,8 +380,19 @@ export class TableEditorV2Component implements OnInit
             height: 0
         }
     }
+    smallHeader =
+    {
+        mode: false, 
+        close: false
+    }
+    openHeader()
+    {
+        this.smallHeader.close = !this.smallHeader.close;
+    }
     fastenHeader() // Закрепить заголовок
     {
+        if(document.documentElement.clientWidth <= 768) this.smallHeader.mode = true;
+        else this.smallHeader.mode = false;
         /* let header = this.mainContainer.nativeElement.getElementsByTagName("tr")[0].getElementsByTagName("th");
         this.fastenHeaderProperties.scrollTop = this.mainContainer.nativeElement.scrollTop;
         this.fastenHeaderProperties.offsetTop = this.mainContainer.nativeElement.offsetTop;

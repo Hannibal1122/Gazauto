@@ -26,11 +26,14 @@
             $filterColumn = ["", ""];
             $filterStr = "";
             $userFilter = $this->getUserFilter($login, $idTable);
-            if($login == "admin") $query = "SELECT id, objectId, name FROM structures WHERE parent = %i AND objectType = 'filter' ORDER by parent, priority";
-            else $query = "SELECT id, objectId, name FROM structures WHERE parent = %i AND objectType = 'filter' AND
-                id IN (SELECT objectId FROM rights WHERE (login = %s OR login = %s) AND rights & 1 
+            $idTables = $idTable; // id таблицы обязательно, но еще может быть id наследуемой таблицы
+            $bindId = selectOne("SELECT bindId FROM structures WHERE id = %i", [ $idTable ]);
+            if(!is_null($bindId)) $idTables .= ", $bindId";
+            $query = "SELECT id, objectId, name FROM structures WHERE parent IN ($idTables) AND objectType = 'filter' ";
+            if($login != "admin") $query .= "AND id IN (SELECT objectId FROM rights WHERE (login = %s OR login = %s) AND rights & 1 
                     AND objectId NOT IN (SELECT objectId FROM rights WHERE login = %s AND (rights & 1) = 0)) ORDER by parent, priority";
-            if($result = query($query, $login == "admin" ? [ $idTable ] : [ $idTable, $login, $role, $login ]))
+            $query .= " ORDER by parent, priority";
+            if($result = query($query, $login == "admin" ? [ ] : [ $login, $role, $login ]))
                 while ($row = $result->fetch_array(MYSQLI_NUM))
                 {
                     if(($userFilter == "" && count($filters) == 0) 

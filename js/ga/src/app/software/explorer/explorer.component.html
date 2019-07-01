@@ -1,7 +1,7 @@
 <div class = "explorer ExplorerBColor"
     [class.explorerWithProperty] = "tableProperty.visible">
     <div class = "explorerControlPanel explorerFull">
-        <div class = "pathStroke MainBColor">
+        <div class = "pathStroke MainBColor" style = "padding: 0px 5px;">
             <ng-container *ngFor = "let path of allPath; let last = last;">
                 <span *ngIf = "!last" class = "pathRow" (click) = "openObject({objectType: 'folder', id: path.id})" style = "cursor:pointer;">{{ path.name }}/</span>
                 <div *ngIf = "last" style = "padding-bottom: 2px;">
@@ -122,11 +122,11 @@
     <ng-container *ngIf = "createContextMenu.type == 'table'">
         <button class = "contextMenuList" (click) = "openTableFilter()">
             Открыть как папку</button>
-        <button class = "contextMenuList" (click) = "createListOfTable()" [disabled] = "!selectRules.cut">
+        <button class = "contextMenuList" (click) = "createListOfTable()" [disabled] = "!selectRules.change">
             Создать список из столбца</button>
     </ng-container>
     <ng-container *ngIf = "createContextMenu.type == 'user'">
-        <button class = "contextMenuList" (click) = "userOff()" [disabled] = "!selectRules.remove">
+        <button class = "contextMenuList" (click) = "userOff()" [disabled] = "!selectRules.change">
             Отключить</button>
     </ng-container>
     <ng-container *ngIf = "createContextMenu.type == 'plan'">
@@ -134,7 +134,7 @@
             Открыть как таблицу</button>
     </ng-container>
     <ng-container *ngIf = "createContextMenu.type == 'folder' && outFolders[selectObjectI] && outFolders[selectObjectI].bindId">
-        <button class = "contextMenuList" (click) = "createProjectByClass(outFolders[selectObjectI])" [disabled] = "!selectRules.cut">
+        <button class = "contextMenuList" (click) = "createProjectByClass(outFolders[selectObjectI])" [disabled] = "!selectRules.change">
             Редактировать проект</button>
     </ng-container>
     <button class = "contextMenuList" (click) = "copyObject('cut')" [disabled] = "!selectRules.cut">
@@ -143,7 +143,7 @@
         Копировать</button>
     <button class = "contextMenuList" (click) = "createObject(outFolders[selectObjectI].id, 'Права', null)" [disabled] = "!selectRules.rights">
         Права</button>
-    <button class = "contextMenuList" (click) = "addInfo()" [disabled] = "!selectRules.info">
+    <button class = "contextMenuList" (click) = "addInfo()" [disabled] = "!selectRules.change">
         Справка</button>
     <button class = "contextMenuList" (click) = "removeObject()" [disabled] = "!selectRules.remove">
         Удалить</button>

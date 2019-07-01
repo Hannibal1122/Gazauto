@@ -22,19 +22,19 @@ export class CreateTemplateComponent implements OnInit
     typeByLevel = [];
     name = "";
     parent;
-    folderId;
+    folder;
     myTree:MyTree = new MyTree();
     @Input() set config(value)
     {
         if(value)
         {
             this._open = Boolean(value.open);
+            this.parent = value.parent;
+            this.folder = value.folder;
             if(this._open === true)
             {
                 this.initData();
             }
-            this.parent = value.parent;
-            this.folderId = value.folderId;
         }
     }
     @Output() onChange = new EventEmitter<any>();
@@ -47,10 +47,13 @@ export class CreateTemplateComponent implements OnInit
     mapParentType = [];
     initData()
     {
-        if(localStorage.getItem("copyExplorer"))
-            this.settings = JSON.parse(localStorage.getItem("copyExplorer"));
+        if(this.folder !== null) this.settings.id = this.folder.bindId;
+        else
+            if(localStorage.getItem("copyExplorer"))
+                this.settings = JSON.parse(localStorage.getItem("copyExplorer"));
         this.query.protectionPost(491, { param: [ this.settings.id ] }, (data) =>
         {
+            trace(this.parent)
             this.name = data.name;
             trace(data)
             this.template = JSON.parse(data.structure);
@@ -78,9 +81,12 @@ export class CreateTemplateComponent implements OnInit
             trace(this.typeByLevel)
             this.mainList = this.myTree.straighten();
 
-            if(this.folderId > 0)
+            if(this.folder !== null)
             {
-                
+                this.query.protectionPost(494, { param: [ this.folder.id ] }, (data) =>
+                {
+                    trace(data)
+                });
             }
         });
     }

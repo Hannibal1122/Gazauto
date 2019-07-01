@@ -49,7 +49,7 @@ export class ExplorerComponent implements OnInit
     onChange = null;
     inputs = { id: -1, element: null, searchObjectId: null, updateHistory: null, 
         bind: false, // Если папка наследует
-        parentBind: false // Если папка наследуется кем-то
+        class: false // Если элемент создан конструктором
     };
     allPath = [];
     parent;
@@ -66,8 +66,8 @@ export class ExplorerComponent implements OnInit
         rights: false, 
         remove: false,
         download: false,
-        info: false,
-        rename: false
+        rename: false,
+        change: false
     }
     viewType = "table"; // Вид просмотра
     constructor(
@@ -325,26 +325,27 @@ export class ExplorerComponent implements OnInit
         this.query.protectionPost(202, { param: [ id ] }, (data) => // Запрос прав и связей наследования
         {
             this.clearRules();
+            let _class = data[2] == 1;
             let right = this.createRight.decodeRights(data[0]);
             this.selectRules.copy = objectType == "user" || objectType == "role" ? false : Boolean(right.copy);
+            this.selectRules.change = Boolean(right.change);
             this.selectRules.cut = Boolean(right.change);
-            this.selectRules.rights = objectType == "user" || objectType == "role" ? false : Boolean(right.change);
+            this.selectRules.rights = objectType == "user" || objectType == "role" ? false : Boolean(right.right);
             this.selectRules.remove = Boolean(right.change);
             this.selectRules.paste = Boolean(right.change) && this.selectObjectCopy.id != -1;
-            this.selectRules.info = Boolean(right.change);
             this.selectRules.rename = Boolean(right.change) && objectType != "user" && objectType != "role" && objectType != "file";
+            if(objectType == "file") this.selectRules.download = true;
+            if(_class)
+            {
+                this.selectRules.copy = false; 
+                this.selectRules.cut = false; 
+                if(objectType == "table") // Подрузамевается что это корневая папка конструктора
+                    this.selectRules.remove = false; 
+            }
             this.tableProperty.rules = { 
                 change: Boolean(right.change),
                 rename: this.selectRules.rename
             };
-            if(objectType == "file") this.selectRules.download = true;
-
-            if(this.inputs.bind)
-            {
-                this.selectRules.paste = false; 
-                this.selectRules.cut = false; 
-                this.selectRules.remove = false; 
-            }
         });
         if(this.tableProperty.visible)
         {
@@ -377,16 +378,7 @@ export class ExplorerComponent implements OnInit
                 this.selectRules.new = Boolean(right.change);
                 
                 this.inputs.bind = data[1] !== null; // Если это наследник
-                this.inputs.parentBind = data[2] > 0; // Если это родитель
-                if(this.inputs.bind)
-                {
-                    this.selectRules.new = false;
-                    this.selectRules.paste = false; 
-                    this.selectRules.cut = false; 
-                    this.selectRules.remove = false; 
-                }
-                if(this.inputs.parentBind) // Если основная папка кем-то наследуется
-                    this.selectRules.paste = false; 
+                this.inputs.class = data[2] != 0; // Если элемент создан конструктором
                 if(func) func();
                 this.inputs.id = id;
                 this.inputs.updateHistory();
@@ -395,7 +387,7 @@ export class ExplorerComponent implements OnInit
     }
     closeClassSetting()
     {
-        this.projectByClassSetting = { open: false, parent: -1, folderId: -1 };
+        this.projectByClassSetting = { open: false, parent: -1, folder: null };
     }
     addInfo() // Добавить справку
     {
@@ -440,8 +432,8 @@ export class ExplorerComponent implements OnInit
             rights: false, 
             remove: false,
             download: false,
-            info: false,
-            rename: false
+            rename: false,
+            change: false
         }
     }
     refresh(clearCopy?)
@@ -494,7 +486,7 @@ export class ExplorerComponent implements OnInit
     globalClick = null;
     /**************************************/
     tableProperty = {
-        visible: true,
+        visible: false,
         data: {},
         rules: {
             change: false,
@@ -579,11 +571,11 @@ export class ExplorerComponent implements OnInit
     {
         open: false,
         parent: -1,
-        folderId: -1
+        folder: null
     }
     createProjectByClass(folder?)
     {
-        this.projectByClassSetting = { open: true, parent: this.parent, folderId: folder ? folder.id : -1 };
+        this.projectByClassSetting = { open: true, parent: this.parent, folder: folder ? { id: folder.id, bindId: folder.bindId } : null };
     }
     /**************************************/
     createContextMenu = 

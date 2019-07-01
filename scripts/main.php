@@ -173,6 +173,7 @@
                 {
                     case 100: // Создать элемент структуры 
                         if(($myRight->get($param[3]) & 8) != 8) return; // Права на изменение
+                        if($param[0] == "filter") if(($myRight->get($param[3]) & 32) != 32) return; // Права на создание фильтра
                         $myStructures->create($param);
                         break;
                     case 110: // Загрузка структуры // Права на просмотр
@@ -215,6 +216,8 @@
                     case 130: // Удаление элемента структуры // Права на изменение
                         $idElement = (int)$param[0];
                         if(($myRight->get($idElement) & 8) != 8) return; // Права на изменение
+                        if(selectOne("SELECT objectType FROM structures WHERE id = %i", [ $idElement ]) == "table" 
+                            && selectOne("SELECT class FROM structures WHERE id = %i", [ $idElement ]) == 1) return; // Ограничение для удаления в таблицах созданных конструктором
                         query("UPDATE structures SET trash = 1 WHERE id = %i", [$idElement]);
                         $myLog->add("structure", "remove", $idElement);
                         break;
@@ -245,8 +248,8 @@
                         for($i = 0, $c = count($out); $i < $c; $i++) 
                             if($out[$i] == $idParent) { echo "ERROR"; return; }
                         
-                        if(!is_null(selectOne("SELECT bindId FROM structures WHERE id = %i", [ $idParent ])) || 
-                            selectOne("SELECT COUNT(*) FROM structures WHERE bindId = %i", [ $idParent ]) > 0) return; // Ограничение для копирования/вырезания в родителях/наследниках
+                        if(selectOne("SELECT objectType FROM structures WHERE id = %i", [ $idElement ]) == "table" 
+                            && selectOne("SELECT class FROM structures WHERE id = %i", [ $idElement ]) == 1) return; // Ограничение для копирования/вырезания в таблицах созданных конструктором
 
                         require_once("copyAndRemove.php");
                         $type = $param[2]; // тип операции
@@ -393,6 +396,8 @@
                         $idElement = (int)$param[0];
                         $structures = new CopyAndRemove(null, null, null, $myLog);
                         $out = [ $idElement ];
+                        if(selectOne("SELECT objectType FROM structures WHERE id = %i", [ $idElement ]) == "table" 
+                            && selectOne("SELECT class FROM structures WHERE id = %i", [ $idElement ]) == 1) return; // Ограничение для удаления в таблицах созданных конструктором
                         getRemoveElementbyStructure($out, $idElement);
                         for($i = 0, $c = count($out); $i < $c; $i++)
                         {
@@ -499,7 +504,7 @@
                 switch($nQuery)
                 {
                     case 200: // Добавить права
-                        if(($myRight->get((int)$param[0]) & 8) != 8) return; // Права на изменение
+                        if(($myRight->get((int)$param[0]) & 16) != 16) return; // Права на изменение
                         $id = (int)$param[0];
                         $elements = [ $id ];
                         if($param[2] == "true") getRemoveElementbyStructure($elements, $id);
@@ -518,7 +523,7 @@
                         }
                         break;
                     case 201: // Запросить права
-                        if(($myRight->get((int)$param[0]) & 1) != 1) return; // Права на просмотр
+                        if(($myRight->get((int)$param[0]) & 16) != 16) return; // Права на просмотр
                         $out = [];
                         if($result = query("SELECT type, login, rights FROM rights WHERE objectId = %i", $param))
                             while ($row = $result->fetch_array(MYSQLI_NUM)) 
@@ -534,7 +539,7 @@
                     case 202: // Запросить права по логину, связи
                         echo json_encode([$paramL == "admin" ? 255 : $myRight->get( (int)$param[0] ),
                             selectOne("SELECT bindId FROM structures WHERE id = %i", [ (int)$param[0] ]), 
-                            selectOne("SELECT COUNT(*) FROM structures WHERE bindId = %i", [ (int)$param[0] ])]);
+                            selectOne("SELECT class FROM structures WHERE id = %i", [ (int)$param[0] ])]);
                         break;
                 }
             if($nQuery >= 250 && $nQuery < 300) // Работа с таблицой 

@@ -42,14 +42,14 @@
     border-radius: 10px; 
     margin-bottom:5px;
 }
-.pathStroke span:first-child
+/* .pathStroke span:first-child
 {
     margin-left:5px;
 }
 .pathStroke span:last-of-type
 {
     margin-right:5px;
-}
+} */
 @media screen and (max-width: 500px) {
     .explorer
     {
