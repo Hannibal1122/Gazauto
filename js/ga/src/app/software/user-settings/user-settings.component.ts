@@ -47,7 +47,7 @@ export class UserSettingsComponent implements OnInit
         {
             if(data.theme) this.theme = data.theme;
         });
-        this.query.protectionPost(451, { param: ["filter"] }, (data) =>
+        this.query.protectionPost(451, { param: ["filter_global"] }, (data) =>
         {
             if(data.id) this.filter = data;
         });
@@ -58,7 +58,7 @@ export class UserSettingsComponent implements OnInit
     }
     removeFilter()
     {
-        this.query.protectionPost(450, { param: ["filter", ""] }, (data) =>
+        this.query.protectionPost(450, { param: ["filter_global", ""] }, (data) =>
         {
             this.filter = { id: -1, name: "" }
         });

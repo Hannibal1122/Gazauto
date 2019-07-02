@@ -275,3 +275,18 @@
 {
     background-color: #eeeeee;
 }
+/********************************************************/
+.customBack
+{
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    height: 100%;
+    left: 0;
+    margin: 0;
+    padding: 0;
+    position: absolute;
+    top: 0;
+    transition: 700ms;
+    width: 100%;
+}

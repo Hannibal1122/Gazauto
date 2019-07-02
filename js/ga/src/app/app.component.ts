@@ -303,9 +303,10 @@ export class AppComponent implements OnInit
                 this.globalEvent.subscribe("table", tableId, (event) =>
                 {
                     let i = this.checkRepeatSoftware(type, tableId);
-                    let iframe = this.tabs[i].iframe;
-                    if(iframe)
+                    if(this.tabs[i].useIframe)
                     {
+                        let iframe = this.tabs[i].iframe;
+                        if(iframe === null) return;
                         if(event.update) iframe.inputFromApp = { update: true, logins: event.logins };
                         else iframe.inputFromApp = { logins: event.logins };
                         iframe.dispatchEvent(iframe.EventUpdateFromApp);
@@ -353,16 +354,17 @@ export class AppComponent implements OnInit
         }
         else
         {
-            let iframe = false;
-            if(type == "table") iframe = true;
+            let useIframe = false;
+            if(type == "table") useIframe = true;
             this.tabs[i] = {
                 name: name,
                 type: type,
                 software: software,
                 inputFromApp: null,
                 guid: this.splitScreen.getGUID(),
-                loaded: !iframe,
-                iframe: iframe // Открывать ли приложение через iframe
+                loaded: !useIframe,
+                iframe: null, 
+                useIframe: useIframe // Открывать ли приложение через iframe
             };
             this.splitScreen.appendTab(this.tabs[i], settings);
         }

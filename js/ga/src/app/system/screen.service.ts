@@ -91,6 +91,7 @@ export class SplitScreen
                     this.fillTheVoid(s);
                     this.screens[s] = null;
                 }
+                else this.screens[s].currentSoftware = this.screens[s].tabs.length - 1;
                 this.currentScreen = this.sector;
                 this.calcSectors();
             }

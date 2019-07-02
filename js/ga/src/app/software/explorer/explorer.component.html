@@ -11,7 +11,7 @@
                 </div>
             </ng-container>
         </div> 
-        <button class = "mainButton" title = "Вставить" (click) = "_pasteObject()" [disabled] = "!selectRules.paste || inputs.parentBind"><i class="fas fa-paste"></i></button>
+        <button class = "mainButton" title = "Вставить" (click) = "_pasteObject()" [disabled] = "!selectRules.paste"><i class="fas fa-paste"></i></button>
         <button class = "mainButton" [class.enableButton] = "tableProperty.visible" title = "Таблица свойств" (click) = "openTableProperty()"><i class="fas fa-briefcase"></i></button>
         <button class = "mainButton" title = "Поиск" (click) = "openSearch()"><i class="fas fa-search"></i></button>
         <button class = "mainButton" title = "Удалить" (click) = "removeObject()" [disabled] = "!selectRules.remove"><i class="fas fa-trash"></i></button>
@@ -117,7 +117,11 @@
         </div>
     </div>
 </div>
-<div class = "createContextMenu" [hidden] = "!createContextMenu.visible" [style.top] = "createContextMenu.top" [style.left] = "createContextMenu.left">
+<div class = "createContextMenu" 
+    [hidden] = "!createContextMenu.visible" 
+    [style.transform] = "createContextMenu.translate" 
+    [style.top] = "createContextMenu.top" 
+    [style.left] = "createContextMenu.left">
     <button class = "contextMenuList" (click) = "getTableProperty()">Таблица свойств</button>
     <ng-container *ngIf = "createContextMenu.type == 'table'">
         <button class = "contextMenuList" (click) = "openTableFilter()">
@@ -126,7 +130,7 @@
             Создать список из столбца</button>
         <button class = "contextMenuList" (click) = "chooseToCompare('choose', outFolders[selectObjectI])">
             Выбрать для сравнения</button>
-        <button *ngIf = "choose.id > 0" class = "contextMenuList" (click) = "chooseToCompare('compare', outFolders[selectObjectI])">
+        <button *ngIf = "miniApp.choose.id > 0" class = "contextMenuList" (click) = "chooseToCompare('compare', outFolders[selectObjectI])">
             Сравнить с выбранным</button>
     </ng-container>
     <ng-container *ngIf = "createContextMenu.type == 'user'">
@@ -161,12 +165,16 @@
     <button class = "contextMenuList" (click) = "downloadObject()" [disabled] = "!selectRules.download">
         Скачать</button>
 </div>
-<div class = "createContextMenu" [hidden] = "!createContextMenuMain.visible" [style.top] = "createContextMenuMain.top" [style.left] = "createContextMenuMain.left">
+<div class = "createContextMenu" 
+    [hidden] = "!createContextMenuMain.visible" 
+    [style.transform] = "createContextMenuMain.translate" 
+    [style.top] = "createContextMenuMain.top" 
+    [style.left] = "createContextMenuMain.left">
     <button class = "contextMenuList" (click) = "newObject()" [disabled] = "!selectRules.new">
         Создать</button>
-    <button class = "contextMenuList" (click) = "_pasteObject()" [disabled] = "!selectRules.paste || inputs.parentBind">
+    <button class = "contextMenuList" (click) = "_pasteObject()" [disabled] = "!selectRules.paste">
         Вставить</button>
-    <button *ngIf = "selectObjectCopy.objectType == 'class'" class = "contextMenuList" (click) = "createProjectByClass()" [disabled] = "!selectRules.paste || inputs.parentBind">
+    <button *ngIf = "selectObjectCopy.objectType == 'class'" class = "contextMenuList" (click) = "createProjectByClass()" [disabled] = "!selectRules.paste">
         Создать проект</button>
     <button class = "contextMenuList" (click) = "refresh(true)">
         Обновить</button>
@@ -202,22 +210,26 @@
 <app-create-template [config] = "projectByClassSetting" (onChange) = "closeClassSetting()"></app-create-template>
 
 <!-- ********************Сравнение таблиц*********************** -->
-<div *ngIf = "choose.open" style = "position:absolute; width:100%; height:100%; background: rgba(255, 255, 255, 0.6); top:0px; left: 0px;">
-    <div class = "ModalButtonExitColor" style = "position:absolute; right:5px; top:5px; font-size:16px; cursor:pointer;" (click) = "choose.open = false">
-        <i class="fas fa-times-circle"></i>
-    </div>
-    <div style = "background-color: white; width: 350px; margin: auto; margin-top:30px;">
+<div *ngIf = "miniApp.open" style = "position:absolute; width:100%; height:100%; background: rgba(255, 255, 255, 0.6); top:0px; left: 0px;">
+    <div *ngIf = "miniApp.type == 'choose'" style = "background-color: white; width: 350px; margin: auto; margin-top:30px;">
         <table class = "tableInequality">
             <tr>
-                <th>{{ choose.data.tables.tableA }}</th>
+                <th>{{ miniApp.choose.data.tables.tableA }}</th>
                 <th></th>
-                <th>{{ choose.data.tables.tableB }}</th>
+                <th>{{ miniApp.choose.data.tables.tableB }}</th>
             </tr>
-            <tr *ngFor = "let field of choose.data.fields">
+            <tr *ngFor = "let field of miniApp.choose.data.fields">
                 <td (click) = "searchCellByTable(field.A.id)">{{ field.A.value }}<sub>{{ field.A.id }}</sub></td>
                 <td><i class="fas fa-arrows-alt-h"></i></td>
                 <td (click) = "searchCellByTable(field.B.id)">{{ field.B.value }}<sub>{{ field.B.id }}</sub></td>
             </tr>
         </table>
+    </div>
+    <div *ngIf = "miniApp.type == 'image'">
+        <img *ngIf = "miniApp.image.loaded" [attr.src] = "miniApp.image.src">
+        <img *ngIf = "miniApp.image.loaded" [attr.src] = "miniApp.image.src">
+    </div>
+    <div class = "ModalButtonExitColor" style = "position:absolute; right:5px; top:5px; font-size:16px; cursor:pointer;" (click) = "miniApp.open = false">
+        <i class="fas fa-times-circle"></i>
     </div>
 </div>

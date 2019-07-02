@@ -204,7 +204,6 @@
     </div>
     <div name = "clickArea">
         <div class = "bottomControlPanel TableCreatorHeadColor">
-            <button *ngIf = "smallHeader.mode" class = "mainButton" style = "height:26px;" title = "Открыть меню" (click) = "openHeader()"><i class="fas fa-ellipsis-v"></i></button>
             <div *ngIf = "control.error" style = "font-size:12px; background-color:#af7e7e; color:white; font-weight:bold;">Таблица не доступна!</div>
             <div *ngIf = "loaded && !control.error && dataHeader.length == 0" style = "font-size:12px; background-color:#b8b8b8; color:white; font-weight:bold;">Таблица пуста</div>
             <div *ngIf = "loaded && !control.error && needUpdate" style = "font-size:12px; background-color:#b8b8b8; color:white; font-weight:bold;">Требуется синхронизация</div>
@@ -214,7 +213,8 @@
         <div class = "bottomControlPanel right">
             <div *ngFor = "let login of listLogin" class = "PanelAppColor" style = "font-weight: bold;">{{login}}</div>
             <div *ngIf = "!right.change" style = "float:right; color:#b5e498; font-size:20px;" title = "Режим просмотра"><i class="fas fa-eye"></i></div>
-            <div *ngIf = "mode == 'Global'" style = "float:right; color:#b5e498; font-size:20px;" title = "global"><i class="fas fa-cloud"></i></div>
+            <button *ngIf = "smallHeader.mode" class = "mainButton" style = "height:26px; margin-left:3px;" title = "Открыть меню" (click) = "openHeader()"><i class="fas fa-ellipsis-v"></i></button>
+            <!-- <div *ngIf = "mode == 'Global'" style = "float:right; color:#b5e498; font-size:20px;" title = "global"><i class="fas fa-cloud"></i></div> -->
         </div>
     </div>
     <!-- Закрепленный заголовок -->

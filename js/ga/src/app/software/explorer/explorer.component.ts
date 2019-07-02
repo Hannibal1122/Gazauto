@@ -13,6 +13,7 @@ import { CreateTableListService } from "../services/create-table-list.service";
 import { CreateFilterService } from "../services/create-filter.service";
 import { CreatePlanChartService } from "../services/create-plan-chart.service";
 import { CreateClassService } from "../services/create-class.service";
+import { environment } from '../../../environments/environment';
 
 declare var trace:any;
 @Component({
@@ -187,6 +188,15 @@ export class ExplorerComponent implements OnInit
             case "filter":
                 this.createFilter.update(object.objectId, this.inputs.id, object.name);
                 break;
+            case "file":
+                if(object.fileType == 'img')
+                {
+                    this.miniApp.open = true;
+                    this.miniApp.type = "image";
+                    /* this.miniApp.image.src = "url(" + environment.FILES + object.id + "/" + object.name + ")"; */
+                    this.miniApp.image.src = "https://bipbap.ru/wp-content/uploads/2017/10/0_8eb56_842bba74_XL-640x400.jpg";
+                }
+                break;
         }
     }
     createObject(id, type, data) // Создать объект
@@ -323,7 +333,7 @@ export class ExplorerComponent implements OnInit
         var id = this.outFolders[this.selectObjectI].id;
         var objectType = this.outFolders[this.selectObjectI].objectType;
         if(localStorage.getItem("chooseToCompare") != null)
-            this.choose = JSON.parse(localStorage.getItem("chooseToCompare"));
+            this.miniApp.choose = JSON.parse(localStorage.getItem("chooseToCompare"));
         this.query.protectionPost(202, { param: [ id ] }, (data) => // Запрос прав и связей наследования
         {
             this.clearRules();
@@ -487,7 +497,7 @@ export class ExplorerComponent implements OnInit
     }
     setFilterByGlobal(filter)
     {
-        this.query.protectionPost(450, { param: [ "filter", JSON.stringify({ id: filter.objectId, name: filter.name }) ] });
+        this.query.protectionPost(450, { param: [ "filter_global", JSON.stringify({ id: filter.objectId, name: filter.name }) ] });
     }
     globalClick = null;
     /**************************************/
@@ -589,36 +599,47 @@ export class ExplorerComponent implements OnInit
         this.projectByClassSetting = { open: true, parent: this.parent, folder: folder ? { id: folder.id, bindId: folder.bindId } : null };
     }
     /**************************************/
-    choose = {
-        id: -1,
-        name: "",
-        objectType: "",
+    miniApp = { // приложения, которые открываются непосредственно в проводнике
         open: false,
-        data: {
-            tables: {},
-            fields: []
+        type: "",
+        choose: {
+            id: -1,
+            name: "",
+            objectType: "",
+            data: {
+                tables: {},
+                fields: []
+            }
+        },
+        image: {
+            src: "",
+            loaded: false,
+            width: 0,
+            height: 0
         }
     }
     chooseToCompare(type, object)
     {
+        let choose = this.miniApp.choose;
         if(type == "choose")
         {
-            this.choose.id = object.id;
-            this.choose.name = object.name;
-            this.choose.objectType = object.objectType;
-            localStorage.setItem("chooseToCompare", JSON.stringify(this.choose));
+            choose.id = object.id;
+            choose.name = object.name;
+            choose.objectType = object.objectType;
+            localStorage.setItem("chooseToCompare", JSON.stringify(choose));
         }
         if(type == "compare")
         {
-            if(this.choose.id == object.id) return;
-            if(this.choose.objectType != object.objectType) return;
-            if(this.choose.objectType == "table")
-                this.query.protectionPost(136, { param: [ this.choose.id, object.id ] }, (data) =>
+            if(choose.id == object.id) return;
+            if(choose.objectType != object.objectType) return;
+            if(choose.objectType == "table")
+                this.query.protectionPost(136, { param: [ choose.id, object.id ] }, (data) =>
                 {
                     if(data.length != 2) return;
-                    this.choose.open = true;
-                    this.choose.data = {
-                        tables: { tableA: this.choose.name, tableB: object.name },
+                    this.miniApp.open = true;
+                    this.miniApp.type = "choose";
+                    choose.data = {
+                        tables: { tableA: choose.name, tableB: object.name },
                         fields: data[1]
                     }
                 });
@@ -631,16 +652,19 @@ export class ExplorerComponent implements OnInit
         left: "", 
         visible: false, 
         i: -1,
-        type: ""
+        type: "",
+        translate: null
     }
     createContextMenuMain = 
     {
         top: "", 
         left: "", 
-        visible: false, 
+        visible: false,
+        translate: null 
     }
     getContextmenu(e, data)
     {
+        this.createContextMenu.translate = this.getTranslateForClientXY(e);
         this.createContextMenu.left = e.clientX + "px";
         this.createContextMenu.top = e.clientY + "px";
         this.createContextMenu.visible = true;
@@ -650,6 +674,7 @@ export class ExplorerComponent implements OnInit
     }
     getContextmenuMain(e)
     {
+        this.createContextMenuMain.translate = this.getTranslateForClientXY(e);
         this.createContextMenuMain.left = e.clientX + "px";
         this.createContextMenuMain.top = e.clientY + "px";
         if(e.target.classList[0] == "explorerMain")
@@ -659,6 +684,16 @@ export class ExplorerComponent implements OnInit
         }
         else this.createContextMenuMain.visible = false;
         e.preventDefault();
+    }
+    getTranslateForClientXY(e)
+    {
+        let translateX = "0%";
+        let translateY = "0%";
+        let w = document.documentElement.clientWidth;
+        let h = document.documentElement.clientHeight;
+        if(e.clientX > w / 2) translateX = "-100%";
+        if(e.clientY > h / 2) translateY = "-100%";
+        return `translate(${translateX}, ${translateY})`;
     }
     ngOnDestroy() 
     {

@@ -732,16 +732,23 @@ export class TableEditorV2Component implements OnInit
         this.rules.paste = this.rules.paste && this.rules.change;
         this.rules.object = this.rules.object && this.rules.change; // Чтобы в html не делать несколько проверок
 
-        let height = this.mainContainer.nativeElement.clientHeight;
-        if(e.clientY > height / 2) this.createContextMenu.transform = "translate(0, -100%)";
-        else this.createContextMenu.transform = null;
-
+        this.createContextMenu.transform = this.getTranslateForClientXY(e);
         this.createContextMenu.left = e.clientX + "px";
         this.createContextMenu.top = e.clientY + "px";
         this.createContextMenu.visible = true;
         this.createContextMenu.i = data;
         this.createContextMenu.type = type;
         e.preventDefault();
+    }
+    getTranslateForClientXY(e)
+    {
+        let translateX = "0%";
+        let translateY = "0%";
+        let w = document.documentElement.clientWidth;
+        let h = document.documentElement.clientHeight;
+        if(e.clientX > w / 2) translateX = "-100%";
+        if(e.clientY > h / 2) translateY = "-100%";
+        return `translate(${translateX}, ${translateY})`;
     }
     // Операции с заголовком
     pasteObject(setType, primitive)

@@ -139,10 +139,10 @@
                     <ng-container *ngFor="let app of screen.tabs; let i = index;">
                         <div class = "customBack" 
                             [ngStyle] = "theme.style"
-                            [style.overflow] = "app.iframe ? 'none' : 'auto'"
+                            [style.overflow] = "app.useIframe ? 'none' : 'auto'"
                             [hidden] = "i != screen.currentSoftware">
                             <vg-dynamic-view  
-                                *ngIf = "!app.iframe"
+                                *ngIf = "!app.useIframe"
                                 [visible] = "!splitScreen.drag && i == screen.currentSoftware"
                                 [componentData] = "app.software" 
                                 (onChange) = "onChangeInSoftware($event)" 
@@ -152,7 +152,7 @@
                                 (load) = "onLoadIframe(app, $event)"
                                 style = "width:100%; height:100%; border:none;"
                                 [attr.id] = "'iframe_' + app.guid"
-                                *ngIf = "app.iframe"></iframe>
+                                *ngIf = "app.useIframe"></iframe>
                         </div>
                     </ng-container>
                     <div *ngIf = "splitScreen.empty" style = "text-align: center; line-height: 16px; margin-top: 20px;">
