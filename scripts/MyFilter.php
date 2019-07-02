@@ -65,7 +65,7 @@
                     {
                         $str .= ")";
                         if(array_key_exists($i + 1, $expression))
-                            $str += $this->getOperator($expression[$i]->operator);
+                            $str .= $this->getOperator($expression[$i]->operator);
                     }
                 }
                 else
@@ -98,7 +98,7 @@
                     {
                         $str .= ")";
                         if(array_key_exists($i + 1, $expression))
-                            $str += $this->getOperator($expression[$i]->operator);
+                            $str .= $this->getOperator($expression[$i]->operator);
                     }
                 }
                 else
@@ -118,6 +118,33 @@
                         $str .= $this->getOperator($expression[$i]->operator);
                 }
             return $str;
+        }
+        function getFilterStrByGlobal($idFilter)
+        {
+            global $login;
+            $out = [ "str" => "", "operand" => [] ];
+            $expression = json_decode(selectOne("SELECT value FROM filter WHERE id = %i", [ $idFilter ]));
+            for($i = 0, $c = count($expression); $i < $c; $i++)
+                if($expression[$i]->type === "group")
+                {
+                    if($expression[$i]->begin) $out["str"] .= "(";
+                    if(!$expression[$i]->begin) 
+                    {
+                        $out["str"] .= ")";
+                        if(array_key_exists($i + 1, $expression))
+                            $out["str"] .= $this->getOperator($expression[$i]->operator);
+                    }
+                }
+                else
+                {
+                    $operand = $this->getOperand($expression[$i]->operand, $expression[$i]->value);
+                    $value = ["1" => "name", "2" => "objectType", "3" => "hashtag"][$expression[$i]->field];
+                    $out["str"] .= "$value $operand[0] %s";
+                    $out["operand"][] = $operand[1];
+                    if(array_key_exists($i + 1, $expression) && ($expression[$i + 1]->type === "condition" || $expression[$i + 1]->begin))
+                        $out["str"] .= $this->getOperator($expression[$i]->operator);
+                }
+            return $out;
         }
         function getFilterColumn($idFilter)
         {

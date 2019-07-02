@@ -81,7 +81,7 @@
             case 0: // Запрос версии
                 /* include("./version/versions.php"); */
                 $project = [];	
-                $project['main'] = "0.9.72";/* getVersion(		$_main["name"], 		$_main["data"]); */
+                $project['main'] = "0.9.75";/* getVersion(		$_main["name"], 		$_main["data"]); */
                 $project['php'] = "0.9.91";/* getVersion(		$_php["name"], 			$_php["data"]); */
                 echo json_encode($project);
                 break;
@@ -186,7 +186,6 @@
                             $filter = json_decode($filter);
                             require_once("myFilter.php");
                             $filterClass = new MyFilter();
-                            print_r($filter); 
                             $filterStr = $filterClass->getFilterStrByFolder($filter->id, $idParent);
                             if($filterStr != "") $filterStr = " AND ($filterStr)";
                         };
@@ -234,7 +233,25 @@
                         break;
                     case 113: // Загрузка структуры без выпрямления
                         $out = [];
-                        if($result = query("SELECT id, objectType, objectId, name, parent, priority, info, state FROM structures WHERE trash = 0 ORDER by parent, priority", []))
+                        $operand = [];
+                        $filterStr ="";
+                        $filter = selectOne("SELECT value FROM user_settings WHERE login = %s AND type = %s", [ $login, "filter_global" ]);
+                        if(!is_null($filter) && $filter != "") 
+                        {
+                            $filter = json_decode($filter);
+                            require_once("myFilter.php");
+                            $filterClass = new MyFilter();
+                            $filter = $filterClass->getFilterStrByGlobal($filter->id);
+                            if($filter["str"] != "") $filterStr = " AND (".$filter["str"].")";
+                            $operand = $filter["operand"];
+                        };
+                        $query = "SELECT id, objectType, objectId, name, parent, priority, info, state FROM structures WHERE trash = 0 $filterStr";
+                        if($login == "admin") $query .= " ORDER by parent, priority";
+                        else $query .= " AND
+                            id IN (SELECT objectId FROM rights WHERE (login = %s OR login = %s) AND rights & 1 
+                                AND objectId NOT IN (SELECT objectId FROM rights WHERE login = %s AND (rights & 1) = 0)) ORDER by parent, priority";
+                        if($login != "admin")  $operand += [$login, $role, $login ];
+                        if($result = query($query, $operand))
                             while ($row = $result->fetch_array(MYSQLI_NUM)) 
                             {
                                 $elem = [];
