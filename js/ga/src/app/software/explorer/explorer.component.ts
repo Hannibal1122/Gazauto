@@ -360,10 +360,8 @@ export class ExplorerComponent implements OnInit
             };
         });
         if(this.tableProperty.visible)
-        {
             if(this.appTableProperty && !this.appTableProperty.update) this.appTableProperty.update = () => { this.refresh(); };
-            this.tableProperty.listLink.visible = false;
-        }
+        this.tableProperty.listLink.visible = false;
     }
     unSelectObject() // отпустить объект
     {
@@ -397,9 +395,10 @@ export class ExplorerComponent implements OnInit
             });
         });
     }
-    closeClassSetting()
+    closeClassSetting(e)
     {
         this.projectByClassSetting = { open: false, parent: -1, folder: null };
+        if(e == "update") this.refresh();
     }
     addInfo() // Добавить справку
     {
@@ -502,6 +501,7 @@ export class ExplorerComponent implements OnInit
     globalClick = null;
     /**************************************/
     tableProperty = {
+        loaded: true,
         visible: false,
         data: {},
         rules: {
@@ -533,6 +533,7 @@ export class ExplorerComponent implements OnInit
     getListLink()
     {
         if(this.selectObjectI == -1) return;
+        this.tableProperty.loaded = false;
         this.query.protectionPost(125, { param: [ this.outFolders[this.selectObjectI].id ]}, (data) =>
         {
             this.tableProperty.listLink.fromInherit = data.fromInherit;
@@ -549,6 +550,7 @@ export class ExplorerComponent implements OnInit
                 && this.tableProperty.listLink.whoInherit.length == 0 
                 && this.tableProperty.listLink.whoRefer.length == 0;
             this.tableProperty.listLink.visible = true;
+            this.tableProperty.loaded = true;
         });
     }
     /* closeListLink()

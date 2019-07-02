@@ -78,9 +78,10 @@
             <div class = "wordCenter">Выберите объект</div>
         </div>
         <div *ngIf = "selectObjectI != -1" style = "width:100%; height:50%; overflow: auto; display: flex; flex-wrap: wrap; position: relative;">
-            <div *ngIf = "!tableProperty.listLink.visible"
-                (click) = "getListLink()"
-                class = "wordCenter">Показать связи</div>
+            <div *ngIf = "!tableProperty.listLink.visible && tableProperty.loaded" (click) = "getListLink()" class = "wordCenter">Показать связи</div>
+            <div class = "wordCenter">
+                <span *ngIf = "!tableProperty.loaded"> <i class="fas fa-spinner spinnerLoader"></i> </span>
+            </div>
             <ng-container *ngIf = "tableProperty.listLink.visible">
                 <div *ngIf = "tableProperty.listLink.empty" 
                     class = "wordCenter">Связи отсутсвуют</div>
@@ -207,7 +208,7 @@
     </div>
 </div>
 <modalwindow #modal></modalwindow>
-<app-create-template [config] = "projectByClassSetting" (onChange) = "closeClassSetting()"></app-create-template>
+<app-create-template [config] = "projectByClassSetting" (onChange) = "closeClassSetting($event)"></app-create-template>
 
 <!-- ********************Сравнение таблиц*********************** -->
 <div *ngIf = "miniApp.open" style = "position:absolute; width:100%; height:100%; background: rgba(255, 255, 255, 0.6); top:0px; left: 0px;">

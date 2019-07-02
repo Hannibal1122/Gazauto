@@ -47,12 +47,14 @@ export class CreateTemplateComponent implements OnInit
     mapParentType = [];
     initData()
     {
+        this.loaded = false;
         if(this.folder !== null) this.settings.id = this.folder.bindId;
         else
             if(localStorage.getItem("copyExplorer"))
                 this.settings = JSON.parse(localStorage.getItem("copyExplorer"));
         this.query.protectionPost(491, { param: [ this.settings.id ] }, (data) =>
         {
+            this.loaded = true;
             trace(this.parent)
             this.name = data.name;
             trace(data)
@@ -137,16 +139,19 @@ export class CreateTemplateComponent implements OnInit
         this.createSetting.parent = -1;
         this.createSetting.table = 'none';
     }
-    Cancel()
+    Cancel(e?)
     {
-        this.onChange.emit();
+        this.onChange.emit(e);
     }
+    loaded = true;
     Create()
     {
+        this.loaded = false;
         if(this.inputName != "") this.mainList[0].name = this.inputName;
         this.query.protectionPost(493, { param: [ JSON.stringify(this.mainList), JSON.stringify(this.template.typeList), this.libraryId, this.parent, this.settings.id ] }, (data) =>
         {
-            trace(data)
+            this.loaded = true;
+            this.Cancel("update");
         });
     }
     
