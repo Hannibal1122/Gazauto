@@ -1,0 +1,8 @@
+.controlPanel
+{
+    height:30px;
+}
+.controlPanel button, .controlPanel input
+{
+    margin-left: 5px;
+}

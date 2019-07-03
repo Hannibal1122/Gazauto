@@ -20,6 +20,7 @@ import { TemplateConstructorComponent } from './software/template-constructor/te
 import { TablePropertyComponent } from './software/explorer/tableProperty.component';
 import { TableHeaderEditorComponent } from './software/table-editor-v2/table-header-editor.component';
 import { CreateTemplateComponent } from './software/explorer/create-template.component'
+import { StatisticsEditorComponent } from './software/statistics-editor/statistics-editor.component'
 import { DateTimeModule } from "./system/datetimepicker/datetimepicker.module";
 
 @NgModule({
@@ -40,7 +41,8 @@ import { DateTimeModule } from "./system/datetimepicker/datetimepicker.module";
         EventLogComponent,
         TablePropertyComponent,
         TableHeaderEditorComponent,
-        CreateTemplateComponent
+        CreateTemplateComponent,
+        StatisticsEditorComponent
     ],
     imports: [ BrowserModule, FormsModule, ModalWindowModule, HttpClientModule, DateTimeModule ],
     providers: [],

@@ -31,7 +31,7 @@
             if(!is_null($bindId)) $idTables .= ", $bindId";
             $query = "SELECT id, objectId, name FROM structures WHERE parent IN ($idTables) AND objectType = 'filter' ";
             if($login != "admin") $query .= "AND id IN (SELECT objectId FROM rights WHERE (login = %s OR login = %s) AND rights & 1 
-                    AND objectId NOT IN (SELECT objectId FROM rights WHERE login = %s AND (rights & 1) = 0)) ORDER by parent, priority";
+                    AND objectId NOT IN (SELECT objectId FROM rights WHERE login = %s AND (rights & 1) = 0))";
             $query .= " ORDER by parent, priority";
             if($result = query($query, $login == "admin" ? [ ] : [ $login, $role, $login ]))
                 while ($row = $result->fetch_array(MYSQLI_NUM))

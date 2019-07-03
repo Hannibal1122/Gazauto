@@ -121,3 +121,13 @@
     transition: 700ms;
     width: 100%;
 }
+.stickerLink
+{
+    text-align: right;
+    color:#2d66bd;
+    cursor: pointer;
+}
+.stickerLink:hover
+{
+    text-decoration-line: underline; 
+}

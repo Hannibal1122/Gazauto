@@ -278,6 +278,7 @@
             <button *ngIf = "inputProperty.eventId" class = "contextMenuList" (click) = "openEventToExplorer(inputProperty.eventId)">Найти событие</button>
             <button *ngIf = "inputProperty.eventId" class = "contextMenuList" (click) = "openSoftware('event', inputProperty.eventId)">Открыть событие</button>
         </ng-container>
+        <button class = "contextMenuList" (click) = "copyForStatisctic()">Копировать</button>
         <button class = "contextMenuList" (click) = "clearFilters()">Очистить фильтры</button>
     </ng-container>
     <ng-container *ngIf = "createContextMenu.type == 'row'">
@@ -291,6 +292,8 @@
     </ng-container>
     <ng-container *ngIf = "createContextMenu.type == 'cell'">
         <button class = "contextMenuList" (click) = "clearField()" [disabled] = "!rules.change">Очистить</button>
+        <button class = "contextMenuList" (click) = "addSticker()">
+            Добавить заметку</button>
         <button class = "contextMenuList" (click) = "pasteObject(false, false)" [disabled] = "!rules.object">
                 {{ rules.event ? 'Добавить событие' : 'Вставить объект' }}</button>
         <button class = "contextMenuList" (click) = "pasteField('cell')" [disabled] = "!rules.paste">Вставить по ссылке</button>

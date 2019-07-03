@@ -178,7 +178,7 @@
                         break;
                     case 110: // Загрузка структуры // Права на просмотр
                         $idParent = (int)$param[0];
-                        $out = ["folder" => [], "path" => []];
+                        $out = ["folder" => [], "path" => [], "stickers" => []];
                         $filterStr = "";
                         $filter = selectOne("SELECT value FROM user_settings WHERE login = %s AND type = %s", [ $login, "filter_global" ]);
                         if(!is_null($filter) && $filter != "") 
@@ -189,14 +189,22 @@
                             $filterStr = $filterClass->getFilterStrByFolder($filter->id, $idParent);
                             if($filterStr != "") $filterStr = " AND ($filterStr)";
                         };
+                        $listId = "";
                         $query = "SELECT id, objectType, objectId, name, parent, priority, info, bindId, state, icon FROM structures WHERE parent = %i AND trash = 0 $filterStr";
                         if($login == "admin") $query .= " ORDER by parent, priority";
                         else $query .= " AND
                             id IN (SELECT objectId FROM rights WHERE (login = %s OR login = %s) AND rights & 1 
                                 AND objectId NOT IN (SELECT objectId FROM rights WHERE login = %s AND (rights & 1) = 0)) ORDER by parent, priority";
                         if($result = query($query, $login == "admin" ? [ $idParent ] : [ $idParent, $login, $role, $login ]))
-                            while ($row = $result->fetch_assoc()) 
+                            while ($row = $result->fetch_assoc())
+                            {
                                 $out["folder"][] = getObjectFromStructures($row);
+                                $listId .= ($listId == "" ? "" : ",").$row["id"];
+                            }
+                        if($listId != "")
+                            if($result = query("SELECT * FROM stickers WHERE objectId IN ($listId) AND type != 'cell' AND trash = 0", []))
+                                while ($row = $result->fetch_assoc())
+                                    $out["stickers"][] = $row;
                         getFullPath($out["path"], $param[0]);
                         echo json_encode($out);
                         $myLog->add("structure", "open", $idParent);
@@ -212,10 +220,12 @@
                             case "table":
                             case "file":
                             case "event":
+                            case "plan":
+                            case "class":
+                            case "filter":
                                 request("SELECT parent FROM structures WHERE id = %i", [$idElement]);
                                 break;
                             case "tlist":
-                            case "value":
                                 request("SELECT parent, id FROM structures WHERE objectType = %s AND objectId = %i ", [$typeElement, $idElement]);
                                 break;
                             case "cell":
@@ -508,6 +518,17 @@
                         }
                         echo json_encode([$headEquality, $inequality]);
                         break;
+                    case 137: // Добавить заметку
+                        $objectId = (int)$param[0];
+                        $name = $param[1];
+                        $type = $param[2];
+                        $data = $param[3];
+                        query("INSERT INTO stickers (objectId, name, type, data, login, trash) VALUES(%i, %s, %s, %s, %s, 0)", [ $objectId, $name, $type, $data, $login ]);
+                        break;
+                    case 138: // Отправить заметку в архив
+                        $stickerId = (int)$param[0];
+                        query("UPDATE stickers SET trash = 1 WHERE id = %i", [ $stickerId ]);
+                        break;
                 }
             }
             if($nQuery >= 150 && $nQuery < 200) // Работа с Пользователями // Только admin
@@ -610,7 +631,7 @@
                 }
             if($nQuery >= 250 && $nQuery < 300) // Работа с таблицой 
             {
-                $queryWhoNeedClass = [ 250, 251, 252, 255, 257, 258, 259, 260, 261, 266, 267, 269, 270 ]; // набор запросов, которые требуют классов
+                $queryWhoNeedClass = [ 250, 251, 252, 255, 257, 258, 259, 260, 261, 266, 267, 269, 270, 275 ]; // набор запросов, которые требуют классов
                 $idTable = (int)$param[0];
                 if(array_search($nQuery, $queryWhoNeedClass) !== false) 
                 {

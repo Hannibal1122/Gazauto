@@ -8,6 +8,8 @@ import { EventEditorComponent } from './software/event-editor/event-editor.compo
 import { PlanEditorComponent } from './software/plan-editor/plan-editor.component';
 import { EventLogComponent } from './software/event-log/event-log.component';
 import { TemplateConstructorComponent } from './software/template-constructor/template-constructor.component'
+import { StatisticsEditorComponent } from './software/statistics-editor/statistics-editor.component'
+
 import { InfoComponent } from './software/info/info.component';
 import { environment } from '../environments/environment';
 import { DomSanitizer } from '@angular/platform-browser';
@@ -35,6 +37,7 @@ export class AppComponent implements OnInit
     _currentSoftware = 0;
     globalEvent:GlobalEvent;
     windowType = "interface";
+    stickers = [];
     set currentSoftware(value)
     {
         this._currentSoftware = value;
@@ -172,6 +175,7 @@ export class AppComponent implements OnInit
         let screen = this.splitScreen.screens[s];
         screen.currentSoftware = i;
         this.splitScreen.currentScreen = s;
+        this.setCurrentStickers();
         this.splitScreen.saveTabs();
     }
     closeTab(s, i) // Закрыть вкладку
@@ -251,8 +255,12 @@ export class AppComponent implements OnInit
                             case "file":
                             case "event":
                             case "tlist":
-                            case "value":
-                                this.openSoftware("explorer", { id: idParent[0][0], searchObjectId: e.value.name == "value" || e.value.name == "tlist" ? idParent[0][1] : e.value.id });
+                            case "script":
+                            case "plan":
+                            case "class":
+                            case "folder":
+                            case "filter":
+                                this.openSoftware("explorer", { id: idParent[0][0], searchObjectId: e.value.name == "tlist" ? idParent[0][1] : e.value.id });
                                 break;
                             case "cell":
                                 this.openSoftware("table", { id: idParent[0][0], searchObjectId: e.value.id });
@@ -289,6 +297,12 @@ export class AppComponent implements OnInit
                 this.theme.current = e.value;
                 if(e.value.theme) this.applyTheme(e.value.theme);
                 break;
+            case "updateStickers": // В эксплорере открыли папку с заметками
+                for(let i = 0; i < this.tabs.length; i++)
+                    if(this.tabs[i].type == e.software && this.tabs[i].software.inputs && this.tabs[i].software.inputs.id == e.id)
+                        this.tabs[i].stickers = e.value;
+                this.setCurrentStickers();
+                break;
         }
     }
     openSoftware(type, input, settings?) // Открыть приложение
@@ -318,6 +332,7 @@ export class AppComponent implements OnInit
             case "event": i = this.getNewTab(type, { component: EventEditorComponent, inputs: input }, settings); break;
             case "plan": i = this.getNewTab(type, { component: PlanEditorComponent, inputs: input }, settings); break;
             case "log": i = this.getNewTab(type, { component: EventLogComponent, inputs: input }, settings); break;
+            case "statistics": i = this.getNewTab(type, { component: StatisticsEditorComponent, inputs: input }, settings); break;
         }
     }
     getNewTab(type, software, settings)
@@ -338,6 +353,7 @@ export class AppComponent implements OnInit
             case "info": name = "Справка"; break;
             case "event": name = "Редактор событий"; break;
             case "plan": name = "План-график"; break;
+            case "statistics": name = "Статистика"; break;
         }
         let i = this.checkRepeatSoftware(type, input.id);
         if(i != this.tabs.length) 
@@ -364,6 +380,7 @@ export class AppComponent implements OnInit
                 guid: this.splitScreen.getGUID(),
                 loaded: !useIframe,
                 iframe: null, 
+                stickers: [],
                 useIframe: useIframe // Открывать ли приложение через iframe
             };
             this.splitScreen.appendTab(this.tabs[i], settings);
@@ -385,6 +402,28 @@ export class AppComponent implements OnInit
         for(; i < this.tabs.length; i++) // Проверка на уже открытую вкладку
             if(this.tabs[i].type == type && this.tabs[i].software.inputs && this.tabs[i].software.inputs.id == id) break;
         return i;
+    }
+    searchObjectFromSticker(stick)
+    {
+        this.onChangeInSoftware({
+            type: "openFromTable",
+            value: {
+                id: stick.objectId,
+                name: stick.type
+            }
+        })
+    }
+    removeSticker(stickId, i) // Удалить заметку
+    {
+        this.query.protectionPost(138, { param: [stickId] }, () =>
+        {
+            this.stickers.splice(i, 1);
+        });
+    }
+    setCurrentStickers()
+    {
+        let screen = this.splitScreen.screens[this.splitScreen.currentScreen];
+        this.stickers = screen.tabs[screen.currentSoftware].stickers;
     }
     /*******************************************************************/
     autoLogin(func) // Автовход

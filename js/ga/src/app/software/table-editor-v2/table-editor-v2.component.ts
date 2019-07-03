@@ -197,6 +197,9 @@ export class TableEditorV2Component implements OnInit
                 this.control.error = true;
                 return;
             }
+            trace(data.stickers)
+            this.query.onChange({ type: "updateStickers", id: this.id, software: "table", value: data.stickers });
+
             this.control.error = false;
             for(let key in data.right) this.right[key] = data.right[key];
             this.right.head = data.changeHead;
@@ -672,6 +675,30 @@ export class TableEditorV2Component implements OnInit
                 break;
         } 
     }
+    addSticker() // Добавить заметку
+    {
+        let Data = {
+            title: "Добавить заметку",  
+            data: [
+                ["Имя", "", "text"],
+                ["Текст", "", "textarea"]
+            ],
+            ok: "Добавить",
+            cancel: "Отмена"
+        }
+        this.modal.open(Data, (save) =>
+        {
+            if(save)
+            {
+                if(Data.data[0][1] == "") return "Введите имя!";
+                this.query.protectionPost(137, { param: [ this.inputProperty.id, Data.data[0][1], "cell", Data.data[1][1] ] }); 
+            }
+        })
+    }
+    copyForStatisctic()
+    {
+        localStorage.setItem("copyForStatistic", JSON.stringify({ id: this.inputProperty.id, type: "column", tableId: this.id }));
+    }
     //Работа с контекстным меню
     createContextMenu = 
     {
@@ -785,6 +812,7 @@ export class TableEditorV2Component implements OnInit
         this.cutCopyRowProperty.idRow1 = this.firstData[this.createContextMenu.i].__ID__;
         this.cutCopyRowProperty.idRow2 = -1;
         this.cutCopyRowProperty.type = type;
+        /* localStorage.setItem("copyForStatistic", JSON.stringify({ id: this.cutCopyRowProperty.idRow1, type: "row" })); */ //TODO как-нибудь в будущем
     }
     addRow(type, prevOrNext) // Добавить в строку таблицу
     {

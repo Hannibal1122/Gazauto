@@ -1,0 +1,10 @@
+<div class = "controlPanel">
+    <input type = "text" placeholder="Ось X" [(ngModel)] = "axis.x.id">
+    <button class = "mainButton" (click) = "setFromCopy('x')"><i class="fas fa-paste"></i></button>
+    <input type = "text" placeholder="Ось Y" [(ngModel)] = "axis.y.id">
+    <button class = "mainButton" (click) = "setFromCopy('y')"><i class="fas fa-paste"></i></button>
+    <button class = "mainButton" (click) = "addChart()"><i class="fas fa-plus"></i></button>
+    <button class = "mainButton" (click) = "loadAllCharts()"><i class="fa fa-sync-alt"></i></button>
+</div>
+<div id = "statisticsContent" style = "display:flex; flex-wrap: wrap; padding: 5px; justify-content:center;">
+</div>

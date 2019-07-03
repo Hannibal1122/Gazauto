@@ -193,8 +193,15 @@ export class ExplorerComponent implements OnInit
                 {
                     this.miniApp.open = true;
                     this.miniApp.type = "image";
-                    /* this.miniApp.image.src = "url(" + environment.FILES + object.id + "/" + object.name + ")"; */
-                    this.miniApp.image.src = "https://bipbap.ru/wp-content/uploads/2017/10/0_8eb56_842bba74_XL-640x400.jpg";
+                    this.miniApp.image.src = environment.FILES + object.id + "/" + object.name;
+                    /* this.miniApp.image.src = "https://bipbap.ru/wp-content/uploads/2017/10/0_8eb56_842bba74_XL-640x400.jpg"; */
+                    this.miniApp.image.loaded = false;
+                    let image = new Image();
+                    image.src = this.miniApp.image.src;
+                    image.onload = () => {
+                        this.miniApp.image.loaded = true;
+                        this.miniApp.image.width = image.width + "px";
+                    }
                 }
                 break;
         }
@@ -431,6 +438,7 @@ export class ExplorerComponent implements OnInit
             this.parent = parent;
             this.searchInput = "";
             this.load = false;
+            this.onChange({ type: "updateStickers", id: this.parent, software: "explorer", value: data.stickers });
         });
     }
     clearRules()
@@ -553,10 +561,6 @@ export class ExplorerComponent implements OnInit
             this.tableProperty.loaded = true;
         });
     }
-    /* closeListLink()
-    {
-        this.listLink.visible = false;
-    } */
     /**************************************/
     searchCellByTable(id)
     {
@@ -589,6 +593,26 @@ export class ExplorerComponent implements OnInit
             id: this.outFolders[this.selectObjectI].id 
         }});
     }
+    addSticker(object) // Добавить заметку
+    {
+        let Data = {
+            title: "Добавить заметку",  
+            data: [
+                ["Имя", "", "text"],
+                ["Текст", "", "textarea"]
+            ],
+            ok: "Добавить",
+            cancel: "Отмена"
+        }
+        this.modal.open(Data, (save) =>
+        {
+            if(save)
+            {
+                if(Data.data[0][1] == "") return "Введите имя!";
+                this.query.protectionPost(137, { param: [ object.id, Data.data[0][1], object.objectType, Data.data[1][1] ] }); 
+            }
+        })
+    }
     /**************************************/
     projectByClassSetting = 
     {
@@ -616,8 +640,7 @@ export class ExplorerComponent implements OnInit
         image: {
             src: "",
             loaded: false,
-            width: 0,
-            height: 0
+            width: ""
         }
     }
     chooseToCompare(type, object)

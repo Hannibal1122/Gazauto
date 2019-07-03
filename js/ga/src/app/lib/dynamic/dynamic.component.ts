@@ -4,6 +4,7 @@ import { EventEditorComponent } from "../../software/event-editor/event-editor.c
 import { PlanEditorComponent } from "../../software/plan-editor/plan-editor.component";
 import { EventLogComponent } from "../../software/event-log/event-log.component";
 import { TemplateConstructorComponent } from '../../software/template-constructor/template-constructor.component'
+import { StatisticsEditorComponent } from '../../software/statistics-editor/statistics-editor.component'
 
 import { InfoComponent } from "../../software/info/info.component";
 declare var trace: any;
@@ -11,7 +12,7 @@ declare var trace: any;
 @Component({
     selector: "vg-dynamic-view",
     template: "<div #container></div>",
-    entryComponents: [ExplorerComponent, EventEditorComponent, PlanEditorComponent, InfoComponent, EventLogComponent, TemplateConstructorComponent],
+    entryComponents: [ExplorerComponent, EventEditorComponent, PlanEditorComponent, InfoComponent, EventLogComponent, TemplateConstructorComponent, StatisticsEditorComponent],
 })
 export class DynamicComponent
 {

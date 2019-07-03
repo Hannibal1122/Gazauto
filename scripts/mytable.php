@@ -15,7 +15,8 @@
             $head = [];
             $data = [];
             $enableLines = "";
-            $bindId;
+            $bindId = null;
+            $listStickersId = "";
             if($result = query("SELECT name, bindId, state, objectType FROM structures WHERE id = %i", [$idTable]))
                 while ($row = $result->fetch_array(MYSQLI_NUM)) 
                 { 
@@ -80,6 +81,8 @@
                                 break;
                         }
                     }
+                    if(!is_null(selectOne("SELECT id FROM stickers WHERE type = 'cell' AND trash = 0 AND objectId = %i", [ $field["id"] ])))
+                        $listStickersId .= ($listStickersId == "" ? "" : ",").$field["id"];
                     $data[(int)$row[0]][$row[1]] = $field;
                 }
                 /* Сортировка */
@@ -99,6 +102,11 @@
                 }
                 for($i = 0, $l = count($outData); $i < $l; $i++) // Проверяем на пустые строки
                     if(count($outData[$i]) > 2) $outData2[] = $outData[$i];
+            $stickers = [];
+            if($listStickersId != "")
+                if($result = query("SELECT * FROM stickers WHERE objectId IN ($listStickersId) AND type = 'cell' AND trash = 0", []))
+                    while ($row = $result->fetch_assoc())
+                        $stickers[] = $row;
             echo json_encode([
                 "head" => $head, 
                 "data" => $outData2, 
@@ -109,7 +117,9 @@
                 "changeHead" => $filterColumn[0] == "" && is_null($bindId) && $objectType != "plan", // Если столбцы скрыты фильтром ИЛИ таблица наследуется ИЛИ это редактор плана, то нельзя менять
                 "state" => $stateTable,
                 "filters" => $filters, // Список фильтров
-                "filter" => $filterSelected
+                "filter" => $filterSelected,
+                "stickers" => $stickers,
+                "filterColumn" => $filterColumn
             ]);
         }
         function setAndRemoveHeader($data, $changes) // Добавить/Удалить заголовок
@@ -197,7 +207,8 @@
             if($echo) 
             {
                 echo json_encode([ "id" => $idField, "value" => $value ]);
-                $this->myLog->add("field", "update", $idField, $oldValue); // Добавлен механизм сохранения значения 
+                $this->myLog->add("field", "update", $idField, $oldValue); // Добавлен механизм сохранения значения
+                $this->myLog->add("table", "update", $idTable);
             }
             else $this->myLog->add("field", "script", $idField, $oldValue);
         }
@@ -252,6 +263,7 @@
                 ]);
                 $this->calculateStateForTable($idTable);
                 $this->myLog->add("field", "update", $idField, $oldValue);
+                $this->myLog->add("table", "update", $idTable);
             }
         }
         function addRow($idPrevRow, $prevOrNext, $echo) // Добавить строку в таблицу

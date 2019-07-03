@@ -1,4 +1,5 @@
 export const environment = {
   production: true,
-  URL: '/scripts/main.php'
+  URL: '/scripts/main.php',
+  FILES: '/files/',
 };
