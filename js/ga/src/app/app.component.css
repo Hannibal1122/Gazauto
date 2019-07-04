@@ -1,10 +1,16 @@
 .myTabs
 {
-    min-width:150px;
-    width: 200px; 
+    min-width: 50px;
+    width: 200px;
     height: 30px; 
     position:relative;
     cursor: pointer;
+}
+@media screen and (max-width: 500px) {
+    .myTabs
+    {
+        min-width: 150px;
+    }
 }
 .mainPanelApp
 {

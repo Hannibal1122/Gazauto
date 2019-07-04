@@ -12,14 +12,21 @@ declare var trace:any;
 export class StatisticsEditorComponent implements OnInit 
 {
     inputs = { id: -1 }
-    
+    colorArray = [
+        "#d38dca",
+        "#c77373",
+        "#9dd165",
+        "#7eb2be"
+    ]
     charts = [];
     chartsProperty = [];
     axis = 
     {
         x: { id: "", type: "", tableId: "" },
-        y: { id: "", type: "", tableId: "" }
+        y: { id: "", type: "", tableId: "" },
+        colorI: 0
     }
+    openEdit = false;
     constructor(private query:QueryService)
     {
     }
@@ -51,12 +58,17 @@ export class StatisticsEditorComponent implements OnInit
         this.axis[type].type = data.type;
         this.axis[type].tableId = data.tableId;
     }
+    setColor(i)
+    {
+        this.axis.colorI = i;
+    }
     addChart()
     {
         let last = this.axis;
         this.axis = {
             x: { id: "", type: "", tableId: "" },
-            y: { id: "", type: "", tableId: "" }
+            y: { id: "", type: "", tableId: "" },
+            colorI: 0
         }
         this.query.protectionPost(250, { param: [ last.x.tableId, 0 ] }, (data) =>
         {
@@ -71,7 +83,7 @@ export class StatisticsEditorComponent implements OnInit
             }
             if(last.x.tableId == last.y.tableId)
             {
-                this.loadChart(axisX, axisY, TableXName);
+                this.loadChart(axisX, axisY, this.colorArray[last.colorI ? last.colorI : 0], TableXName);
                 this.chartsProperty.push(last);
                 this.query.protectionPost(450, { param: [ "statistic", JSON.stringify(this.chartsProperty) ] });
             }
@@ -80,13 +92,22 @@ export class StatisticsEditorComponent implements OnInit
                 {
                     for(let i = 0; i < data.data.length; i++) 
                         axisY.push(Number(data.data[i][last.y.id].value));
-                    this.loadChart(axisX, axisY, TableXName + "/" + data.name);
+                    this.loadChart(axisX, axisY, this.colorArray[last.colorI ? last.colorI : 0], TableXName + "/" + data.name);
                     this.chartsProperty.push(last);
                     this.query.protectionPost(450, { param: [ "statistic", JSON.stringify(this.chartsProperty) ] });
                 });
+            this.cancelEditPanel();
         })
     }
-    loadChart(labels, data, label)
+    openEditPanel()
+    {
+        this.openEdit = true;
+    }
+    cancelEditPanel()
+    {
+        this.openEdit = false;
+    }
+    loadChart(labels, data, color, label)
     {
         let width = 600;
         let height = 400;
@@ -133,8 +154,8 @@ export class StatisticsEditorComponent implements OnInit
                 datasets: [{
                     label: label,
                     data: data,
-                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                    borderColor: 'rgba(255, 99, 132, 1)',
+                    backgroundColor: color,
+                    borderColor: color,
                     fill: false,
                     borderWidth: 1
                 }]

@@ -1,10 +1,45 @@
 <div class = "controlPanel">
-    <input type = "text" placeholder="Ось X" [(ngModel)] = "axis.x.id">
-    <button class = "mainButton" (click) = "setFromCopy('x')"><i class="fas fa-paste"></i></button>
-    <input type = "text" placeholder="Ось Y" [(ngModel)] = "axis.y.id">
-    <button class = "mainButton" (click) = "setFromCopy('y')"><i class="fas fa-paste"></i></button>
-    <button class = "mainButton" (click) = "addChart()"><i class="fas fa-plus"></i></button>
+    <button class = "mainButton" (click) = "openEditPanel()"><i class="fas fa-plus"></i></button>
     <button class = "mainButton" (click) = "loadAllCharts()"><i class="fa fa-sync-alt"></i></button>
 </div>
-<div id = "statisticsContent" style = "display:flex; flex-wrap: wrap; padding: 5px; justify-content:center;">
+<div id = "statisticsContent" style = "display:flex; flex-wrap: wrap; padding: 5px; justify-content:center; min-width:610px;">
+</div>
+<div *ngIf = "openEdit" style = "background-color:rgba(255, 255, 255, 0.6); position:absolute; width:100%; height: 100%; top: 0px; left: 0px;">
+    <div style = "width: 262px; margin:auto; margin-top:40px; background-color: rgb(73, 73, 73); padding:10px;">
+        <table>
+            <tr>
+                <td>
+                    <input type = "text" placeholder="Ось X" [(ngModel)] = "axis.x.id">
+                    <button class = "mainButton" style = "margin-left:5px;" (click) = "setFromCopy('x')"><i class="fas fa-paste"></i></button>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <input type = "text" placeholder="Ось Y" [(ngModel)] = "axis.y.id">
+                    <button class = "mainButton" style = "margin-left:5px;" (click) = "setFromCopy('y')"><i class="fas fa-paste"></i></button>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <button class = "mainButton" 
+                        *ngFor = "let color of colorArray; let i = index;" 
+                        [style.color] = "color" 
+                        style = "margin-left:5px;" 
+                        (click) = "setColor(i)">
+                        <i class="fas fa-tint"></i>
+                    </button>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <button class = "propertyBtn" style = "width:100%;" (click) = "addChart()">Добавить</button>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <button class = "propertyBtn" style = "width:100%;" (click) = "cancelEditPanel()">Отмена</button>
+                </td>
+            </tr>
+        </table>
+    </div>
 </div>

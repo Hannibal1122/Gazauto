@@ -1,6 +1,8 @@
 .controlPanel
 {
+    margin-top:5px;
     height:30px;
+    width:610px;
 }
 .controlPanel button, .controlPanel input
 {
