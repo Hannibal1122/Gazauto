@@ -66,7 +66,6 @@ export class ExplorerComponent implements OnInit
         cut: false, 
         rights: false, 
         remove: false,
-        download: false,
         rename: false,
         change: false
     }
@@ -353,7 +352,6 @@ export class ExplorerComponent implements OnInit
             this.selectRules.remove = Boolean(right.change);
             this.selectRules.paste = Boolean(right.change) && this.selectObjectCopy.id != -1;
             this.selectRules.rename = Boolean(right.change) && objectType != "user" && objectType != "role" && objectType != "file";
-            if(objectType == "file") this.selectRules.download = true;
             if(_class)
             {
                 this.selectRules.copy = false; 
@@ -450,7 +448,6 @@ export class ExplorerComponent implements OnInit
             cut: false, 
             rights: false, 
             remove: false,
-            download: false,
             rename: false,
             change: false
         }
@@ -580,6 +577,43 @@ export class ExplorerComponent implements OnInit
         if(this.selectObjectI == -1) return;
         var id = this.outFolders[this.selectObjectI].id;
         this.createTableList.create(this.parent, () => { this.refresh() }, id, null);
+    }
+    loadKey = "";
+    loadValue = 0;
+    loadTimer = null;
+    createTableFromFile() // Создать таблицу из файла
+    {
+        //Может создать заголовок с пустым именем
+        this.load = true;
+        this.query.protectionPost(140, { param: [] }, (loadKey) =>
+        {
+            clearTimeout(this.loadTimer);
+            this.loadValue = 0;
+            this.loadKey = loadKey;
+            this.updateLoadKey();
+            this.query.protectionPost(139, { param: [ this.outFolders[this.selectObjectI].id, loadKey ] }, (data) =>
+            {
+                this.refresh();
+            });
+        });
+    }
+    updateLoadKey()
+    {
+        this.query.protectionPost(141, { param: [ this.loadKey ] }, (data) =>
+        {
+            if(data === "END") 
+            {
+                this.loadValue = 0;
+                this.loadKey = "";
+                return;
+            }
+            this.loadValue = Number(data);
+            this.loadTimer = setTimeout(() =>
+            {
+                this.updateLoadKey();
+            }, 350);
+            trace(this.loadValue)
+        });
     }
     openTableFilter() // Открыть таблицу как папку для просмотра фильтров
     {

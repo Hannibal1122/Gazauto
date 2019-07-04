@@ -529,6 +529,55 @@
                         $stickerId = (int)$param[0];
                         query("UPDATE stickers SET trash = 1 WHERE id = %i", [ $stickerId ]);
                         break;
+                    case 139: // Создать таблицу из файла
+                        $idObject = (int)$param[0];
+                        $loadKey = $param[1];
+                        if(($myRight->get($idObject) & 1) != 1) continue; // Права на просмотр
+                        $parent = selectOne("SELECT parent FROM structures WHERE id = %i", [ $idObject ]);
+                        $name = selectOne("SELECT name FROM structures WHERE id = %i", [ $idObject ]);
+
+                        require_once dirname(__FILE__) . '/PHPExcel.php';
+                        $objReader = PHPExcel_IOFactory::createReader('Excel2007');
+                        $objReader->setReadDataOnly(true);
+                        $objPHPExcel = $objReader->load("../files/$param[0]/$name");
+                        $fileData = $objPHPExcel->getActiveSheet()->toArray();
+
+                        require_once("myStructures.php");
+                        require_once("myTable.php");
+                        $myStructures = new MyStructures($myRight, $myLog);
+                        $idTable = $myStructures->create(["table", NULL, $name, $parent, 0, ""], false);
+                        $myTable = new MyTable($idTable, $myLog); // Общий класс для работы с таблицами
+
+                        $data = [];
+                        for($j = 0, $c = count($fileData[0]); $j < $c; $j++)
+                            $data[] = (object)["value" => $fileData[0][$j], "i" => $j];
+                        $myTable->setAndRemoveHeader($data, []);
+                        $c = count($fileData);
+                        $p = 100 / $c;
+                        $percent = $p;
+                        for($i = 1; $i < $c; $i++)
+                        {
+                            $row = $myTable->addRow(-1, -1, false);
+                            $idRow = $row["__ID__"];
+                            $j = 0;
+                            foreach($row as $idColumn => $value)
+                                if($idColumn != "__ID__")
+                                    query("UPDATE fields SET value = %s WHERE idColumn = %i AND i = %i", [ $fileData[$i][$j++], $idColumn, $idRow ]);
+                            $percent += $p;
+                            query("UPDATE user_settings SET value = %s WHERE login = %s AND type = %s", [$percent, $login, $loadKey]);
+                        }
+                        query("DELETE FROM user_settings WHERE login = %s AND type = %s", [ $login, $loadKey ]);
+                        break;
+                    case 140: // Создает в настройках уникальную запись для проверки загрузки в процентах
+                        $loadKey = unique_md5();
+                        query("INSERT INTO user_settings (login, id, type, value) VALUES(%s, %i, %s, %s)", [$login, -1, $loadKey, "0"]);
+                        echo $loadKey;
+                        break;
+                    case 141: // Получить статус загрузки процесса
+                        $loadKey = $param[0];
+                        $loadValue = selectOne("SELECT value FROM user_settings WHERE login = %s AND type = %s", [$login, $loadKey]);
+                        echo is_null($loadValue) ? "END" : $loadValue;
+                        break;
                 }
             }
             if($nQuery >= 150 && $nQuery < 200) // Работа с Пользователями // Только admin

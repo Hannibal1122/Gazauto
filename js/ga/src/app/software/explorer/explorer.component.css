@@ -284,3 +284,24 @@
     left: 50%;
     transform: translate(-50%, -50%);
 }
+.loadBar
+{
+    position: relative;
+    width:200px;
+    margin:auto;
+    margin-top:10px;
+    height:6px;
+    background-color: #c7c7c7;
+    border-radius: 5px;
+    overflow: hidden;
+}
+.loadBarLine
+{
+    position: absolute;
+    top:0px;
+    left:0px;
+    background-color: #7db85b;
+    border-radius: 5px;
+    height:6px;
+    transition: 0.3s;
+}

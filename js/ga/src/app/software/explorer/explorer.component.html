@@ -120,6 +120,7 @@
     </div>
 </div>
 <div class = "createContextMenu" 
+    *ngIf = "selectObjectI >= 0"
     [hidden] = "!createContextMenu.visible" 
     [style.transform] = "createContextMenu.translate" 
     [style.top] = "createContextMenu.top" 
@@ -166,8 +167,12 @@
     <button class = "contextMenuList" (click) = "createLabel()">
         <span><i class="fas fa-share-square" style = "font-size:10px;"></i></span>
         Создать ярлык</button>
-    <button class = "contextMenuList" (click) = "downloadObject()" [disabled] = "!selectRules.download">
-        Скачать</button>
+    <ng-container *ngIf = "createContextMenu.type == 'file'">
+        <button *ngIf = "outFolders[selectObjectI].fileType == 'xls'" class = "contextMenuList" (click) = "createTableFromFile()">
+            Создать таблицу</button>
+        <button class = "contextMenuList" (click) = "downloadObject()">
+            Скачать</button>
+    </ng-container>
 </div>
 <div class = "createContextMenu" 
     [hidden] = "!createContextMenuMain.visible" 
@@ -185,7 +190,12 @@
     <button class = "contextMenuList" (click) = "openBackFolder()">
         Назад</button>
 </div>
-<div *ngIf = "load" class = "blockScreen"> Загрузка... </div>
+<div *ngIf = "load" class = "blockScreen"> 
+    Загрузка... 
+    <div *ngIf = "loadKey != ''" class = "loadBar">
+        <div class = "loadBarLine" [style.width] = "loadValue + '%'"></div>
+    </div>
+</div>
 <div *ngIf = "mainSearch.open" class = "blockScreen">
     <div style = "position: absolute; top:0px; width:100%; background-color: #414141; padding:10px;">
         <div style = "width:100%; margin:auto;">

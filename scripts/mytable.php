@@ -294,7 +294,7 @@
                 if($lastId)
                     query("UPDATE line_ids SET next = %i WHERE id = %i", [$idRow, $lastId]);
             }
-            if($result = query("SELECT id, value, dataType FROM fields WHERE tableId = %i AND type = 'head'", [$idTable]))
+            if($result = query("SELECT id, value, dataType FROM fields WHERE tableId = %i AND type = 'head' ORDER by i", [$idTable]))
                 while ($row = $result->fetch_array(MYSQLI_NUM)) 
                 {
                     if($row[2])
