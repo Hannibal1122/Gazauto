@@ -55,12 +55,12 @@ export class CreateTemplateComponent implements OnInit
         this.query.protectionPost(491, { param: [ this.settings.id ] }, (data) =>
         {
             this.loaded = true;
-            trace(this.parent)
+            /* trace(this.parent) */
             this.name = data.name;
-            trace(data)
+            /* trace(data) */
             this.template = JSON.parse(data.structure);
             this.libraryId = data.libraryId;
-            trace(this.template)
+            /* trace(this.template) */
             /* this.mainList = []; */
             this.myTree.push(-1, { name: "root" });
             this.query.protectionPost(497, { param: [ this.template.mainFields[0].id, this.template.mainFields[1].id ] }, (data) =>
@@ -80,6 +80,7 @@ export class CreateTemplateComponent implements OnInit
             let k = 0;
             while(k < this.template.typeList.length - 1)
                 this.typeByLevel.push(this.searchFromArrayByName(this.template.typeList, this.typeByLevel[k++].children));
+            this.typeByLevel[this.typeByLevel.length - 1].last = true;
             trace(this.typeByLevel)
             this.mainList = this.myTree.straighten();
 
@@ -106,27 +107,48 @@ export class CreateTemplateComponent implements OnInit
         this.tableList = [];
         if(!this.typeByLevel[this.mainList[i].level]) return;
         let type = this.typeByLevel[this.mainList[i].level].name;
+
+        this.createSetting.last = this.typeByLevel[this.mainList[i].level].last === true;
+        this.checkLastChildren(i);
         for(let j = 0; j < this.library.type.length; j++)
             if(this.library.type[j].name == type)
                 this.tableList.push(this.library.name[j]);
-
     }
     inputName = "";
     createSetting = 
     {
         parent: -1,
-        table: 'none'
+        table: 'none',
+        last: false,
+        block: false
     }
     tableList = [];
     appendNode()
     {
-        if(this.createSetting.table == 'none') return;
         let i = this.createSetting.parent;
         let j = 0;
+        if(this.createSetting.table == 'none' || this.checkLastChildren(i)) return;
         for(; j < this.tableList.length; j++)
             if(this.tableList[j].id == Number(this.createSetting.table)) break;
-        this.myTree.push(this.mainList[i].id, { name: this.tableList[j].name, fieldId: this.tableList[j].id, templateId: this.typeByLevel[this.mainList[i].level].templateId });
+        this.myTree.push(this.mainList[i].id, { name: this.tableList[j].name, fieldId: this.tableList[j].id, templateId: this.typeByLevel[this.mainList[i].level].templateId, last: this.createSetting.last });
         this.mainList = this.myTree.straighten();
+    }
+    checkLastChildren(i) // В последнем элементе дерева не может быть больше 1 элемента
+    {
+        /* trace(this.createSetting.block)
+        trace(this.createSetting.last)
+        trace(this.myTree.getCountChildren(this.mainList[i].id)) */
+        if(this.createSetting.last)
+        {
+            if(this.myTree.getCountChildren(this.mainList[i].id) > 0)
+            {
+                this.createSetting.block = true;
+                return true;
+            }
+            else this.createSetting.block = false;
+        }
+        else this.createSetting.block = false;
+        return false;
     }
     removeItem(i)
     {
@@ -180,6 +202,13 @@ class MyTree
         out.push({ ...parent, level: level });
         for(let i = 1; i < this.data.length; i++) 
             if(this.data[i].parent == parent.id) this.getRecursion(out, this.data[i], level + 1);
+    }
+    getCountChildren(parent)
+    {
+        let l = 0;
+        for(let i = 0; i < this.data.length; i++) 
+            if(this.data[i].parent == parent) l++;
+        return l;
     }
     straighten()
     {

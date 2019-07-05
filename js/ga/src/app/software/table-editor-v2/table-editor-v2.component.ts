@@ -197,7 +197,7 @@ export class TableEditorV2Component implements OnInit
                 this.control.error = true;
                 return;
             }
-            trace(data.stickers)
+            /* trace(data.stickers) */
             this.query.onChange({ type: "updateStickers", id: this.id, software: "table", value: data.stickers });
 
             this.control.error = false;

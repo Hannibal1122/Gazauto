@@ -395,7 +395,6 @@ export class ExplorerComponent implements OnInit
                 this.inputs.bind = data[1] !== null; // Если это наследник
                 this.inputs.class = data[2] != 0; // Если элемент создан конструктором
                 if(func) func();
-                this.inputs.id = id;
                 this.inputs.updateHistory();
             });
         });
@@ -436,6 +435,7 @@ export class ExplorerComponent implements OnInit
             this.parent = parent;
             this.searchInput = "";
             this.load = false;
+            this.inputs.id = parent;
             this.onChange({ type: "updateStickers", id: this.parent, software: "explorer", value: data.stickers });
         });
     }
@@ -506,6 +506,7 @@ export class ExplorerComponent implements OnInit
     globalClick = null;
     /**************************************/
     tableProperty = {
+        active: "table",
         loaded: true,
         visible: false,
         data: {},
@@ -608,11 +609,7 @@ export class ExplorerComponent implements OnInit
                 return;
             }
             this.loadValue = Number(data);
-            this.loadTimer = setTimeout(() =>
-            {
-                this.updateLoadKey();
-            }, 350);
-            trace(this.loadValue)
+            this.loadTimer = setTimeout(() => { this.updateLoadKey(); }, 350);
         });
     }
     openTableFilter() // Открыть таблицу как папку для просмотра фильтров

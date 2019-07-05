@@ -27,7 +27,7 @@
                 <option value = "none">Не выбрано</option>
                 <option *ngFor = "let table of tableList" value = "{{ table.id }}">{{ table.name }}</option>
             </select>
-            <button class = "propertyBtn" (click) = "appendNode()" [disabled] = "createSetting.parent == -1">Добавить</button>
+            <button class = "propertyBtn" (click) = "appendNode()" [disabled] = "createSetting.block || createSetting.parent == -1">Добавить</button>
         </div>
         <div style = "text-align: right;">
             <button class = "propertyBtn" (click) = "Cancel()">Отмена</button>
