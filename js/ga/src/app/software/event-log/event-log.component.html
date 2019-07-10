@@ -3,64 +3,117 @@
         <tbody *ngIf = "visible">
             <tr *ngFor = "let row of log"
                 class = "colorWhite"
-                [class.colorBlue] = "row.eventType == 'enter'"
-                [class.colorGray] = "row.eventType == 'open' || row.eventType == 'text'"
-                [class.colorYellow] = "row.eventType == 'warning'"
-                [class.colorRed] = "row.eventType == 'error'"
-                [class.colorViolet] = "row.eventType == 'remove'"
-                [class.colorGreen] = "row.eventType == 'update' || row.eventType == 'state' || row.eventType == 'script'">
+                [class.colorBlue] = "row.operation == 'enter'"
+                [class.colorGray] = "row.operation == 'open' || row.operation == 'text'"
+                [class.colorYellow] = "row.operation == 'warning'"
+                [class.colorRed] = "row.operation == 'error'"
+                [class.colorViolet] = "row.operation == 'remove'"
+                [class.colorGreen] = "row.type != 'field' && (row.operation == 'update' || row.operation == 'state')"
+                [class.colorDarkGreen] = "row.type == 'field' && (row.operation == 'update' || row.operation == 'state' || row.operation == 'script')">
                 <td title="{{ row.date }}">{{ row.time }}</td>
                 <td>{{ row.login }}</td>
-                <td>{{ row.objectType }}</td>
-                <td>{{ row.eventType }}</td>
-                <td>{{ row.data }}</td>
+                <td>{{ row.type }}</td>
+                <td>{{ row.operation }}</td>
+                <td>
+                    <span [class.linkObject] = "row.type == 'structure' || row.type == 'table' || row.type == 'field'" (click) = "openObject(row)">{{ row.name || row.value }}</span>
+                    <span *ngIf = "row.type == 'field'" style = "cursor:pointer; margin-left:3px;" title = "Вернуть значение" (click) = "openValueField(row)"><i class="fas fa-undo-alt"></i></span>
+                </td>
             </tr>
         </tbody>
     </table>
+    <div *ngIf = "loaded && log.length == 0" style = "font-size: 12px; color: white; text-align: center; margin-top:20px;">Журнал пуст. Проверьте фильтры.</div>
 </div>
 <div style = "position:absolute; right:25px; top: 5px;">
-    <button (click) = "openFilterSettings()" class = "propertyBtn hideButton"><i class = "fa fa-filter"></i></button>
+    <button (click) = "openFilterSettings()" class = "propertyBtn hideButton">{{ log.length }} <i class = "fa fa-filter"></i></button>
 </div>
-<div *ngIf = "filterSettings.show" style = "position:absolute; left:0px; top: 0px; width:100%; height:100%; background-color: #292929eb; overflow: auto; padding-bottom: 30px;">
-    <table style = "margin:auto; margin-top:30px; color:white;">
-        <tbody>
-            <tr>
-                <td colspan="2">Фильтры</td>
-            </tr>
-            <tr>
-                <td><input type = "checkbox" [(ngModel)] = "filterSettings.eventTypes.enter" (change) = "onChangeFilterEventType()">enter</td>
-                <td><input type = "checkbox" [(ngModel)] = "filterSettings.eventTypes.open" (change) = "onChangeFilterEventType()">open</td></tr>
-            <tr>
-                <td><input type = "checkbox" [(ngModel)] = "filterSettings.eventTypes.text" (change) = "onChangeFilterEventType()">text</td>
-                <td><input type = "checkbox" [(ngModel)] = "filterSettings.eventTypes.warning" (change) = "onChangeFilterEventType()">warning</td>
-            </tr>
-            <tr>
-                <td><input type = "checkbox" [(ngModel)] = "filterSettings.eventTypes.error" (change) = "onChangeFilterEventType()">error</td>
-                <td><input type = "checkbox" [(ngModel)] = "filterSettings.eventTypes.remove" (change) = "onChangeFilterEventType()">remove</td>
-            </tr>
-            <tr>
-                <td><input type = "checkbox" [(ngModel)] = "filterSettings.eventTypes.update" (change) = "onChangeFilterEventType()">update</td>
-                <td><input type = "checkbox" [(ngModel)] = "filterSettings.eventTypes.state" (change) = "onChangeFilterEventType()">state</td>
-            </tr>
-            <tr>
-                <td><input type = "checkbox" [(ngModel)] = "filterSettings.eventTypes.script" (change) = "onChangeFilterEventType()">script</td><td>
-            </tr>
-            <tr>
-                <td colspan="2">Поиск по дате</td>
-            </tr>
-            <tr style = "color:black;">
-                <td colspan="2"><datetimepicker (onChange) = "changeBeginDate($event)" [setValue] = "filterSettings.beginDateText"></datetimepicker></td>
-            </tr>
-            <tr style = "color:black;">
-                <td colspan="2"><datetimepicker (onChange) = "changeEndDate($event)" [setValue] = "filterSettings.endDateText"></datetimepicker></td>
-            </tr>
-            <tr>
-                <td style = "text-align: center;"><button (click) = "clearFilterSettings()" class = "propertyBtn">Сбросить фильтры</button></td>
-                <td style = "text-align: center;"><button (click) = "searchByFilter()" class = "propertyBtn">Поиск</button></td>
-            </tr>
-        </tbody>
+<div *ngIf = "!loaded" style = "position:absolute; width:100%; height:100%; color: white; top:0px; left:0px;">
+    <div style = "transform: translate(-50%, -50%); position:absolute; left:50%; top:50%;"> <i class="fas fa-spinner spinnerLoader"></i> </div>
+</div>
+<div [hidden] = "!filterSettings.show" style = "position:absolute; left:0px; top: 0px; width:100%; height:100%; background-color: #292929eb; overflow: auto; padding-bottom: 30px;">
+    <table *ngIf = "filterSettings.type == 'filter'" style = "margin:auto; margin-top:30px; color:white;">
+        <tr>
+            <td colspan="2">Фильтры</td>
+        </tr>
+        <tr>
+            <td colspan="2"><input type = "text" placeholder = "Логин"></td>
+        </tr>
+        <tr>
+            <td colspan="2"><input type = "text" placeholder = "Значение"></td>
+        </tr>
+        <tr>
+            <td colspan="2">Тип</td>
+        </tr>
+        <tr>
+            <td><input type = "checkbox" [(ngModel)] = "filterSettings.types.table" (change) = "onChangeFilterType()">table</td>
+            <td><input type = "checkbox" [(ngModel)] = "filterSettings.types.structure" (change) = "onChangeFilterType()">structure</td></tr>
+        <tr>
+            <td><input type = "checkbox" [(ngModel)] = "filterSettings.types.user" (change) = "onChangeFilterType()">user</td>
+            <td><input type = "checkbox" [(ngModel)] = "filterSettings.types.filter" (change) = "onChangeFilterType()">filter</td>
+        </tr>
+        <tr>
+            <td><input type = "checkbox" [(ngModel)] = "filterSettings.types.event" (change) = "onChangeFilterType()">event</td>
+            <td><input type = "checkbox" [(ngModel)] = "filterSettings.types.message" (change) = "onChangeFilterType()">message</td>
+        </tr>
+        <tr>
+            <td><input type = "checkbox" [(ngModel)] = "filterSettings.types.plan" (change) = "onChangeFilterType()">plan</td>
+            <td><input type = "checkbox" [(ngModel)] = "filterSettings.types.file" (change) = "onChangeFilterType()">file</td>
+        </tr>
+        <tr>
+            <td><input type = "checkbox" [(ngModel)] = "filterSettings.types.field" (change) = "onChangeFilterType()">field</td>
+            <td><input type = "checkbox" [(ngModel)] = "filterSettings.types.right" (change) = "onChangeFilterType()">right</td>
+        </tr>
+        <tr>
+            <td colspan="2">Операция</td>
+        </tr>
+        <tr>
+            <td><input type = "checkbox" [(ngModel)] = "filterSettings.eventTypes.enter" (change) = "onChangeFilterEventType()">enter</td>
+            <td><input type = "checkbox" [(ngModel)] = "filterSettings.eventTypes.open" (change) = "onChangeFilterEventType()">open</td></tr>
+        <tr>
+            <td><input type = "checkbox" [(ngModel)] = "filterSettings.eventTypes.text" (change) = "onChangeFilterEventType()">text</td>
+            <td><input type = "checkbox" [(ngModel)] = "filterSettings.eventTypes.warning" (change) = "onChangeFilterEventType()">warning</td>
+        </tr>
+        <tr>
+            <td><input type = "checkbox" [(ngModel)] = "filterSettings.eventTypes.error" (change) = "onChangeFilterEventType()">error</td>
+            <td><input type = "checkbox" [(ngModel)] = "filterSettings.eventTypes.remove" (change) = "onChangeFilterEventType()">remove</td>
+        </tr>
+        <tr>
+            <td><input type = "checkbox" [(ngModel)] = "filterSettings.eventTypes.update" (change) = "onChangeFilterEventType()">update</td>
+            <td><input type = "checkbox" [(ngModel)] = "filterSettings.eventTypes.state" (change) = "onChangeFilterEventType()">state</td>
+        </tr>
+        <tr>
+            <td><input type = "checkbox" [(ngModel)] = "filterSettings.eventTypes.script" (change) = "onChangeFilterEventType()">script</td>
+        </tr>
+        <tr>
+            <td colspan="2">Поиск по дате</td>
+        </tr>
+        <tr style = "color:black;">
+            <td colspan="2"><datetimepicker (onChange) = "changeBeginDate($event)" [setValue] = "filterSettings.beginDateText"></datetimepicker></td>
+        </tr>
+        <tr style = "color:black;">
+            <td colspan="2"><datetimepicker (onChange) = "changeEndDate($event)" [setValue] = "filterSettings.endDateText"></datetimepicker></td>
+        </tr>
+        <tr>
+            <td style = "text-align: center;"><button (click) = "clearFilterSettings()" class = "propertyBtn">Сбросить фильтры</button></td>
+            <td style = "text-align: center;"><button (click) = "searchByFilter()" class = "propertyBtn">Поиск</button></td>
+        </tr>
+    </table>
+    <table *ngIf = "filterSettings.type == 'field'" style = "margin:auto; margin-top:30px; color:white;">
+        <tr>
+            <td colspan="2">Вернуть значение</td>
+        </tr>
+        <tr>
+            <td>Тип</td>
+            <td>{{ filterSettings.fieldData.type }}</td>
+        </tr>
+        <tr>
+            <td>Значение</td>
+            <td>{{ filterSettings.fieldData.value }}</td>
+        </tr>
+        <!-- <tr>
+            <td style = "text-align: center;" colspan = "2"><button (click) = "backOldValue()" class = "propertyBtn">Вернуть</button></td>
+        </tr> -->
     </table>
 </div>
-<div *ngIf = "filterSettings.show" class = "ModalButtonExitColor" style = "position:absolute; right:5px; top:5px; font-size:16px; cursor:pointer;" (click) = "closeFilterSettings()">
+<div *ngIf = "filterSettings.show" class = "ModalButtonExitColor" style = "position:absolute; right:3px; top:0px; font-size:16px; cursor:pointer;" (click) = "closeFilterSettings()">
     <i class="fas fa-times-circle"></i>
 </div>

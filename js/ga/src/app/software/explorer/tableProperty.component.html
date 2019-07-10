@@ -13,8 +13,23 @@
                 <tr *ngFor = "let p of userProperty; let i = index;">
                     <ng-container *ngIf = "p.type !== 'block' && selectRules.change">
                         <td style = "color:red; cursor: pointer;" (click) = "removeUserProperty(i)"><i class="fas fa-minus-circle"></i></td>
-                        <td class = "tdInput"><input type = "text" [(ngModel)] = "p.name" (change) = "onInputChangeUser(p)"></td>
-                        <td class = "tdInput"><input type = "text" [(ngModel)] = "p.value" (change) = "onInputChangeUser(p)"></td>
+                        <td class = "tdInput">
+                            <input *ngIf = "p.type != 'annotation'" type = "text" [(ngModel)] = "p.name" (change) = "onInputChangeUser(p)">
+                            <span *ngIf = "p.type == 'annotation'">{{ p.name }}</span>
+                        </td>
+                        <td class = "tdInput" style = "position:relative;">
+                            <input type = "text" [(ngModel)] = "p.type == 'annotation' ? p.value.id : p.value" (change) = "onInputChangeUser(p)">
+                            <ng-container *ngIf = "p.type == 'annotation'">
+                                <span (click) = "pasteObject(p)"
+                                    style = "position: absolute; right: 18px; top:1px;cursor:pointer;">
+                                    <i class="fas fa-paste"></i>
+                                </span>
+                                <span (click) = "openObject(p)"
+                                    style = "position: absolute; right: 3px; top:1px;cursor:pointer;">
+                                    <i class="fas fa-arrow-circle-right"></i>
+                                </span>
+                            </ng-container>
+                        </td>
                     </ng-container>
                     <ng-container *ngIf = "p.type == 'block' || !selectRules.change">
                         <td></td>

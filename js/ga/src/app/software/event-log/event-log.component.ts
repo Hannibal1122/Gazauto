@@ -17,14 +17,18 @@ export class EventLogComponent implements OnInit
     log = []; // drawData
     timer = null;
     first = false;
-    visible = true;
+    visible = true; // Для перемещения экранов
+    loaded = true;
     filterSettings = 
     {
+        type: 'filter', // field
         beginDate: null, 
         endDate: null,
         beginDateText: null, 
         endDateText: null,
         show: false,
+        value: "", // фильтр по значению
+        login: "", // фильтр по логину
         eventTypes: 
         {
             enter: true,
@@ -36,13 +40,38 @@ export class EventLogComponent implements OnInit
             update: true,
             state: true,
             script: true
-        }
+        },
+        types: 
+        {
+            table: true,
+            structure: true,
+            user: true,
+            filter: true,
+            event: true,
+            message: true,
+            plan: true,
+            file: true,
+            field: true,
+            right: true 
+        },
+        fieldData: {} // Старое значение ячейки
     }
     showFilterSettings = false;
     constructor(public query: QueryService, public func:FunctionsService) { }
     ngOnInit() 
     { 
-        this.update();
+        let date = this.func.getFormatForMilliseconds(new Date().getTime(), "dd.MM.yyyy HH:mm");
+        this.filterSettings.beginDateText = date;
+        this.filterSettings.endDateText = date;
+        this.query.protectionPost(451, { param: [ "event_log_event_types"] }, (eventTypes) =>
+        {
+            if(eventTypes) this.filterSettings.eventTypes = eventTypes;
+            this.query.protectionPost(451, { param: [ "event_log_types"] }, (types) =>
+            {
+                if(types) this.filterSettings.types = types;
+                this.update();
+            });
+        });
     }
     start()
     {
@@ -74,35 +103,37 @@ export class EventLogComponent implements OnInit
         let date;
         for(let i = 0; i < this.firstData.length; i++)
         {
-            if(this.filterSettings.eventTypes[this.firstData[i][3]]) // фильтрация по типу события
+            if(this.filterSettings.types[this.firstData[i].type] && this.filterSettings.eventTypes[this.firstData[i].operation]) // фильтрация по типу события
             {
-                date = this.func.getFormat(this.firstData[i][0]);
-                this.log.push({
-                    time: date.split(" ")[1],
-                    login: this.firstData[i][1],
-                    objectType: this.firstData[i][2],
-                    eventType: this.firstData[i][3],
-                    data: this.firstData[i][4],
-                    date: date
-                })
+                date = this.func.getFormat(this.firstData[i].date);
+                this.log.push({ time: date.split(" ")[1], date: date, ...this.firstData[i] });
             }
         }
     }
     onChangeFilterEventType()
     {
+        this.query.protectionPost(450, { param: [ "event_log_event_types", JSON.stringify(this.filterSettings.eventTypes) ] });
+        this.parseLogData();
+    }
+    onChangeFilterType()
+    {
+        this.query.protectionPost(450, { param: [ "event_log_types", JSON.stringify(this.filterSettings.types) ] });
         this.parseLogData();
     }
     openFilterSettings()
     {
         this.filterSettings.show = true;
+        this.filterSettings.type = 'filter';
         clearTimeout(this.timer);
     }
     searchByFilter()
     {
         this.filterSettings.show = false;
+        this.loaded = false;
         this.query.protectionPost(481, { param: [this.inputs.id, this.filterSettings.beginDate, this.filterSettings.endDate] }, (data) =>
         {
             this.parseLogData(data);
+            this.loaded = true;
         });
     }
     clearFilterSettings()
@@ -125,5 +156,25 @@ export class EventLogComponent implements OnInit
     ngOnDestroy() 
     {
         clearTimeout(this.timer);
+    }
+    openObject(object)
+    {
+        if(object.type == 'table')
+            this.query.onChange({ type: "openFromTable", value: { type: "open", name: object.type, id: Number(object.value) }});
+        if(object.type == 'structure' || object.type == 'field')
+            this.query.onChange({ type: "openFromTable", value: { name: object.type == 'structure' ? "folder" : "cell", id: Number(object.value) }});
+    }
+    openValueField(object)
+    {
+        if(object.type == 'field')
+            this.query.protectionPost(482, { param: [ this.inputs.id, object.id ] }, (data) => {
+                this.filterSettings.show = true;
+                this.filterSettings.type = 'field';
+                this.filterSettings.fieldData = { idLog: object.id, ...data };
+            });
+    }
+    backOldValue()
+    {
+        trace(this.filterSettings.fieldData)
     }
 }

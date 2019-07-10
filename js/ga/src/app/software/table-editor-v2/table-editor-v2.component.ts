@@ -916,6 +916,7 @@ export class TableEditorV2Component implements OnInit
     }
     /*************************************************/
     tableProperty = {
+        active: "table",
         loaded:true,
         visible: false,
         data: {},

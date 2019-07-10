@@ -23,6 +23,10 @@
 {
     color:rgb(82, 255, 47);
 }
+.colorDarkGreen
+{
+    color:rgb(64, 175, 60);
+}
 .colorYellow
 {
     color:rgb(242, 245, 88);
@@ -39,4 +43,11 @@
 .hideButton:hover
 {
     opacity: 1;
+}
+.linkObject
+{
+}
+.linkObject:hover
+{
+    text-decoration-line: underline;
 }

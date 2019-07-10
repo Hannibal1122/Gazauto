@@ -95,6 +95,18 @@
     height: calc(100% - 10px);
     max-height: 500px;
 }
+.tablePropertyTab
+{
+    border:1px solid #dddddd; 
+    padding:2px;
+    background-color: #eeeeee;
+    cursor:pointer;
+}
+.tablePropertyTabActive
+{
+    background-color: #ffffff;
+    border-bottom: none;
+}
 .wordCenter
 {
     position: absolute; 

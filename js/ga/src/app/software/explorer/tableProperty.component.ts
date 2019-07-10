@@ -33,6 +33,12 @@ export class TablePropertyComponent implements OnInit
 
                 this.mainProperty[7].value = data.timeCreate;
                 this.userProperty = data.userProperty ? JSON.parse(data.userProperty) : [];
+
+                let i = 0;
+                for(; i < this.userProperty.length; i++)
+                    if(this.userProperty[i].name == "Аннотация") break;
+                if(i == this.userProperty.length)
+                    this.userProperty.push({ name: "Аннотация", value: "", type: "annotation" });
             });
             this.change = false;
             /* this.property = [ ...this.mainProperty ]; */
@@ -47,6 +53,12 @@ export class TablePropertyComponent implements OnInit
             this.query.protectionPost(272, { param: [ value.id ] }, (data) => // Запрос таблицы свойств
             {
                 this.userProperty = data.userProperty ? JSON.parse(data.userProperty) : [];
+                
+                let i = 0;
+                for(; i < this.userProperty.length; i++)
+                    if(this.userProperty[i].name == "Аннотация") break;
+                if(i == this.userProperty.length)
+                    this.userProperty.push({ name: "Аннотация", value: "", type: "annotation" });
             });
             this.change = false;
             /* this.property = [ ...this.mainPropertyField ]; */
@@ -102,7 +114,7 @@ export class TablePropertyComponent implements OnInit
     mainPropertyField =
     [
         { name: "id", desc: "id", value: "", type: "block"},
-        { name: "color", desc: "цвет", value: "", type: "edit"},
+        { name: "color", desc: "цвет", value: "", type: "edit"}
     ]
     userProperty = [];
     property = [];
@@ -173,11 +185,25 @@ export class TablePropertyComponent implements OnInit
     }
     removeUserProperty(i)
     {
-        this.userProperty.splice(i, 1);
+        if(this.userProperty[i].type == "annotation") this.userProperty[i].value = "";
+        else this.userProperty.splice(i, 1);
         this.change = true;
     }
     onInputChangeUser()
     {
         this.change = true;
+    }
+    openObject(p)
+    {
+        this.query.onChange({ type: "openFromTable", value: { type: "open", name: p.value.type, id: p.value.id }});
+    }
+    pasteObject(p)
+    {
+        if(localStorage.getItem("copyExplorer"))
+        {
+            let data = JSON.parse(localStorage.getItem("copyExplorer"));
+            p.value = { id: data.id, type: data.objectType };
+            this.onInputChangeUser();
+        }
     }
 }

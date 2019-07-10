@@ -190,6 +190,7 @@ export class AppComponent implements OnInit
         this.tabs.splice(_i, 1);
         this.splitScreen.closeTab(s, i);
         this.removeSaveTab(_i);
+        this.setCurrentStickers();
     }
     leftMenuConfig = [];
     refreshLeftMenu() // обновить левое меню
