@@ -37,7 +37,9 @@ export class EventLogComponent implements OnInit
             remove: true,
             update: true,
             state: true,
-            script: true
+            script: true,
+            cut: true,
+            copy: true
         },
         types: 
         {
@@ -51,7 +53,6 @@ export class EventLogComponent implements OnInit
             file: true,
             field: true,
             right: true,
-
             value: "", // фильтр по значению
             login: "", // фильтр по логину
         },
@@ -65,15 +66,7 @@ export class EventLogComponent implements OnInit
         this.filterSettings.beginDateText = date;
         this.filterSettings.endDateText = date;
         this.loaded = false;
-        this.query.protectionPost(451, { param: [ "event_log_event_types"] }, (eventTypes) =>
-        {
-            if(eventTypes) for(let key in eventTypes) this.filterSettings.eventTypes[key] = eventTypes[key];
-            this.query.protectionPost(451, { param: [ "event_log_types"] }, (types) =>
-            {
-                if(types) for(let key in types) this.filterSettings.types[key] = types[key];
-                this.update();
-            });
-        });
+        this.update();
     }
     start()
     {
@@ -84,8 +77,15 @@ export class EventLogComponent implements OnInit
     }
     update()
     {
-        this.query.protectionPost(480, { param: [this.inputs.id] }, (data) =>
+        this.query.protectionPost(480, { param: [this.inputs.id] }, (log) =>
         {
+            let eventTypes = log.event_log_event_types;
+            let types = log.event_log_types;
+            let data = log.data;
+
+            if(eventTypes) for(let key in eventTypes) this.filterSettings.eventTypes[key] = eventTypes[key];
+            if(types) for(let key in types) this.filterSettings.types[key] = types[key];
+
             this.inputs.name = "Журнал";
             this.parseLogData(data.reverse());
             this.loaded = true;
@@ -117,6 +117,7 @@ export class EventLogComponent implements OnInit
             loginBool = this.filterSettings.types.login == "" || this.firstData[i].login.toLowerCase().indexOf(this.filterSettings.types.login.toLowerCase()) != -1;
             typeBool = this.filterSettings.types[this.firstData[i].type];
             eventTypeBool = this.filterSettings.eventTypes[this.firstData[i].operation];
+
             if(valueBool && loginBool && typeBool && eventTypeBool) // фильтрация по типу события
             {
                 date = this.func.getFormat(this.firstData[i].date);

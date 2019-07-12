@@ -65,7 +65,7 @@
                     break;
             }
             break;
-        case 130: // Удаление элемента структуры // Права на изменение
+        case 112: // Удаление элемента структуры // Права на изменение
             $idElement = (int)$param[0];
             if(($myRight->get($idElement) & 8) != 8) return; // Права на изменение
             if(selectOne("SELECT objectType FROM structures WHERE id = %i", [ $idElement ]) == "table" 
@@ -113,6 +113,7 @@
             $idElement = (int)$param[0]; // id Элемента 
             $idParent = (int)$param[1]; // id папки в которую копируем
             $newName = $param[3];
+            $loadKey = $param[4];
             $out = [$idElement]; //Проверка на добавление папки саму в себя
             getRemoveElementbyStructure($out, $idElement);
             for($i = 0, $c = count($out); $i < $c; $i++) 
@@ -122,6 +123,8 @@
                 && selectOne("SELECT class FROM structures WHERE id = %i", [ $idElement ]) == 1) return; // Ограничение для копирования/вырезания в таблицах созданных конструктором
 
             require_once("copyAndRemove.php");
+            require_once("myLoading.php");
+            $myLoading = new MyLoading($loadKey);
             $type = $param[2]; // тип операции
             if(($myRight->get($idParent) & 8) != 8) continue; // Права на изменение
             if($type == "copy" || $type == "inherit") // Копирование или Наследование
@@ -129,16 +132,17 @@
                 if($type == "copy" && ($myRight->get($idElement) & 2) != 2) continue; // Права на копирование
                 if($type == "inherit" && ($myRight->get($idElement) & 4) != 4) continue; // Права на наследование
                 
-                $structures = new CopyAndRemove($idElement, $idParent, $type, $myLog);
+                $structures = new CopyAndRemove($idElement, $idParent, $type, $myLog, $myLoading);
                 $structures->copy($newName);
-                $myLog->add("structure", "copy", $idParent);
+                $myLog->add("structure", "copy", $idElement);
             }
             if($type == "cut") // Вырезать(изменение)
             {
                 if(($myRight->get($idElement) & 8) != 8) continue; // Права на изменение
                 query("UPDATE structures SET parent = %i WHERE id = %i", [$idParent, $idElement]);
-                $myLog->add("structure", "cut", $idParent);
+                $myLog->add("structure", "cut", $idElement);
             }
+            $myLoading->removeKey();
             break;
         case 115: // Запрос приоритета и иконок
             if(($myRight->get($param[0]) & 1) != 1) continue; // Права на просмотр
@@ -261,7 +265,7 @@
                     $out = getObjectFromStructures($row);
             echo json_encode($out);
             break;
-        case 112: // Полное удаление Объекта из проекта
+        case 130: // Полное удаление Объекта из проекта
             require_once("copyAndRemove.php");
             $idElement = (int)$param[0];
             $structures = new CopyAndRemove(null, null, null, $myLog);
@@ -376,6 +380,8 @@
 
             require_once("myStructures.php");
             require_once("myTable.php");
+            require_once("myLoading.php");
+            $myLoading = new MyLoading($loadKey);
             $myStructures = new MyStructures($myRight, $myLog);
             $idTable = $myStructures->create(["table", NULL, $name, $parent, 0, ""], false);
             $myTable = new MyTable($idTable, $myLog); // Общий класс для работы с таблицами
@@ -385,8 +391,8 @@
                 $data[] = (object)["value" => $fileData[0][$j], "i" => $j];
             $myTable->setAndRemoveHeader($data, []);
             $c = count($fileData);
-            $p = 100 / $c;
-            $percent = $p;
+            $myLoading->start($c);
+            $myLoading->update();
             for($i = 1; $i < $c; $i++)
             {
                 $row = $myTable->addRow(-1, -1, false);
@@ -395,20 +401,19 @@
                 foreach($row as $idColumn => $value)
                     if($idColumn != "__ID__")
                         query("UPDATE fields SET value = %s WHERE idColumn = %i AND i = %i", [ $fileData[$i][$j++], $idColumn, $idRow ]);
-                $percent += $p;
-                query("UPDATE user_settings SET value = %s WHERE login = %s AND type = %s", [$percent, $login, $loadKey]);
+                $myLoading->update();
             }
-            query("DELETE FROM user_settings WHERE login = %s AND type = %s", [ $login, $loadKey ]);
+            $myLoading->removeKey();
             break;
         case 140: // Создает в настройках уникальную запись для проверки загрузки в процентах
-            $loadKey = unique_md5();
-            query("INSERT INTO user_settings (login, id, type, value) VALUES(%s, %i, %s, %s)", [$login, -1, $loadKey, "0"]);
-            echo $loadKey;
+            require_once("myLoading.php");
+            $myLoading = new MyLoading("");
+            echo $myLoading->getKey();
             break;
         case 141: // Получить статус загрузки процесса
-            $loadKey = $param[0];
-            $loadValue = selectOne("SELECT value FROM user_settings WHERE login = %s AND type = %s", [$login, $loadKey]);
-            echo is_null($loadValue) ? "END" : $loadValue;
+            require_once("myLoading.php");
+            $myLoading = new MyLoading($param[0]);
+            echo $myLoading->getState();
             break;
     }
 ?>

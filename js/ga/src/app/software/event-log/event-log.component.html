@@ -82,6 +82,10 @@
         </tr>
         <tr>
             <td><input type = "checkbox" [(ngModel)] = "filterSettings.eventTypes.script" (change) = "onChangeFilterEventType()">script</td>
+            <td><input type = "checkbox" [(ngModel)] = "filterSettings.eventTypes.copy" (change) = "onChangeFilterEventType()">copy</td>
+        </tr>
+        <tr>
+            <td><input type = "checkbox" [(ngModel)] = "filterSettings.eventTypes.cut" (change) = "onChangeFilterEventType()">cut</td>
         </tr>
         <tr>
             <td colspan="2">Поиск по дате</td>

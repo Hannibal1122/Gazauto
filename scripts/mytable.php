@@ -437,7 +437,7 @@
         function copy($idTableFrom, $link) // Копировать таблицу
         {
             // Добавить проверку на наследование от наследуемой проверять bindId таблицы
-            global $mysqli;
+            global $mysqli, $myLoading;
             $idTable = $this->idTable;
             $idNewRow = -1;
             $newIdColumn = [];
@@ -474,6 +474,9 @@
                 $outData[$i]["__ID__"] = $key;
                 $key = $this->getNextI($data, $key);
             }
+            $load_update = true;
+            if(isset($myLoading)) $myLoading->start($l);
+            else $load_update = false;
             for($i = 0; $i < $l; $i++)
             {
                 $newRow = $this->addRow($idNewRow, 1, false);
@@ -481,6 +484,7 @@
                 foreach($outData[$i] as $key => $value)
                     if($key != "__ID__" && $key != "__NEXT__")
                         $this->copyCell($newRow[$key]["id"], $idTable, $value, $idTableFrom, "copy", "value", false);
+                if($load_update) $myLoading->update();
             }
             if($link) query("UPDATE structures SET bindId = %i WHERE id = %i", [ $idTableFrom, $idTable ]);
         }

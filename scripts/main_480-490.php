@@ -4,15 +4,28 @@
     {
         case 480: // Отображение последних 100 сообщений
             if(($myRight->get($idElement) & 1) != 1) continue; // Права на просмотр
-            $out = [];
+            $out = [
+                "data" => [],
+                "event_log_event_types" => selectOne("SELECT value FROM user_settings WHERE login = %s AND type = %s", [ $login, "event_log_event_types" ]),
+                "event_log_types" => selectOne("SELECT value FROM user_settings WHERE login = %s AND type = %s", [ $login, "event_log_types" ])
+            ];
+            $out["event_log_event_types"] = $out["event_log_event_types"] != "" ? json_decode($out["event_log_event_types"]) : []; 
+            $out["event_log_types"] = $out["event_log_types"] != "" ? json_decode($out["event_log_types"]) : []; 
+            $data = [];
+            $filterStr = "";
+            /* foreach($key as $out["event_log_types"])
+            {
+                print_r($key);
+            } */
             $i = 0;
             if($result = query("SELECT id, date, login, type, operation, value FROM main_log ORDER by date DESC LIMIT 100", []))
                 while ($row = $result->fetch_assoc())
                 {
-                    $out[$i] = $row;
-                    if($out[$i]["type"] == "table" || $out[$i]["type"] == "structure") $out[$i]["name"] = selectOne("SELECT name FROM structures WHERE id = %i", [ (int)$out[$i]["value"] ]);
+                    $data[$i] = $row;
+                    if($data[$i]["type"] == "table" || $data[$i]["type"] == "structure") $data[$i]["name"] = selectOne("SELECT name FROM structures WHERE id = %i", [ (int)$data[$i]["value"] ]);
                     $i++;
                 }
+            $out["data"] = $data;
             echo json_encode($out);
             break;
         case 481: // Запрос сообщений по дате

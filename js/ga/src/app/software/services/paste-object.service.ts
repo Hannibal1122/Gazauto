@@ -34,7 +34,7 @@ export class PasteObjectService {
                 return "Создает все входящие дирректории и элементы без значений";
         }
     }
-    paste(parent, update, loadUpdate) // сюда id parent
+    paste(parent, copyOrPaste) // сюда id parent
     {
         let copyExplorer = JSON.parse(localStorage.getItem("copyExplorer"));
         let type = localStorage.getItem("lastOperationExplorer");
@@ -58,15 +58,16 @@ export class PasteObjectService {
         this.Data.data[0][1].data = selectValue;
         this.Data.data[0][1].selected = "Копировать";
         this.Data.data[1][1] = this.getInfo(this.Data.data[0][1].selected);
+        this.Data.data[2][1] = copyExplorer.name + "(копия)";
         if(selectValue.length > 1 && type != "cut")
             this.modal.open(this.Data, (save) =>
             {
-                if(save) this.copyOrPaste(copyExplorer.id, parent, type, () => { update(); loadUpdate(); });
-                else loadUpdate();
+                if(save) copyOrPaste(copyExplorer.id, parent, type, this.Data.data);
+                else copyOrPaste(-1);
             })
-        else this.copyOrPaste(copyExplorer.id, parent, type, () => { update(); loadUpdate(); });
+        else copyOrPaste(copyExplorer.id, parent, type, this.Data.data);
     }
-    copyOrPaste(id, parent, type, func)
+    /* copyOrPaste(id, parent, type, func)
     {
         if(type != "cut")
             switch(this.Data.data[0][1].selected)
@@ -75,11 +76,14 @@ export class PasteObjectService {
                 case "Копировать структуру": type = "struct"; break;
                 case "Наследовать": type = "inherit"; break;
             }
-        this.query.protectionPost(114, { param: [ id, parent, type, this.Data.data[2][1] ] }, (data) =>
+        this.query.protectionPost(140, { param: [] }, (loadKey) =>
         {
-            if(data == "ERROR") this.modal.open({ title: "Ошибка! Конечная папка является дочерней для копируемой!", data: [], ok: "Ок", cancel: ""});
-            if(func) func();
-            localStorage.removeItem("copyExplorer");
+            this.query.protectionPost(114, { param: [ id, parent, type, this.Data.data[2][1] ] }, (data) =>
+            {
+                if(data == "ERROR") this.modal.open({ title: "Ошибка! Конечная папка является дочерней для копируемой!", data: [], ok: "Ок", cancel: ""});
+                if(func) func();
+                localStorage.removeItem("copyExplorer");
+            });
         });
-    }
+    } */
 }

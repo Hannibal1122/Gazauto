@@ -96,7 +96,7 @@ export class ExplorerComponent implements OnInit
                 let id = -1;
                 let type = "";
                 if(this.inputs.element) { id = this.inputs.element; type = "element"; }
-                if(this.inputs.searchObjectId) { id = this.inputs.searchObjectId; type = "search"; }
+                if(this.inputs.searchObjectId) { id = this.inputs.searchObjectId; this.inputs.searchObjectId = -1; type = "search"; }
                 this.openObjectById(type, id);
             });
         }
@@ -260,7 +260,7 @@ export class ExplorerComponent implements OnInit
     _pasteObject()
     {
         this.load = true;
-        this.pasteObject.paste(this.parent, () => { this.refresh() }, () => { this.load = false; })
+        this.pasteObject.paste(this.parent, (id, parent, type, data) => { this.copyOrPasteWithLoadKey(id, parent, type, data) } )
     }
     removeObject() // Удалить объект
     {
@@ -595,6 +595,30 @@ export class ExplorerComponent implements OnInit
             this.query.protectionPost(139, { param: [ this.outFolders[this.selectObjectI].id, loadKey ] }, (data) =>
             {
                 this.refresh();
+            });
+        });
+    }
+    copyOrPasteWithLoadKey(id, parent, type, data)
+    {
+        if(id == -1) { this.load = false; return }
+        if(type != "cut")
+            switch(data[0][1].selected)
+            {
+                case "Копировать": type = "copy"; break;
+                case "Копировать структуру": type = "struct"; break;
+                case "Наследовать": type = "inherit"; break;
+            }
+        this.query.protectionPost(140, { param: [] }, (loadKey) =>
+        {
+            clearTimeout(this.loadTimer);
+            this.loadValue = 0;
+            this.loadKey = loadKey;
+            this.updateLoadKey();
+            this.query.protectionPost(114, { param: [ id, parent, type, data[2][1], loadKey ] }, (data) =>
+            {
+                if(data == "ERROR") this.modal.open({ title: "Ошибка! Конечная папка является дочерней для копируемой!", data: [], ok: "Ок", cancel: ""});
+                this.refresh();
+                localStorage.removeItem("copyExplorer");
             });
         });
     }
