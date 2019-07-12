@@ -27,8 +27,6 @@ export class EventLogComponent implements OnInit
         beginDateText: null, 
         endDateText: null,
         show: false,
-        value: "", // фильтр по значению
-        login: "", // фильтр по логину
         eventTypes: 
         {
             enter: true,
@@ -52,7 +50,10 @@ export class EventLogComponent implements OnInit
             plan: true,
             file: true,
             field: true,
-            right: true 
+            right: true,
+
+            value: "", // фильтр по значению
+            login: "", // фильтр по логину
         },
         fieldData: {} // Старое значение ячейки
     }
@@ -63,12 +64,13 @@ export class EventLogComponent implements OnInit
         let date = this.func.getFormatForMilliseconds(new Date().getTime(), "dd.MM.yyyy HH:mm");
         this.filterSettings.beginDateText = date;
         this.filterSettings.endDateText = date;
+        this.loaded = false;
         this.query.protectionPost(451, { param: [ "event_log_event_types"] }, (eventTypes) =>
         {
-            if(eventTypes) this.filterSettings.eventTypes = eventTypes;
+            if(eventTypes) for(let key in eventTypes) this.filterSettings.eventTypes[key] = eventTypes[key];
             this.query.protectionPost(451, { param: [ "event_log_types"] }, (types) =>
             {
-                if(types) this.filterSettings.types = types;
+                if(types) for(let key in types) this.filterSettings.types[key] = types[key];
                 this.update();
             });
         });
@@ -86,6 +88,7 @@ export class EventLogComponent implements OnInit
         {
             this.inputs.name = "Журнал";
             this.parseLogData(data.reverse());
+            this.loaded = true;
             if(!this.first)
                 setTimeout(() => 
                 {
@@ -101,9 +104,20 @@ export class EventLogComponent implements OnInit
         if(data) this.firstData = data;
         this.log = [];
         let date;
+        let valueBool;
+        let loginBool;
+        let typeBool;
+        let eventTypeBool;
         for(let i = 0; i < this.firstData.length; i++)
         {
-            if(this.filterSettings.types[this.firstData[i].type] && this.filterSettings.eventTypes[this.firstData[i].operation]) // фильтрация по типу события
+            valueBool = this.filterSettings.types.value == "";
+            if(this.firstData[i].value) valueBool = valueBool || this.firstData[i].value.toLowerCase().indexOf(this.filterSettings.types.value.toLowerCase()) != -1;
+            if(this.firstData[i].name) valueBool = valueBool || this.firstData[i].name.toLowerCase().indexOf(this.filterSettings.types.value.toLowerCase()) != -1;
+
+            loginBool = this.filterSettings.types.login == "" || this.firstData[i].login.toLowerCase().indexOf(this.filterSettings.types.login.toLowerCase()) != -1;
+            typeBool = this.filterSettings.types[this.firstData[i].type];
+            eventTypeBool = this.filterSettings.eventTypes[this.firstData[i].operation];
+            if(valueBool && loginBool && typeBool && eventTypeBool) // фильтрация по типу события
             {
                 date = this.func.getFormat(this.firstData[i].date);
                 this.log.push({ time: date.split(" ")[1], date: date, ...this.firstData[i] });

@@ -35,10 +35,10 @@
             <td colspan="2">Фильтры</td>
         </tr>
         <tr>
-            <td colspan="2"><input type = "text" placeholder = "Логин"></td>
+            <td colspan="2"><input type = "text" placeholder = "Логин" [(ngModel)] = "filterSettings.types.login" (change) = "onChangeFilterType()"></td>
         </tr>
         <tr>
-            <td colspan="2"><input type = "text" placeholder = "Значение"></td>
+            <td colspan="2"><input type = "text" placeholder = "Значение" [(ngModel)] = "filterSettings.types.value" (change) = "onChangeFilterType()"></td>
         </tr>
         <tr>
             <td colspan="2">Тип</td>
