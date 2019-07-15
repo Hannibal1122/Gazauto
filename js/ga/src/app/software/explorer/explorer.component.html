@@ -249,18 +249,20 @@
     </div>
     <div *ngIf = "miniApp.type == 'xls'" style = "position:absolute; width:100%; height:100%;">
         <div style = "transform: translate(-50%, -50%); position:absolute; left:50%; top:50%;" *ngIf = "!miniApp.xls.loaded"> <i class="fas fa-spinner spinnerLoader"></i> </div>
-        <div style = "width: 100%; height: 100%; overflow:auto; margin:auto; position: relative;">
-            <table class = "xlsTable">
-                <tr *ngFor = "let row of miniApp.xls.table">
-                    <td *ngFor = "let cell of row" [style.background-color] = "cell.color">{{ cell.value }}</td>
-                </tr>
-            </table>
-        </div>
-        <div style = "position: absolute; bottom:0px; height:20px; display: flex; width: 100%; font-size: 12px; background-color: white;">
-            <div *ngFor = "let sheet of miniApp.xls.sheetList; let i = index;" 
-                (click) = "miniApp.xls.setList(i)" 
-                style = "padding: 0px 5px; cursor: pointer;" 
-                [class.xlsSheetActive] = "i == miniApp.xls.sheet" >{{ sheet }}</div>
+        <div style = "width: 100%; height: 100%; display: grid; grid-template-rows: 1fr auto;">
+            <div style="overflow:auto;">
+                <table class = "xlsTable">
+                    <tr *ngFor = "let row of miniApp.xls.table">
+                        <td *ngFor = "let cell of row" [style.background-color] = "cell.color">{{ cell.value }}</td>
+                    </tr>
+                </table>
+            </div>
+            <div style = "display: flex; width: 100%; font-size: 12px; background-color: white; flex-wrap:wrap;">
+                <div *ngFor = "let sheet of miniApp.xls.sheetList; let i = index;" 
+                    (click) = "miniApp.xls.setList(i)" 
+                    style = "padding: 0px 5px; cursor: pointer;" 
+                    [class.xlsSheetActive] = "i == miniApp.xls.sheet" >{{ sheet }}</div>
+            </div>
         </div>
     </div>
     <div class = "ModalButtonExitColor" style = "position:absolute; right:5px; top:5px; font-size:16px; cursor:pointer;" (click) = "miniApp.open = false">
