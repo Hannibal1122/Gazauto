@@ -218,9 +218,9 @@
             $fromInherit = []; // откуда наследуется
             $whoInherit = [];
             $whoRefer = [];
-            if($result = query("SELECT id, objectType, name FROM structures WHERE id IN (SELECT bindId FROM structures WHERE id = %i)", [ $idElement ]))
+            if($result = query("SELECT id, objectType, name FROM structures WHERE trash = 0 AND id IN (SELECT bindId FROM structures WHERE id = %i)", [ $idElement ]))
                 while ($row = $result->fetch_array(MYSQLI_NUM)) $fromInherit[] = $row;
-            if($result = query("SELECT id, objectType, name FROM structures WHERE bindId = %i", [ $idElement ]))
+            if($result = query("SELECT id, objectType, name FROM structures WHERE trash = 0 AND bindId = %i", [ $idElement ]))
                 while ($row = $result->fetch_array(MYSQLI_NUM)) $whoInherit[] = $row;
 
             $linkType = selectOne("SELECT objectType FROM structures WHERE id = %i", [ $idElement ]);
@@ -238,7 +238,11 @@
                 {
                     $tableId = (int)$row[1];
                     if(!array_key_exists($tableId, $whoRefer))
+                    {
+                        $trash = selectOne("SELECT trash FROM structures WHERE id = %i", [ $tableId ]);
+                        if((int)$trash == 1) continue;
                         $whoRefer[$tableId] = ["fields" => [], "name" => selectOne("SELECT name FROM structures WHERE id = %i", [ $tableId ])];
+                    }
                     $whoRefer[$tableId]["fields"][] = (int)$row[0];
                 }
             echo json_encode(["fromInherit" => $fromInherit, "whoInherit" => $whoInherit, "whoRefer" => $whoRefer]);
@@ -295,14 +299,15 @@
         case 133: // Запросить таблицу свойств
             $idElement = (int)$param[0];
             if(($myRight->get($idElement) & 1) != 1) continue; // Права на просмотр
-            $data = query("SELECT objectType, priority, icon, user_property, hashtag FROM structures WHERE id = %i", [ $idElement ])->fetch_assoc();
+            $data = query("SELECT objectType, priority, icon, user_property, hashtag, objectId FROM structures WHERE id = %i", [ $idElement ])->fetch_assoc();
             $tableProperty = [
                 "timeCreate" => selectOne("SELECT date FROM main_log WHERE type = 'structure' AND value = %s AND operation = 'create' LIMIT 1", [ $idElement ]),
                 /* "timeUpdate" => selectOne("SELECT date FROM main_log WHERE type = %s AND value = %s AND operation = 'update' LIMIT 1", [ $type, $idElement ]), */
                 "hashtag" => $data["hashtag"],
                 "userProperty" => $data["user_property"],
                 "priority" => (int)$data["priority"],
-                "icon" => (int)$data["icon"]
+                "icon" => (int)$data["icon"],
+                "idTable" => $data["objectType"] == "tlist" ? selectOne("SELECT tableId FROM my_values WHERE id = %i", [(int)$data["objectId"]]) : -1
             ];
             echo json_encode($tableProperty);
             break;

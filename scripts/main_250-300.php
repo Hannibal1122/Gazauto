@@ -222,5 +222,23 @@
                     $tableProperty["whoRefer"][] = $row["id"];
             echo json_encode($tableProperty);
             break;
+        case 275: // Добавить в таблицу строку с новым значением для списка и сделать пометку для администратора
+            $linkId = (int)$param[0];
+            $value = $param[1];
+            $idColumn = selectOne("SELECT value FROM my_values WHERE id = %i", [ $linkId ]);
+            $idTable = selectOne("SELECT tableId FROM my_values WHERE id = %i", [ $linkId ]);
+            $myTable = new MyTable($idTable, $myLog);
+            $row = $myTable->addRow(-1, -1, false);
+            $idRow = $row["__ID__"];
+            query("UPDATE fields SET value = %s WHERE i = %i AND idColumn = %i", [ $value, $idRow, $idColumn ]);
+            query("INSERT INTO user_settings (login, id, type, value) VALUES(%s, %i, 'add_user_row', %s)", [ $login, $idTable, $idRow ]);
+            echo selectOne("SELECT id FROM fields WHERE i = %i AND idColumn = %i", [ $idRow, $idColumn ]);
+            break;
+        case 276: // Принять строку, которая была добавлена пользователем без прав
+            $idRow = (int)$param[0];
+            $idTable = selectOne("SELECT tableId FROM fields WHERE i = %i", [ $idRow ]);
+            if(($myRight->get($idTable) & 8) != 8) return; // Права на изменение
+            query("DELETE FROM user_settings WHERE login = %s AND type = 'add_user_row' AND value = %s", [ $login, $idRow ]);
+            break;
     }
 ?>

@@ -25,7 +25,14 @@
     margin-top:3px;
     margin-left:5px;
 }
-
+.newUserRow
+{
+    background-color: #c1f0a1;
+}
+.newUserRow:hover
+{
+    background-color: #c1f0a1 !important;
+}
 .bottomControlPanel
 {
     user-select:none; 

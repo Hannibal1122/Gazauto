@@ -102,11 +102,15 @@
                 }
                 for($i = 0, $l = count($outData); $i < $l; $i++) // Проверяем на пустые строки
                     if(count($outData[$i]) > 2) $outData2[] = $outData[$i];
-            $stickers = [];
+            $stickers = []; // заметки
             if($listStickersId != "")
                 if($result = query("SELECT * FROM stickers WHERE objectId IN ($listStickersId) AND type = 'cell' AND trash = 0", []))
                     while ($row = $result->fetch_assoc())
                         $stickers[] = $row;
+            $userRowList = []; // Список строк, которые были добавлены пользователем из ячейки
+            if($result = query("SELECT login, value FROM user_settings WHERE id = %s AND type = 'add_user_row'", [$idTable]))
+                while ($row = $result->fetch_assoc())
+                    $userRowList[$row["value"]] = $row["login"];
             echo json_encode([
                 "head" => $head, 
                 "data" => $outData2, 
@@ -119,7 +123,8 @@
                 "filters" => $filters, // Список фильтров
                 "filter" => $filterSelected,
                 "stickers" => $stickers,
-                "filterColumn" => $filterColumn
+                "filterColumn" => $filterColumn,
+                "userRowList" => $userRowList
             ]);
         }
         function setAndRemoveHeader($data, $changes) // Добавить/Удалить заголовок

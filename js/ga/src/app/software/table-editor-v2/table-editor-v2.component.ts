@@ -61,6 +61,7 @@ export class TableEditorV2Component implements OnInit
     firstData = []; // Ссылка на изначальные данные для фильтров
     mapFields = {}; // Сохраняется id для быстрого поиска ячейки
     hiddenColumn = { }; // Объект для скрытия столбцов, хранит номер столбца
+    userRowList = {}; // Список строк, которые пользователь добавил из ячейки
 
     configInput = {
         width: "100px",
@@ -199,7 +200,7 @@ export class TableEditorV2Component implements OnInit
             }
             /* trace(data.stickers) */
             this.query.onChange({ type: "updateStickers", id: this.id, software: "table", value: data.stickers });
-
+            this.userRowList = data.userRowList;
             this.control.error = false;
             for(let key in data.right) this.right[key] = data.right[key];
             this.right.head = data.changeHead;
@@ -699,6 +700,22 @@ export class TableEditorV2Component implements OnInit
     {
         localStorage.setItem("copyForStatistic", JSON.stringify({ id: this.inputProperty.id, type: "column", tableId: this.id }));
     }
+    appendRowToTlist() // Добавить значение в список, соответственно добавить строку в таблицу откуда этот список
+    {
+        let i = 0; //Проверка, есть ли такое значение в списке
+        for(; i < this.inputProperty.values.length; i++)
+            if(this.inputProperty.values[i].value == this.inputProperty.value) break;
+        if(i == this.inputProperty.values.length)
+            this.query.protectionPost(275, { param: [ this.inputProperty.linkId, this.inputProperty.value ] }, (data) =>
+            {
+                // Сюда должны вернуть id ячейки
+                this.inputProperty.values.push({
+                    id: Number(data),
+                    value: this.inputProperty.value
+                });
+                this.inputProperty.value = "";
+            })
+    }
     //Работа с контекстным меню
     createContextMenu = 
     {
@@ -798,6 +815,13 @@ export class TableEditorV2Component implements OnInit
     removeRow() // Удаление строки
     {
         this.queue.add(258, [ this.id, this.firstData[this.createContextMenu.i].__ID__ ], (data) => { this.loadTable(); });
+    }
+    applyRow() // Принять строку, которая была добавлена пользователем без прав
+    {
+        let idRow = this.firstData[this.createContextMenu.i].__ID__;
+        this.queue.add(276, [ idRow ], () => { 
+            delete this.userRowList[idRow];
+        });
     }
     cutCopyRowProperty = 
     {

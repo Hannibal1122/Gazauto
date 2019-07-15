@@ -3,16 +3,25 @@
         <table class = "tableProperty">
             <tbody>
                 <tr><td colspan="3" style = "font-weight: bold;">Основные</td></tr>
-                <tr *ngFor = "let p of property">
-                    <td colspan="2">{{p.desc}}</td>
-                    <td class = "blockTD" *ngIf = "p.type == 'block'">{{p.value}}</td>
-                    <td *ngIf = "p.type == 'edit'" class = "tdInput"><input type = "text" [(ngModel)] = "p.value" (change) = "onInputChange(p)"></td>
-                    <td *ngIf = "p.type == 'checkbox'" ><input type = "checkbox" [(ngModel)] = "p.value" (change) = "onInputChange(p)"></td>
-                </tr>
+                <ng-container *ngFor = "let p of property">
+                    <tr *ngIf = "p.type != 'table' || p.value">
+                        <td colspan="2">{{p.desc}}</td>
+                        <td class = "blockTD" *ngIf = "p.type == 'block'">{{p.value}}</td>
+                        <td *ngIf = "p.type == 'edit'" class = "tdInput"><input type = "text" [(ngModel)] = "p.value" (change) = "onInputChange(p)"></td>
+                        <td *ngIf = "p.type == 'checkbox'" ><input type = "checkbox" [(ngModel)] = "p.value" (change) = "onInputChange(p)"></td>
+                        <td *ngIf = "p.type == 'table'" style = "position:relative;">
+                            {{ p.value.id }}
+                            <span (click) = "openObject(p)"
+                                style = "position: absolute; right: 3px; top:1px;cursor:pointer;">
+                                <i class="fas fa-arrow-circle-right"></i>
+                            </span>
+                        </td>
+                    </tr>
+                </ng-container>
                 <tr><td colspan="3" style = "font-weight: bold;">Пользовательские</td></tr>
                 <tr *ngFor = "let p of userProperty; let i = index;">
                     <ng-container *ngIf = "p.type !== 'block' && selectRules.change">
-                        <td style = "color:red; cursor: pointer;" (click) = "removeUserProperty(i)"><i class="fas fa-minus-circle"></i></td>
+                        <td style = "color:red; cursor: pointer;" (click) = "removeUserProperty(i)"><span *ngIf = "p.type != 'annotation'"><i class="fas fa-minus-circle"></i></span></td>
                         <td class = "tdInput">
                             <input *ngIf = "p.type != 'annotation'" type = "text" [(ngModel)] = "p.name" (change) = "onInputChangeUser(p)">
                             <span *ngIf = "p.type == 'annotation'">{{ p.name }}</span>

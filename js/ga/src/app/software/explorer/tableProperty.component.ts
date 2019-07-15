@@ -33,6 +33,7 @@ export class TablePropertyComponent implements OnInit
 
                 this.mainProperty[7].value = data.timeCreate;
                 this.userProperty = data.userProperty ? JSON.parse(data.userProperty) : [];
+                this.mainProperty[8].value = data.idTable > 0 ? { type: "table", id: data.idTable } : null;
 
                 let i = 0;
                 for(; i < this.userProperty.length; i++)
@@ -109,7 +110,8 @@ export class TablePropertyComponent implements OnInit
         { name: "state", desc: "Статус", value: false, type: "checkbox"},
         { name: "count", desc: "Количество", value: false, type: "checkbox"},
         { name: "objectType", desc: "Тип", value: "", type: "block"},
-        { name: "timeCreate", desc: "Создан", value: "", type: "block"}
+        { name: "timeCreate", desc: "Создан", value: "", type: "block"},
+        { name: "table", desc: "Таблица", value: {}, type: "table"}
     ]
     mainPropertyField =
     [

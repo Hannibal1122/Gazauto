@@ -122,6 +122,8 @@
             <ng-container *ngFor = "let row of dataTable; let i = index;">
                 <tr *ngIf = "!tableFilter.mapHideRows[i]">
                     <td *ngIf = "lineNumbering.enable"
+                        [class.newUserRow] = "userRowList[firstData[i].__ID__]"
+                        [attr.title] = "userRowList[firstData[i].__ID__] ? 'Добавил ' + userRowList[firstData[i].__ID__] : ''"
                         (contextmenu) = "getContextmenu($event, i, 'row')" 
                         [class.cutRow] = "cutCopyRowProperty.i == i"
                         class = "TableCreatorHeadColor TableCreatorHeadBColor">{{ i + 1 }}</td>
@@ -172,8 +174,10 @@
             </button>
             <ng-container *ngIf = "inputProperty.type == 'tlist'" >
                 <textarea class = "mainInputStyle TableCreatorInputColor" 
+                    style = "padding-right:30px;"
                     [(ngModel)] = "inputProperty.value" 
                     (keydown)="downEnter($event)"></textarea>
+                <div style = "position:absolute; right:5px; top:2px; cursor: pointer; color: #93b76b;" (click) = "appendRowToTlist()" title = "Добавить новое значение"><i class="fas fa-plus-circle"></i></div>
                 <select (change) = "changeMainSelect()"
                     style = "position:absolute; top: 100%; height: 24px; width:100%;" 
                     [(ngModel)] = "inputProperty.valueList">
@@ -277,8 +281,9 @@
             <button class = "contextMenuList" (click) = "pasteObject(true, 'NUMBER')" [disabled] = "!rules.change">Назначить тип NUMBER</button>
             <button class = "contextMenuList" (click) = "pasteObject(true, 'STRING')" [disabled] = "!rules.change">Назначить тип STRING</button>
             <button class = "contextMenuList" (click) = "pasteObject(true, 'DATETIME')" [disabled] = "!rules.change">Назначить тип DATETIME</button>
-            <button class = "contextMenuList" (click) = "pasteObject(rules.event, false)" [disabled] = "!rules.object">
-                    {{ rules.event ? 'Добавить событие' : 'Вставить объект' }}</button>
+            <button *ngIf = "rules.event" class = "contextMenuList" (click) = "pasteObject(true, false)" [disabled] = "!rules.object">Добавить событие</button>
+            <!-- <button class = "contextMenuList" (click) = "pasteObject(rules.event, false)" [disabled] = "!rules.object">
+                    {{ rules.event ? 'Добавить событие' : 'Вставить объект' }}</button> -->
             <button *ngIf = "inputProperty.eventId" class = "contextMenuList" (click) = "removeEvent(true)" [disabled] = "!rules.change">Удалить событие</button>
             <button *ngIf = "inputProperty.eventId" class = "contextMenuList" (click) = "openEventToExplorer(inputProperty.eventId)">Найти событие</button>
             <button *ngIf = "inputProperty.eventId" class = "contextMenuList" (click) = "openSoftware('event', inputProperty.eventId)">Открыть событие</button>
@@ -287,6 +292,7 @@
         <button class = "contextMenuList" (click) = "clearFilters()">Очистить фильтры</button>
     </ng-container>
     <ng-container *ngIf = "createContextMenu.type == 'row'">
+        <button *ngIf = "firstData[createContextMenu.i] && userRowList[firstData[createContextMenu.i].__ID__]" class = "contextMenuList" (click) = "applyRow()" [disabled] = "!rules.change">Принять</button>
         <button class = "contextMenuList" (click) = "removeRow()" [disabled] = "!rules.change">Удалить строку</button>
         <button class = "contextMenuList" (click) = "cutCopyRow('copy')" [disabled] = "!rules.change">Копировать строку</button>
         <button class = "contextMenuList" (click) = "cutCopyRow('cut')" [disabled] = "!rules.change">Вырезать строку</button>
