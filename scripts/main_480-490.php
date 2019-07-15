@@ -1,5 +1,31 @@
 <?php
     $idElement = (int)$param[0];
+    function appendToFilterStrByLog(&$filterStr, $subStr)
+    {
+        if($filterStr == "") $filterStr .= "WHERE ";
+        else $filterStr .= " AND ";
+        return $filterStr .= $subStr;
+    }
+    function getFilterStrByLog($event_log_types, $event_log_event_types)
+    {
+        $filterStr = "";
+        foreach($event_log_types as $key => $value)
+            switch($key)
+            {
+                case "value":
+                    if($value != "") appendToFilterStrByLog($filterStr, "value LIKE '%$value%'");
+                    break;
+                case "login":
+                    if($value != "") appendToFilterStrByLog($filterStr, "login LIKE '%$value%'");
+                    break;
+                default: 
+                    if(!$value) appendToFilterStrByLog($filterStr, "type != '$key'");
+                    break;
+            }
+        foreach($event_log_event_types as $key => $value)
+            if(!$value) appendToFilterStrByLog($filterStr, "operation != '$key'");
+        return $filterStr;
+    }
     switch($nQuery)
     {
         case 480: // Отображение последних 100 сообщений
@@ -12,13 +38,9 @@
             $out["event_log_event_types"] = $out["event_log_event_types"] != "" ? json_decode($out["event_log_event_types"]) : []; 
             $out["event_log_types"] = $out["event_log_types"] != "" ? json_decode($out["event_log_types"]) : []; 
             $data = [];
-            $filterStr = "";
-            /* foreach($key as $out["event_log_types"])
-            {
-                print_r($key);
-            } */
+            $filterStr = getFilterStrByLog($out["event_log_types"], $out["event_log_event_types"]);
             $i = 0;
-            if($result = query("SELECT id, date, login, type, operation, value FROM main_log ORDER by date DESC LIMIT 100", []))
+            if($result = query("SELECT id, date, login, type, operation, value FROM main_log $filterStr ORDER by date DESC LIMIT 100", []))
                 while ($row = $result->fetch_assoc())
                 {
                     $data[$i] = $row;
@@ -33,8 +55,20 @@
             $beginDate = $param[1];
             $endDate = $param[2]; 
             $out = [];
+            $event_log_event_types = selectOne("SELECT value FROM user_settings WHERE login = %s AND type = %s", [ $login, "event_log_event_types" ]);
+            $event_log_types = selectOne("SELECT value FROM user_settings WHERE login = %s AND type = %s", [ $login, "event_log_types" ]);
+            $event_log_event_types = $event_log_event_types != "" ? json_decode($event_log_event_types) : []; 
+            $event_log_types = $event_log_types != "" ? json_decode($event_log_types) : [];
+            $filterStr = getFilterStrByLog($event_log_types, $event_log_event_types);
+            if($filterStr == "") $filterStr = "WHERE date >= %s AND date <= %s";
+            else $filterStr .= " AND date >= %s AND date <= %s";
             $i = 0;
-            if($result = query("SELECT id, date, login, type, operation, value FROM main_log WHERE date >= %s AND date <= %s ORDER by date", [ $beginDate, $endDate ]))
+            if((int)selectOne("SELECT count(*) FROM main_log $filterStr ORDER by date", [ $beginDate, $endDate ]) > 1000) 
+            {
+                echo "MORE_1000";
+                return;
+            }
+            if($result = query("SELECT id, date, login, type, operation, value FROM main_log $filterStr ORDER by date", [ $beginDate, $endDate ]))
                 while ($row = $result->fetch_assoc())
                 {
                     $out[$i] = $row;

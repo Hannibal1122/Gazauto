@@ -21,7 +21,7 @@
             </tr>
         </tbody>
     </table>
-    <div *ngIf = "loaded && log.length == 0" style = "font-size: 12px; color: white; text-align: center; margin-top:20px;">Журнал пуст. Проверьте фильтры.</div>
+    <div *ngIf = "loaded && error != ''" style = "font-size: 12px; color: white; text-align: center; margin-top:20px;">{{ error }}</div>
 </div>
 <div style = "position:absolute; right:25px; top: 5px;">
     <button (click) = "openFilterSettings()" class = "propertyBtn hideButton">{{ log.length }} <i class = "fa fa-filter"></i></button>
@@ -86,6 +86,11 @@
         </tr>
         <tr>
             <td><input type = "checkbox" [(ngModel)] = "filterSettings.eventTypes.cut" (change) = "onChangeFilterEventType()">cut</td>
+            <td><input type = "checkbox" [(ngModel)] = "filterSettings.eventTypes.create" (change) = "onChangeFilterEventType()">create</td>
+        </tr>
+        <tr>
+            <td></td>
+            <td style = "text-align: center;"><button (click) = "update()" class = "propertyBtn">Применить</button></td>
         </tr>
         <tr>
             <td colspan="2">Поиск по дате</td>

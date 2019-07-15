@@ -19,6 +19,7 @@ export class EventLogComponent implements OnInit
     first = false;
     visible = true; // Для перемещения экранов
     loaded = true;
+    error = "";
     filterSettings = 
     {
         type: 'filter', // field
@@ -39,7 +40,8 @@ export class EventLogComponent implements OnInit
             state: true,
             script: true,
             cut: true,
-            copy: true
+            copy: true,
+            create: true
         },
         types: 
         {
@@ -77,6 +79,7 @@ export class EventLogComponent implements OnInit
     }
     update()
     {
+        clearTimeout(this.timer);
         this.query.protectionPost(480, { param: [this.inputs.id] }, (log) =>
         {
             let eventTypes = log.event_log_event_types;
@@ -104,36 +107,21 @@ export class EventLogComponent implements OnInit
         if(data) this.firstData = data;
         this.log = [];
         let date;
-        let valueBool;
-        let loginBool;
-        let typeBool;
-        let eventTypeBool;
         for(let i = 0; i < this.firstData.length; i++)
         {
-            valueBool = this.filterSettings.types.value == "";
-            if(this.firstData[i].value) valueBool = valueBool || this.firstData[i].value.toLowerCase().indexOf(this.filterSettings.types.value.toLowerCase()) != -1;
-            if(this.firstData[i].name) valueBool = valueBool || this.firstData[i].name.toLowerCase().indexOf(this.filterSettings.types.value.toLowerCase()) != -1;
-
-            loginBool = this.filterSettings.types.login == "" || this.firstData[i].login.toLowerCase().indexOf(this.filterSettings.types.login.toLowerCase()) != -1;
-            typeBool = this.filterSettings.types[this.firstData[i].type];
-            eventTypeBool = this.filterSettings.eventTypes[this.firstData[i].operation];
-
-            if(valueBool && loginBool && typeBool && eventTypeBool) // фильтрация по типу события
-            {
-                date = this.func.getFormat(this.firstData[i].date);
-                this.log.push({ time: date.split(" ")[1], date: date, ...this.firstData[i] });
-            }
+            date = this.func.getFormat(this.firstData[i].date);
+            this.log.push({ time: date.split(" ")[1], date: date, ...this.firstData[i] });
         }
+        if(this.log.length == 0) this.error = "Журнал пуст. Проверьте фильтры.";
+        else this.error = ""; 
     }
     onChangeFilterEventType()
     {
         this.query.protectionPost(450, { param: [ "event_log_event_types", JSON.stringify(this.filterSettings.eventTypes) ] });
-        this.parseLogData();
     }
     onChangeFilterType()
     {
         this.query.protectionPost(450, { param: [ "event_log_types", JSON.stringify(this.filterSettings.types) ] });
-        this.parseLogData();
     }
     openFilterSettings()
     {
@@ -147,7 +135,12 @@ export class EventLogComponent implements OnInit
         this.loaded = false;
         this.query.protectionPost(481, { param: [this.inputs.id, this.filterSettings.beginDate, this.filterSettings.endDate] }, (data) =>
         {
-            this.parseLogData(data);
+            if(data === "MORE_1000") 
+            {
+                this.log = [];
+                this.error = "Вы запрашиваете больше 1000 значений. Измените период запроса!";
+            }
+            else this.parseLogData(data);
             this.loaded = true;
         });
     }

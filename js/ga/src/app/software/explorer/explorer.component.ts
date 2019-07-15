@@ -202,6 +202,22 @@ export class ExplorerComponent implements OnInit
                         this.miniApp.image.width = image.width + "px";
                     }
                 }
+                if(object.fileType == 'xls')
+                {
+                    this.miniApp.open = true;
+                    this.miniApp.type = "xls";
+                    this.miniApp.xls.loaded = false;
+                    this.query.protectionPost(142, { param: [ object.id ] }, (data) => 
+                    {
+                        this.miniApp.xls.data = data;
+                        trace(data)
+                        this.miniApp.xls.sheetList = [];
+                        for(let i = 0; i < data.length; i++)
+                            this.miniApp.xls.sheetList.push(data[i].name);
+                        this.miniApp.xls.setList(0);
+                        this.miniApp.xls.loaded = true;
+                    });
+                }
                 break;
         }
     }
@@ -696,6 +712,18 @@ export class ExplorerComponent implements OnInit
             src: "",
             loaded: false,
             width: ""
+        },
+        xls: {
+            table: null,
+            loaded: false,
+            sheet: 0,
+            sheetList: [],
+            data: null,
+            setList: (index) =>
+            {
+                this.miniApp.xls.sheet = index;
+                this.miniApp.xls.table = this.miniApp.xls.data[index].data;
+            }
         }
     }
     chooseToCompare(type, object)

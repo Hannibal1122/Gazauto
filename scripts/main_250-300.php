@@ -238,7 +238,7 @@
             $idRow = (int)$param[0];
             $idTable = selectOne("SELECT tableId FROM fields WHERE i = %i", [ $idRow ]);
             if(($myRight->get($idTable) & 8) != 8) return; // Права на изменение
-            query("DELETE FROM user_settings WHERE login = %s AND type = 'add_user_row' AND value = %s", [ $login, $idRow ]);
+            query("DELETE FROM user_settings WHERE type = 'add_user_row' AND value = %s", [ $idRow ]);
             break;
     }
 ?>

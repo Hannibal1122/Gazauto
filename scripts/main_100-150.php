@@ -379,7 +379,7 @@
 
             require_once dirname(__FILE__) . '/PHPExcel.php';
             $objReader = PHPExcel_IOFactory::createReader('Excel2007');
-            $objReader->setReadDataOnly(true);
+            $objReader->setReadDataOnly(false);
             $objPHPExcel = $objReader->load("../files/$param[0]/$name");
             $fileData = $objPHPExcel->getActiveSheet()->toArray();
 
@@ -392,7 +392,7 @@
             $myTable = new MyTable($idTable, $myLog); // Общий класс для работы с таблицами
 
             $data = [];
-            for($j = 0, $c = count($fileData[0]); $j < $c; $j++)
+            for($j = 0, $c = count($fileData[0]); $j < $c; $j++) // Заголовок
                 $data[] = (object)["value" => $fileData[0][$j], "i" => $j];
             $myTable->setAndRemoveHeader($data, []);
             $c = count($fileData);
@@ -405,7 +405,12 @@
                 $j = 0;
                 foreach($row as $idColumn => $value)
                     if($idColumn != "__ID__")
+                    {
+                        $color = substr($objPHPExcel->getActiveSheet()->getStyle(getExcelColumn($j).($i + 1))->getFill()->getStartColor()->getARGB(), 2);
                         query("UPDATE fields SET value = %s WHERE idColumn = %i AND i = %i", [ $fileData[$i][$j++], $idColumn, $idRow ]);
+                        if($color != "000000")
+                            query("UPDATE fields SET color = %s WHERE idColumn = %i AND i = %i", [ "#$color", $idColumn, $idRow ]);
+                    }
                 $myLoading->update();
             }
             $myLoading->removeKey();
@@ -420,5 +425,49 @@
             $myLoading = new MyLoading($param[0]);
             echo $myLoading->getState();
             break;
+        case 142: // Предпросмотр таблиц
+            $idObject = (int)$param[0];
+            if(($myRight->get($idObject) & 1) != 1) continue; // Права на просмотр
+            $parent = selectOne("SELECT parent FROM structures WHERE id = %i", [ $idObject ]);
+            $name = selectOne("SELECT name FROM structures WHERE id = %i", [ $idObject ]);
+            require_once dirname(__FILE__) . '/PHPExcel.php';
+            $objReader = PHPExcel_IOFactory::createReader('Excel2007');
+            $objReader->setReadDataOnly(false);
+            $objPHPExcel = $objReader->load("../files/$param[0]/$name");
+            $loadedSheetNames = $objPHPExcel->getSheetNames();
+            $outArray = [];
+            foreach($loadedSheetNames as $sheetIndex => $loadedSheetName) 
+                $outArray[$sheetIndex] = [
+                    "name" => $loadedSheetName,
+                    "data" => getListFromExcel($sheetIndex)
+                ];
+            echo json_encode($outArray);
+            break;
+    }
+    function getListFromExcel($sheetIndex)
+    {
+        global $objPHPExcel;
+        $fileData = $objPHPExcel->getSheet($sheetIndex)->toArray();
+        $outArray = [];
+        $c = count($fileData);
+        $c2 = count($fileData[0]);
+        $outArray[0] = [];
+        $outArray[0][0] = [ "value" => "", "color" => "#e6e6e6" ];
+        for($j = 0; $j < $c2; $j++)
+            $outArray[0][$j + 1] = [ "value" => getExcelColumn($j), "color" => "#e6e6e6" ];
+        for($i = 0; $i < $c; $i++)
+        {
+            $outArray[$i + 1] = [];
+            $outArray[$i + 1][0] = [ "value" => $i + 1, "color" => "#e6e6e6" ];
+            for($j = 0; $j < $c2; $j++)
+            {
+                $color = substr($objPHPExcel->getSheet($sheetIndex)->getStyle(getExcelColumn($j).($i + 1))->getFill()->getStartColor()->getARGB(), 2);
+                $outArray[$i + 1][$j + 1] = [
+                    "value" => $fileData[$i][$j],
+                    "color" => $color != "000000" ? "#$color" : NULL
+                ];
+            }
+        }
+        return $outArray;
     }
 ?>

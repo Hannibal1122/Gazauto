@@ -317,3 +317,28 @@
     height:6px;
     transition: 0.3s;
 }
+/**********************************************/
+.xlsTable
+{
+    background-color: white;
+    font-size: 12px;
+    margin-bottom:20px;
+}
+.xlsTable td
+{
+    border: 1px solid rgb(212, 212, 212);
+    text-align: right;
+}
+.xlsTable tr:first-child td
+{
+    text-align: center;
+}
+.xlsTable td:first-child
+{
+    text-align: center;
+}
+.xlsSheetActive
+{
+    color: 2px solid rgb(33, 115, 70);
+    border-bottom: 2px solid rgb(33, 115, 70);
+}
