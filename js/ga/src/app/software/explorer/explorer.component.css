@@ -338,6 +338,6 @@
 }
 .xlsSheetActive
 {
-    color: 2px solid rgb(33, 115, 70);
+    color: rgb(33, 115, 70);
     border-bottom: 2px solid rgb(33, 115, 70);
 }

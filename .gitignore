@@ -1,9 +1,8 @@
 node_modules
-<<<<<<< HEAD
 config.php
 scripts/config.php
-
-=======
-scripts/config.php
->>>>>>> 5c8f9bed4ef652d3bf01426911671ff86e9172c8
+dist
+old
 environments
+export
+files

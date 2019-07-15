@@ -137,3 +137,12 @@
 {
     text-decoration-line: underline; 
 }
+.StickerStyle
+{
+    font-size:12px; 
+    margin-top:5px; 
+    position:relative; 
+    border-radius: 5px; 
+    box-shadow: 0px 1px 3px #123f61; 
+    background-image: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.3));
+}

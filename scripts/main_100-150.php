@@ -431,7 +431,10 @@
             $parent = selectOne("SELECT parent FROM structures WHERE id = %i", [ $idObject ]);
             $name = selectOne("SELECT name FROM structures WHERE id = %i", [ $idObject ]);
             require_once dirname(__FILE__) . '/PHPExcel.php';
-            $objReader = PHPExcel_IOFactory::createReader('Excel2007');
+            $type = substr($name, strripos($name, ".") + 1);
+            if($type == "xlsx") $format = "Excel2007";
+            if($type == "xls") $format = "Excel5";
+            $objReader = PHPExcel_IOFactory::createReader($format);
             $objReader->setReadDataOnly(false);
             $objPHPExcel = $objReader->load("../files/$param[0]/$name");
             $loadedSheetNames = $objPHPExcel->getSheetNames();

@@ -210,12 +210,16 @@ export class ExplorerComponent implements OnInit
                     this.query.protectionPost(142, { param: [ object.id ] }, (data) => 
                     {
                         this.miniApp.xls.data = data;
-                        trace(data)
-                        this.miniApp.xls.sheetList = [];
-                        for(let i = 0; i < data.length; i++)
-                            this.miniApp.xls.sheetList.push(data[i].name);
-                        this.miniApp.xls.setList(0);
-                        this.miniApp.xls.loaded = true;
+                        if(data.length == 0) this.miniApp.xls.error = "Не возможно прочитать данные!";
+                        else
+                        {
+                            this.miniApp.xls.error = "";
+                            this.miniApp.xls.sheetList = [];
+                            for(let i = 0; i < data.length; i++)
+                                this.miniApp.xls.sheetList.push(data[i].name);
+                            this.miniApp.xls.setList(0);
+                            this.miniApp.xls.loaded = true;
+                        }
                     });
                 }
                 break;
@@ -719,6 +723,7 @@ export class ExplorerComponent implements OnInit
             sheet: 0,
             sheetList: [],
             data: null,
+            error: "",
             setList: (index) =>
             {
                 this.miniApp.xls.sheet = index;

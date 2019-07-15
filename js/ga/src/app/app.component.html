@@ -77,9 +77,8 @@
                 <div class="mainPanelAppTitle PanelAppTitleColor">Заметки</div>
                 <div *ngIf = "stickers.length > 0" style = "padding: 0px 5px 5px 5px; overflow: auto;">
                     <div *ngFor = "let stick of stickers; let i = index;" 
-                        class = "WorkspaceColor MainBColor" 
-                        style = "font-size:12px; margin-top:5px; position:relative;">
-                        <div style = "font-size:14px; padding:5px; background-color: white;">{{ stick.name }} ({{ stick.login }})</div>
+                        class = "WorkspaceColor MainBColor StickerStyle">
+                        <div style = "font-size:14px; padding:5px; background-color: white; border-radius: 5px 5px 0px 0px;">{{ stick.name }} ({{ stick.login }})</div>
                         <div style = "font-size:12px; padding:5px; ">{{ stick.data }}</div>
                         <div class = "stickerLink" style = "padding:5px; " (click) = "searchObjectFromSticker(stick)">найти</div>
                         <div class = "ModalButtonExitColor" style = "position:absolute; right:5px; top:5px; font-size:16px; cursor:pointer;" (click) = "removeSticker(stick.id, i)">

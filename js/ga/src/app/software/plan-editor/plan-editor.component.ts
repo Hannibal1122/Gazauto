@@ -104,7 +104,7 @@ export class PlanEditorComponent implements OnInit
             {
                 lastDay = j == 1 ? false : this.dataTable[i][j - 1];
                 day = this.dataTable[i][j];
-                if((day.value == "К" || day.value == "Вых" || day.value == "От") && (lastDay.value === day.value))
+                if((isNaN(Number(day.value))) && (lastDay.value === day.value))
                 {
                     this.outEmployees[i].days[lastI].colspan++;
                     continue;
@@ -137,6 +137,7 @@ export class PlanEditorComponent implements OnInit
     }
     selectInterval(i, j)
     {
+        this.updateInterval(j);
         if(this.interval.i == -1)
         {
             this.interval.i = i;
