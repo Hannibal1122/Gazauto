@@ -189,7 +189,7 @@ export class AppComponent implements OnInit
             if(this.tabs[_i].guid == guid) break;
         this.tabs.splice(_i, 1);
         this.splitScreen.closeTab(s, i);
-        this.removeSaveTab(_i);
+        /* this.removeSaveTab(_i); */
         this.setCurrentStickers();
     }
     leftMenuConfig = [];
@@ -217,8 +217,8 @@ export class AppComponent implements OnInit
     {
         switch(e.type)
         {
-            case "open":
-                this.openSoftware(e.value.name, { id: e.value.id });
+            case "openFromTable":
+                this.onChangeInSoftware(e);
                 break;
             case "info":
                 let screen = this.splitScreen.screens[this.splitScreen.currentScreen];
@@ -237,19 +237,11 @@ export class AppComponent implements OnInit
                 break;
             case "openFromTable":
                 if(e.value.type === "open")
-                {
-                    switch(e.value.name)
-                    {
-                        case "event":
-                        case "table":
-                            this.openSoftware(e.value.name, { id: e.value.id });
-                            break;
-                    }
-                }
+                    this.openSoftware(e.value.name, { id: e.value.id });
                 else 
                     this.query.protectionPost(111, { param: [ e.value.name, e.value.id ]}, (idParent) =>
                     {
-                        if(idParent === "") return;
+                        if(idParent === "" || idParent.length == 0) return;
                         switch(e.value.name)
                         {
                             case "table":
@@ -410,7 +402,7 @@ export class AppComponent implements OnInit
             type: "openFromTable",
             value: {
                 id: stick.objectId,
-                name: stick.type
+                name: stick.type == "tlist" ? "folder" : stick.type // Потому что 111 запрос предполагает для tlist другой поиск
             }
         })
     }
@@ -424,7 +416,9 @@ export class AppComponent implements OnInit
     setCurrentStickers()
     {
         let screen = this.splitScreen.screens[this.splitScreen.currentScreen];
-        this.stickers = screen.tabs[screen.currentSoftware].stickers;
+        if(screen.tabs[screen.currentSoftware])
+            this.stickers = screen.tabs[screen.currentSoftware].stickers;
+        else this.stickers = [];
     }
     /*******************************************************************/
     autoLogin(func) // Автовход
@@ -490,11 +484,9 @@ export class AppComponent implements OnInit
             if(saveTabs[i])
                 this.openSoftware(saveTabs[i][0], saveTabs[i][1], { screen: saveTabs[i][2], current: saveTabs[i][3] });
     }
-    removeSaveTab(i) // Удаление вкладки из сохранения
+    setActiveScreen(s) // Сделать экран активным
     {
-        let saveData:any = localStorage.getItem("Tabs"); 
-        saveData = JSON.parse(saveData);
-        saveData.splice(i, 1);
-        localStorage.setItem("Tabs", JSON.stringify(saveData));
+        this.splitScreen.currentScreen = s;
+        this.setCurrentStickers();
     }
 }

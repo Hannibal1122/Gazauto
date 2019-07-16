@@ -1,4 +1,4 @@
-import { Component, OnInit, Injector, ViewChild } from '@angular/core';
+import { Component, OnInit, Injector, ViewChild, ElementRef } from '@angular/core';
 import { QueryService } from "../../lib/query.service";
 import { CreateTableService } from "../services/create-table.service";
 import { CreateUserService } from "../services/create-user.service";
@@ -41,6 +41,8 @@ export class ExplorerComponent implements OnInit
 {
     @ViewChild('modal') public modal: any;
     @ViewChild('appTableProperty') public appTableProperty;
+    @ViewChild('miniAppContent') public miniAppContent:ElementRef;
+    
     set inputFromApp(value)
     {
         if(value) 
@@ -193,13 +195,26 @@ export class ExplorerComponent implements OnInit
                     this.miniApp.open = true;
                     this.miniApp.type = "image";
                     this.miniApp.image.src = environment.FILES + object.id + "/" + object.name;
-                    /* this.miniApp.image.src = "https://bipbap.ru/wp-content/uploads/2017/10/0_8eb56_842bba74_XL-640x400.jpg"; */
                     this.miniApp.image.loaded = false;
                     let image = new Image();
                     image.src = this.miniApp.image.src;
                     image.onload = () => {
+                        let frame = this.miniAppContent.nativeElement.getBoundingClientRect();
+                        trace(frame.width)
+                        trace(frame.height)
+                        trace(image.width)
+                        trace(image.height)
                         this.miniApp.image.loaded = true;
-                        this.miniApp.image.width = image.width + "px";
+                        if(image.width > image.height && frame.width > frame.height)
+                        {
+                            this.miniApp.image.width = "auto";
+                            this.miniApp.image.height = "98%";
+                        }
+                        else
+                        {
+                            this.miniApp.image.width = "98%";
+                            this.miniApp.image.height = "auto";
+                        }
                     }
                 }
                 if(object.fileType == 'xls')
@@ -715,7 +730,8 @@ export class ExplorerComponent implements OnInit
         image: {
             src: "",
             loaded: false,
-            width: ""
+            width: "",
+            height: ""
         },
         xls: {
             table: null,

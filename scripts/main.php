@@ -98,7 +98,7 @@
                 require_once("enter.php");
                 require_once("myLog.php");
                 $myLog = new MyLog($paramL);
-                $myLog->add("user", "enter", $paramL);
+                $myLog->add("user", "login", $paramL);
                 break;
             case 5: // выход
                 break;

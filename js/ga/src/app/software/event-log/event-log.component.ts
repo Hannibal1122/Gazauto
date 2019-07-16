@@ -30,7 +30,8 @@ export class EventLogComponent implements OnInit
         show: false,
         eventTypes: 
         {
-            enter: true,
+            login: true,
+            logout: true,
             open: true,
             text: true,
             warning: true,
@@ -41,7 +42,11 @@ export class EventLogComponent implements OnInit
             script: true,
             cut: true,
             copy: true,
-            create: true
+            create: true,
+            event: true,
+            revent: true,
+            add: true,
+            download:true,
         },
         types: 
         {

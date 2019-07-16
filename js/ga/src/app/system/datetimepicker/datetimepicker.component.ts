@@ -201,7 +201,7 @@ export class DateTimeComponent implements AfterViewInit/* , OnChanges */ /*  imp
         else $(this.CalendarDiv.nativeElement).fadeOut(0);
         var position = $(this.mainInput.nativeElement).offset();
         var top = position.top + 30;
-        if(top + 235 > document.documentElement.clientHeight) top = document.documentElement.clientHeight - 245;
+        if(top + 224 > document.documentElement.clientHeight) top = document.documentElement.clientHeight - 234;
         $(this.CalendarDiv.nativeElement).css({ top: top, left: position.left })
         this.open = !this.open;
 

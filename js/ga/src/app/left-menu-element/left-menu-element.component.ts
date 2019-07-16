@@ -78,48 +78,21 @@ export class LeftMenuElementComponent implements OnInit
 
     constructor(private query: QueryService) {  }
     ngOnInit() 
-    { 
-        /* var self = this;
-        window.addEventListener("click", (e:any) =>
-        {
-            self.searchVisible = false;
-
-            self.oldSearchVisible = self.searchVisible;
-        }); */
+    {
     }
     openElement(data)
     {
-        /* trace(data) */
         switch(data.objectType)
         {
             case "folder":
-                this.onChange.emit({ type: "open", value: { name: "explorer", id: data.id }});
-                break;
-            case "tlist":
-                this.query.protectionPost(111, { param: [ "folder", data.id ]}, // folder потому что id тут из структуры  
-                (idParent) => 
-                {
-                    this.onChange.emit({ type: "open", value: { name: "explorer", id: idParent[0][0], element: data.id }});
-                });
-                break;
-            case "file":
-                this.query.protectionPost(111, { param: [ data.objectType, data.id ]}, (idParent) =>
-                {
-                    this.onChange.emit({ type: "open", value: { name: "explorer", id: idParent[0][0], searchObjectId: data.id }});
-                });
-                break;
-            case "user":
-            case "role":
-                this.query.protectionPost(111, { param: [ data.objectType, data.id ]}, (idParent) =>
-                {
-                    this.onChange.emit({ type: "open", value: { name: "explorer", id: idParent[0][0], element: data.id }});
-                });
-                break;
             case "event":
             case "log":
             case "table":
             case "class":
-                this.onChange.emit({ type: "open", value: { name: data.objectType, id: data.id }});
+                this.onChange.emit({ type: "openFromTable", value: { type: "open", name: data.objectType == "folder" ? "explorer" : data.objectType, id: data.id }});
+                break;
+            default:
+                this.onChange.emit({ type: "openFromTable", value: { name: data.objectType == "tlist" ? "folder" : data.objectType, id: data.id }});
                 break;
         }
     }

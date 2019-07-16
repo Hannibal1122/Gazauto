@@ -290,7 +290,6 @@
 /********************************************************/
 .customImage
 {
-    width: 98%;
     position: absolute;
     top: 50%;
     left: 50%;
@@ -326,7 +325,6 @@
 .xlsTable td
 {
     border: 1px solid rgb(212, 212, 212);
-    text-align: right;
 }
 .xlsTable tr:first-child td
 {
