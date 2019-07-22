@@ -18,6 +18,7 @@ export class InfoComponent implements OnInit
     set inputFromApp(id)
     {
         if(id)
+        {
             this.query.protectionPost(127, { param: [id] }, (data) => 
             {
                 this.info = {
@@ -34,6 +35,7 @@ export class InfoComponent implements OnInit
                 this.allPath.push({id: 0, name: "Root"});
                 this.allPath.reverse();
             });
+        }
     }
     ngOnInit() 
     {

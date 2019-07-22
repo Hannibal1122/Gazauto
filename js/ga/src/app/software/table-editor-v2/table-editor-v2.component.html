@@ -2,9 +2,11 @@
     <div name = "clickArea" class = "tableControlPanel">
         <ng-container *ngIf = "!smallHeader.mode || smallHeader.close"> <!-- Чтобы не менять класс tableGrid -->
             <div *ngIf = "!smallHeader.mode" class = "nameTableClass" 
+                (click) = "openInfoByTable()"
                 title="{{nameTable}}">
                 <!-- {{nameTable}} -->
-                <div style="position:relative; width:170px; height:6px; border-radius:3px;" class = "substrate">
+                <div style="position:relative; width:170px; height:6px; border-radius:3px;" 
+                    class = "substrate">
                     <div style="position:absolute; top:0px; height:6px; left:0px; border-radius:3px;" 
                         [style.width] = "control.state + '%'"
                         [class.tableCellStateGreen] = "control.state == 100"

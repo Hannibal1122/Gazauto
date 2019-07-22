@@ -140,6 +140,7 @@
                     <div *ngFor = "let tab of screen.tabs; let i = index;" 
                         draggable="true"
                         (dragstart) = "splitScreen.onDragStart($event, s, i)"
+                        [title] = "tab.software.inputs.name || tab.name"
                         class = "myTabs TabsColor" [class.TabsActiveColor] = "i == screen.currentSoftware">
                         <div (click) = "openTab(s, i)" 
                             style = "padding-left:7px; height:30px; line-height:30px; width: calc(100% - 20px); text-overflow: ellipsis; overflow: hidden; white-space: nowrap;" >

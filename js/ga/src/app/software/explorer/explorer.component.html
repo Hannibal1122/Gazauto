@@ -160,7 +160,7 @@
         Добавить заметку</button>
     <button class = "contextMenuList" (click) = "copyObject('cut')" [disabled] = "!selectRules.cut">
         Вырезать</button>
-    <button class = "contextMenuList" (click) = "copyObject('copy')" [disabled] = "!selectRules.copy">
+    <button *ngIf = "createContextMenu.type != 'file'" class = "contextMenuList" (click) = "copyObject('copy')" [disabled] = "!selectRules.copy">
         Копировать</button>
     <button class = "contextMenuList" (click) = "createObject(outFolders[selectObjectI].id, 'Права', null)" [disabled] = "!selectRules.rights">
         Права</button>

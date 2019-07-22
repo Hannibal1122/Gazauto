@@ -1085,4 +1085,31 @@ export class TableEditorV2Component implements OnInit
             this.loadTable();
         });
     }
+    openInfoByTable()
+    {
+        this.query.protectionPost(127, { param: [this.id] }, (data) =>
+        {
+            let info = {
+                name: data[0][3],
+                text: data[0][1],
+                path: "Root"
+            }
+            this.query.protectionPost(110, { param: [this.id] }, (data) => 
+            { 
+                for(let i = data.path.length - 1; i >= 0; i--)
+                    info.path += (i != 0 ? "\\" : "") + data.path[i].name;
+                this.modal.open({
+                    title: "Информация",  
+                    data: [
+                        ["Имя", info.name, "html"],
+                        ["Инфо", info.text, "html"],
+                        ["Путь", info.path, "html"],
+                    ],
+                    ok: "Закрыть",
+                    cancel: ""
+                })
+            });
+        });
+        
+    }
 }
