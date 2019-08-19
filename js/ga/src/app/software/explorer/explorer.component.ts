@@ -805,8 +805,9 @@ export class ExplorerComponent implements OnInit
     {
         if(localStorage.getItem("copyExplorer"))
         {
-            let data = JSON.parse(localStorage.getItem("copyExplorer"));
-            if(data.objectType == "file") this.selectRules.paste = false;
+            let copyExplorer = JSON.parse(localStorage.getItem("copyExplorer"));
+            let lastOperationExplorer = localStorage.getItem("lastOperationExplorer");
+            if(copyExplorer.objectType == "file" && lastOperationExplorer != "cut") this.selectRules.paste = false;
         }
         this.createContextMenuMain.translate = this.getTranslateForClientXY(e);
         this.createContextMenuMain.left = e.clientX + "px";
