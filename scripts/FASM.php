@@ -78,7 +78,7 @@ class FASM
         /* echo json_encode($marksPosition); */
         /* echo json_encode($code); */
         $i = 0;
-        $changeOperator = ["set", "eq", "ne", "l", "m", "le", "me"];
+        $changeOperator = ["set", "eq", "ne", "l", "m", "le", "me", "status"];
         while($limit < 1000) // limit - защита от зацикливания
 		{
             $current = $code[$i];
@@ -148,6 +148,13 @@ class FASM
                 case "msg":
                     $operand = $this->getFunction($current["operand"][1], $idLine);
                     $this->myLog->add("message", $current["operand"][0], $operand["value"]);
+                    $i++;
+                    break;
+                case "status":
+                    require_once("myTable.php");
+                    $operand = $this->getFunction($current["operand"][1], $idLine);
+                    $myTable = new MyTable(-1, $this->myLog);
+                    $myTable->setStateForField($value["tableId"], $idField, $operand["value"], true);
                     $i++;
                     break;
                 case "end": return; // выйти из скрипта

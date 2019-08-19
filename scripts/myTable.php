@@ -495,7 +495,7 @@
             }
             if($link) query("UPDATE structures SET bindId = %i WHERE id = %i", [ $idTableFrom, $idTable ]);
         }
-        function setStateForField($idTable, $idField, $state) // Выставить статус у ячейки
+        function setStateForField($idTable, $idField, $state, $script = false) // Выставить статус у ячейки
         {
             query("UPDATE fields SET state = %i WHERE id = %i AND tableId = %i", [ (int)$state, (int)$idField, (int)$idTable ]);
             $this->myLog->add("field", "state", $idField);
@@ -503,7 +503,7 @@
                 while ($row = $result->fetch_array(MYSQLI_NUM))
                     $this->setStateForField($row[0], $row[1], $state);
             $idEvent = (int)selectOne("SELECT eventId FROM fields WHERE id = %i", [ (int)$idField ]);
-            if(!is_null($idEvent))
+            if(!is_null($idEvent) && !$script)
             {
                 $typeAndCode = query("SELECT type, code FROM events WHERE id = %i", [ $idEvent ])->fetch_array(MYSQLI_NUM);
                 if($typeAndCode[0] == "state")
@@ -620,7 +620,7 @@
                 $outData[$i + 0] = [];
                 foreach($data[$key] as $_key => $value) // Тут сортировка по next
                     if($_key !== "__NEXT__")
-                        $outData[$i + 0][] = $value;
+                        $outData[$i + 0][$_key] = $value;
                 $key = $this->getNextI($data, $key);
             }
             $myTable = new MyTable(-1, $this->myLog);

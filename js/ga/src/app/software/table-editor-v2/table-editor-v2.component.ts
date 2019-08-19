@@ -1017,7 +1017,6 @@ export class TableEditorV2Component implements OnInit
     {
         this.query.protectionPost(261, { param: [ this.id ] }, (data) =>
         {
-            trace(data)
             function downloadURI(uri, name) 
             {
                 var link = document.createElement("a");
@@ -1092,12 +1091,12 @@ export class TableEditorV2Component implements OnInit
             let info = {
                 name: data[0][3],
                 text: data[0][1],
-                path: "Root"
+                path: "Root\\"
             }
             this.query.protectionPost(110, { param: [this.id] }, (data) => 
             { 
                 for(let i = data.path.length - 1; i >= 0; i--)
-                    info.path += (i != 0 ? "\\" : "") + data.path[i].name;
+                    info.path += data.path[i].name + "\\";
                 this.modal.open({
                     title: "Информация",  
                     data: [

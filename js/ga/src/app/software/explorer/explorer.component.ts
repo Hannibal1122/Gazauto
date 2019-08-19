@@ -200,10 +200,10 @@ export class ExplorerComponent implements OnInit
                     image.src = this.miniApp.image.src;
                     image.onload = () => {
                         let frame = this.miniAppContent.nativeElement.getBoundingClientRect();
-                        trace(frame.width)
+                        /* trace(frame.width)
                         trace(frame.height)
                         trace(image.width)
-                        trace(image.height)
+                        trace(image.height) */
                         this.miniApp.image.loaded = true;
                         if(image.width > image.height && frame.width > frame.height)
                         {
@@ -803,6 +803,11 @@ export class ExplorerComponent implements OnInit
     }
     getContextmenuMain(e)
     {
+        if(localStorage.getItem("copyExplorer"))
+        {
+            let data = JSON.parse(localStorage.getItem("copyExplorer"));
+            if(data.objectType == "file") this.selectRules.paste = false;
+        }
         this.createContextMenuMain.translate = this.getTranslateForClientXY(e);
         this.createContextMenuMain.left = e.clientX + "px";
         this.createContextMenuMain.top = e.clientY + "px";

@@ -9,7 +9,7 @@ class FasmEditor
 		this.color = color || "#ffffff";
 		this.data = data || 
 		[{
-			words: ["goto", "set", "eq", "ne", "l", "m", "le", "me", "filter"],
+			words: ["goto", "set", "eq", "ne", "l", "m", "le", "me", "filter", "status"],
 			color: "#39A0F9"
         },
         {
