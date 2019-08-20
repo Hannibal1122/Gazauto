@@ -53,6 +53,10 @@ export class LeftMenuElementComponent implements OnInit
                     case 'docx':
                         this.outData[i].fileType = "doc";
                         break;
+                    case 'mp4':
+                    case 'avi':
+                        this.outData[i].fileType = "video";
+                        break;
                 }
             }
             if(this.saveOpen[this.outData[i].id]) this.openCollapse(i, this.outData[i].level); // Открывает сохраненные папки

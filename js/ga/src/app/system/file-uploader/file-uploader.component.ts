@@ -1,5 +1,6 @@
 import { Component, OnInit, ViewChild, ElementRef, EventEmitter, Output, Input} from '@angular/core';
 import { QueryService } from "../../lib/query.service";
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 
 declare var trace:any;
 
@@ -36,13 +37,10 @@ export class FileUploaderComponent implements OnInit
     {
         
     }
-    Upload()
+    Upload(event)
     {
-        var self = this;
-        var a:any = document.forms;
-        this.fileForm.nativeElement.onsubmit = () => { return false; }
         this.Load.emit({data: 1});
-        this.query.uploadFile(this.addNQuery, this.fileForm.nativeElement, (data) =>
+        this.query.uploadFile(this.addNQuery, event, (data) =>
         {
             if(data[0] == "OK")
             {

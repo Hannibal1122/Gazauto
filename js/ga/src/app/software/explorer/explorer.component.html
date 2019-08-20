@@ -40,7 +40,7 @@
                     <span *ngIf = "object.objectType == 'table'"><i class="fas fa-table colorIconTable" style = "font-size: 45px;"></i></span>
                     <span *ngIf = "object.objectType == 'class'"><i class="fa fa-pencil-ruler colorIconExplorer" style = "font-size: 40px;"></i></span>
                     <span *ngIf = "object.objectType == 'user'"><i class="fas fa-user colorIconRole" style = "font-size: 45px;"></i></span>
-                    <span *ngIf = "object.objectType == 'event'"><i class="fas fa-bolt colorIconEvent" style = "font-size: 40px; margin-top:10px;"></i></span>
+                    <span *ngIf = "object.objectType == 'event'"><i class="fas fa-file-code colorIconEvent" style = "font-size: 45px;"></i></span>
                     <span *ngIf = "object.objectType == 'role'"><i class="fas fa-address-book colorIconRole" style = "font-size: 45px;"></i></span>
                     <span *ngIf = "object.objectType == 'log'"><i class="fas fa-book colorIconTable" style = "font-size: 45px;"></i></span>
                     <span *ngIf = "object.objectType == 'plan'"><i class="fa fa-chart-bar colorIconTable" style = "font-size: 45px;"></i></span>
@@ -48,6 +48,7 @@
                         <i *ngIf = "object.fileType == 'img'" class="fas fa-file-image colorIconFile" style = "font-size: 45px;"></i>
                         <i *ngIf = "object.fileType == 'xls'" class="fas fa-file-excel colorIconFile" style = "font-size: 45px;"></i>
                         <i *ngIf = "object.fileType == 'doc'" class="fas fa-file-word colorIconFile" style = "font-size: 45px;"></i>
+                        <i *ngIf = "object.fileType == 'video'" class="fas fa-file-video colorIconFile" style = "font-size: 45px;"></i>
                     </span>
                     <span *ngIf = "object.objectType == 'tlist'"><i class="fas fa-list-alt colorIconTlist" style = "font-size: 45px;"></i></span>
                     <span *ngIf = "object.objectType == 'label'"><i class="fas fa-share-square colorIconRole" style = "font-size: 45px;"></i></span>
@@ -268,6 +269,17 @@
                     style = "padding: 0px 5px; cursor: pointer;" 
                     [class.xlsSheetActive] = "i == miniApp.xls.sheet" >{{ sheet }}</div>
             </div>
+        </div>
+    </div>
+    <div *ngIf = "miniApp.type == 'video'" style = "position:absolute; width:100%; height:100%;">
+        <div style = "transform: translate(-50%, -50%); position:absolute; left:50%; top:50%;" *ngIf = "!miniApp.video.loaded"><i class="fas fa-spinner spinnerLoader"></i></div>
+        <div style = "width:640px; height: 480px; background: black; margin:auto; margin-top:20px; box-shadow: 0 4px 7px rgba(0, 0, 0, 0.5);">
+            <video src="{{miniApp.video.src}}" 
+                (canplay) = "miniApp.video.canplay()" 
+                controls 
+                style = "width:100%; height:100%;"
+                [hidden] = "!miniApp.video.loaded">
+            </video>
         </div>
     </div>
     <div class = "ModalButtonExitColor" style = "position:absolute; right:5px; top:5px; font-size:16px; cursor:pointer;" (click) = "miniApp.open = false">

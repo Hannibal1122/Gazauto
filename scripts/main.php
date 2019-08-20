@@ -3,7 +3,7 @@
     /* , round(microtime(true) - $start, 4) */
     /* error_reporting(0); */
 
-    header('Access-Control-Allow-Origin: *');
+    /* header('Access-Control-Allow-Origin: *'); */
     include("config.php");
 	include("query.php");
     include("functions.php");
@@ -253,6 +253,10 @@
                 case 'doc':
                 case 'docx':
                     $elem["fileType"] = "doc";
+                    break;
+                case 'mp4':
+                case 'avi':
+                    $elem["fileType"] = "video";
                     break;
             }
         }

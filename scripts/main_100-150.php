@@ -153,7 +153,7 @@
             query("UPDATE structures SET priority = %i, icon = %i WHERE id = %i", $param);
             break;
         case 117: // Загрузка файлов на сервер
-            echo loadFile(10, ['gif','jpeg','png','jpg','xls','xlsx','doc','docx', 'avi']);
+            echo loadFile(10, ['gif', 'jpeg', 'png', 'jpg', 'xls', 'xlsx', 'doc', 'docx', 'avi', 'mp4']);
             break;
         case 118: // Удаление файлов из временной папки
             unlink("../tmp/".$param[0]); 

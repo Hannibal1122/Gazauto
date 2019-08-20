@@ -237,6 +237,16 @@ export class ExplorerComponent implements OnInit
                         }
                     });
                 }
+                if(object.fileType == 'video')
+                {
+                    this.miniApp.open = true;
+                    this.miniApp.type = "video";
+                    this.miniApp.video.src = environment.FILES + object.id + "/" + object.name;
+                    this.miniApp.video.loaded = false;
+                    this.miniApp.video.canplay = (event) => {
+                        this.miniApp.video.loaded = true;
+                    };
+                }
                 break;
         }
     }
@@ -732,6 +742,12 @@ export class ExplorerComponent implements OnInit
             loaded: false,
             width: "",
             height: ""
+        },
+        video:
+        {
+            src: "",
+            canplay: null,
+            loaded: false
         },
         xls: {
             table: null,

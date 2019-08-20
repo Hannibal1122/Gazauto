@@ -116,7 +116,9 @@ export class TablePropertyComponent implements OnInit
     mainPropertyField =
     [
         { name: "id", desc: "id", value: "", type: "block"},
-        { name: "color", desc: "цвет", value: "", type: "edit"}
+        { name: "color", desc: "цвет", value: "", type: "edit"},
+        { name: "column", desc: "столбец", value: "", type: "block"},
+        { name: "row", desc: "строка", value: "", type: "block"}
     ]
     userProperty = [];
     property = [];

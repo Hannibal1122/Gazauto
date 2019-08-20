@@ -27,7 +27,7 @@ export class ModalWindowComponent
     typeObject = [
         { name: "Папка", class: "fas fa-folder"}, 
         { name: "Таблица", class: "fas fa-table"}, 
-        { name: "Событие", class: "fas fa-bolt"}, 
+        { name: "Событие", class: "fas fa-file-code"}, 
         { name: "Пользователь", class: "fas fa-user"}, 
         { name: "Роль", class: "fas fa-address-book"}, 
         { name: "Файл", class: "fas fa-file-alt"}, 

@@ -49,12 +49,14 @@
                     
                     <i *ngIf = "data.objectType == 'class'" class="fa fa-pencil-ruler colorIconExplorer"></i>
                     <i *ngIf = "data.objectType == 'filter'" class="fas fa-filter colorIconTable"></i>
-                    <i *ngIf = "data.objectType == 'event'" class="fas fa-bolt colorIconEvent"></i>
+                    <i *ngIf = "data.objectType == 'event'" class="fas fa-file-code colorIconEvent"></i>
                     <i *ngIf = "data.objectType == 'right'" class="fas fa-address-card"></i>
 
                     <i *ngIf = "data.fileType == 'img'" class="fas fa-file-image colorIconFile"></i>
                     <i *ngIf = "data.fileType == 'xls'" class="fas fa-file-excel colorIconFile"></i>
                     <i *ngIf = "data.fileType == 'doc'" class="fas fa-file-word colorIconFile"></i>
+                    <i *ngIf = "data.fileType == 'video'" class="fas fa-file-video colorIconFile"></i>
+                    
                     <i *ngIf = "data.objectType == 'tlist'" class="fas fa-list-alt colorIconTlist"></i>
                     <i *ngIf = "data.objectType == 'label'" class="fas fa-share-square colorIconRole"></i>
                     {{data.name}}

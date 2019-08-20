@@ -9,7 +9,7 @@ declare var trace:any;
 export class QueryService 
 {
     private url = environment.URL;
-    constructor() 
+    constructor(private http: HttpClient) 
     { 
         /* $.ajaxSetup({ headers: {  'Access-Control-Allow-Origin': 'http://localhost:8081' } }); */
     }
@@ -38,32 +38,24 @@ export class QueryService
     {
         return this.url + "?nquery=" + n + "&paramI=" + localStorage.getItem("ID") + "&paramL=" + localStorage.getItem("login")  + "&paramC=" + localStorage.getItem("checkKey")  + "&param=" + data; 
     }
-    uploadFile(n, data, func)
+    uploadFile(n, event, func)
     {
-        var xhr:any = new XMLHttpRequest();
-        // обработчик для закачки
-        /* xhr.upload.onprogress = function(event) 
-        {
-            trace(event.loaded + ' / ' + event.total);
-        } */
-        var xhrData:any = new FormData(data);
-		xhrData.append("nquery", n);
-		xhrData.append("paramI", localStorage.getItem("ID"));
-		xhrData.append("paramL", localStorage.getItem("login"));
-		xhrData.append("paramC", localStorage.getItem("checkKey"));
-		xhr.open("POST", this.url, true);
-		xhr.setRequestHeader("Cache-Control", "no-cache");
-		xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
-        xhr.setRequestHeader("X-File-Name", xhrData.name);
-        xhr.send(xhrData);
-        xhr.onreadystatechange = () =>
-		{
-			if (xhr.readyState != 4) return;
-			clearTimeout(timeout) // очистить таймаут при наступлении readyState 4
-			if (xhr.status == 200) if(func) func(this.recode(xhr.responseText));
-			else trace("Ошибка: " + xhr.statusText) // вызвать обработчик ошибки с текстом ответа
-		}
-		var timeout = setTimeout( function(){ xhr.abort(); trace("Время ожидания истекло, проверьте подключение к серверу!"); }, 10000);
+        let fileList: FileList = event.target.files;
+        if(fileList.length > 0) {
+            let file: File = fileList[0];
+            let formData:FormData = new FormData();
+            formData.append('filename', file, file.name);
+            formData.append("nquery", n);
+            formData.append("paramI", localStorage.getItem("ID"));
+            formData.append("paramL", localStorage.getItem("login"));
+            formData.append("paramC", localStorage.getItem("checkKey"));
+            let headers = new HttpHeaders()/* .set('Content-Type', 'multipart/form-data') *//* .set('Accept', 'application/json') */;
+            this.http.post(this.url, formData, { headers: headers })
+                .subscribe(
+                    data => func(data),
+                    error => console.log(error)
+                )
+        }
     }
     private recode(data)
     {

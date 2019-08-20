@@ -9,6 +9,6 @@
     </tbody>
 </table>
 <form #fileForm name="upload">
-    <input #fileInput type="file" name="filename" (change) = "Upload()" [disabled] = "listFile.length >= maxLoadFile && maxLoadFile != 0">
+    <input #fileInput type="file" name="filename" (change) = "Upload($event)" [disabled] = "listFile.length >= maxLoadFile && maxLoadFile != 0">
    <!--  <input type="submit" value="Загрузить"> -->
 </form>

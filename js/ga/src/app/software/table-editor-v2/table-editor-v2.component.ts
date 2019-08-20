@@ -265,6 +265,7 @@ export class TableEditorV2Component implements OnInit
                 if(j === undefined) continue; // Чтобы исключить __ID__ __NEXT__
                 let cell = this.dataTable[key][j] = row[column];
                 cell.idColumn = Number(column);
+                cell.iRow = Number(key);
                 let filterFields = this.tableFilter.fields[j];
                 let filterState = this.tableFilter.state[j];
                 this.mapFields[cell.id] = cell;
@@ -529,7 +530,9 @@ export class TableEditorV2Component implements OnInit
                 this.tableProperty.listLink.visible = false;
                 this.tableProperty.data = {
                     id: this.inputProperty.id,
-                    color: cell.color
+                    color: cell.color,
+                    column: this.dataHeader[this.mapHeader[cell.idColumn]].name,
+                    row: cell.iRow + 1
                 };
                 return true;
             }
