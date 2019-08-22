@@ -54,6 +54,7 @@
                         name = "clickArea"  
                         class = "TableCreatorHeadColor TableCreatorHeadBColor" 
                         id = "{{ head.id }}"
+                        [style.width] = "head.width ? head.width : null"
                         (click) = "onChangeSort(i)"
                         (contextmenu) = "getContextmenu($event, i, 'head')">
                         {{ head.name }}
@@ -133,6 +134,9 @@
                         <td *ngIf = "cell && hiddenColumn[j] !== true" 
                             id = "{{ cell.id }}"
                             (contextmenu) = "getContextmenu($event, i, 'cell')"
+                            [style.width] = "dataHeader[j].width ? dataHeader[j].width : null"
+                            [style.min-width] = "dataHeader[j].width ? dataHeader[j].width : null"
+                            [style.max-width] = "dataHeader[j].width ? dataHeader[j].width : null"
                             [style.background] = "cell.id == searchCellId ? '#e7f5c6' : (cell.id == inputProperty._colorId ? '#9abfe225' : cell.color)">
                             {{ cell && cell.listValue ? cell.listValue : cell.value }}
                             <div class="linkClass">
@@ -141,6 +145,9 @@
                                 </span>
                                 <span *ngIf = "cell.type == 'table'" class = "linkValueClass">
                                     <i class = "fa fa-table"></i>
+                                </span>
+                                <span *ngIf = "cell.type == 'folder'" class = "linkValueClass">
+                                    <i class = "fa fa-folder"></i>
                                 </span>
                                 <span *ngIf = "cell.type == 'cell'" class = "linkCellClass" [class.linkErrorClass] = "cell.value == null">
                                     <i class = "fa fa-link"></i>
@@ -323,7 +330,7 @@
         <button *ngIf = "inputProperty.eventId" class = "contextMenuList" (click) = "openEventToExplorer(inputProperty.eventId)">Найти событие</button>
         <button *ngIf = "inputProperty.eventId" class = "contextMenuList" (click) = "openSoftware('event', inputProperty.eventId)">Открыть событие</button>
         <button *ngIf = "inputProperty.type == 'cell'" class = "contextMenuList" (click) = "openToExplorer(inputProperty)">Найти в таблице</button>
-        <button *ngIf = "inputProperty.type == 'table' || inputProperty.type == 'file' || inputProperty.type == 'tlist'" class = "contextMenuList" (click) = "openToExplorer(inputProperty)">Найти в проводнике</button>
+        <button *ngIf = "inputProperty.type == 'table' || inputProperty.type == 'folder' || inputProperty.type == 'file' || inputProperty.type == 'tlist'" class = "contextMenuList" (click) = "openToExplorer(inputProperty)">Найти в проводнике</button>
         <button *ngIf = "inputProperty.type == 'table'" class = "contextMenuList" (click) = "openSoftware('table', inputProperty.linkId)">Открыть таблицу</button>
     </ng-container>
 </div>

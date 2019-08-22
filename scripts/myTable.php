@@ -25,10 +25,22 @@
                     $stateTable = (int)$row[2]; 
                     $objectType = $row[3]; 
                 }
-            if($result = query("SELECT i, id, value, eventId, dataType FROM fields WHERE tableId = %i AND type = 'head' $filterColumn[0] ORDER by i", [$idTable]))
+            if($result = query("SELECT i, id, value, eventId, dataType, user_property FROM fields WHERE tableId = %i AND type = 'head' $filterColumn[0] ORDER by i", [$idTable]))
                 while ($row = $result->fetch_array(MYSQLI_NUM))
                 {
                     if($row[4]) $row[4] = selectOne("SELECT type FROM my_values WHERE id = %i", [(int)$row[4]]);
+                    if($row[5])
+                    {
+                        $userProperty = json_decode($row[5]);
+                        $width = NULL;
+                        for($i = 0, $c = count($userProperty); $i < $c; $i++) // Ширина столбца
+                            if($userProperty[$i]->name == "width")
+                            {
+                                $width = (int)$userProperty[$i]->value;
+                                break;
+                            }
+                        $row[5] = $width;
+                    }
                     $head[] = $row;
                 }
             /* Применить фильтр и узнать набор строк которые надо включить */
@@ -68,6 +80,7 @@
                                 break;
                             case "file":
                             case "table":
+                            case "folder":
                                 $field["type"] = $row[5];
                                 if($value = query("SELECT name FROM structures WHERE id = %i", [ $field["linkId"] ]))
                                     $field["value"] = $value->fetch_array(MYSQLI_NUM)[0];

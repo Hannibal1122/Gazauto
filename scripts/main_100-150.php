@@ -153,17 +153,21 @@
             query("UPDATE structures SET priority = %i, icon = %i WHERE id = %i", $param);
             break;
         case 117: // Загрузка файлов на сервер
-            echo loadFile(10, ['gif', 'jpeg', 'png', 'jpg', 'xls', 'xlsx', 'doc', 'docx', 'avi', 'mp4']);
+            echo loadFile(20, ['gif', 'jpeg', 'png', 'jpg', 'xls', 'xlsx', 'doc', 'docx', 'avi', 'mp4']);
             break;
         case 118: // Удаление файлов из временной папки
             unlink("../tmp/".$param[0]); 
             break;
         case 119: // Загрузка файла с клиента
             $idElement = (int)$param[0];
-            $file = $param[1];
+            $fileName = $param[1];
+
+            $end = strripos($fileName, "."); 
+            $fileType = substr($fileName, $end + 1);
+
             if(($myRight->get($idElement) & 8) != 8) return; // Права на изменение
             if (!file_exists("../files/$idElement")) mkdir("../files/$idElement", 0700);
-            rename("../tmp/$file", "../files/$idElement/$file"); 
+            rename("../tmp/$fileName", "../files/$idElement/$idElement.$fileType"); 
             break;
         case 120: // Изменение имени объекта
             $idElement = (int)$param[0];
@@ -174,10 +178,18 @@
         case 121: // Запрос файла с правами
             $idElement = (int)$param;
             if(($myRight->get($idElement) & 8) != 8) return; // Права на изменение
-            $name = "";
+            $fileName = scandir("../files/$idElement", 1)[0];
+            $fileType = getFileType($fileName);
+            
+            $fileBaseNameForDownload = "";
             if($result = query("SELECT name FROM structures WHERE id = %i", [ $idElement ])) 
-                $name = $result->fetch_array(MYSQLI_NUM)[0];
-            $filePathForDownload = "../files/$idElement/$name";
+                $fileBaseNameForDownload = $result->fetch_array(MYSQLI_NUM)[0];
+
+            $fileType2 = getFileType($fileBaseNameForDownload);
+            if($fileType2 != $fileType) // Если тип в имени равен реальному, то оставляем как есть
+                $fileBaseNameForDownload .= ".$fileType";
+            
+            $filePathForDownload = "../files/$idElement/$fileName";
             require_once("getFile.php");
             $myLog->add("file", "download", $idElement);
             break;
@@ -445,6 +457,12 @@
                     "data" => getListFromExcel($sheetIndex)
                 ];
             echo json_encode($outArray);
+            break;
+        case 143: // Получить полный путь к файлу
+            $idElement = (int)$param[0];
+            if(($myRight->get($idElement) & 1) != 1) return; // Права на просмотр
+            $fileBaseNameForDownload = scandir("../files/$idElement", 1)[0];
+            echo "$idElement/$fileBaseNameForDownload";
             break;
     }
     function getListFromExcel($sheetIndex)

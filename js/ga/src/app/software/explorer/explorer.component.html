@@ -273,13 +273,15 @@
     </div>
     <div *ngIf = "miniApp.type == 'video'" style = "position:absolute; width:100%; height:100%;">
         <div style = "transform: translate(-50%, -50%); position:absolute; left:50%; top:50%;" *ngIf = "!miniApp.video.loaded"><i class="fas fa-spinner spinnerLoader"></i></div>
-        <div style = "width:640px; height: 480px; background: black; margin:auto; margin-top:20px; box-shadow: 0 4px 7px rgba(0, 0, 0, 0.5);">
+        <div style = "width:640px; height: 480px; background: black; margin:auto; margin-top:20px; box-shadow: 0 4px 7px rgba(0, 0, 0, 0.5); position: relative;" [hidden] = "!miniApp.video.loaded">
             <video src="{{miniApp.video.src}}" 
                 (canplay) = "miniApp.video.canplay()" 
+                (error) = "miniApp.video.onerror($event)" 
                 controls 
-                style = "width:100%; height:100%;"
-                [hidden] = "!miniApp.video.loaded">
+                style = "width:100%; height:100%;">
             </video>
+            <div *ngIf = "miniApp.video.error != ''" 
+                style = "position: absolute; width: 100%; top: 40%; text-align: center; color: white;" >{{ miniApp.video.error }}</div>
         </div>
     </div>
     <div class = "ModalButtonExitColor" style = "position:absolute; right:5px; top:5px; font-size:16px; cursor:pointer;" (click) = "miniApp.open = false">

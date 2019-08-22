@@ -178,6 +178,12 @@ export class TablePropertyComponent implements OnInit
                         break;
                 }
             }
+            for(let i = 0; i < this.userProperty.length; i++)
+                if(this.userProperty[i].name == "width")
+                {
+                    this.onSave.emit({ width: this.userProperty[i].value });
+                    break;
+                }
             this.query.protectionPost(273, { param: [ this.id, JSON.stringify(this.userProperty) ] });
         }
         this.saveQueue = {};
@@ -199,7 +205,8 @@ export class TablePropertyComponent implements OnInit
     }
     openObject(p)
     {
-        this.query.onChange({ type: "openFromTable", value: { type: "open", name: p.value.type, id: p.value.id }});
+        if(p.value.type == "filter" || p.value.type == "file" || p.value.type == "folder" || p.value.type == "tlist") this.query.onChange({ type: "openFromTable", value: { name: p.value.type, id: p.value.id }});
+        else this.query.onChange({ type: "openFromTable", value: { type: "open", name: p.value.type, id: p.value.id }});
     }
     pasteObject(p)
     {

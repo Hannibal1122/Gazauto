@@ -190,63 +190,67 @@ export class ExplorerComponent implements OnInit
                 this.createFilter.update(object.objectId, this.inputs.id, object.name);
                 break;
             case "file":
-                if(object.fileType == 'img')
+                this.query.protectionPost(143, { param: [ object.id ] }, (fullPath) => 
                 {
-                    this.miniApp.open = true;
-                    this.miniApp.type = "image";
-                    this.miniApp.image.src = environment.FILES + object.id + "/" + object.name;
-                    this.miniApp.image.loaded = false;
-                    let image = new Image();
-                    image.src = this.miniApp.image.src;
-                    image.onload = () => {
-                        let frame = this.miniAppContent.nativeElement.getBoundingClientRect();
-                        /* trace(frame.width)
-                        trace(frame.height)
-                        trace(image.width)
-                        trace(image.height) */
-                        this.miniApp.image.loaded = true;
-                        if(image.width > image.height && frame.width > frame.height)
-                        {
-                            this.miniApp.image.width = "auto";
-                            this.miniApp.image.height = "98%";
-                        }
-                        else
-                        {
-                            this.miniApp.image.width = "98%";
-                            this.miniApp.image.height = "auto";
+                    if(object.fileType == 'img')
+                    {
+                        this.miniApp.open = true;
+                        this.miniApp.type = "image";
+                        this.miniApp.image.src = environment.FILES + fullPath;
+                        this.miniApp.image.loaded = false;
+                        let image = new Image();
+                        image.src = this.miniApp.image.src;
+                        image.onload = () => {
+                            let frame = this.miniAppContent.nativeElement.getBoundingClientRect();
+                            this.miniApp.image.loaded = true;
+                            if(image.width > image.height && frame.width > frame.height)
+                            {
+                                this.miniApp.image.width = "auto";
+                                this.miniApp.image.height = "98%";
+                            }
+                            else
+                            {
+                                this.miniApp.image.width = "98%";
+                                this.miniApp.image.height = "auto";
+                            }
                         }
                     }
-                }
-                if(object.fileType == 'xls')
-                {
-                    this.miniApp.open = true;
-                    this.miniApp.type = "xls";
-                    this.miniApp.xls.loaded = false;
-                    this.query.protectionPost(142, { param: [ object.id ] }, (data) => 
+                    if(object.fileType == 'xls')
                     {
-                        this.miniApp.xls.data = data;
-                        if(data.length == 0) this.miniApp.xls.error = "Не возможно прочитать данные!";
-                        else
+                        this.miniApp.open = true;
+                        this.miniApp.type = "xls";
+                        this.miniApp.xls.loaded = false;
+                        this.query.protectionPost(142, { param: [ object.id ] }, (data) => 
                         {
-                            this.miniApp.xls.error = "";
-                            this.miniApp.xls.sheetList = [];
-                            for(let i = 0; i < data.length; i++)
-                                this.miniApp.xls.sheetList.push(data[i].name);
-                            this.miniApp.xls.setList(0);
-                            this.miniApp.xls.loaded = true;
+                            this.miniApp.xls.data = data;
+                            if(data.length == 0) this.miniApp.xls.error = "Не возможно прочитать данные!";
+                            else
+                            {
+                                this.miniApp.xls.error = "";
+                                this.miniApp.xls.sheetList = [];
+                                for(let i = 0; i < data.length; i++)
+                                    this.miniApp.xls.sheetList.push(data[i].name);
+                                this.miniApp.xls.setList(0);
+                                this.miniApp.xls.loaded = true;
+                            }
+                        });
+                    }
+                    if(object.fileType == 'video')
+                    {
+                        this.miniApp.open = true;
+                        this.miniApp.video.error = "";
+                        this.miniApp.type = "video";
+                        this.miniApp.video.src = environment.FILES + fullPath;
+                        this.miniApp.video.loaded = false;
+                        this.miniApp.video.canplay = (event) => {
+                            this.miniApp.video.loaded = true;
+                        };
+                        this.miniApp.video.onerror = (event) => {
+                            this.miniApp.video.loaded = true;
+                            this.miniApp.video.error = "Воспроизведение невозможно!"
                         }
-                    });
-                }
-                if(object.fileType == 'video')
-                {
-                    this.miniApp.open = true;
-                    this.miniApp.type = "video";
-                    this.miniApp.video.src = environment.FILES + object.id + "/" + object.name;
-                    this.miniApp.video.loaded = false;
-                    this.miniApp.video.canplay = (event) => {
-                        this.miniApp.video.loaded = true;
-                    };
-                }
+                    }
+                });
                 break;
         }
     }
@@ -396,7 +400,7 @@ export class ExplorerComponent implements OnInit
             this.selectRules.rights = objectType == "user" || objectType == "role" ? false : Boolean(right.right);
             this.selectRules.remove = Boolean(right.change);
             this.selectRules.paste = Boolean(right.change) && this.selectObjectCopy.id != -1;
-            this.selectRules.rename = Boolean(right.change) && objectType != "user" && objectType != "role" && objectType != "file";
+            this.selectRules.rename = Boolean(right.change) && objectType != "user" && objectType != "role";
             if(_class)
             {
                 this.selectRules.copy = false; 
@@ -747,7 +751,9 @@ export class ExplorerComponent implements OnInit
         {
             src: "",
             canplay: null,
-            loaded: false
+            onerror: null,
+            loaded: false,
+            error: ""
         },
         xls: {
             table: null,

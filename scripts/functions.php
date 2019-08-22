@@ -105,7 +105,7 @@
         if (!file_exists("../tmp")) mkdir("../tmp", 0700);
         if($_FILES["filename"]["size"] > 1024*$maxSize*1024)
         {
-            return json_encode(["Размер файла превышает три мегабайта"]);
+            return json_encode(["Размер файла превышает $maxSize Mb"]);
             exit;
         }
         if(is_uploaded_file($_FILES["filename"]["tmp_name"]))// Проверяем загружен ли файл
@@ -138,5 +138,10 @@
             $_rights >>= 1;
         }
         return $out;
+    }
+    function getFileType($fileName)
+    {
+        $end = strripos($fileName, "."); 
+        return substr($fileName, $end + 1);
     }
 ?>

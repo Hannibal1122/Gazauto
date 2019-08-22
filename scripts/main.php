@@ -3,7 +3,7 @@
     /* , round(microtime(true) - $start, 4) */
     /* error_reporting(0); */
 
-    /* header('Access-Control-Allow-Origin: *'); */
+    header('Access-Control-Allow-Origin: *');
     include("config.php");
 	include("query.php");
     include("functions.php");
@@ -236,8 +236,8 @@
         $elem["count"] = $count ? selectOne("SELECT COUNT(*) FROM structures WHERE parent = %i", [ $elem["id"] ]) : NULL;
         if($elem["objectType"] == "file")
         {
-            $end = strripos($elem["name"], "."); 
-            $type = substr($elem["name"], $end + 1);
+            $fileName = scandir("../files/".$elem["id"], 1)[0];
+            $type = getFileType($fileName);
             switch($type)
             {
                 case 'gif':

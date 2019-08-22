@@ -28,7 +28,7 @@
     // заставляем браузер показать окно сохранения файла
     header('Content-Description: File Transfer');
     header('Content-Type: application/octet-stream');
-    header('Content-Disposition: attachment; filename=' . basename($filePathForDownload));
+    header('Content-Disposition: attachment; filename=' . $fileBaseNameForDownload);
     header('Content-Transfer-Encoding: binary');
     header('Expires: 0');
     header('Cache-Control: must-revalidate');

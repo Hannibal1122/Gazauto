@@ -218,11 +218,13 @@ export class TableEditorV2Component implements OnInit
                     name: data.head[i][2],
                     eventId: data.head[i][3],
                     dataType: data.head[i][4],
+                    width: data.head[i][5] ? data.head[i][5] + 'px' : null,
                     sort: false
                 };
                 this.mapHeader[this.dataHeader[_j].id] = _j;
                 this.mapFields[this.dataHeader[_j].id] = { ...this.dataHeader[_j], header: true };
             }
+            /* this.dataHeader[1].width = 220; */
             // Заполнение фильтров и удаление лишних фильтров
             let j = 0;
             for(; j < this.dataHeader.length; j++)
@@ -644,6 +646,7 @@ export class TableEditorV2Component implements OnInit
                 break;
             case "file": 
             case "table": 
+            case "folder": 
                 switch(this.createContextMenu.type)
                 {
                     case "cell":
@@ -770,7 +773,8 @@ export class TableEditorV2Component implements OnInit
                 this.inputProperty.eventId = this.dataHeader[data].eventId;
                 this.tableProperty.listLink.visible = false;
                 this.tableProperty.data = {
-                    id: this.inputProperty.id
+                    id: this.inputProperty.id,
+                    width: this.dataHeader[data].width
                 };
                 break;
             case "row":
@@ -973,8 +977,10 @@ export class TableEditorV2Component implements OnInit
     updateCell(e) // При изменении таблицы свойств
     {
         let cell = this.configInput.element;
-        if(cell)
-            cell.color = e.color;
+        if(cell && e.color) cell.color = e.color;
+        else 
+            if(this.inputProperty.id && e.width)
+                this.dataHeader[this.mapHeader[this.inputProperty.id]].width = e.width + "px";
     }
     getListLink()
     {
