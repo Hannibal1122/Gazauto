@@ -335,7 +335,9 @@ export class AppComponent implements OnInit
         let param;
         switch(type)
         {
-            case "explorer": name = "Проводник"; break;
+            case "explorer": 
+                name = input.type === "recycle" ? "Корзина" : "Проводник"; 
+                break;
             case "table": 
                 param = "id=" + input.id;
                 if(input.searchObjectId) param += "&searchObjectId=" + input.searchObjectId;

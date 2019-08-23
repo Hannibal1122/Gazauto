@@ -71,7 +71,7 @@
                 <div class = "elementExplorerText">{{ object.name }}</div>
             </div>
         </span>
-        <span *ngIf = "outFolders.length == 0" style = "color:#7e7e7e; font-size:24px; font-weight:bold; margin-left: 10px;"> Папка пуста</span>
+        <span *ngIf = "outFolders.length == 0" style = "color:#7e7e7e; font-size:24px; font-weight:bold; margin-left: 10px;"> {{ inputs.type === "recycle" ? "Корзина" : "Папка" }} пуста</span>
     </div>
     <div *ngIf = "tableProperty.visible" 
         class = "tableProperty">

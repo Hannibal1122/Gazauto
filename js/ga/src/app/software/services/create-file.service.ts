@@ -36,7 +36,7 @@ export class CreateFileService
             }
         });
     }
-    remove(id, update)
+    remove(id, update, nQueryRemove)
     {
         this.query.getWhereUsed(id, (data) => 
         {
@@ -50,7 +50,7 @@ export class CreateFileService
             this.modal.open(Data, (save) =>
             {
                 if(save)
-                    this.query.protectionPost(112, { param: [id] }, (data) => 
+                    this.query.protectionPost(nQueryRemove, { param: [id] }, (data) => 
                     {
                         update();
                     });

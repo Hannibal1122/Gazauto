@@ -51,6 +51,7 @@ export class ExplorerComponent implements OnInit
     }
     onChange = null;
     inputs = { id: -1, element: null, searchObjectId: null, updateHistory: null, 
+        type: null, // Может быть в режиме корзины
         bind: false, // Если папка наследует
         class: false // Если элемент создан конструктором
     };
@@ -91,16 +92,20 @@ export class ExplorerComponent implements OnInit
     ) {}
     ngOnInit() 
     { 
-        if(this.inputs && this.inputs.id) 
+        if(this.inputs && this.inputs.id !== undefined) 
         {
-            this.openFolder(this.inputs.id, () => 
+            if(this.inputs.type === "recycle") this.refresh();
+            else
             {
-                let id = -1;
-                let type = "";
-                if(this.inputs.element) { id = this.inputs.element; type = "element"; }
-                if(this.inputs.searchObjectId) { id = this.inputs.searchObjectId; this.inputs.searchObjectId = -1; type = "search"; }
-                this.openObjectById(type, id);
-            });
+                this.openFolder(this.inputs.id, () => 
+                {
+                    let id = -1;
+                    let type = "";
+                    if(this.inputs.element) { id = this.inputs.element; type = "element"; }
+                    if(this.inputs.searchObjectId) { id = this.inputs.searchObjectId; this.inputs.searchObjectId = -1; type = "search"; }
+                    this.openObjectById(type, id);
+                });
+            }
         }
         else this.openFolder(0);
         this.createTable.modal = this.modal;
@@ -322,10 +327,10 @@ export class ExplorerComponent implements OnInit
             case "filter":
             case "label": // Используется элемент от папки тк алгоритм удаления одинаков
             case "folder":
-                this.createFolder.remove(id, () => { this.refresh() });
+                this.createFolder.remove(id, () => { this.refresh() }, this.inputs.type === "recycle" ? 130 : 112);
                 break;
             case "table":
-                this.createTable.remove(id, () => { this.refresh() });
+                this.createTable.remove(id, () => { this.refresh() }, this.inputs.type === "recycle" ? 130 : 112);
                 break;
             case "user":
                 this.createUser.remove(name, () => { this.refresh() });
@@ -334,19 +339,19 @@ export class ExplorerComponent implements OnInit
                 this.createRole.remove(name, () => { this.refresh() });
                 break;
             case "event": 
-                this.createEvent.remove(id, () => { this.refresh() });
+                this.createEvent.remove(id, () => { this.refresh() }, this.inputs.type === "recycle" ? 130 : 112);
                 break;
             case "file": 
-                this.createFile.remove(id, () => { this.refresh() });
+                this.createFile.remove(id, () => { this.refresh() }, this.inputs.type === "recycle" ? 130 : 112);
                 break;
             case "tlist":
-                this.createTableList.remove(id, () => { this.refresh() });
+                this.createTableList.remove(id, () => { this.refresh() }, this.inputs.type === "recycle" ? 130 : 112);
                 break;
             case "plan":
-                this.createPlanChart.remove(id, () => { this.refresh() });
+                this.createPlanChart.remove(id, () => { this.refresh() }, this.inputs.type === "recycle" ? 130 : 112);
                 break;
             case "class":
-                this.createClassService.remove(id, () => { this.refresh() });
+                this.createClassService.remove(id, () => { this.refresh() }, this.inputs.type === "recycle" ? 130 : 112);
                 break;
         }
     }
@@ -504,7 +509,16 @@ export class ExplorerComponent implements OnInit
     refresh(clearCopy?)
     {
         if(clearCopy) localStorage.removeItem("copyExplorer");
-        this.openFolder(this.parent);
+        if(this.inputs.type === "recycle")
+        {
+            this.load = true;
+            this.query.protectionPost(109, { param: [this.searchInput, this.searchInputType] }, (data) =>
+            {
+                this.outFolders = data.folder;
+                this.load = false;
+            });
+        }
+        else this.openFolder(this.parent);
     }
     /*******************************************/
     mainSearch = 

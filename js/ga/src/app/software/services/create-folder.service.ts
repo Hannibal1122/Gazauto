@@ -32,7 +32,7 @@ export class CreateFolderService
             }
         });
     }
-    remove(id, update)
+    remove(id, update, nQueryRemove)
     {
         var Data:any = {
             title: "Вы действительно хотите удалить элемент? (" + id + ")",  
@@ -43,7 +43,7 @@ export class CreateFolderService
         this.modal.open(Data, (save) =>
         {
             if(save)
-                this.query.protectionPost(112, { param: [id] }, (data) => 
+                this.query.protectionPost(nQueryRemove, { param: [id] }, (data) => 
                 { 
                     update();
                 });

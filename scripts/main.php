@@ -236,6 +236,7 @@
         $elem["count"] = $count ? selectOne("SELECT COUNT(*) FROM structures WHERE parent = %i", [ $elem["id"] ]) : NULL;
         if($elem["objectType"] == "file")
         {
+            if (!file_exists("../files/".$elem["id"])) return $elem;
             $fileName = scandir("../files/".$elem["id"], 1)[0];
             $type = getFileType($fileName);
             switch($type)

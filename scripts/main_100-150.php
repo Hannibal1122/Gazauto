@@ -8,6 +8,17 @@
             if($param[0] == "filter") if(($myRight->get($param[3]) & 32) != 32) return; // Права на создание фильтра
             $myStructures->create($param);
             break;
+        case 109: // Загрузка всех удаленных элементов
+            $out = ["folder" => []];
+            $query = "SELECT id, objectType, objectId, name, parent, priority, info, bindId, state, icon FROM structures WHERE trash = 1";
+            if($login == "admin") $query .= " ORDER by parent, priority";
+            else $query .= " AND id IN (SELECT objectId FROM rights WHERE (login = %s OR login = %s) AND rights & 1 
+                    AND objectId NOT IN (SELECT objectId FROM rights WHERE login = %s AND (rights & 1) = 0)) ORDER by parent, priority";
+            if($result = query($query, $login == "admin" ? [ ] : [ $login, $role, $login ]))
+                while ($row = $result->fetch_assoc()) 
+                    $out["folder"][] = getObjectFromStructures($row);
+            echo json_encode($out);
+            break;
         case 110: // Загрузка структуры // Права на просмотр
             $idParent = (int)$param[0];
             $out = ["folder" => [], "path" => [], "stickers" => []];
@@ -209,12 +220,12 @@
             if($param[0][0] == "#")
             {
                 $search = str_replace("#", "", $param[0]);
-                $query = "SELECT id, objectType, objectId, name, parent, priority, info, bindId, state, icon FROM structures WHERE hashtag = %s AND objectType LIKE %s";
+                $query = "SELECT id, objectType, objectId, name, parent, priority, info, bindId, state, icon FROM structures WHERE trash = 0 AND hashtag = %s AND objectType LIKE %s";
             }
             else
             {
                 $search = "%$param[0]%";
-                $query = "SELECT id, objectType, objectId, name, parent, priority, info, bindId, state, icon FROM structures WHERE name LIKE %s AND objectType LIKE %s";
+                $query = "SELECT id, objectType, objectId, name, parent, priority, info, bindId, state, icon FROM structures WHERE trash = 0 AND name LIKE %s AND objectType LIKE %s";
             }
             if($login == "admin") $query .= " ORDER by parent, priority";
             else $query .= " AND id IN (SELECT objectId FROM rights WHERE (login = %s OR login = %s) AND rights & 1 
@@ -389,23 +400,34 @@
             $parent = selectOne("SELECT parent FROM structures WHERE id = %i", [ $idObject ]);
             $name = selectOne("SELECT name FROM structures WHERE id = %i", [ $idObject ]);
 
-            require_once dirname(__FILE__) . '/PHPExcel.php';
-            $objReader = PHPExcel_IOFactory::createReader('Excel2007');
-            $objReader->setReadDataOnly(false);
-            $objPHPExcel = $objReader->load("../files/$param[0]/$name");
-            $fileData = $objPHPExcel->getActiveSheet()->toArray();
-
             require_once("myStructures.php");
             require_once("myTable.php");
             require_once("myLoading.php");
+            require_once dirname(__FILE__) . '/PHPExcel.php';
+
+            $fileName = scandir("../files/$idObject", 1)[0];
+            $fileType = getFileType($fileName);
+
+            if($fileType == "xlsx") $format = "Excel2007";
+            if($fileType == "xls") $format = "Excel5";
+
+            $objReader = PHPExcel_IOFactory::createReader($format);
+            $objReader->setReadDataOnly(false);
+            $objPHPExcel = $objReader->load("../files/$idObject/$fileName");
+            $fileData = $objPHPExcel->getActiveSheet()->toArray();
+
             $myLoading = new MyLoading($loadKey);
             $myStructures = new MyStructures($myRight, $myLog);
             $idTable = $myStructures->create(["table", NULL, $name, $parent, 0, ""], false);
             $myTable = new MyTable($idTable, $myLog); // Общий класс для работы с таблицами
 
             $data = [];
+            $lastColumn = [];
             for($j = 0, $c = count($fileData[0]); $j < $c; $j++) // Заголовок
+            {
+                if($fileData[0][$j] == "") { $lastColumn = $j; break; }
                 $data[] = (object)["value" => $fileData[0][$j], "i" => $j];
+            }
             $myTable->setAndRemoveHeader($data, []);
             $c = count($fileData);
             $myLoading->start($c);
@@ -418,6 +440,7 @@
                 foreach($row as $idColumn => $value)
                     if($idColumn != "__ID__")
                     {
+                        if($j == $lastColumn) break;
                         $color = substr($objPHPExcel->getActiveSheet()->getStyle(getExcelColumn($j).($i + 1))->getFill()->getStartColor()->getARGB(), 2);
                         query("UPDATE fields SET value = %s WHERE idColumn = %i AND i = %i", [ $fileData[$i][$j++], $idColumn, $idRow ]);
                         if($color != "000000")
@@ -440,17 +463,21 @@
         case 142: // Предпросмотр таблиц
             $idObject = (int)$param[0];
             if(($myRight->get($idObject) & 1) != 1) continue; // Права на просмотр
-            $parent = selectOne("SELECT parent FROM structures WHERE id = %i", [ $idObject ]);
-            $name = selectOne("SELECT name FROM structures WHERE id = %i", [ $idObject ]);
             require_once dirname(__FILE__) . '/PHPExcel.php';
-            $type = substr($name, strripos($name, ".") + 1);
-            if($type == "xlsx") $format = "Excel2007";
-            if($type == "xls") $format = "Excel5";
+            $parent = selectOne("SELECT parent FROM structures WHERE id = %i", [ $idObject ]);
+
+            $fileName = scandir("../files/$idObject", 1)[0];
+            $fileType = getFileType($fileName);
+
+            if($fileType == "xlsx") $format = "Excel2007";
+            if($fileType == "xls") $format = "Excel5";
+
             $objReader = PHPExcel_IOFactory::createReader($format);
             $objReader->setReadDataOnly(false);
-            $objPHPExcel = $objReader->load("../files/$param[0]/$name");
+            $objPHPExcel = $objReader->load("../files/$idObject/$fileName");
             $loadedSheetNames = $objPHPExcel->getSheetNames();
             $outArray = [];
+
             foreach($loadedSheetNames as $sheetIndex => $loadedSheetName) 
                 $outArray[$sheetIndex] = [
                     "name" => $loadedSheetName,
