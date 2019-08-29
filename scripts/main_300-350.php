@@ -15,7 +15,7 @@
             if($result = query("SELECT value, tableId, filterId FROM my_values WHERE id = %i", [ $idValue ]))
             {
                 $row = $result->fetch_array(MYSQLI_NUM);
-                echo json_encode(getTableListValues((int)$row[1], (int)$row[0], (int)$row[2]));
+                echo json_encode(getTableListValues((int)$row[1], (int)$row[0], (int)$row[2], array_key_exists(1, $param) ? $param[1] : []));
             }
             /* if($result = query("SELECT objectId FROM structures WHERE id = %i", [ $idElement ]))
             while ($row = $result->fetch_array(MYSQLI_NUM)) $idValue = (int)$row[0]; */

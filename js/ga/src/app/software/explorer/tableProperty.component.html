@@ -16,6 +16,17 @@
                                 <i class="fas fa-arrow-circle-right"></i>
                             </span>
                         </td>
+                        <td *ngIf = "p.type == 'object'" class = "tdInput" style = "position:relative;">
+                            <input type = "text" [(ngModel)] = "p.value.id" (change) = "onInputChange(p)">
+                            <span (click) = "pasteObject(p)"
+                                style = "position: absolute; right: 18px; top:1px;cursor:pointer;">
+                                <i class="fas fa-paste"></i>
+                            </span>
+                            <span (click) = "openObject(p)"
+                                style = "position: absolute; right: 3px; top:1px;cursor:pointer;">
+                                <i class="fas fa-arrow-circle-right"></i>
+                            </span>
+                        </td>
                     </tr>
                 </ng-container>
                 <tr><td colspan="3" style = "font-weight: bold;">Пользовательские</td></tr>

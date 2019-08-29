@@ -219,6 +219,7 @@ export class TableEditorV2Component implements OnInit
                     eventId: data.head[i][3],
                     dataType: data.head[i][4],
                     width: data.head[i][5] ? data.head[i][5] + 'px' : null,
+                    variable: data.head[i][6] ? data.head[i][6] : null,
                     sort: false
                 };
                 this.mapHeader[this.dataHeader[_j].id] = _j;
@@ -505,7 +506,11 @@ export class TableEditorV2Component implements OnInit
                 if(cell.listValue !== undefined) 
                 {
                     // Запрос списка значений
-                    this.query.protectionPost(304, { param: [cell.linkId] }, (data) =>
+                    let variables = {};
+                    for(let i = 0; i < this.dataHeader.length; i++)
+                        if(this.dataHeader[i].variable)
+                            variables[this.dataHeader[i].variable] = this.dataTable[cell.iRow][i].listValue || this.dataTable[cell.iRow][i].value;
+                    this.query.protectionPost(304, { param: [ cell.linkId, variables ] }, (data) =>
                     {
                         this.inputProperty.typeValues = typeof data[0];
                         this.cacheListValues[cell.linkId] = data;
@@ -773,8 +778,10 @@ export class TableEditorV2Component implements OnInit
                 this.inputProperty.eventId = this.dataHeader[data].eventId;
                 this.tableProperty.listLink.visible = false;
                 this.tableProperty.data = {
+                    type: "head",
                     id: this.inputProperty.id,
-                    width: this.dataHeader[data].width
+                    width: this.dataHeader[data].width,
+                    variable: this.dataHeader[data].variable,
                 };
                 break;
             case "row":

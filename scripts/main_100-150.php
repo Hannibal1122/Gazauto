@@ -8,6 +8,12 @@
             if($param[0] == "filter") if(($myRight->get($param[3]) & 32) != 32) return; // Права на создание фильтра
             $myStructures->create($param);
             break;
+        case 108: // Установка filterId для tlist
+            $idElement = (int)$param[0];
+            if(($myRight->get($idElement) & 8) != 8) return; // Права на изменение
+            $objectId = query("SELECT objectId FROM structures WHERE id = %i", [ $idElement ])->fetch_assoc()["objectId"];
+            query("UPDATE my_values SET filterId = %i WHERE id = %i", [ $param[1], $objectId ]);
+            break;
         case 109: // Загрузка всех удаленных элементов
             $out = ["folder" => []];
             $query = "SELECT id, objectType, objectId, name, parent, priority, info, bindId, state, icon FROM structures WHERE trash = 1";
@@ -330,7 +336,8 @@
                 "userProperty" => $data["user_property"],
                 "priority" => (int)$data["priority"],
                 "icon" => (int)$data["icon"],
-                "idTable" => $data["objectType"] == "tlist" ? selectOne("SELECT tableId FROM my_values WHERE id = %i", [(int)$data["objectId"]]) : -1
+                "idTable" => $data["objectType"] == "tlist" ? selectOne("SELECT tableId FROM my_values WHERE id = %i", [(int)$data["objectId"]]) : -1,
+                "idFilter" => $data["objectType"] == "tlist" ? selectOne("SELECT filterId FROM my_values WHERE id = %i", [(int)$data["objectId"]]) : -1,
             ];
             echo json_encode($tableProperty);
             break;

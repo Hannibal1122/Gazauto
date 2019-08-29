@@ -240,5 +240,11 @@
             if(($myRight->get($idTable) & 8) != 8) return; // Права на изменение
             query("DELETE FROM user_settings WHERE type = 'add_user_row' AND value = %s", [ $idRow ]);
             break;
+        case 277: // Добавить переменную для заголовка
+            $idColumn = (int)$param[0];
+            $idTable = selectOne("SELECT tableId FROM fields WHERE id = %i", [ $idColumn ]);
+            if(($myRight->get($idTable) & 8) != 8) return; // Права на изменение
+            query("UPDATE fields SET variable = %s WHERE id = %i OR bindId = %i", [ $param[1], $idColumn, $idColumn ]);
+            break;
     }
 ?>

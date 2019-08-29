@@ -25,7 +25,7 @@
                     $stateTable = (int)$row[2]; 
                     $objectType = $row[3]; 
                 }
-            if($result = query("SELECT i, id, value, eventId, dataType, user_property FROM fields WHERE tableId = %i AND type = 'head' $filterColumn[0] ORDER by i", [$idTable]))
+            if($result = query("SELECT i, id, value, eventId, dataType, user_property, variable FROM fields WHERE tableId = %i AND type = 'head' $filterColumn[0] ORDER by i", [$idTable]))
                 while ($row = $result->fetch_array(MYSQLI_NUM))
                 {
                     if($row[4]) $row[4] = selectOne("SELECT type FROM my_values WHERE id = %i", [(int)$row[4]]);
@@ -461,10 +461,10 @@
             $idTable = $this->idTable;
             $idNewRow = -1;
             $newIdColumn = [];
-            if($result = query("SELECT id, i, value, linkId, linkType, dataType, eventId FROM fields WHERE tableId = %i AND type = 'head'", [ $idTableFrom ])) // Копирование заголовка
+            if($result = query("SELECT id, i, value, linkId, linkType, dataType, eventId, variable FROM fields WHERE tableId = %i AND type = 'head'", [ $idTableFrom ])) // Копирование заголовка
                 while ($row = $result->fetch_assoc())
                 {
-                    query("INSERT INTO fields (tableId, i, value, type, linkId, linkType, bindId, dataType, eventId) VALUES(%i, %i, %s, 'head', %i, %i, %i, %i, %i) ", [ 
+                    query("INSERT INTO fields (tableId, i, value, type, linkId, linkType, bindId, dataType, eventId, variable) VALUES(%i, %i, %s, 'head', %i, %i, %i, %i, %i, %s) ", [ 
                         $idTable, 
                         $row["i"], 
                         $row["value"], 
@@ -472,7 +472,8 @@
                         $row["linkType"], 
                         $link ? $row["id"] : NULL, 
                         $row["dataType"], 
-                        $row["eventId"]
+                        $row["eventId"], 
+                        $row["variable"]
                     ]);
                     $newIdColumn[$row["id"]] = $mysqli->insert_id;
                 }

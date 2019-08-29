@@ -34,7 +34,8 @@ export class TablePropertyComponent implements OnInit
                 this.mainProperty[7].value = data.timeCreate;
                 this.userProperty = data.userProperty ? JSON.parse(data.userProperty) : [];
                 this.mainProperty[8].value = data.idTable > 0 ? { type: "table", id: data.idTable } : null;
-
+                this.mainProperty[9].value = data.idFilter > 0 ? { type: "filter", id: data.idFilter } : { type: "filter", id: "" };
+                
                 let i = 0;
                 for(; i < this.userProperty.length; i++)
                     if(this.userProperty[i].name == "Аннотация") break;
@@ -69,7 +70,17 @@ export class TablePropertyComponent implements OnInit
     {
         this.id = data.id;
         if(this.type == "main") this.property = [ ...this.mainProperty ];
-        if(this.type == "field") this.property = [ ...this.mainPropertyField ];
+        if(this.type == "field") 
+        {
+            this.property = [ ...this.mainPropertyField ];
+            if(data.type !== "head")
+            {
+                this.property.push({ name: "color", desc: "цвет", value: "", type: "edit"});
+                this.property.push({ name: "column", desc: "столбец", value: "", type: "block"});
+                this.property.push({ name: "row", desc: "строка", value: "", type: "block"});
+            }
+            else this.property.push({ name: "variable", desc: "Переменная", value: "", type: "edit"});
+        }
         for(let i = 0; i < this.property.length; i++)
             if(this.property[i].name in data)
                 this.property[i].value = data[this.property[i].name];
@@ -111,14 +122,13 @@ export class TablePropertyComponent implements OnInit
         { name: "count", desc: "Количество", value: false, type: "checkbox"},
         { name: "objectType", desc: "Тип", value: "", type: "block"},
         { name: "timeCreate", desc: "Создан", value: "", type: "block"},
-        { name: "table", desc: "Таблица", value: {}, type: "table"}
+        { name: "table", desc: "Таблица", value: {}, type: "table"},
+        { name: "filter", desc: "Фильтр", value: {}, type: "object"}
     ]
     mainPropertyField =
     [
         { name: "id", desc: "id", value: "", type: "block"},
-        { name: "color", desc: "цвет", value: "", type: "edit"},
-        { name: "column", desc: "столбец", value: "", type: "block"},
-        { name: "row", desc: "строка", value: "", type: "block"}
+        
     ]
     userProperty = [];
     property = [];
@@ -159,6 +169,9 @@ export class TablePropertyComponent implements OnInit
                         let icon = 12 | (Number(this.mainProperty[4].value)) | (Number(this.mainProperty[5].value) << 1)
                         this.query.protectionPost(116, { param: [ this.mainProperty[3].value, icon, this.id ] });
                         break;
+                    case "filter":
+                        this.query.protectionPost(108, { param: [ this.id, this.saveQueue[key].id ] });
+                        break;
                 }
             }
             this.query.protectionPost(134, { param: [ this.id, JSON.stringify(this.userProperty) ] });
@@ -174,6 +187,13 @@ export class TablePropertyComponent implements OnInit
                         this.query.protectionPost(271, { param: [ this.id, color === null ? "NULL" : color ] }, (data) => 
                         { 
                             this.onSave.emit({ color: color });
+                        });
+                        break;
+                    case "variable":
+                        let variable = this.saveQueue[key] ? this.saveQueue[key] : null;
+                        this.query.protectionPost(277, { param: [ this.id, variable === null ? "NULL" : variable ] }, (data) => 
+                        { 
+                            /* this.onSave.emit({ variable: variable }); */
                         });
                         break;
                 }
@@ -214,7 +234,9 @@ export class TablePropertyComponent implements OnInit
         {
             let data = JSON.parse(localStorage.getItem("copyExplorer"));
             p.value = { id: data.id, type: data.objectType };
-            this.onInputChangeUser();
+
+            if(p.name == "filter") this.onInputChange(p);
+            else this.onInputChangeUser();
         }
     }
 }

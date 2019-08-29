@@ -282,7 +282,7 @@
                 if(searchParent($out[$i]["childrens"], $parent, $elem)) return true;
         return false;
     }
-    function getTableListValues($tableId, $idColumn, $filterId) // Получить список значений из таблицы, только value
+    function getTableListValues($tableId, $idColumn, $filterId, $variables) // Получить список значений из таблицы, только value
     {
         $out = [];
         $filterStr = "";
@@ -290,7 +290,7 @@
         {
             require_once("myFilter.php");
             $myFilter = new MyFilter();
-            $filterStr = $myFilter->getFilterStr(selectOne("SELECT objectId FROM structures WHERE id = %i", [ $filterId ]));
+            $filterStr = $myFilter->getFilterStr(selectOne("SELECT objectId FROM structures WHERE id = %i", [ $filterId ]), $variables);
             if($filterStr != "") $filterStr = "AND ($filterStr)";
         }
         if($result = query("SELECT id, value FROM fields WHERE idColumn = %i AND tableId = %i AND type = 'value' AND value != '' $filterStr", [ $idColumn, $tableId ]))

@@ -39,7 +39,7 @@
                     if(($userFilter == "" && count($filters) == 0) 
                         || ($userFilter != "" && $userFilter == $row[0]))
                     {
-                        $filterStr = $this->getFilterStr((int)$row[1]);
+                        $filterStr = $this->getFilterStr((int)$row[1], []);
                         $filterColumn = $this->getFilterColumn((int)$row[1]);
                         $filterSelected = (int)$row[0];
                     }
@@ -52,7 +52,7 @@
                 "filterColumn" => $filterColumn
             ];
         }
-        function getFilterStr($idFilter)
+        function getFilterStr($idFilter, $variables)
         {
             global $login;
             $str = "";
@@ -72,7 +72,13 @@
                 {
                     $strI = "";
                     $operand = $this->getOperand($expression[$i]->operand, $expression[$i]->value); // защита от инъекции
-                    if($result = query("SELECT i FROM fields WHERE idColumn = %i AND value ".$operand[0]." %s", [ $expression[$i]->field, str_replace("LOGIN", $login, $operand[1]) ])) // LOGIN - константа
+                    $var = [ "LOGIN" => $login ];
+                    foreach($variables as $key => $value)
+                        $var[$key] = $value;
+                    $outOperand = $operand[1]; // Строка, которая пойдет в запрос
+                    foreach($var as $key => $value)
+                        $outOperand = str_replace($key, $value, $outOperand);
+                    if($result = query("SELECT i FROM fields WHERE idColumn = %i AND value ".$operand[0]." %s", [ $expression[$i]->field, $outOperand ])) // LOGIN - константа
                         while($row = $result->fetch_array(MYSQLI_NUM))
                         {
                             if($strI != "") $strI .= ",";
