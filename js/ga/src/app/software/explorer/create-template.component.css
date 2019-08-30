@@ -3,14 +3,16 @@
     cursor: pointer;
     color: #499249;
     transition: 0.3s;
-}
-.listClass:hover
-{
-    color: rgb(71, 100, 71);
+    margin-bottom: 3px;
 }
 .listClass span
 {
     margin-left: 5px;
+}
+.listClass input
+{
+    width: 80px;
+    padding: 1px 4px;
 }
 .selectList
 {

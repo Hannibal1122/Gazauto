@@ -1,5 +1,6 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { QueryService } from '../../lib/query.service';
+import { MyTree } from './my-tree.service';
 
 declare var trace:any;
 @Component({
@@ -13,7 +14,10 @@ export class TemplateConstructorComponent implements OnInit
     @ViewChild("modal") modal;
     inputs:any = {};
     id = -1;
-    library = [];
+    rules = [];
+    readonly = true;
+    myTree;
+    typeObject = "apart";
     constructor(private query:QueryService) { }
     ngOnInit()
     {
@@ -22,84 +26,49 @@ export class TemplateConstructorComponent implements OnInit
     }
     loadData()
     {
+        this.myTree = new MyTree();
+        this.myTree.push(-1, { name: "root" });
         this.query.protectionPost(491, { param: [ this.id ] }, (data) =>
         {
             this.query.onChange({ type: "updateClassName", id: this.id, name: data.name });
-            this.library = data.lib;
+            this.readonly = data.readonly;
             if(data.structure != "")
             {
-                let loadData = JSON.parse(data.structure);
-                this.libraryId = loadData.libraryId;
-                this.loadLibrary(() => {
-                    this.mainFields = loadData.mainFields;
-                    this.loadTypeByColumn(() => {
-                        for(let i = 0; i < this.typeList.length; i++)
-                            for(let j = 0; j < loadData.typeList.length; j++)
-                                if(this.typeList[i].name == loadData.typeList[j].name)
-                                {
-                                    this.typeList[i].templateId = loadData.typeList[j].templateId;
-                                    this.typeList[i].children = loadData.typeList[j].children;
-                                    this.typeList[i].templateColumn = loadData.typeList[j].templateColumn;
-                                }
-                    })
-                })
+                this.myTree.data = JSON.parse(data.structure);
             }
+            this.rules = this.myTree.straighten();
         });
     }
-    libraryId;
-    columnList = [];
-    mainFields = [
-        {id: -1, name: "Наименование"},
-        {id: -1, name: "Тип"}
-    ]
-    typeList = [];
-    setFromCopy()
+    appendNode(i)
+    {
+        this.myTree.push(this.rules[i].id, { templateId: -1,/*  last: false, */ type: this.typeObject });
+        this.rules = this.myTree.straighten();
+    }
+    removeNode(i)
+    {
+        this.myTree.remove(this.rules[i].id);
+        this.rules = this.myTree.straighten();
+    }
+    setFromCopy(i)
     {
         if(localStorage.getItem("copyExplorer"))
-            this.libraryId = JSON.parse(localStorage.getItem("copyExplorer")).id;
-    }
-    loadLibrary(func?)
-    {
-        if(this.libraryId > 0)
-            this.query.protectionPost(495, { param: [ this.libraryId ] }, (data) =>
-            {
-                this.columnList = [];
-                for(let i = 0; i < data.length; i++)
-                    this.columnList.push({ id: data[i][0], name: data[i][1] });
-                if(func) func();
-            });
-    }
-    loadTypeByColumn(func?)
-    {
-        this.query.protectionPost(496, { param: [ this.mainFields[1].id ] }, (data) =>
         {
-            this.typeList = [];
-            for(let i = 0; i < data.length; i++)
-                this.typeList.push({ name: data[i], templateId: null, children: "none", templateColumn: [] });
-            if(func) func();
-        });
+            let id = JSON.parse(localStorage.getItem("copyExplorer")).id;
+            this.rules[i].templateId = id;
+            this.onChangeTemplate(i);
+        }
     }
-    pasteTemplate(row)
+    onChangeTemplate(i)
     {
-        if(localStorage.getItem("copyExplorer"))
-            row.templateId = JSON.parse(localStorage.getItem("copyExplorer")).id;
-    }
-    loadTemplate(row)
+        this.myTree.getElement(this.rules[i].id).templateId = this.rules[i].templateId;
+    }/* 
+    onChangeLast(i)
     {
-        this.query.protectionPost(495, { param: [ row.templateId ] }, (data) =>
-        {
-            row.templateColumn = [];
-            for(let i = 0; i < data.length; i++)
-                row.templateColumn.push({ id: data[i][0], name: data[i][1] });
-        });
-    }
+        this.myTree.getElement(this.rules[i].id).last = this.rules[i].last;
+    } */
     saveData()
     {
-        let save = JSON.stringify({
-            libraryId: this.libraryId,
-            mainFields: this.mainFields,
-            typeList: this.typeList
-        });
+        let save = JSON.stringify(this.myTree.data);
         this.query.protectionPost(492, { param: [ this.id, save ] }, (data) =>
         {
         });

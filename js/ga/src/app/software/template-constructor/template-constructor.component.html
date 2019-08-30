@@ -1,72 +1,29 @@
-<div class = "constructorMainPanel" style = "min-width:420px;">
+ <div class = "constructorMainPanel" style = "min-width:420px;">
     <div style = "padding: 5px;" class = "MainBColor">
         <div style = "display: flex; width:60%; min-width: 400px; margin: auto; flex-wrap: wrap;">
             <div class = "subPanel">
-                <div class = "headerStyle">
-                    1. Укажите библиотеку
-                    <button class = "mainButton applyColor" (click) = "loadLibrary()"><i class="fas fa-check-circle"></i></button>
+                <div class = "headerStyle">Правила</div>
+                <div *ngFor = "let rule of rules; let i = index;" [style.margin-left] = "rule.level * 20 + 'px'" style = "margin-bottom:5px;">
+                    <div *ngIf = "i == 0">
+                        <span>{{ rule.name }}</span>
+                        <select [(ngModel)] = "typeObject">
+                            <option value = "apart">Раздельно</option>
+                            <option value = "together">Таблицами</option>
+                        </select>
+                        <span style = "color:rgb(81, 224, 88);" (click) = "appendNode(i)"><i class="fas fa-plus-circle"></i></span>
+                    </div>
+                    <div *ngIf = "i > 0">
+                        <span *ngIf = "rule.type == 'together'"><i class="fas fa-link"></i></span>
+                        <span *ngIf = "rule.type == 'apart'"><i class="fas fa-unlink"></i></span>
+                        <span><i class="fas fa-table"></i></span>
+                        <input class = "mainSelect" type = "text" placeholder="id" [(ngModel)] = "rule.templateId" (change) = "onChangeTemplate(i)" style = "width:80px; padding: 1px 4px;">
+                        <!-- <input type = "checkbox" [(ngModel)] = "rule.last" (change) = "onChangeLast(i)" style = "width:20px; height: 20px;"> -->
+                        <button class = "mainButton" (click) = "setFromCopy(i)"><i class="fas fa-paste"></i></button>
+                        <span style = "color:rgb(224, 81, 81);" (click) = "removeNode(i)"><i class="fas fa-minus-circle"></i></span>
+                        <span style = "color:rgb(81, 224, 88);" (click) = "appendNode(i)"><i class="fas fa-plus-circle"></i></span>
+                    </div>
                 </div>
-                <input class = "mainSelect" type = "text" placeholder="id" (change)="loadLibrary()" [(ngModel)] = "libraryId">
-                <button class = "mainButton" (click) = "setFromCopy()"><i class="fas fa-paste"></i></button>
-            <!-- </div>
-            <div class = "subPanel"> -->
-                <div class = "headerStyle">
-                    2. Укажите поля
-                    <button class = "mainButton applyColor" (click) = "loadTypeByColumn()"><i class="fas fa-check-circle"></i></button>
-                </div>
-                <table>
-                    <tr *ngFor = "let row of mainFields">
-                        <td>{{ row.name }}</td>
-                        <td>
-                            <select class = "mainSelect" [(ngModel)] = "row.id">
-                                <option *ngFor = "let o of columnList" value = "{{ o.id }}">{{ o.name }}</option>
-                            </select>
-                        </td>
-                    </tr>
-                </table>
-            <!-- </div>
-            <div class = "subPanel"> -->
-                <div class = "headerStyle">
-                    3. Укажите связи
-                </div>
-                <table>
-                    <tr>
-                        <th>Родитель</th>
-                        <th>Потомок</th>
-                    </tr>
-                    <tr *ngFor = "let row of typeList">
-                        <td>{{ row.name }}</td>
-                        <td>
-                            <select class = "mainSelect" [(ngModel)] = "row.children">
-                                <option value = "none">Без потомка</option>
-                                <option *ngFor = "let o of typeList" value = "{{ o.name }}">{{ o.name }}</option>
-                            </select>
-                        </td>
-                    </tr>
-                </table>
-            </div>
-            <div class = "subPanel">
-                <div class = "headerStyle">
-                    4. Укажите шаблоны
-                </div>
-                <table *ngFor = "let row of typeList">
-                    <tr>
-                        <td>{{ row.name }}</td>
-                        <td>
-                            <input class = "mainSelect" type = "text" [(ngModel)] = "row.templateId">
-                            <button class = "mainButton" (click) = "pasteTemplate(row)"><i class="fas fa-paste"></i></button>
-                            <button class = "mainButton applyColor" (click) = "loadTemplate(row)"><i class="fas fa-check-circle"></i></button>
-                        </td>
-                    </tr>
-                    <tr *ngFor = "let column of row.templateColumn">
-                        <td>{{ column.name }}</td>
-                        <td>
-                            <select class = "mainSelect" [(ngModel)] = "column.selectId">
-                                <option *ngFor = "let o of columnList" value = "{{ o.id }}">{{ o.name }}</option>
-                            </select>
-                        </td>
-                    </tr>
-                </table>
+                <!--  -->
             </div>
         </div>
         <div style = "width: 400px; margin: auto; margin-top: 15px;">

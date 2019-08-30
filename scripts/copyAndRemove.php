@@ -90,7 +90,9 @@
                     query("DELETE FROM password WHERE login = %s", [ $element[1] ]);
                     $this->myLog->add("user", "remove", json_encode([ $element[1] ]));
                     break;
-                case "folder": break;
+                case "folder": 
+                    query("DELETE FROM classes_object WHERE id = %s", [ (int)$element[2] ]);
+                    break;
                 case "plan":
                 case "table":
                     require_once("myTable.php");

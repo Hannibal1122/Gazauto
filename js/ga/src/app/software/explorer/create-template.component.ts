@@ -1,5 +1,6 @@
 import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { QueryService } from "../../lib/query.service";
+import { MyTree } from '../template-constructor/my-tree.service';
 
 declare var trace:any;
 @Component({
@@ -12,18 +13,16 @@ export class CreateTemplateComponent implements OnInit
 {
     _open = false;
     settings:any = {};
-    library = {
-        name: [],
-        type: []
-    };
-    libraryId = -1;
-    mainList = [];
-    template:any = [];
-    typeByLevel = [];
     name = "";
     parent;
     folder;
-    myTree:MyTree = new MyTree();
+    mainList = [];
+    myTree:MyTree;
+    myClass = [];
+    myClassTree:MyTree;
+    lastLevel = 0;
+    
+    listTemplateById = {};
     @Input() set config(value)
     {
         if(value)
@@ -48,118 +47,77 @@ export class CreateTemplateComponent implements OnInit
     initData()
     {
         this.loaded = false;
-        if(this.folder !== null) this.settings.id = this.folder.bindId;
+        if(this.folder !== null) 
+        {
+            this.settings.id = this.folder.bindId;
+            this.settings.new = false;
+        }
         else
             if(localStorage.getItem("copyExplorer"))
                 this.settings = JSON.parse(localStorage.getItem("copyExplorer"));
+        
+        trace(this.folder)
+        trace(this.settings)
+        this.listTemplateById = {};
+        this.mainList = [];
+        this.myTree = new MyTree();
+        this.myClass = [];
+        this.myClassTree = new MyTree();
         this.query.protectionPost(491, { param: [ this.settings.id ] }, (data) =>
         {
-            this.loaded = true;
-            /* trace(this.parent) */
             this.name = data.name;
-            /* trace(data) */
-            this.template = JSON.parse(data.structure);
-            this.libraryId = data.libraryId;
-            /* trace(this.template) */
-            /* this.mainList = []; */
-            this.myTree.push(-1, { name: "root" });
-            this.query.protectionPost(497, { param: [ this.template.mainFields[0].id, this.template.mainFields[1].id ] }, (data) =>
+            if(data.structure)
             {
-                this.library.name = data[this.template.mainFields[0].id];
-                this.library.type = data[this.template.mainFields[1].id];
-            });
-            let i = 0;
-            for(; i < this.template.typeList.length; i++) // Поиск первого
-            {
-                let j = 0;
-                for(; j < this.template.typeList.length; j++)
-                    if(this.template.typeList[j].children == this.template.typeList[j].name) break;
-                if(j == this.template.typeList.length) break;
-            }
-            this.typeByLevel = [this.template.typeList[i]];
-            let k = 0;
-            while(k < this.template.typeList.length - 1)
-                this.typeByLevel.push(this.searchFromArrayByName(this.template.typeList, this.typeByLevel[k++].children));
-            this.typeByLevel[this.typeByLevel.length - 1].last = true;
-            trace(this.typeByLevel)
-            this.mainList = this.myTree.straighten();
-
-            if(this.folder !== null)
-            {
-                this.query.protectionPost(494, { param: [ this.folder.id ] }, (data) =>
+                this.myClassTree.data = JSON.parse(data.structure);
+                this.myClass = this.myClassTree.straighten();
+                this.query.protectionPost(497, { param: [ this.myClass ] }, (listNames) =>
                 {
-                    trace(data)
+                    for(let i = 1; i < this.myClass.length; i++)
+                    {
+                        this.myClass[i].templateName = listNames[this.myClass[i].templateId];
+                        if(this.listTemplateById[this.myClass[i].parent] == undefined) this.listTemplateById[this.myClass[i].parent] = [];
+                        this.listTemplateById[this.myClass[i].parent].push(this.myClass[i]);
+                        if(this.lastLevel < this.myClass[i].level) this.lastLevel = this.myClass[i].level
+                    }
+                    trace(this.listTemplateById)
+                    this.query.protectionPost(494, { param: [ this.folder !== null ? this.folder.id : -1 ] }, (data) =>
+                    {
+                        if(this.folder !== null) this.myTree.data = JSON.parse(data.structure);
+                        else this.myTree.push(-1, { name: "root" });
+                        this.mainList = this.myTree.straighten();
+                        this.loaded = true;
+                    });
                 });
             }
+            else trace("Error!");
         });
     }
-    searchFromArrayByName(array, name)
-    {
-        let i = 0
-        for(; i < array.length; i++) // Поиск первого
-            if(array[i].name == name) break;
-        return array[i];
-    }
-    selectParent(i)
-    {
-        this.createSetting.parent = i;
-        this.createSetting.table = 'none';
-        this.tableList = [];
-        if(!this.typeByLevel[this.mainList[i].level]) return;
-        let type = this.typeByLevel[this.mainList[i].level].name;
-
-        this.createSetting.last = this.typeByLevel[this.mainList[i].level].last === true;
-        this.checkLastChildren(i);
-        for(let j = 0; j < this.library.type.length; j++)
-            if(this.library.type[j].name == type)
-                this.tableList.push(this.library.name[j]);
-    }
     inputName = "";
-    createSetting = 
+    appendNode(i)
     {
-        parent: -1,
-        table: 'none',
-        last: false,
-        block: false
-    }
-    tableList = [];
-    appendNode()
-    {
-        let i = this.createSetting.parent;
-        let j = 0;
-        if(this.createSetting.table == 'none' || this.checkLastChildren(i)) return;
-        for(; j < this.tableList.length; j++)
-            if(this.tableList[j].id == Number(this.createSetting.table)) break;
-        this.myTree.push(this.mainList[i].id, { name: this.tableList[j].name, fieldId: this.tableList[j].id, templateId: this.typeByLevel[this.mainList[i].level].templateId, last: this.createSetting.last });
+        this.myTree.push(this.mainList[i].id, { 
+            name: "", 
+            templateId: -1, 
+            level: this.mainList[i].level, 
+            last: this.lastLevel == this.mainList[i].level + 2 ? true : false 
+        });
         this.mainList = this.myTree.straighten();
-    }
-    checkLastChildren(i) // В последнем элементе дерева не может быть больше 1 элемента
-    {
-        /* trace(this.createSetting.block)
-        trace(this.createSetting.last)
-        trace(this.myTree.getCountChildren(this.mainList[i].id)) */
-        if(this.createSetting.last)
-        {
-            if(this.myTree.getCountChildren(this.mainList[i].id) > 0)
-            {
-                this.createSetting.block = true;
-                return true;
-            }
-            else this.createSetting.block = false;
-        }
-        else this.createSetting.block = false;
-        return false;
     }
     removeItem(i)
     {
-        this.myTree.remove(this.mainList[i].id);
+        trace(this.mainList[i].globalId)
+        trace(this.mainList[i].rowId)
+        /* this.myTree.remove(this.mainList[i].id);
         this.mainList = this.myTree.straighten();
-        this.clearSelect();
+        this.clearSelect(); */
     }
-    clearSelect()
+    onChangeTemplate(i)
     {
-        this.createSetting.parent = -1;
-        this.createSetting.table = 'none';
+        this.myTree.getElement(this.mainList[i].id).templateId = this.mainList[i].templateId;
+    }
+    onChangeName(i)
+    {
+        this.myTree.getElement(this.mainList[i].id).name = this.mainList[i].name;
     }
     Cancel(e?)
     {
@@ -169,64 +127,15 @@ export class CreateTemplateComponent implements OnInit
     Create()
     {
         this.loaded = false;
-        if(this.inputName != "") this.mainList[0].name = this.inputName;
-        this.query.protectionPost(493, { param: [ JSON.stringify(this.mainList), JSON.stringify(this.template.typeList), this.libraryId, this.parent, this.settings.id ] }, (data) =>
+        /* if(this.inputName != "") this.mainList[0].name = this.inputName; */
+        // Отправляем 1 - структура для создания дирректории
+        // 2 - дерево этой структуры
+        // 3 - родительская дирректория
+        // 4 - id класса
+        this.query.protectionPost(493, { param: [ JSON.stringify(this.mainList), JSON.stringify(this.myTree.data), this.parent, this.settings.id, this.settings.new ] }, (data) =>
         {
             this.loaded = true;
             this.Cancel("update");
         });
-    }
-    
-}
-class MyTree
-{
-    data = [];
-    constructor()
-    {
-    }
-    push(parent, data)
-    {
-        this.data.push({ id: this.getId(), parent: parent, ...data });
-    }
-    remove(id)
-    {
-        for(let i = 1; i < this.data.length; i++) 
-            if(this.data[i].id == id) 
-            {
-                this.data.splice(i, 1);
-                break;
-            }
-    }
-    getRecursionRemove(out, parent, level)
-    {
-        out.push({ ...parent, level: level });
-        for(let i = 1; i < this.data.length; i++) 
-            if(this.data[i].parent == parent.id) this.getRecursion(out, this.data[i], level + 1);
-    }
-    getCountChildren(parent)
-    {
-        let l = 0;
-        for(let i = 0; i < this.data.length; i++) 
-            if(this.data[i].parent == parent) l++;
-        return l;
-    }
-    straighten()
-    {
-        let out = [];
-        this.getRecursion(out, this.data[0], 0); // Первый элемент всегда корневой, поэтому не надо искать минимальный id
-        return out;
-    }
-    getRecursion(out, parent, level)
-    {
-        out.push({ ...parent, level: level });
-        for(let i = 1; i < this.data.length; i++) 
-            if(this.data[i].parent == parent.id) this.getRecursion(out, this.data[i], level + 1);
-    }
-    getId()
-    {
-        let max = 0;
-        for(let i = 0; i < this.data.length; i++)
-            if(this.data[i].id > max) max = this.data[i].id;
-        return max + 1;
     }
 }

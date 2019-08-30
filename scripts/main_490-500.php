@@ -16,8 +16,8 @@
             $out["name"] = selectOne("SELECT name FROM structures WHERE id = %i", $param);
             $out["readonly"] = ($myRight->get($idElement) & 8) != 8;
             // Поиск всех таблиц, которые находятся в той же дирректории
-            $idParent = selectOne("SELECT parent FROM structures WHERE id = %i", $param);
-            /* $out["lib"] = [];
+            /* $idParent = selectOne("SELECT parent FROM structures WHERE id = %i", $param);
+            $out["lib"] = [];
             getElementFromStructureByType($out["lib"], "table", $idParent); */
             echo json_encode($out);
             break;
@@ -27,15 +27,12 @@
             query("UPDATE classes SET structure = %s WHERE id = %i", [ $param[1], $idElement ]);
             break;
         case 493: // Создание структуры на основе класса(должно удалять предыдущую структуру)
-            $parent = (int)$param[3];
+            $parent = (int)$param[2];
             if(($myRight->get($parent) & 8) != 8) return; // Права на изменение
             $structure = json_decode($param[0]);
-            $template = json_decode($param[1]);
-            $libraryId = (int)$param[2]; // Таблица с описаниями
-            $bindId = (int)$param[4];
-            $templateMap = [];
-            for($i = 0, $c = count($template); $i < $c; $i++)
-                $templateMap[$template[$i]->templateId] = $template[$i];
+            $saveTree = json_decode($param[1]);
+            $bindId = (int)$param[3];
+            $new = $param[4] == "false" ? false : true;
             require_once("myStructures.php");
             require_once("copyAndRemove.php");
             require_once("myTable.php");
@@ -43,12 +40,18 @@
             $tableIdByLevel = [];
             $lastRowByLevel = [];
             $myTable = new MyTable(-1, $myLog); // Общий класс для работы с таблицами
+            function getItemById(&$saveTree, $id)
+            {
+                for($i = 0, $c = count($saveTree); $i < $c; $i++)
+                    if($saveTree[$i]->id == $id) return $saveTree[$i];
+            }
             for($i = 0, $c = count($structure); $i < $c; $i++)
             {
                 if($i == 0)
                 {
-                    $tableIdByLevel[$structure[$i]->level] = $myStructures->create(["folder", NULL, $structure[0]->name, $parent, 0, ""], false);
+                    $tableIdByLevel[$structure[$i]->level] = $myStructures->create(["folder", NULL, $structure[$i]->name, $parent, 0, ""], false);
                     query("UPDATE structures SET bindId = %i, class = 1 WHERE id = %i", [ $bindId, $tableIdByLevel[$structure[$i]->level] ]);
+                    getItemById($saveTree, $structure[$i]->id)->globalId = $tableIdByLevel[$structure[$i]->level];
                 }
                 else
                 {
@@ -56,11 +59,15 @@
                     {
                         $structures = new CopyAndRemove($structure[$i]->templateId, $tableIdByLevel[$structure[$i]->level - 1], "inherit", $myLog);
                         $tableIdByLevel[$structure[$i]->level] = $structures->copy($structure[$i]->name, 1);
+                        $tree = getItemById($saveTree, $structure[$i]->id);
+                        $tree->globalId = $tableIdByLevel[$structure[$i]->level];
                         // Добавить ссылку в родительскую таблицу
                         if($structure[$i]->level - 1 > 0)
                         {
                             $idColumn = $myStructures->getLastColumnByTable($tableIdByLevel[$structure[$i]->level - 1]);
                             $idRow = $lastRowByLevel[$structure[$i]->level - 1];
+                            $tree->rowId = $idRow; // Нужно сохранять для удаления
+
                             $myTable->idTable = $tableIdByLevel[$structure[$i]->level - 1];
                             $myTable->setCellByLink(
                                 $tableIdByLevel[$structure[$i]->level], 
@@ -68,59 +75,37 @@
                             );
                         }
                     }
-                    if($structure[$i]->last) continue;
+                    /* if($structure[$i]->last) continue; */
                     $myTable->idTable = $tableIdByLevel[$structure[$i]->level]; // Последний созданный элемент
                     $row = $myTable->addRow(-1, -1, false);
                     $lastRowByLevel[$structure[$i]->level] = (int)$row["__ID__"];
-                    $templateColumn = $templateMap[$structure[$i]->templateId]->templateColumn;
-                    $idRowFromLibrary = (int)selectOne("SELECT i FROM fields WHERE id = %i", [$structure[$i]->fieldId]);
-                    unset($tableIdByLevel[$structure[$i]->level + 1]);
-                    for($j = 0, $c2 = count($templateColumn); $j < $c2; $j++) // Автозаполнение
-                    {
-                        if(property_exists($templateColumn[$j], "selectId"))
-                        {
-                            $idColumn = selectOne("SELECT id FROM fields WHERE tableId = %i AND bindId = %i", [$myTable->idTable, (int)$templateColumn[$j]->id]);
-                            $idCellTo = selectOne("SELECT id FROM fields WHERE idColumn = %i AND i = %i", [$idColumn, $lastRowByLevel[$structure[$i]->level]]);
-                            $idTableTo = $myTable->idTable;
-                            $idCellFrom = selectOne("SELECT id FROM fields WHERE idColumn = %i AND i = %i", [(int)$templateColumn[$j]->selectId, $idRowFromLibrary]);
-                            $idTableFrom = $libraryId;
-                            $myTable->copyCell($idCellTo, $idTableTo, $idCellFrom, $idTableFrom, "copy", "cell", false);
-                        }
-                    }
                 }
             }
+            if($new) query("INSERT INTO classes_object (id, structure) VALUES(%i, %s)", [ $tableIdByLevel[0], json_encode($saveTree) ]);
             break;
         case 494: // Загрузка структуры по folderId
+            $out = [];
             $folderId = (int)$param[0];
             if(($myRight->get($folderId) & 1) != 1) return; // Права на просмотр
-            break;
-        case 495: // Загрузить колонки таблицы 
-            $idTable = (int)$param[0];
-            if(($myRight->get($idTable) & 1) != 1) return; // Права на просмотр
-            request("SELECT id, value FROM fields WHERE tableId = %i AND type = 'head'", [ $idTable ]);
-            break;
-        case 496: // Загрузить значение типа 
-            $idColumn = (int)$param[0];
-            $idTable = selectOne("SELECT tableId FROM fields WHERE id = %i", [ $idColumn ]);
-            if(($myRight->get($idTable) & 1) != 1) return; // Права на просмотр
-            if($result = query("SELECT DISTINCT value FROM fields WHERE idColumn = %i AND value != ''", [ $idColumn ]))
-                while ($row = $result->fetch_array(MYSQLI_NUM)) 
-                    $out[] = $row[0];
+            if($result = query("SELECT structure FROM classes_object WHERE id = %i", $param))
+                $out = $result->fetch_assoc();
             echo json_encode($out);
             break;
-        case 497: // Загрузить библиотеку
-            $idColumnName = (int)$param[0];
-            $idColumnType = (int)$param[1];
-            $idTable = selectOne("SELECT tableId FROM fields WHERE id = %i", [ $idColumnName ]);
+        case 495: // резерв
+            /* $idTable = (int)$param[0];
             if(($myRight->get($idTable) & 1) != 1) return; // Права на просмотр
-            $out = [];
-            $out[$idColumnName] = [];
-            $out[$idColumnType] = [];
-            $i = 0;
-            if($result = query("SELECT id, value, idColumn FROM fields WHERE (idColumn = %i OR idColumn = %i)", [ $idColumnName, $idColumnType ]))
-                while ($row = $result->fetch_array(MYSQLI_NUM)) 
-                    $out[$row[2]][] = [ "id" => $row[0], "name" => $row[1]];
-            echo json_encode($out);
+            request("SELECT id, value FROM fields WHERE tableId = %i AND type = 'head'", [ $idTable ]); */
+            break;
+        case 496: // резерв
+            break;
+        case 497: // Загрузить имена по id списком
+            $listId = $param[0];
+            $outList = [];
+            for($i = 1, $c = count($listId); $i < $c; $i++)
+            {
+                $outList[$listId[$i]["templateId"]] = selectOne("SELECT name FROM structures WHERE id = %i", [ $listId[$i]["templateId"] ]);
+            }
+            echo json_encode($outList);
             break;
     }
 ?>

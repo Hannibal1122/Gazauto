@@ -189,7 +189,7 @@
     <button class = "contextMenuList" (click) = "_pasteObject()" [disabled] = "!selectRules.paste">
         Вставить</button>
     <button *ngIf = "selectObjectCopy.objectType == 'class'" class = "contextMenuList" (click) = "createProjectByClass()" [disabled] = "!selectRules.paste">
-        Создать проект</button>
+        Создать объект класса</button>
     <button class = "contextMenuList" (click) = "refresh(true)">
         Обновить</button>
     <button class = "contextMenuList" (click) = "openBackFolder()">
