@@ -60,6 +60,7 @@
                     $copyAndRemove->remove($out[$j]);
                 }
             }
+            // Создание структуры
             for($i = 0, $c = count($structure); $i < $c; $i++)
             {
                 if($i == 0)
@@ -117,11 +118,15 @@
             else query("UPDATE classes_object SET structure = %s WHERE id = %i", [ json_encode($saveTree), $tableIdByLevel[0] ]);
             break;
         case 494: // Загрузка структуры по folderId
-            $out = [];
+            $out = [ "structure" => [] ];
             $folderId = (int)$param[0];
             if(($myRight->get($folderId) & 1) != 1) return; // Права на просмотр
             if($result = query("SELECT structure FROM classes_object WHERE id = %i", $param))
-                $out = $result->fetch_assoc();
+            {
+                $out["structure"] = json_decode($result->fetch_assoc()["structure"]);
+                foreach($out["structure"] as $value)
+                    $value->edited = ($myRight->get($value->globalId) & 8) == 8;
+            }
             echo json_encode($out);
             break;
         case 495: // резерв

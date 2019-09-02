@@ -2,32 +2,46 @@
     <div style = "padding: 5px;" class = "MainBColor">
         <div style = "display: flex; width:60%; min-width: 400px; margin: auto; flex-wrap: wrap;">
             <div class = "subPanel">
-                <div class = "headerStyle">Правила</div>
+                <div class = "headerStyle">Правила <span style = "float:right; font-weight: normal; font-size: 14px;"><input type = "checkbox"> Раздельно</span></div>
                 <div *ngFor = "let rule of rules; let i = index;" [style.margin-left] = "rule.level * 20 + 'px'" style = "margin-bottom:5px;">
                     <div *ngIf = "i == 0">
-                        <span>{{ rule.name }}</span><!-- 
+                        <span>{{ rule.name }}</span>
+                        <!-- 
                         <select [(ngModel)] = "typeObject">
                             <option value = "apart">Раздельно</option>
                             <option value = "together">Таблицами</option>
                         </select> -->
-                        <span style = "color:rgb(81, 224, 88);" (click) = "appendNode(i)"><i class="fas fa-plus-circle"></i></span>
+                        <span style = "color:rgb(81, 224, 88); margin-left:5px;" *ngIf = "!readonly" (click) = "appendNode(i)"><i class="fas fa-plus-circle"></i></span>
                     </div>
                     <div *ngIf = "i > 0">
                         <span *ngIf = "rule.type == 'together'"><i class="fas fa-link"></i></span>
                         <span *ngIf = "rule.type == 'apart'"><i class="fas fa-unlink"></i></span>
-                        <span><i class="fas fa-table"></i></span>
-                        <input class = "mainSelect" type = "text" placeholder="id" [(ngModel)] = "rule.templateId" (change) = "onChangeTemplate(i)" style = "width:80px; padding: 1px 4px;">
-                        <!-- <input type = "checkbox" [(ngModel)] = "rule.last" (change) = "onChangeLast(i)" style = "width:20px; height: 20px;"> -->
-                        <button class = "mainButton" (click) = "setFromCopy(i)"><i class="fas fa-paste"></i></button>
-                        <span style = "color:rgb(224, 81, 81);" (click) = "removeNode(i)"><i class="fas fa-minus-circle"></i></span>
-                        <span style = "color:rgb(81, 224, 88);" (click) = "appendNode(i)"><i class="fas fa-plus-circle"></i></span>
+                        <span (click) = "seacrhElement(rule.templateId)" style = "color: #499249; cursor: pointer;"><i class="fas fa-table"></i></span>
+                        <ng-container *ngIf = "readonly">
+                            <span style = "margin-left:5px;">{{ rule.templateId }}</span>
+                        </ng-container>
+                        <ng-container *ngIf = "!readonly">
+                            <input class = "mainSelect" 
+                                type = "text" 
+                                placeholder="id" 
+                                [(ngModel)] = "rule.templateId" 
+                                (change) = "onChangeTemplate(i)" 
+                                style = "width:80px; padding: 1px 4px; margin-left:5px;">
+                            <button class = "mainButton" (click) = "setFromCopy(i)"><i class="fas fa-paste"></i></button>
+                            <span style = "color:rgb(224, 81, 81); margin-left:5px;" (click) = "removeNode(i)"><i class="fas fa-minus-circle"></i></span>
+                            <span style = "color:rgb(81, 224, 88); margin-left:5px;" (click) = "appendNode(i)"><i class="fas fa-plus-circle"></i></span>
+                        </ng-container>
                     </div>
                 </div>
                 <!--  -->
             </div>
         </div>
         <div style = "width: 400px; margin: auto; margin-top: 15px;">
-            <button class="propertyBtn" style = "height:30px; width: 400px; margin: auto;" (click) = "saveData()">Сохранить</button>
+            <button 
+                class="propertyBtn" 
+                [disabled] = "readonly"
+                style = "height:30px; width: 400px; margin: auto;" 
+                (click) = "saveData()">Сохранить</button>
         </div>
     </div>
 </div>

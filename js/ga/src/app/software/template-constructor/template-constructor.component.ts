@@ -73,4 +73,8 @@ export class TemplateConstructorComponent implements OnInit
         {
         });
     }
+    seacrhElement(templateId)
+    {
+        this.query.onChange({ type: "openFromTable", value: { name: "table", id: templateId }});
+    }
 }

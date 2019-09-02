@@ -8,6 +8,7 @@
 .leftItem
 {
     position: relative;
+    display:flex;
 }
 .leftItemText
 {
@@ -19,18 +20,23 @@
     white-space: nowrap;
     width: calc(100% - 30px);
 }
+.openButton
+{
+    cursor: pointer;
+    display: none;
+    margin-left:2px;
+}
 .copyButton
 {
-    position: absolute;
-    top:0px;
-    right:0px;
+    cursor: pointer;
     display: none;
+    margin-left:auto;
 }
 .leftItem:hover .leftItemText
 {
     text-decoration: underline;
 }
-.leftItem:hover .copyButton
+.leftItem:hover .copyButton, .leftItem:hover .openButton
 {
     display: block;
 }

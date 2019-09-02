@@ -83,10 +83,10 @@ export class CreateTemplateComponent implements OnInit
                         if(this.lastLevel < this.myClass[i].level) this.lastLevel = this.myClass[i].level
                     }
                     /* trace(this.myClass) */
-                    trace(this.listTemplateById)
                     this.query.protectionPost(494, { param: [ this.folder !== null ? this.folder.id : -1 ] }, (data) =>
                     {
-                        if(this.folder !== null) this.myTree.data = JSON.parse(data.structure);
+                        trace(data.structure)
+                        if(this.folder !== null) this.myTree.data = data.structure;
                         else this.myTree.push(-1, { name: "root" });
                         this.mainList = this.myTree.straighten();
                         this.loaded = true;
@@ -99,12 +99,14 @@ export class CreateTemplateComponent implements OnInit
     inputName = "";
     appendNode(i)
     {
+        if(!this.mainList[i].edited) return;
         if(this.mainList[i].templateId === -1) return;
         this.myTree.push(this.mainList[i].id, { 
             name: "", 
-            templateId: -1, 
-            templateTreeId: -1,
+            templateId: -1, // id из базы данных
+            templateTreeId: -1, // id из массива myClass
             templateParentId: this.mainList[i].templateId === undefined ? 1 : this.mainList[i].templateTreeId, // Для root
+            edited: true,
             level: this.mainList[i].level, 
             last: this.lastLevel == this.mainList[i].level + 1 ? true : false 
         });
@@ -112,6 +114,7 @@ export class CreateTemplateComponent implements OnInit
     }
     removeItem(i)
     {
+        if(!this.mainList[i].edited) return;
         if(this.mainList[i].globalId) this.removeItems.push(this.mainList[i].globalId);
         this.myTree.remove(this.mainList[i].id);
         this.mainList = this.myTree.straighten();

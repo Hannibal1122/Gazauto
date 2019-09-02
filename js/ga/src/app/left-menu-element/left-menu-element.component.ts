@@ -84,7 +84,7 @@ export class LeftMenuElementComponent implements OnInit
     ngOnInit() 
     {
     }
-    openElement(data)
+    openElement(data, openExplorer?)
     {
         switch(data.objectType)
         {
@@ -93,7 +93,7 @@ export class LeftMenuElementComponent implements OnInit
             case "log":
             case "table":
             case "class":
-                this.onChange.emit({ type: "openFromTable", value: { type: "open", name: data.objectType == "folder" ? "explorer" : data.objectType, id: data.id }});
+                this.onChange.emit({ type: "openFromTable", value: { type: "open", name: data.objectType == "folder" || openExplorer ? "explorer" : data.objectType, id: data.id }});
                 break;
             default:
                 this.onChange.emit({ type: "openFromTable", value: { name: data.objectType == "tlist" ? "folder" : data.objectType, id: data.id }});

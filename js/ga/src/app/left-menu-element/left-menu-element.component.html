@@ -64,6 +64,9 @@
                 <div class = "copyButton" (click) = "copyObject(data)">
                     <i class="fas fa-copy" title = "Копировать"></i>
                 </div>
+                <div *ngIf = "data.objectType == 'table'" class = "openButton" (click) = "openElement(data, true)">
+                    <i class="fas fa-external-link-alt" title = "Открыть в проводнике"></i>
+                </div>
             </div>
         </div>
     </ng-container>

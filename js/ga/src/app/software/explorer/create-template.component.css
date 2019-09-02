@@ -34,3 +34,13 @@
 {
     margin-left: 5px;
 }
+
+.caretAppend{
+    color:rgb(81, 224, 88);
+}
+.caretRemove{
+    color:rgb(224, 81, 81);
+}
+.caretDisabled {
+    color: #dfdfdf;
+}
