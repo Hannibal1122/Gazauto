@@ -9,7 +9,8 @@
             break;
         case 491: // Запрос класса
             $idElement = (int)$param[0];
-            if(($myRight->get($idElement) & 1) != 1) return; // Права на просмотр
+            // Не можем проверять, потому что класс требуется и в объектах
+            //if(($myRight->get($idElement) & 1) != 1) return; // Права на просмотр
             $out = [];
             if($result = query("SELECT structure FROM classes WHERE id = %i", $param))
                 $out = $result->fetch_assoc();
@@ -125,7 +126,10 @@
             {
                 $out["structure"] = json_decode($result->fetch_assoc()["structure"]);
                 foreach($out["structure"] as $value)
+                {
+                    $value->name = selectOne("SELECT name FROM structures WHERE id = %i", [ $value->globalId ]);
                     $value->edited = ($myRight->get($value->globalId) & 8) == 8;
+                }
             }
             echo json_encode($out);
             break;

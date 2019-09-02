@@ -85,9 +85,8 @@ export class CreateTemplateComponent implements OnInit
                     /* trace(this.myClass) */
                     this.query.protectionPost(494, { param: [ this.folder !== null ? this.folder.id : -1 ] }, (data) =>
                     {
-                        trace(data.structure)
                         if(this.folder !== null) this.myTree.data = data.structure;
-                        else this.myTree.push(-1, { name: "root" });
+                        else this.myTree.push(-1, { name: "root", edited: true });
                         this.mainList = this.myTree.straighten();
                         this.loaded = true;
                     });
@@ -99,7 +98,7 @@ export class CreateTemplateComponent implements OnInit
     inputName = "";
     appendNode(i)
     {
-        if(!this.mainList[i].edited) return;
+        if(!this.mainList[i].edited/*  && i > 0 */) return;
         if(this.mainList[i].templateId === -1) return;
         this.myTree.push(this.mainList[i].id, { 
             name: "", 
