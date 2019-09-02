@@ -91,7 +91,7 @@
                     $this->myLog->add("user", "remove", json_encode([ $element[1] ]));
                     break;
                 case "folder": 
-                    query("DELETE FROM classes_object WHERE id = %s", [ (int)$element[2] ]);
+                    query("DELETE FROM classes_object WHERE id = %s", [ $idElement ]);
                     break;
                 case "plan":
                 case "table":

@@ -21,7 +21,8 @@ export class CreateTemplateComponent implements OnInit
     myClass = [];
     myClassTree:MyTree;
     lastLevel = 0;
-    
+    removeItems = [];
+
     listTemplateById = {};
     @Input() set config(value)
     {
@@ -56,9 +57,10 @@ export class CreateTemplateComponent implements OnInit
             if(localStorage.getItem("copyExplorer"))
                 this.settings = JSON.parse(localStorage.getItem("copyExplorer"));
         
-        trace(this.folder)
-        trace(this.settings)
+        /* trace(this.folder)
+        trace(this.settings) */
         this.listTemplateById = {};
+        this.removeItems = [];
         this.mainList = [];
         this.myTree = new MyTree();
         this.myClass = [];
@@ -72,13 +74,15 @@ export class CreateTemplateComponent implements OnInit
                 this.myClass = this.myClassTree.straighten();
                 this.query.protectionPost(497, { param: [ this.myClass ] }, (listNames) =>
                 {
-                    for(let i = 1; i < this.myClass.length; i++)
+                    for(let i = 1; i < this.myClass.length; i++) // Выставление имени для шаблонов
                     {
+                        // Сортировка типов идет по parent шаблона!
                         this.myClass[i].templateName = listNames[this.myClass[i].templateId];
                         if(this.listTemplateById[this.myClass[i].parent] == undefined) this.listTemplateById[this.myClass[i].parent] = [];
                         this.listTemplateById[this.myClass[i].parent].push(this.myClass[i]);
                         if(this.lastLevel < this.myClass[i].level) this.lastLevel = this.myClass[i].level
                     }
+                    /* trace(this.myClass) */
                     trace(this.listTemplateById)
                     this.query.protectionPost(494, { param: [ this.folder !== null ? this.folder.id : -1 ] }, (data) =>
                     {
@@ -95,25 +99,34 @@ export class CreateTemplateComponent implements OnInit
     inputName = "";
     appendNode(i)
     {
+        if(this.mainList[i].templateId === -1) return;
         this.myTree.push(this.mainList[i].id, { 
             name: "", 
             templateId: -1, 
+            templateTreeId: -1,
+            templateParentId: this.mainList[i].templateId === undefined ? 1 : this.mainList[i].templateTreeId, // Для root
             level: this.mainList[i].level, 
-            last: this.lastLevel == this.mainList[i].level + 2 ? true : false 
+            last: this.lastLevel == this.mainList[i].level + 1 ? true : false 
         });
         this.mainList = this.myTree.straighten();
     }
     removeItem(i)
     {
-        trace(this.mainList[i].globalId)
-        trace(this.mainList[i].rowId)
-        /* this.myTree.remove(this.mainList[i].id);
+        if(this.mainList[i].globalId) this.removeItems.push(this.mainList[i].globalId);
+        this.myTree.remove(this.mainList[i].id);
         this.mainList = this.myTree.straighten();
-        this.clearSelect(); */
     }
     onChangeTemplate(i)
     {
-        this.myTree.getElement(this.mainList[i].id).templateId = this.mainList[i].templateId;
+        let myTreeElement = this.myTree.getElement(this.mainList[i].id);
+        let j = 0;
+        for(; j < this.myClass.length; j++)
+            if(this.myClass[j].id == this.mainList[i].templateTreeId) break;
+
+        this.mainList[i].templateId = this.myClass[j].templateId; // т.к. не делается выпрямление
+        myTreeElement.templateTreeId = Number(this.mainList[i].templateTreeId);
+        myTreeElement.templateId = this.myClass[j].templateId;
+        myTreeElement.templateParentId = this.myClass[j].parent;
     }
     onChangeName(i)
     {
@@ -132,7 +145,14 @@ export class CreateTemplateComponent implements OnInit
         // 2 - дерево этой структуры
         // 3 - родительская дирректория
         // 4 - id класса
-        this.query.protectionPost(493, { param: [ JSON.stringify(this.mainList), JSON.stringify(this.myTree.data), this.parent, this.settings.id, this.settings.new ] }, (data) =>
+        this.query.protectionPost(493, { param: [ 
+            JSON.stringify(this.mainList), 
+            JSON.stringify(this.myTree.data), 
+            this.parent, 
+            this.settings.id, 
+            this.settings.new,
+            this.removeItems 
+        ] }, (data) =>
         {
             this.loaded = true;
             this.Cancel("update");

@@ -5,11 +5,11 @@
                 <div class = "headerStyle">Правила</div>
                 <div *ngFor = "let rule of rules; let i = index;" [style.margin-left] = "rule.level * 20 + 'px'" style = "margin-bottom:5px;">
                     <div *ngIf = "i == 0">
-                        <span>{{ rule.name }}</span>
+                        <span>{{ rule.name }}</span><!-- 
                         <select [(ngModel)] = "typeObject">
                             <option value = "apart">Раздельно</option>
                             <option value = "together">Таблицами</option>
-                        </select>
+                        </select> -->
                         <span style = "color:rgb(81, 224, 88);" (click) = "appendNode(i)"><i class="fas fa-plus-circle"></i></span>
                     </div>
                     <div *ngIf = "i > 0">

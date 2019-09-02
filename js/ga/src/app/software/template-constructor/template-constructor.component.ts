@@ -17,7 +17,7 @@ export class TemplateConstructorComponent implements OnInit
     rules = [];
     readonly = true;
     myTree;
-    typeObject = "apart";
+    /* typeObject = "apart"; */
     constructor(private query:QueryService) { }
     ngOnInit()
     {
@@ -41,7 +41,7 @@ export class TemplateConstructorComponent implements OnInit
     }
     appendNode(i)
     {
-        this.myTree.push(this.rules[i].id, { templateId: -1,/*  last: false, */ type: this.typeObject });
+        this.myTree.push(this.rules[i].id, { templateId: -1,/*  last: false, */ /* type: this.typeObject */ });
         this.rules = this.myTree.straighten();
     }
     removeNode(i)

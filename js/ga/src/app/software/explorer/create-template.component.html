@@ -13,8 +13,8 @@
                 [style.margin-left] = "list.level * 10 + 'px'">
                 <ng-container *ngIf = "i > 0">
                     <i class="fas fa-table"></i> 
-                    <select class = "mainSelect" [(ngModel)] = "list.templateId" (change) = "onChangeTemplate(i)">
-                        <option *ngFor = "let o of listTemplateByLevel[list.parent]" [attr.value] = "o.templateId">{{ o.templateName }}</option>
+                    <select class = "mainSelect" [(ngModel)] = "list.templateTreeId" (change) = "onChangeTemplate(i)">
+                        <option *ngFor = "let o of listTemplateById[list.templateParentId]" [attr.value] = "o.id">{{ o.templateName }}</option>
                     </select>
                 </ng-container>
                 <input class = "mainSelect" type="text" [(ngModel)] = "list.name" (change) = "onChangeName(i)" placeholder="имя">
