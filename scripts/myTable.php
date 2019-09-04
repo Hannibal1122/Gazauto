@@ -549,11 +549,9 @@
             if($result = query("SELECT avg(state) FROM structures WHERE parent = %i AND state > 0", [ $parentId ]))
                 $state = (int)$result->fetch_array(MYSQLI_NUM)[0];
             query("UPDATE structures SET state = %i WHERE id = %i", [ $state, $parentId ]);
-            if($parent = query("SELECT parent FROM structures WHERE id = %i", [ $parentId ]))
-            {
-                $parent->fetch_assoc();
-                $this->calculateStateForFolder((int)$parent["parent"]);
-            }
+            if($result = query("SELECT parent FROM structures WHERE id = %i", [ $parentId ]))
+                while ($row = $result->fetch_array(MYSQLI_NUM))
+                    $this->calculateStateForFolder((int)$row[0]);
         }
         function remove() // Удаление таблицы
         {
