@@ -532,7 +532,6 @@
         function calculateStateForTable($idTable) // Посчитать статус у таблицы
         {
             $state = 0;
-            $parent = -1;
             if($result = query("SELECT avg(state) FROM fields WHERE tableId = %i AND type != 'head' AND state > 0", [ (int)$idTable ]))
                 $state = (int)$result->fetch_array(MYSQLI_NUM)[0];
             query("UPDATE structures SET state = %i WHERE id = %i", [ $state, (int)$idTable ]);
@@ -540,9 +539,9 @@
             if($result = query("SELECT tableId, id FROM fields WHERE type = 'link' AND linkId = %i AND linkType = 'table'", [ (int)$idTable ]))
                 while ($row = $result->fetch_array(MYSQLI_NUM))
                     $this->setStateForField($row[0], $row[1], $state);
-            $parent = query("SELECT parent, objectType FROM structures WHERE id = %i", [ (int)$idTable ])->fetch_assoc();
-            if($parent["objectType"] == "folder")
-                $this->calculateStateForFolder($parent["parent"]);
+            $parentId = (int)selectOne("SELECT parent FROM structures WHERE id = %i", [ (int)$idTable ]);
+            $objectType = selectOne("SELECT objectType FROM structures WHERE id = %i", [ $parentId ]);
+            if($objectType == "folder") $this->calculateStateForFolder($parentId);
         }
         function calculateStateForFolder($parentId) // Посчитать статус папки
         {
@@ -550,8 +549,11 @@
             if($result = query("SELECT avg(state) FROM structures WHERE parent = %i AND state > 0", [ $parentId ]))
                 $state = (int)$result->fetch_array(MYSQLI_NUM)[0];
             query("UPDATE structures SET state = %i WHERE id = %i", [ $state, $parentId ]);
-            $parent = query("SELECT parent FROM structures WHERE id = %i", [ $parentId ])->fetch_assoc();
-            $this->calculateStateForFolder((int)$parent["parent"]);
+            if($parent = query("SELECT parent FROM structures WHERE id = %i", [ $parentId ]))
+            {
+                $parent->fetch_assoc();
+                $this->calculateStateForFolder((int)$parent["parent"]);
+            }
         }
         function remove() // Удаление таблицы
         {
