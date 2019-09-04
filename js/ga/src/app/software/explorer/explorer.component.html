@@ -7,13 +7,13 @@
                 <div *ngIf = "last" style = "padding-bottom: 2px;">
                     <div class = "pathRow" style = "font-size:14px; cursor: pointer; margin-top:8px; float:left; margin-left: 5px;" title = "Назад" (click) = "openBackFolder()"><i class="fas fa-arrow-left"></i></div>
                     <div style = "font-size:20px; float:left; height:32px; margin-left:10px; margin-right:10px; margin-top:3px;">{{ path.name }}</div>
-                    
                 </div>
             </ng-container>
         </div> 
         <button class = "mainButton" title = "Вставить" (click) = "_pasteObject()" [disabled] = "!selectRules.paste"><i class="fas fa-paste"></i></button>
         <button class = "mainButton" [class.enableButton] = "tableProperty.visible" title = "Таблица свойств" (click) = "openTableProperty()"><i class="fas fa-briefcase"></i></button>
         <button class = "mainButton" title = "Поиск" (click) = "openSearch()"><i class="fas fa-search"></i></button>
+        <button class = "mainButton" [class.enableButton] = "selectModeList" title = "Выбрать несколько" (click) = "changeSelectMode()"><i class="fas fa-tasks"></i></button>
         <button class = "mainButton" title = "Удалить" (click) = "removeObject()" [disabled] = "!selectRules.remove"><i class="fas fa-trash"></i></button>
         <button class = "mainButton" title = "Обновить" (click) = "refresh(true)"><i class="fas fa-sync-alt"></i></button>
         <button class = "mainButton" title = "Добавить элемент" (click) = "newObject()" [disabled] = "!selectRules.new"><i class="fas fa-file"></i></button>
@@ -29,7 +29,7 @@
                 (contextmenu) = "getContextmenu($event, i)"
                 [class.elementExplorer] = "viewType == 'table'"
                 [class.elementExplorerList] = "viewType == 'list'"
-                [class.selectElementExplorer] = "i == selectObjectI"
+                [class.selectElementExplorer] = "i == selectObjectI || selectObjectList[i]"
                 [class.selectSearchElementExplorer] = "i != selectObjectI && i == searchObjectI"
                 [class.selectCopyElementExplorer] = "i != selectObjectI && object.id == selectObjectCopy.id"
                 [class.selectCopyElementExplorerOpacity] = "i != selectObjectI && object.id == selectObjectCopy.id && selectObjectCopy.type == 'cut'"
@@ -69,6 +69,12 @@
                     </div>
                 </div>
                 <div class = "elementExplorerText">{{ object.name }}</div>
+                <div *ngIf = "selectObjectList[i]" 
+                    style = "position: absolute; 
+                        top:0px; 
+                        right:0px; 
+                        color: #4099d0; 
+                        font-size: 16px;"><i class="fas fa-check-square"></i></div>
             </div>
         </span>
         <span *ngIf = "outFolders.length == 0" style = "color:#7e7e7e; font-size:24px; font-weight:bold; margin-left: 10px;"> {{ inputs.type === "recycle" ? "Корзина" : "Папка" }} пуста</span>
@@ -151,7 +157,7 @@
     </ng-container>
     <ng-container *ngIf = "createContextMenu.type == 'folder' && outFolders[selectObjectI] && outFolders[selectObjectI].bindId">
         <button class = "contextMenuList" (click) = "createProjectByClass(outFolders[selectObjectI])" [disabled] = "!selectRules.change">
-            Редактировать проект</button>
+            Редактировать объект</button>
     </ng-container>
     <ng-container *ngIf = "createContextMenu.type == 'filter'">
         <button class = "contextMenuList" (click) = "setFilterByGlobal(outFolders[selectObjectI])">
@@ -184,11 +190,11 @@
     [style.transform] = "createContextMenuMain.translate" 
     [style.top] = "createContextMenuMain.top" 
     [style.left] = "createContextMenuMain.left">
-    <button class = "contextMenuList" (click) = "newObject()" [disabled] = "!selectRules.new">
+    <button class = "contextMenuList" (click) = "newObject()" [disabled] = "!parentRules.new">
         Создать</button>
-    <button class = "contextMenuList" (click) = "_pasteObject()" [disabled] = "!selectRules.paste">
+    <button class = "contextMenuList" (click) = "_pasteObject()" [disabled] = "!parentRules.paste">
         Вставить</button>
-    <button *ngIf = "selectObjectCopy.objectType == 'class'" class = "contextMenuList" (click) = "createProjectByClass()" [disabled] = "!selectRules.paste">
+    <button *ngIf = "selectObjectCopy.objectType == 'class'" class = "contextMenuList" (click) = "createProjectByClass()" [disabled] = "!parentRules.paste">
         Создать объект класса</button>
     <button class = "contextMenuList" (click) = "refresh(true)">
         Обновить</button>
@@ -210,10 +216,13 @@
                 (change) = "clearSearch()"
                 style = "padding: 5px; height: 32px; width:84%; max-width:450px;" 
                 placeholder="Поиск">
-            <select style = "height: 32px;" class = "mainSelect" [(ngModel)] = "searchInputType">
+            <select style = "height: 32px; margin-left: 5px;" class = "mainSelect" [(ngModel)] = "searchInputType">
                 <option value = "">Все</option>
                 <option value = "folder">Папка</option>
                 <option value = "table">Таблица</option>
+                <option value = "filter">Фильтр</option>
+                <option value = "plan">План-график</option>
+                <option value = "class">Класс</option>
                 <option value = "event">Событие</option>
                 <option value = "user">Пользователь</option>
                 <option value = "role">Роль</option>
@@ -221,7 +230,9 @@
             </select>
             <button class = "mainButton" style = "background-color: transparent; color: white; border-color: transparent;" title = "Поиск в папке" (click) = "searchInputObjectFromFolder()" ><i class="fas fa-search"></i></button>
             <button class = "mainButton" style = "background-color: transparent; color: white; border-color: transparent;" title = "Глобальный поиск" (click) = "searchInputObject()"><i class="fas fa-globe"></i></button>
-            <button class = "mainButton" style = "background-color: transparent; color: white; border-color: transparent;" title = "Закрыть" (click) = "closeMainSearch()"><i class="fa fa-times-circle"></i></button>
+            <button class = "ModalButtonExitColor" style = "font-size:16px; cursor:pointer; background-color: transparent; border-color: transparent;" title = "Закрыть" (click) = "closeMainSearch()">
+                <i class="fas fa-times-circle"></i>
+            </button>
         </div>
     </div>
 </div>

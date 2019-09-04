@@ -305,10 +305,10 @@
         <button class = "contextMenuList" (click) = "removeRow()" [disabled] = "!rules.change">Удалить строку</button>
         <button class = "contextMenuList" (click) = "cutCopyRow('copy')" [disabled] = "!rules.change">Копировать строку</button>
         <button class = "contextMenuList" (click) = "cutCopyRow('cut')" [disabled] = "!rules.change">Вырезать строку</button>
-        <button class = "contextMenuList" (click) = "addCutRow(-1)" [disabled] = "cutCopyRowProperty.idRow1 < 0">Вставить выше</button>
-        <button class = "contextMenuList" (click) = "addCutRow(1)" [disabled] = "cutCopyRowProperty.idRow1 < 0">Вставить ниже</button>
-        <button class = "contextMenuList" (click) = "addRow('', -1)" [disabled] = "!rules.change">Вставить строку выше</button>
-        <button class = "contextMenuList" (click) = "addRow('', 1)" [disabled] = "!rules.change">Вставить строку ниже</button>
+        <button class = "contextMenuList" (click) = "addCutRow(-1)" [disabled] = "cutCopyRowProperty.idRow1 < 0">Вставить строку выше</button>
+        <button class = "contextMenuList" (click) = "addCutRow(1)" [disabled] = "cutCopyRowProperty.idRow1 < 0">Вставить строку ниже</button>
+        <button class = "contextMenuList" (click) = "addRow('', -1)" [disabled] = "!rules.change">Добавить строку выше</button>
+        <button class = "contextMenuList" (click) = "addRow('', 1)" [disabled] = "!rules.change">Добавить строку ниже</button>
     </ng-container>
     <ng-container *ngIf = "createContextMenu.type == 'cell'">
         <button class = "contextMenuList" (click) = "clearField()" [disabled] = "!rules.change">Очистить</button>

@@ -59,6 +59,8 @@ export class ExplorerComponent implements OnInit
     parent;
     outFolders = [];
     selectObjectI = -1;
+    selectObjectList = {};
+    selectModeList = false;
     load = false;
     selectObjectCopy = { id: -1, type: "", objectType: "" };
     selectRules = 
@@ -71,6 +73,11 @@ export class ExplorerComponent implements OnInit
         remove: false,
         rename: false,
         change: false
+    }
+    parentRules =
+    {
+        new: true, 
+        paste: false
     }
     viewType = "table"; // Вид просмотра
     constructor(
@@ -316,8 +323,23 @@ export class ExplorerComponent implements OnInit
         this.load = true;
         this.pasteObject.paste(this.parent, (id, parent, type, data) => { this.copyOrPasteWithLoadKey(id, parent, type, data) } )
     }
+    queueRemove = [];
     removeObject() // Удалить объект
     {
+        if(this.selectModeList && this.queueRemove.length == 0)
+        {
+            this.queueRemove = [];
+            for(let key in this.selectObjectList)
+                this.queueRemove.push(Number(key));
+            this.changeSelectMode(false);
+            this.removeObject();
+            return;
+        }
+        if(this.queueRemove.length > 0)
+        {
+            this.selectObjectI = this.queueRemove[0];
+            this.queueRemove.splice(0, 1);
+        }
         if(this.selectObjectI == -1) return;
         var id = this.outFolders[this.selectObjectI].id;
         var objectType = this.outFolders[this.selectObjectI].objectType;
@@ -389,6 +411,11 @@ export class ExplorerComponent implements OnInit
     clickTimeout = null;
     selectObject(i) // Выделить объект
     {
+        if(this.selectModeList)
+        {
+            this.selectObjectList[i] = this.selectObjectList[i] ? false : true;
+            return;
+        }
         this.selectObjectI = i;
         var id = this.outFolders[this.selectObjectI].id;
         var objectType = this.outFolders[this.selectObjectI].objectType;
@@ -404,7 +431,7 @@ export class ExplorerComponent implements OnInit
             this.selectRules.cut = Boolean(right.change);
             this.selectRules.rights = objectType == "user" || objectType == "role" ? false : Boolean(right.right);
             this.selectRules.remove = Boolean(right.change);
-            this.selectRules.paste = Boolean(right.change) && this.selectObjectCopy.id != -1;
+            this.selectRules.paste = Boolean(right.change);
             this.selectRules.rename = Boolean(right.change) && objectType != "user" && objectType != "role";
             if(_class)
             {
@@ -424,27 +451,21 @@ export class ExplorerComponent implements OnInit
     }
     unSelectObject() // отпустить объект
     {
-        this.selectObjectCopy = { id: -1, type: "", objectType: "" };
         this.selectObjectI = -1;
         this.clearRules();
     }
     openFolder(id, func?) // открыть папку
     {
+        this.changeSelectMode(false);
         this.openStructure(id, () =>
         {
             this.unSelectObject();
             this.query.protectionPost(202, { param: [ id ] }, (data) =>
             {
-                if(localStorage.getItem("copyExplorer") != null)
-                {
-                    let data = JSON.parse(localStorage.getItem("copyExplorer"));
-                    this.selectObjectCopy.id = data.id;
-                    this.selectObjectCopy.type = localStorage.getItem("lastOperationExplorer");
-                    this.selectObjectCopy.objectType = data.objectType
-                }
+                this.getCopyExplorer();
                 let right = this.createRight.decodeRights(data[0]);
-                this.selectRules.paste = Boolean(right.change) && this.selectObjectCopy.id != -1;
-                this.selectRules.new = Boolean(right.change);
+                this.parentRules.paste = Boolean(right.change);
+                this.parentRules.new = Boolean(right.change);
                 
                 this.inputs.bind = data[1] !== null; // Если это наследник
                 this.inputs.class = data[2] != 0; // Если элемент создан конструктором
@@ -508,6 +529,11 @@ export class ExplorerComponent implements OnInit
     }
     refresh(clearCopy?)
     {
+        if(this.queueRemove.length > 0)
+        {
+            this.removeObject();
+            return;
+        }
         if(clearCopy) localStorage.removeItem("copyExplorer");
         if(this.inputs.type === "recycle")
         {
@@ -621,6 +647,27 @@ export class ExplorerComponent implements OnInit
             this.tableProperty.listLink.visible = true;
             this.tableProperty.loaded = true;
         });
+    }
+    changeSelectMode(value?) // Выбрать несколько элементов
+    {
+        this.selectModeList = value === undefined ? !this.selectModeList : value;
+        if(!this.selectModeList)
+        {
+            this.selectRules.remove = false;
+            this.selectObjectList = {};
+        }
+        else this.selectRules.remove = true;
+    }
+    getCopyExplorer() // Проверка на наличие копируемого элемента
+    {
+        if(localStorage.getItem("copyExplorer") != null)
+        {
+            let data = JSON.parse(localStorage.getItem("copyExplorer"));
+            this.selectObjectCopy.id = data.id;
+            this.selectObjectCopy.type = localStorage.getItem("lastOperationExplorer");
+            this.selectObjectCopy.objectType = data.objectType;
+        }
+        else this.selectObjectCopy = { id: -1, type: "", objectType: "" };
     }
     /**************************************/
     searchCellByTable(id)
@@ -839,12 +886,11 @@ export class ExplorerComponent implements OnInit
     }
     getContextmenuMain(e)
     {
-        if(localStorage.getItem("copyExplorer"))
-        {
-            let copyExplorer = JSON.parse(localStorage.getItem("copyExplorer"));
-            let lastOperationExplorer = localStorage.getItem("lastOperationExplorer");
-            if(copyExplorer.objectType == "file" && lastOperationExplorer != "cut") this.selectRules.paste = false;
-        }
+        this.getCopyExplorer();
+        this.parentRules.paste = this.parentRules.paste 
+            && this.selectObjectCopy.id != -1 
+            && !(this.selectObjectCopy.objectType == "file" && this.selectObjectCopy.type != "cut");
+
         this.createContextMenuMain.translate = this.getTranslateForClientXY(e);
         this.createContextMenuMain.left = e.clientX + "px";
         this.createContextMenuMain.top = e.clientY + "px";

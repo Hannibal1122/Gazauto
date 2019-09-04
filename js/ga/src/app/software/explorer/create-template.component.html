@@ -19,6 +19,12 @@
                 </ng-container>
                 <input *ngIf = "!list.globalId" class = "mainSelect" type="text" [(ngModel)] = "list.name" (change) = "onChangeName(i)" placeholder="имя">
                 <span *ngIf = "list.globalId">{{ list.name }}</span>
+                <span *ngIf = "list.state" 
+                    style = "font-size:12px; font-weight: 600; border-radius: 8px; padding: 2px 3px;"
+                    [class.tableCellStateRed] = "list.state < 50"
+                    [class.tableCellStateYellow] = "list.state >= 50 && list.state < 100"
+                    [class.tableCellStateGreen] = "list.state == 100"
+                    >{{ list.state }}%</span>
                 <ng-container *ngIf = "i > 0">
                     <span class = "caretRemove" (click) = "removeItem(i)" [class.caretDisabled] = "!list.edited"><i class="fas fa-minus-circle"></i></span>
                 </ng-container>

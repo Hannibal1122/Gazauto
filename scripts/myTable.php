@@ -540,18 +540,18 @@
             if($result = query("SELECT tableId, id FROM fields WHERE type = 'link' AND linkId = %i AND linkType = 'table'", [ (int)$idTable ]))
                 while ($row = $result->fetch_array(MYSQLI_NUM))
                     $this->setStateForField($row[0], $row[1], $state);
-            if($result = query("SELECT parent FROM structures WHERE id = %i", [ (int)$idTable ])) $parent = (int)$result->fetch_array(MYSQLI_NUM)[0];
-            $this->calculateStateForFolder($parent);
+            $parent = query("SELECT parent, objectType FROM structures WHERE id = %i", [ (int)$idTable ])->fetch_assoc();
+            if($parent["objectType"] == "folder")
+                $this->calculateStateForFolder($parent["parent"]);
         }
-        function calculateStateForFolder($parent) // Посчитать статус папки
+        function calculateStateForFolder($parentId) // Посчитать статус папки
         {
             $state = 0;
-            if($result = query("SELECT avg(state) FROM structures WHERE parent = %i AND state > 0", [ $parent ]))
+            if($result = query("SELECT avg(state) FROM structures WHERE parent = %i AND state > 0", [ $parentId ]))
                 $state = (int)$result->fetch_array(MYSQLI_NUM)[0];
-            query("UPDATE structures SET state = %i WHERE id = %i", [ $state, $parent ]);
-            if($result = query("SELECT parent FROM structures WHERE id = %i", [ $parent ]))
-                while ($row = $result->fetch_array(MYSQLI_NUM))
-                    $this->calculateStateForFolder((int)$row[0]);
+            query("UPDATE structures SET state = %i WHERE id = %i", [ $state, $parentId ]);
+            $parent = query("SELECT parent FROM structures WHERE id = %i", [ $parentId ])->fetch_assoc();
+            $this->calculateStateForFolder((int)$parent["parent"]);
         }
         function remove() // Удаление таблицы
         {

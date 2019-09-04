@@ -128,6 +128,7 @@
                 foreach($out["structure"] as $value)
                 {
                     $value->name = selectOne("SELECT name FROM structures WHERE id = %i", [ $value->globalId ]);
+                    $value->state = selectOne("SELECT state FROM structures WHERE id = %i", [ $value->globalId ]);
                     $value->edited = ($myRight->get($value->globalId) & 8) == 8;
                 }
             }

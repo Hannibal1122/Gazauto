@@ -58,15 +58,16 @@
     width:30px; 
     height:30px; 
     font-size: 14px; 
-    line-height: 30px;
-    text-align:center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     cursor: pointer;
     transition: 0.3s;
 }
 .refreshIcon:hover
 {
     color: #ffffff; 
-    transform: rotate(90deg);
+    transform: rotate(160deg) scale(1.1);
 }
 .softwareIcon
 {

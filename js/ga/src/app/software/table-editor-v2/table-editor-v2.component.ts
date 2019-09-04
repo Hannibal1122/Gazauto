@@ -1112,7 +1112,7 @@ export class TableEditorV2Component implements OnInit
             this.query.protectionPost(110, { param: [this.id] }, (data) => 
             { 
                 for(let i = data.path.length - 1; i >= 0; i--)
-                    info.path += data.path[i].name + "\\";
+                    info.path += data.path[i].name + (i == 0 ? "" : "\\");
                 this.modal.open({
                     title: "Информация",  
                     data: [
