@@ -128,38 +128,57 @@
             break;
         case 114: // Копирование элемента
             $idElement = (int)$param[0]; // id Элемента 
-            $idParent = (int)$param[1]; // id папки в которую копируем
+            $idParentFrom = -1; // id папки из которой копируем
+            $idParentTo = (int)$param[1]; // id папки в которую копируем
+            $typeOperation = $param[2]; // тип операции
             $newName = $param[3];
             $loadKey = $param[4];
-            $out = [$idElement]; //Проверка на добавление папки саму в себя
+
+            // Проверка на ошибки
+            $out = [$idElement]; 
+            $errors = [];
             getRemoveElementbyStructure($out, $idElement);
-            for($i = 0, $c = count($out); $i < $c; $i++) 
-                if($out[$i] == $idParent) { echo "ERROR"; return; }
-            
-            if(selectOne("SELECT objectType FROM structures WHERE id = %i", [ $idElement ]) == "table" 
-                && selectOne("SELECT class FROM structures WHERE id = %i", [ $idElement ]) == 1) return; // Ограничение для копирования/вырезания в таблицах созданных конструктором
+            for($i = 0, $c = count($out); $i < $c; $i++)
+            {
+                $elementData = query("SELECT parent, class FROM structures WHERE id = %i", [ $out[$i] ])->fetch_assoc();
+                if($i == 0) $idParentFrom = (int)$elementData["parent"];
+                if($typeOperation != "cut" && (int)$elementData["class"] == 1) $errors[] = "ERROR_CLASS"; // Ограничение для копирования/вырезания в таблицах созданных конструктором
+                if($out[$i] == $idParentTo) $errors[] = "ERROR_IN_ITSELF"; //Проверка на добавление папки саму в себя
+            }
+            if(count($errors) > 0) 
+            {
+                echo json_encode($errors);
+                return;
+            }
 
             require_once("copyAndRemove.php");
             require_once("myLoading.php");
-            $myLoading = new MyLoading($loadKey);
-            $type = $param[2]; // тип операции
-            if(($myRight->get($idParent) & 8) != 8) continue; // Права на изменение
-            if($type == "copy" || $type == "inherit") // Копирование или Наследование
+
+            $myLoading = new MyLoading($loadKey); // Создаем ключ для отслеживания операции
+            if(($myRight->get($idParentTo) & 8) != 8) continue; // Права на изменение
+            if($typeOperation == "copy" || $typeOperation == "inherit") // Копирование или Наследование
             {
-                if($type == "copy" && ($myRight->get($idElement) & 2) != 2) continue; // Права на копирование
-                if($type == "inherit" && ($myRight->get($idElement) & 4) != 4) continue; // Права на наследование
+                if($typeOperation == "copy" && ($myRight->get($idElement) & 2) != 2) continue; // Права на копирование
+                if($typeOperation == "inherit" && ($myRight->get($idElement) & 4) != 4) continue; // Права на наследование
                 
-                $structures = new CopyAndRemove($idElement, $idParent, $type, $myLog, $myLoading);
+                $structures = new CopyAndRemove($idElement, $idParentTo, $typeOperation, $myLog, $myLoading);
                 $structures->copy($newName);
                 $myLog->add("structure", "copy", $idElement);
             }
-            if($type == "cut") // Вырезать(изменение)
+            if($typeOperation == "cut") // Вырезать(изменение)
             {
                 if(($myRight->get($idElement) & 8) != 8) continue; // Права на изменение
-                query("UPDATE structures SET parent = %i WHERE id = %i", [$idParent, $idElement]);
+                query("UPDATE structures SET parent = %i WHERE id = %i", [$idParentTo, $idElement]);
                 $myLog->add("structure", "cut", $idElement);
             }
-            $myLoading->removeKey();
+
+            // Надо пересчитать статусы у папок
+            require_once("myTable.php");
+            $myTable = new MyTable(-1, null);
+            $myTable->calculateStateForFolder($idParentFrom);
+            $myTable->calculateStateForFolder($idParentTo);
+            
+            $myLoading->removeKey(); // Удаляем загрузочный ключ
             break;
         case 115: // Запрос приоритета и иконок
             if(($myRight->get($param[0]) & 1) != 1) continue; // Права на просмотр

@@ -64,7 +64,7 @@
             if($result = query("SELECT id FROM structures WHERE parent = %i", [$idElement]))
                 while($row = $result->fetch_array(MYSQLI_NUM))
                 {
-                    $structures = new Structures((int)$row[0], $idNewElement, $typeOperation);
+                    $structures = new CopyAndRemove((int)$row[0], $idNewElement, $typeOperation, $this->myLog);
                     $structures->copy("");
                 }
         }

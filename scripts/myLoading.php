@@ -28,7 +28,7 @@
         }
         function start($count)
         {
-            $this->step = 100 / $count;
+            $this->step = 100 / ($count == 0 ? 1 : $count);
             $this->percent = 0;
         }
         function update()

@@ -45,7 +45,7 @@ export class PasteObjectService {
                 selectValue = ["Копировать", "Копировать структуру", "Наследовать"];
                 break; */
             case "folder":
-                selectValue = ["Копировать", "Копировать структуру"];
+                selectValue = ["Копировать"/* , "Копировать структуру" */];
                 break;
             case "table":
                 selectValue = ["Копировать"];

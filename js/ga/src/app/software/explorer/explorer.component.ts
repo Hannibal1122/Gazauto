@@ -436,7 +436,7 @@ export class ExplorerComponent implements OnInit
             if(_class)
             {
                 this.selectRules.copy = false; 
-                this.selectRules.cut = false; 
+                /* this.selectRules.cut = false;  */
                 if(objectType == "table") // Подрузамевается что это корневая папка конструктора
                     this.selectRules.remove = false; 
             }
@@ -715,7 +715,7 @@ export class ExplorerComponent implements OnInit
             switch(data[0][1].selected)
             {
                 case "Копировать": type = "copy"; break;
-                case "Копировать структуру": type = "struct"; break;
+                /* case "Копировать структуру": type = "struct"; break; */
                 case "Наследовать": type = "inherit"; break;
             }
         this.query.protectionPost(140, { param: [] }, (loadKey) =>
@@ -724,9 +724,20 @@ export class ExplorerComponent implements OnInit
             this.loadValue = 0;
             this.loadKey = loadKey;
             this.updateLoadKey();
-            this.query.protectionPost(114, { param: [ id, parent, type, data[2][1], loadKey ] }, (data) =>
+            this.query.protectionPost(114, { param: [ id, parent, type, data[2][1], loadKey ] }, (errors) =>
             {
-                if(data == "ERROR") this.modal.open({ title: "Ошибка! Конечная папка является дочерней для копируемой!", data: [], ok: "Ок", cancel: ""});
+                // В ответ могут прийти только ошибки
+                if(Array.isArray(errors))
+                {
+                    let errorsList = [];
+                    for(let i = 0; i < errors.length; i++)
+                        errorsList.push(["",
+                            errors[i] == "ERROR_CLASS" ? "Вы пытаетесь скопировать объект класса!" :
+                                (errors[i] == "ERROR_IN_ITSELF" ? "Конечная папка является дочерней для копируемой!" : "Неизвестная ошибка!"),
+                            "html"
+                        ]);
+                    this.modal.open({ title: "Обнаружены ошибки!", data: errorsList, ok: "Ок", cancel: ""});
+                }
                 this.refresh();
                 localStorage.removeItem("copyExplorer");
             });
