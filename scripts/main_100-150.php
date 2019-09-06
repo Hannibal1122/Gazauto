@@ -444,7 +444,7 @@
 
             $myLoading = new MyLoading($loadKey);
             $myStructures = new MyStructures($myRight, $myLog);
-            $idTable = $myStructures->create(["table", NULL, $name, $parent, 0, ""], false);
+            $idTable = $myStructures->create(["table", null, $name, $parent, 0, ""], false);
             $myTable = new MyTable($idTable, $myLog); // Общий класс для работы с таблицами
 
             $data = [];
@@ -538,7 +538,7 @@
                 $color = substr($objPHPExcel->getSheet($sheetIndex)->getStyle(getExcelColumn($j).($i + 1))->getFill()->getStartColor()->getARGB(), 2);
                 $outArray[$i + 1][$j + 1] = [
                     "value" => $fileData[$i][$j],
-                    "color" => $color != "000000" ? "#$color" : NULL
+                    "color" => $color != "000000" ? "#$color" : null
                 ];
             }
         }

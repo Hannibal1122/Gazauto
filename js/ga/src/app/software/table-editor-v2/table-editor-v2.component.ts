@@ -479,13 +479,13 @@ export class TableEditorV2Component implements OnInit
     getValueFromArrayById(array, id)
     {
         let i = 0;
-        for(; i < array.length; i++) if(array[i].id == Number(id)) return array[i].value;
+        for(; i < array.length; i++) if(array[i].id == id) return array[i].value;
     }
     changeMainSelect() // Если пользователь выбрал из tlist значение
     {
-        if(this.inputProperty.typeValues === "object") 
-            this.inputProperty.value = this.getValueFromArrayById(this.inputProperty.values, this.inputProperty.valueList);
-        else this.inputProperty.value = this.inputProperty.values[Number(this.inputProperty.valueList)];
+        /* if(this.inputProperty.typeValues === "object")  */
+        this.inputProperty.value = this.getValueFromArrayById(this.inputProperty.values, this.inputProperty.valueList);
+        /* else this.inputProperty.value = this.inputProperty.values[Number(this.inputProperty.valueList)]; */
         this.acceptEditField();
     }
     editField(e) // нажали на ячейку для редактирования
@@ -512,12 +512,12 @@ export class TableEditorV2Component implements OnInit
                             variables[this.dataHeader[i].variable] = this.dataTable[cell.iRow][i].listValue || this.dataTable[cell.iRow][i].value;
                     this.query.protectionPost(304, { param: [ cell.linkId, variables ] }, (data) =>
                     {
-                        this.inputProperty.typeValues = typeof data[0];
+                        /* this.inputProperty.typeValues = typeof data[0]; */ // Возможно это относилось к обычному списку
                         this.cacheListValues[cell.linkId] = data;
                         this.inputProperty.values = data;
                         let value = this.inputProperty.values[cell.value];
-                        if(this.inputProperty.typeValues === "object") 
-                            value = this.getValueFromArrayById(this.inputProperty.values, cell.value);
+                        /* if(this.inputProperty.typeValues === "object")  */
+                        value = this.getValueFromArrayById(this.inputProperty.values, cell.value);
                         this.inputProperty.oldValue = this.inputProperty.value = value;
                         this.inputProperty.valueList = cell.value;
                     });

@@ -234,8 +234,8 @@
         $icon = (int)$row["icon"];
         $state = ($icon & 1) == 1;
         $count = ($icon & 2) == 2;
-        $elem["state"] = $state ? $row["state"] : NULL;
-        $elem["count"] = $count ? selectOne("SELECT COUNT(*) FROM structures WHERE parent = %i", [ $elem["id"] ]) : NULL;
+        $elem["state"] = $state ? $row["state"] : null;
+        $elem["count"] = $count ? selectOne("SELECT COUNT(*) FROM structures WHERE parent = %i", [ $elem["id"] ]) : null;
         if($elem["objectType"] == "file")
         {
             if (!file_exists("../files/".$elem["id"])) return $elem;
@@ -295,9 +295,9 @@
             $filterStr = $myFilter->getFilterStr(selectOne("SELECT objectId FROM structures WHERE id = %i", [ $filterId ]), $variables);
             if($filterStr != "") $filterStr = "AND ($filterStr)";
         }
-        if($result = query("SELECT id, value FROM fields WHERE idColumn = %i AND tableId = %i AND type = 'value' AND value != '' $filterStr", [ $idColumn, $tableId ]))
-            while ($row = $result->fetch_array(MYSQLI_NUM)) 
-                $out[] = [ "id" => $row[0], "value" => $row[1]];
+        if($result = query("SELECT DISTINCT value FROM fields WHERE idColumn = %i AND tableId = %i AND type != 'head' AND value != '' $filterStr", [ $idColumn, $tableId ]))
+            while ($row = $result->fetch_assoc()) 
+                $out[] = [ "id" => $row["value"], "value" => $row["value"]];
         return $out;
     }
     function getTableListValueByKey($id, $tableId) // Получить значение из списка таблицы

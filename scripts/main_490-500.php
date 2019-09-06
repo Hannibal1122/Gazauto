@@ -71,7 +71,7 @@
                         $tableIdByLevel[$structure[$i]->level] = $structure[$i]->globalId;
                         continue;
                     }
-                    $tableIdByLevel[$structure[$i]->level] = $myStructures->create(["folder", NULL, $structure[$i]->name, $parent, 0, ""], false);
+                    $tableIdByLevel[$structure[$i]->level] = $myStructures->create(["folder", null, $structure[$i]->name, $parent, 0, ""], false);
                     // tableIdByLevel - Содержится id последнего элемента на уровне в цикле
                     query("UPDATE structures SET bindId = %i, class = 1 WHERE id = %i", [ $bindId, $tableIdByLevel[$structure[$i]->level] ]);
                     getItemById($saveTree, $structure[$i]->id)->globalId = $tableIdByLevel[$structure[$i]->level];
