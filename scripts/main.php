@@ -222,13 +222,8 @@
     function getObjectFromStructures($row)
     {
         $elem = [];
-        $elem["id"] = $row["id"];
-        $elem["objectType"] = $row["objectType"];
-        $elem["objectId"] = $row["objectId"];
-        $elem["name"] = $row["name"];
-        $elem["parent"] = $row["parent"];
-        $elem["priority"] = $row["priority"];
-        $elem["bindId"] = $row["bindId"];
+        foreach($row as $key => $value)
+            $elem[$key] = $row[$key];
 
         // Заполнение отображаемых иконок
         $icon = (int)$row["icon"];

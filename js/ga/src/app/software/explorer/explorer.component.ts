@@ -53,7 +53,8 @@ export class ExplorerComponent implements OnInit
     inputs = { id: -1, element: null, searchObjectId: null, updateHistory: null, 
         type: null, // Может быть в режиме корзины
         bind: false, // Если папка наследует
-        class: false // Если элемент создан конструктором
+        class: false, // Если элемент создан конструктором
+        classRoot: false // Если элемент корневой объекта
     };
     allPath = [];
     parent;
@@ -424,8 +425,7 @@ export class ExplorerComponent implements OnInit
         this.query.protectionPost(202, { param: [ id ] }, (data) => // Запрос прав и связей наследования
         {
             this.clearRules();
-            let _class = data[2] == 1;
-            let right = this.createRight.decodeRights(data[0]);
+            let right = this.createRight.decodeRights(data.right);
             this.selectRules.copy = objectType == "user" || objectType == "role" ? false : Boolean(right.copy);
             this.selectRules.change = Boolean(right.change);
             this.selectRules.cut = Boolean(right.change);
@@ -433,11 +433,10 @@ export class ExplorerComponent implements OnInit
             this.selectRules.remove = Boolean(right.change);
             this.selectRules.paste = Boolean(right.change);
             this.selectRules.rename = Boolean(right.change) && objectType != "user" && objectType != "role";
-            if(_class)
+            if(data.class == 1)
             {
                 this.selectRules.copy = false; 
-                /* this.selectRules.cut = false;  */
-                if(objectType == "table") // Подрузамевается что это корневая папка конструктора
+                if(objectType == "table" && data.classRoot === null) // Подрузамевается что это корневая папка конструктора
                     this.selectRules.remove = false; 
             }
             this.tableProperty.rules = { 
@@ -463,12 +462,13 @@ export class ExplorerComponent implements OnInit
             this.query.protectionPost(202, { param: [ id ] }, (data) =>
             {
                 this.getCopyExplorer();
-                let right = this.createRight.decodeRights(data[0]);
+                let right = this.createRight.decodeRights(data.right);
                 this.parentRules.paste = Boolean(right.change);
                 this.parentRules.new = Boolean(right.change);
                 
-                this.inputs.bind = data[1] !== null; // Если это наследник
-                this.inputs.class = data[2] != 0; // Если элемент создан конструктором
+                this.inputs.bind = data.bind !== null; // Если это наследник
+                this.inputs.class = data.class != 0; // Если элемент создан конструктором
+                this.inputs.classRoot = data.classRoot !== null; // Если элемент корневой объекта
                 if(func) func();
                 this.inputs.updateHistory();
             });
@@ -757,7 +757,7 @@ export class ExplorerComponent implements OnInit
             this.loadTimer = setTimeout(() => { this.updateLoadKey(); }, 350);
         });
     }
-    openTableFilter() // Открыть таблицу как папку для просмотра фильтров
+    openTypeAsFolder() // Открыть таблицу как папку для просмотра фильтров
     {
         this.openFolder(this.outFolders[this.selectObjectI].id);
     }
@@ -798,7 +798,14 @@ export class ExplorerComponent implements OnInit
     }
     createProjectByClass(folder?)
     {
-        this.projectByClassSetting = { open: true, parent: this.parent, folder: folder ? { id: folder.id, bindId: folder.bindId } : null };
+        this.projectByClassSetting = { 
+            open: true, 
+            parent: this.parent, 
+            folder: folder ? { 
+                id: folder.id, 
+                bindId: folder.classId || folder.bindId // необходимо для поддержки старой версии
+            } : null 
+        };
     }
     /**************************************/
     miniApp = { // приложения, которые открываются непосредственно в проводнике

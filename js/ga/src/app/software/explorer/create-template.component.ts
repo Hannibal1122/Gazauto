@@ -12,6 +12,7 @@ declare var trace:any;
 export class CreateTemplateComponent implements OnInit 
 {
     _open = false;
+    animationOpen = false;
     settings:any = {};
     name = "";
     parent;
@@ -28,13 +29,19 @@ export class CreateTemplateComponent implements OnInit
     {
         if(value)
         {
-            this._open = Boolean(value.open);
             this.parent = value.parent;
             this.folder = value.folder;
-            if(this._open === true)
+
+            if(Boolean(value.open))
             {
+                this._open = true;
+                this.animationOpen = false;
                 this.initData();
+                setTimeout(() => {
+                    this.animationOpen = true;
+                }, 50);
             }
+            else this.animationOpen = false;
         }
     }
     @Output() onChange = new EventEmitter<any>();
@@ -74,7 +81,7 @@ export class CreateTemplateComponent implements OnInit
                 this.myClass = this.myClassTree.straighten();
                 this.query.protectionPost(497, { param: [ this.myClass ] }, (listNames) =>
                 {
-                    for(let i = 1; i < this.myClass.length; i++) // Выставление имени для шаблонов
+                    for(let i = 0; i < this.myClass.length; i++) // Выставление имени для шаблонов
                     {
                         // Сортировка типов идет по parent шаблона!
                         this.myClass[i].templateName = listNames[this.myClass[i].templateId];
@@ -86,7 +93,8 @@ export class CreateTemplateComponent implements OnInit
                     this.query.protectionPost(494, { param: [ this.folder !== null ? this.folder.id : -1 ] }, (data) =>
                     {
                         if(this.folder !== null) this.myTree.data = data.structure;
-                        else this.myTree.push(-1, { name: "root", edited: true });
+                        else 
+                            this.myTree.push(0, { name: "root", edited: true, templateId: this.listTemplateById[0][0].templateId, templateTreeId: this.listTemplateById[0][0].id, templateParentId: 0 });
                         this.mainList = this.myTree.straighten();
                         this.loaded = true;
                     });
@@ -138,15 +146,29 @@ export class CreateTemplateComponent implements OnInit
     {
         this.onChange.emit(e);
     }
+    animationCloseModal()
+    {
+        if(this.animationOpen == false)
+            this._open = false;
+    }
     loaded = true;
+    error = false;
     Create()
     {
-        this.loaded = false;
-        /* if(this.inputName != "") this.mainList[0].name = this.inputName; */
         // Отправляем 1 - структура для создания дирректории
         // 2 - дерево этой структуры
         // 3 - родительская дирректория
         // 4 - id класса
+        let error = false;
+        this.error = false;
+        for(let i = 0; i < this.myTree.data.length; i++)
+            if(this.myTree.data[i].templateId === -1) error = true;
+        if(error)
+        {
+            this.error = error;
+            return;
+        }
+        this.loaded = false;
         this.query.protectionPost(493, { param: [ 
             JSON.stringify(this.mainList), 
             JSON.stringify(this.myTree.data), 

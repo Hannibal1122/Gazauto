@@ -55,7 +55,7 @@
             {
                 $out = [ $removeItems[$i] ];
                 getRemoveElementbyStructure($out, $removeItems[$i]);
-                for($j = 0, $c = count($out); $j < $c; $j++)
+                for($j = 0, $c2 = count($out); $j < $c2; $j++)
                 {
                     if(($myRight->get($out[$j]) & 8) != 8) continue; // Права на изменение
                     $copyAndRemove->remove($out[$j]);
@@ -71,10 +71,11 @@
                         $tableIdByLevel[$structure[$i]->level] = $structure[$i]->globalId;
                         continue;
                     }
-                    $tableIdByLevel[$structure[$i]->level] = $myStructures->create(["folder", null, $structure[$i]->name, $parent, 0, ""], false);
-                    // tableIdByLevel - Содержится id последнего элемента на уровне в цикле
-                    query("UPDATE structures SET bindId = %i, class = 1 WHERE id = %i", [ $bindId, $tableIdByLevel[$structure[$i]->level] ]);
-                    getItemById($saveTree, $structure[$i]->id)->globalId = $tableIdByLevel[$structure[$i]->level];
+                    $structures = new CopyAndRemove($structure[$i]->templateId, $parent, "inherit", $myLog);
+                    $tableIdByLevel[$structure[$i]->level] = $structures->copy($structure[$i]->name, 1);
+                    query("UPDATE structures SET classId = %i WHERE id = %i", [ $bindId, $tableIdByLevel[$structure[$i]->level] ]);
+                    $tree = getItemById($saveTree, $structure[$i]->id);
+                    $tree->globalId = $tableIdByLevel[$structure[$i]->level];
                 }
                 else
                 {
@@ -125,6 +126,7 @@
             if($result = query("SELECT structure FROM classes_object WHERE id = %i", $param))
             {
                 $out["structure"] = json_decode($result->fetch_assoc()["structure"]);
+                if(is_null($out["structure"])) break;
                 foreach($out["structure"] as $value)
                 {
                     $value->name = selectOne("SELECT name FROM structures WHERE id = %i", [ $value->globalId ]);

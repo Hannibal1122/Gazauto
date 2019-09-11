@@ -35,9 +35,13 @@
             echo json_encode($out);
             break;
         case 202: // Запросить права по логину, связи
-            echo json_encode([$paramL == "admin" ? 255 : $myRight->get( (int)$param[0] ),
-                selectOne("SELECT bindId FROM structures WHERE id = %i", [ (int)$param[0] ]), 
-                selectOne("SELECT class FROM structures WHERE id = %i", [ (int)$param[0] ])]);
+            $idElement = (int)$param[0];
+            echo json_encode([
+                "right" => $paramL == "admin" ? 255 : $myRight->get($idElement),
+                "bind" => selectOne("SELECT bindId FROM structures WHERE id = %i", [ $idElement ]), 
+                "class" => selectOne("SELECT class FROM structures WHERE id = %i", [ $idElement ]),
+                "classRoot" => selectOne("SELECT classId FROM structures WHERE id = %i", [ $idElement ]),
+            ]);
             break;
     }
 ?>

@@ -17,6 +17,7 @@ export class TemplateConstructorComponent implements OnInit
     rules = [];
     readonly = true;
     myTree;
+    error = false;
     /* typeObject = "apart"; */
     constructor(private query:QueryService) { }
     ngOnInit()
@@ -27,7 +28,7 @@ export class TemplateConstructorComponent implements OnInit
     loadData()
     {
         this.myTree = new MyTree();
-        this.myTree.push(-1, { name: "root" });
+        this.myTree.push(0, { name: "root" });
         this.query.protectionPost(491, { param: [ this.id ] }, (data) =>
         {
             this.query.onChange({ type: "updateClassName", id: this.id, name: data.name });
@@ -41,7 +42,7 @@ export class TemplateConstructorComponent implements OnInit
     }
     appendNode(i)
     {
-        this.myTree.push(this.rules[i].id, { templateId: -1,/*  last: false, */ /* type: this.typeObject */ });
+        this.myTree.push(this.rules[i].id, { templateId: undefined,/*  last: false, */ /* type: this.typeObject */ });
         this.rules = this.myTree.straighten();
     }
     removeNode(i)
@@ -68,6 +69,15 @@ export class TemplateConstructorComponent implements OnInit
     } */
     saveData()
     {
+        let error = false;
+        this.error = false;
+        for(let i = 0; i < this.myTree.data.length; i++)
+        if(this.myTree.data[i].templateId === undefined) error = true;
+        if(error)
+        {
+            this.error = error;
+            return;
+        }
         let save = JSON.stringify(this.myTree.data);
         this.query.protectionPost(492, { param: [ this.id, save ] }, (data) =>
         {

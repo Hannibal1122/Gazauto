@@ -39,7 +39,7 @@
                 if($filterStr != "") $filterStr = " AND ($filterStr)";
             };
             $listId = "";
-            $query = "SELECT id, objectType, objectId, name, parent, priority, info, bindId, state, icon FROM structures WHERE parent = %i AND trash = 0 $filterStr";
+            $query = "SELECT id, objectType, objectId, name, parent, priority, info, bindId, state, icon, classId FROM structures WHERE parent = %i AND trash = 0 $filterStr";
             if($login == "admin") $query .= " ORDER by parent, priority";
             else $query .= " AND
                 id IN (SELECT objectId FROM rights WHERE (login = %s OR login = %s) AND rights & 1 
@@ -85,10 +85,13 @@
         case 112: // Удаление элемента структуры // Права на изменение
             $idElement = (int)$param[0];
             if(($myRight->get($idElement) & 8) != 8) return; // Права на изменение
-            if(selectOne("SELECT objectType FROM structures WHERE id = %i", [ $idElement ]) == "table" 
-                && selectOne("SELECT class FROM structures WHERE id = %i", [ $idElement ]) == 1) return; // Ограничение для удаления в таблицах созданных конструктором
-            query("UPDATE structures SET trash = 1 WHERE id = %i", [$idElement]);
-            $myLog->add("structure", "remove", $idElement);
+            if($result = query("SELECT objectType, class, classId FROM structures WHERE id = %i", [ $idElement ]))
+            {
+                $row = $result->fetch_assoc();
+                if($row["objectType"] == "table" && $row["class"] == 1 && is_null($row["classId"])) return; // Ограничение для удаления в таблицах созданных конструктором
+                query("UPDATE structures SET trash = 1 WHERE id = %i", [$idElement]);
+                $myLog->add("structure", "remove", $idElement);
+            }
             break;
         case 113: // Загрузка структуры без выпрямления
             $out = [];
@@ -317,13 +320,11 @@
                     $out = getObjectFromStructures($row);
             echo json_encode($out);
             break;
-        case 130: // Полное удаление Объекта из проекта
+        case 130: // Полное удаление Объекта из проекта, без ограничений
             require_once("copyAndRemove.php");
             $idElement = (int)$param[0];
             $structures = new CopyAndRemove(null, null, null, $myLog);
             $out = [ $idElement ];
-            if(selectOne("SELECT objectType FROM structures WHERE id = %i", [ $idElement ]) == "table" 
-                && selectOne("SELECT class FROM structures WHERE id = %i", [ $idElement ]) == 1) return; // Ограничение для удаления в таблицах созданных конструктором
             getRemoveElementbyStructure($out, $idElement);
             for($i = 0, $c = count($out); $i < $c; $i++)
             {

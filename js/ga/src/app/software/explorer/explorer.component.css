@@ -152,7 +152,7 @@
     line-height: 80px; 
     border-radius: 40px; 
     padding-top:12px;
-    margin-bottom: 2px;
+    margin-bottom: 5px;
     background-color: white;
 }
 /* .elementExplorer:active
@@ -242,7 +242,7 @@
     width:76px; 
     display:flex; 
     position: absolute; 
-    top: 64px; 
+    top: 70px; 
     margin-left: 7px; 
     justify-content:flex-end;
 }

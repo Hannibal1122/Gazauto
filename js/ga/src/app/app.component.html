@@ -156,7 +156,7 @@
                                 <span *ngIf = "tab.type == 'class'"> <i class="fas fa-pencil-ruler colorIconExplorer"></i> </span>
                                 <span *ngIf = "tab.type == 'statistics'"> <i class="fa fa-chart-line colorIconValue"></i> </span>
                             </ng-container>
-                            <span *ngIf = "!tab.loaded"> <i class="fas fa-spinner spinnerLoader"></i> </span>
+                            <span *ngIf = "!tab.loaded"><i class="fas fa-spinner spinnerLoader"></i></span>
                             {{ tab.software.inputs.name || tab.name }}
                         </div>
                         <span (click) = "closeTab(s, i)"><i class="fas fa-times-circle tubExitButton TabsButtonExitColor"></i></span>

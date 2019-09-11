@@ -10,16 +10,12 @@
 {
     margin: auto;
     width: 400px;
+    background-color: white;
     box-shadow: 0px 1px 4px #3333334f;
-    padding: 5px;
+    padding: 5px 10px;
     border-radius: 5px;
     margin-top: 5px; 
 }
-/* .subPanel span
-{
-    color: #499249;
-    cursor: pointer;
-} */
 .headerStyle
 {
     font-size: 18px;
@@ -27,8 +23,22 @@
     margin-top:5px;
     margin-bottom:5px;
 }
-.applyColor
-{
-    color: rgb(103, 196, 103);
-    border-color: rgb(103, 196, 103);
+
+.caretAppend {
+    color:rgb(104, 185, 97);
+    margin-left:5px;
+    transition: 0.3s;
+    cursor: pointer;
+}
+.caretAppend:hover {
+    color:rgb(73, 148, 67);
+}
+.caretRemove{
+    color:rgb(219, 95, 95);
+    margin-left:5px;
+    transition: 0.3s;
+    cursor: pointer;
+}
+.caretRemove:hover {
+    color:rgb(199, 72, 72);
 }

@@ -25,20 +25,39 @@
     margin: auto; 
     margin-top: 60px; 
     background: white; 
-    box-shadow: 0 3px 9px rgba(0, 0, 0, 0.5); 
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3); 
     padding: 5px;
     color: rgb(51, 59, 51);
+
+    transform: scale(0.8);
+    opacity: 0;
+    transition: 0.3s;
+}
+.open-modal
+{
+    transform: scale(1);
+    opacity: 1;
 }
 .mainPanel .propertyBtn, .mainPanel .mainSelect
 {
     margin-left: 5px;
 }
 
-.caretAppend{
-    color:rgb(81, 224, 88);
+.caretAppend {
+    color:rgb(104, 185, 97);
+    transition: 0.3s;
+    cursor: pointer;
+}
+.caretAppend:hover {
+    color:rgb(73, 148, 67);
 }
 .caretRemove{
-    color:rgb(224, 81, 81);
+    color:rgb(219, 95, 95);
+    transition: 0.3s;
+    cursor: pointer;
+}
+.caretRemove:hover {
+    color:rgb(199, 72, 72);
 }
 .caretDisabled {
     color: #dfdfdf;

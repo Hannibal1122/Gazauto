@@ -1,22 +1,19 @@
-<div *ngIf = "_open" style = "position:absolute; width:100%; height:100%; background: rgba(255, 255, 255, 0.6); top:0px; left: 0px;">
-    <div class = "mainPanel">
+<div *ngIf = "_open" style = "position:absolute; width:100%; height:100%; background: rgba(255, 255, 255, 0.35); top:0px; left: 0px;">
+    <div class = "mainPanel" [class.open-modal] = "animationOpen" (transitionend) = "animationCloseModal()">
         <div>
             Объект класса '{{ name }}'
-            <!-- <div>
-                <input  class = "mainSelect" placeholder = "Имя" type = "text" [(ngModel)] = "inputName">
-            </div> -->
         </div>
-        <div style = "height: 310px; border:1px solid #eeeeee; margin-top:5px; padding: 3px; overflow: auto;">
+        <div style = "height: 330px; border:1px solid #eeeeee; margin-top:5px; padding: 3px; overflow: auto;">
             <div 
                 class = "listClass" 
                 *ngFor = "let list of mainList; let i = index;" 
                 [style.margin-left] = "list.level * 10 + 'px'">
-                <ng-container *ngIf = "i > 0">
-                    <i class="fas fa-table"></i> 
-                    <select class = "mainSelect" [(ngModel)] = "list.templateTreeId" (change) = "onChangeTemplate(i)" [disabled] = "!list.edited || list.globalId">
-                        <option *ngFor = "let o of listTemplateById[list.templateParentId]" [attr.value] = "o.id">{{ o.templateName }}</option>
-                    </select>
-                </ng-container>
+
+                <i class="fas fa-table"></i> 
+                <select class = "mainSelect" [(ngModel)] = "list.templateTreeId" (change) = "onChangeTemplate(i)" [disabled] = "!list.edited || list.globalId">
+                    <option *ngFor = "let o of listTemplateById[list.templateParentId]" [attr.value] = "o.id">{{ o.templateName }}</option>
+                </select>
+
                 <input *ngIf = "!list.globalId" class = "mainSelect" type="text" [(ngModel)] = "list.name" (change) = "onChangeName(i)" placeholder="имя">
                 <span *ngIf = "list.globalId">{{ list.name }}</span>
                 <span *ngIf = "list.state" 
@@ -32,6 +29,7 @@
             </div>
         </div>
         <div style = "text-align: right;">
+            <span *ngIf = "error" style = "float: left; color:rgb(224, 59, 59);">Не выставлен шаблон!</span>
             <button class = "propertyBtn" (click) = "Cancel()">Отмена</button>
             <button class = "propertyBtn" (click) = "Create()" style = "width:75px;">
                 <span *ngIf = "!loaded"><i class="fas fa-spinner spinnerLoader"></i></span>

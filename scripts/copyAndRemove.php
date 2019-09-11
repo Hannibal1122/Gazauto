@@ -36,9 +36,21 @@
         }
         function copyTable($idNewElement) // Скопировать таблицу
         {
+            $idElement = $this->idElement;
+            $typeOperation = $this->typeOperation;
+
             require_once("myTable.php");
             $myTable = new MyTable($idNewElement, $this->myLog);
-            $myTable->copy($this->idElement, $this->typeOperation == "inherit");
+            $myTable->copy($idElement, $typeOperation == "inherit");
+            if($typeOperation == "copy") // Копирование как папки
+            {
+                if($result = query("SELECT id FROM structures WHERE parent = %i", [$idElement]))
+                    while($row = $result->fetch_array(MYSQLI_NUM))
+                    {
+                        $structures = new CopyAndRemove((int)$row[0], $idNewElement, $typeOperation, $this->myLog);
+                        $structures->copy("");
+                    }
+            }
         }
         function copyFile($idNewElement, $name) // Скопировать файл
         {

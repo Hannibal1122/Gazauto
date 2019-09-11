@@ -86,7 +86,7 @@
             break;
         case 258: // Удалить строку из таблицы
             if(($myRight->get($idTable) & 8) != 8) return; // Права на изменение
-            if(selectOne("SELECT class FROM structures WHERE id = %i", [ $idTable ]) == 1) return; // Ограничение для удаления в таблицах созданных конструктором
+            //if(selectOne("SELECT class FROM structures WHERE id = %i", [ $idTable ]) == 1) return; // Ограничение для удаления в таблицах созданных конструктором
             $idRow = (int)$param[1];
             $myTable->removeRow($idRow);
             break;
