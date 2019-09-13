@@ -194,8 +194,6 @@ class FASM
                     $field["value"] = selectOne("SELECT name FROM structures WHERE id = %i", [ $field["linkId"] ]);
                     break;
                 case "cell":
-                    $value = getCellLink($field["linkId"], true);
-                    $field["value"] = $value["value"];
                     break;
             }
         }

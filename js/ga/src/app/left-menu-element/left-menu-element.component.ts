@@ -2,7 +2,6 @@ import { Component, OnInit, Input, Output, ViewChild, ElementRef, EventEmitter }
 import { QueryService } from "../lib/query.service";
 
 declare var trace:any;
-declare var $:any;
 
 @Component({
     selector: 'app-left-menu-element',

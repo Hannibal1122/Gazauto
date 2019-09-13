@@ -34,8 +34,10 @@ export class TablePropertyComponent implements OnInit
                 this.mainProperty[7].value = data.timeCreate;
                 this.userProperty = data.userProperty ? JSON.parse(data.userProperty) : [];
                 this.mainProperty[8].value = data.idTable > 0 ? { type: "table", id: data.idTable } : null;
-                this.mainProperty[9].value = data.idFilter > 0 ? { type: "filter", id: data.idFilter } : { type: "filter", id: "" };
-                
+                if(value.objectType == "tlist")
+                    this.mainProperty[9].value = data.idFilter > 0 ? { type: "filter", id: data.idFilter } : { type: "filter", id: "" };
+                else this.mainProperty[9].value = null;
+
                 let i = 0;
                 for(; i < this.userProperty.length; i++)
                     if(this.userProperty[i].name == "Аннотация") break;
@@ -225,6 +227,7 @@ export class TablePropertyComponent implements OnInit
     }
     openObject(p)
     {
+        trace(p)
         if(p.value.type == "filter" || p.value.type == "file" || p.value.type == "folder" || p.value.type == "tlist") this.query.onChange({ type: "openFromTable", value: { name: p.value.type, id: p.value.id }});
         else this.query.onChange({ type: "openFromTable", value: { type: "open", name: p.value.type, id: p.value.id }});
     }

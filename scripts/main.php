@@ -39,6 +39,11 @@
 				$paramI = $_POST['paramI']; 
         }
     }
+    /**********************************
+    UPDATE `fields` SET `dataType` = `linkId` WHERE `linkType` = "tlist";
+    UPDATE `fields` SET `linkId` = NULL WHERE `linkType` = "tlist";
+    **********************************/
+
     /* Работа с БД */
     $mysqli = new mysqli('localhost', $username, $password, $dbName);
     if (mysqli_connect_errno()) { echo("None connection"); exit(); }
@@ -290,9 +295,9 @@
             $filterStr = $myFilter->getFilterStr(selectOne("SELECT objectId FROM structures WHERE id = %i", [ $filterId ]), $variables);
             if($filterStr != "") $filterStr = "AND ($filterStr)";
         }
-        if($result = query("SELECT DISTINCT value FROM fields WHERE idColumn = %i AND tableId = %i AND type != 'head' AND value != '' $filterStr", [ $idColumn, $tableId ]))
+        if($result = query("SELECT DISTINCT id, value FROM fields WHERE idColumn = %i AND tableId = %i AND type != 'head' AND value != '' $filterStr", [ $idColumn, $tableId ]))
             while ($row = $result->fetch_assoc()) 
-                $out[] = [ "id" => $row["value"], "value" => $row["value"]];
+                $out[] = [ "id" => $row["id"], "value" => $row["value"]];
         return $out;
     }
     function getTableListValueByKey($id, $tableId) // Получить значение из списка таблицы
@@ -318,37 +323,35 @@
             }
     }
     $countCycle = 0; // необходимо обнулять для правильной работы
-    function getCellLink($linkId, $first)
+    function getCellLink($linkId, $first) // Проверка на тип ссылки (чтобы таблицу в таблицу нельзя было вставить)
     {
         global $countCycle;
         if($first) $countCycle = 0;
         if(++$countCycle > 50) return Null; // ограничение на зацикливание
-        if($result = query("SELECT value, type, linkId, linkType, id, tableId FROM fields WHERE id = %i", [ (int)$linkId ]))
+
+        if($result = query("SELECT type, linkId, linkType FROM fields WHERE id = %i", [ (int)$linkId ]))
         {
-            $row = $result->fetch_array(MYSQLI_NUM);
-            if($row[3] == "cell") return getCellLink($row[2], false);
+            $row = $result->fetch_assoc();
+            if($row["linkType"] == "cell") return getCellLink($row["linkId"], false);
             else
             {
-                $out = ["value" => $row[0], "tableId" => (int)$row[5], "linkType" => null];
-                /* if($row[1] == "value") return ["value" => $row[0], "state" => $row[5]]; */
-                if($row[1] == "link")
+                $out = [ "tableId" => -1 ];
+                if($row["type"] == "link")
                 {
-                    if($row[3] == "tlist")
-                        if($value = query("SELECT value, type, tableId FROM my_values WHERE id = %i", [ (int)$row[2] ]))
-                        {
-                            $valueData = $value->fetch_array(MYSQLI_NUM);
-                            $out["value"] = getTableListValueByKey((int)$out["value"], (int)$valueData[2]);
-                        }
-                    if($row[3] == "table")
-                    {
-                        if($value = query("SELECT name FROM structures WHERE id = %i", [ (int)$row[2] ]))
-                            $out["value"] = $value->fetch_array(MYSQLI_NUM)[0];
-                        $out["tableId"] = (int)$row[2];
-                    }
-                    $out["linkType"] = $row[3];
+                    if($row["linkType"] == "table")
+                        $out["tableId"] = (int)$row["linkId"];
                 }
                 return $out;
             }
         }
+    }
+    function updateCellByLink($idField, $newValue) // Обновляет все зависимые ячейки
+    {
+        if($result = query("SELECT id, linkId FROM fields WHERE linkId = %i", [ (int)$idField ]))
+            while ($row = $result->fetch_assoc())
+            {
+                query("UPDATE fields SET value = %s WHERE id = %i", [ $newValue, $row["id"] ]);
+                if(!is_null($row["linkId"])) updateCellByLink($row["id"], $newValue);
+            }
     }
 ?>

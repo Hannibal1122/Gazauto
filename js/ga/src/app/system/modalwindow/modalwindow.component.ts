@@ -3,7 +3,6 @@ import { FunctionsService } from "../../lib/functions.service";
 import { FilterEditorComponent } from '../../software/filter-editor/filter-editor.component';
 
 declare var trace:any;
-declare var $: any;
 @Component({
     selector: 'modalwindow',
     templateUrl: './modalwindow.component.html',
@@ -24,6 +23,8 @@ export class ModalWindowComponent
     error = "";
     width = 500;
     load = false;
+    _open = false;
+    animationOpen = 0;
     typeObject = [
         { name: "Папка", class: "fas fa-folder"}, 
         { name: "Таблица", class: "fas fa-table"}, 
@@ -51,11 +52,12 @@ export class ModalWindowComponent
         for(var i = 0; i < data.data.length; i++)
             this.Data[i] = data.data[i].slice();
         this.closeFunction = closeFunction;
-        $("#BlockModalPanel").append(this.modal.nativeElement);
-        $(this.modal.nativeElement).css({marginTop: "-500px"});
-        $(this.modal.nativeElement).fadeIn(0);
-        $(this.modal.nativeElement).animate({marginTop: "0px"}, 400);
-        $("#BlockModalPanel").fadeIn(400);
+
+        this._open = true;
+        this.animationOpen = 0;
+        setTimeout(() => {
+            this.animationOpen++;
+        }, 50);
     }
     close(save)
     {
@@ -72,12 +74,7 @@ export class ModalWindowComponent
             }
         if(this.closeFunction) 
             out = this.closeFunction(save);
-        if(out === undefined || out === true)
-        {
-            $(this.modal.nativeElement).fadeOut(0);
-            $("#BlockModalPanel").fadeOut(0);
-            $("#BlockModalPanel").empty();
-        }
+        if(out === undefined || out === true) this.animationOpen = -2;
         else this.error = out;
     }
     generatePassword(i) // Для password
@@ -132,5 +129,11 @@ export class ModalWindowComponent
     {
         data[3] = true;
         for(var i = 0; i < data[1].length; i++) data[3] &= data[1][i].checked;
+    }
+    animationCloseModal()
+    {
+        this.animationOpen++;
+        if(this.animationOpen == 0)
+            this._open = false;
     }
 }

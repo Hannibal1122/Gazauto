@@ -85,7 +85,6 @@ export class TableEditorV2Component implements OnInit
         count: 0,
         visible: false,
         values: [],
-        valueList: "",
         typeValues: "",
         type: "",
         eventId: -1,
@@ -274,7 +273,7 @@ export class TableEditorV2Component implements OnInit
                 this.mapFields[cell.id] = cell;
                 if(filterFields.value != "")
                 {
-                    let str = (cell.listValue || cell.value).toLowerCase();
+                    let str = cell.value.toLowerCase();
                     let substr = filterFields.value.toLowerCase();
                     rowHide = this.tableFilter.checkFilterBySign(str, substr, filterFields.sign);
                 }
@@ -484,7 +483,7 @@ export class TableEditorV2Component implements OnInit
     changeMainSelect() // Если пользователь выбрал из tlist значение
     {
         /* if(this.inputProperty.typeValues === "object")  */
-        this.inputProperty.value = this.getValueFromArrayById(this.inputProperty.values, this.inputProperty.valueList);
+        this.inputProperty.value = this.getValueFromArrayById(this.inputProperty.values, this.inputProperty.linkId);
         /* else this.inputProperty.value = this.inputProperty.values[Number(this.inputProperty.valueList)]; */
         this.acceptEditField();
     }
@@ -503,14 +502,14 @@ export class TableEditorV2Component implements OnInit
                 if(this.dataHeader[this.mapHeader[cell.idColumn]].dataType == "DATETIME") 
                     this.inputProperty.type = "datetime";
                 this.inputProperty.linkId = cell.linkId;
-                if(cell.listValue !== undefined) 
+                if(cell.type == "tlist") 
                 {
                     // Запрос списка значений
                     let variables = {};
                     for(let i = 0; i < this.dataHeader.length; i++)
                         if(this.dataHeader[i].variable)
-                            variables[this.dataHeader[i].variable] = this.dataTable[cell.iRow][i].listValue || this.dataTable[cell.iRow][i].value;
-                    this.query.protectionPost(304, { param: [ cell.linkId, variables ] }, (data) =>
+                            variables[this.dataHeader[i].variable] = this.dataTable[cell.iRow][i].value;
+                    this.query.protectionPost(304, { param: [ cell.dataType, variables ] }, (data) =>
                     {
                         /* this.inputProperty.typeValues = typeof data[0]; */ // Возможно это относилось к обычному списку
                         this.cacheListValues[cell.linkId] = data;
@@ -519,7 +518,7 @@ export class TableEditorV2Component implements OnInit
                         /* if(this.inputProperty.typeValues === "object")  */
                         value = this.getValueFromArrayById(this.inputProperty.values, cell.value);
                         this.inputProperty.oldValue = this.inputProperty.value = value;
-                        this.inputProperty.valueList = cell.value;
+                        this.inputProperty.linkId = cell.linkId;
                     });
                 }
                 else 
@@ -554,23 +553,9 @@ export class TableEditorV2Component implements OnInit
         {
             let type = "value";
             let out:any = { id: cell.id }; // при обновлении достаточно знать id
-            let listValue = null;
-            let linkType = "value";
-            if(this.inputProperty.values.length > 0)
-            {
-                let _i = 0;
-                listValue = this.inputProperty.value;
-                if(typeof this.inputProperty.values[0] === "object") // Проверка на наличие в списке значения
-                {
-                    linkType = "tlist";
-                    for(; _i < this.inputProperty.values.length; _i++) if(this.inputProperty.values[_i].value == listValue) break;
-                }
-                else 
-                    for(; _i < this.inputProperty.values.length; _i++) if(this.inputProperty.values[_i] == listValue) break;
-                if(_i != this.inputProperty.values.length) type = "list";
-            }
+            if(this.inputProperty.values.length > 0) type = "list";
             if(type == "value") out.value = this.inputProperty.value;
-            if(type == "list") out.value = { value: this.inputProperty.valueList, linkId: cell.linkId, type:linkType, listValue: listValue };
+            if(type == "list") out.value = { linkId: Number(this.inputProperty.linkId), type: "tlist", value: this.inputProperty.value };
             this.updateField(cell, out);
         }
     }
@@ -578,14 +563,15 @@ export class TableEditorV2Component implements OnInit
     {
         this.queue.add(252, [ this.id,  JSON.stringify(out) ], (data) =>
         {
-            if(typeof data.value === "object")
+            if(data.value !== null && typeof data.value === "object")
             {
-                cell.listValue = data.value.listValue;
+                cell.linkId = data.value.linkId;
                 cell.value = data.value.value;
             }
             else 
             {
-                cell.listValue = undefined;
+                delete cell.type;
+                delete cell.linkId;
                 cell.value = data.value;
             }
         });
@@ -940,13 +926,21 @@ export class TableEditorV2Component implements OnInit
     }
     openToExplorer(data) // Найти в таблице
     {
+        let cell = this.mapFields[data.id];
         if(data.type == "cell")
             this.query.protectionPost(111, { param: [ "cell", data.linkId ]}, (idParent) => 
             {
+                if(idParent.length == 0) // Связь потеряна
+                {
+                    this.modal.open({ title: "Ошибка! Элемента, на который ссылается ячейка не существует!", data: [], ok: "Ок", cancel: ""}); 
+                    this.query.protectionPost(278, { param: [ cell.id ]});
+                    cell.value = null;
+                    return;
+                }
                 if(this.id == idParent[0][0]) this.searchCell(data.linkId);
                 else this.query.onChange({ type: "openFromTable", value: { name: "cell", id: data.linkId }});
             });
-        else this.query.onChange({ type: "openFromTable", value: { name: data.type, id: data.linkId }});
+        else this.query.onChange({ type: "openFromTable", value: { name: data.type, id: data.type == "tlist" ? cell.dataType : data.linkId }});
     }
     openSoftware(type, id) // Открыть объект
     {
@@ -1041,8 +1035,7 @@ export class TableEditorV2Component implements OnInit
                 link.click();
             }
             downloadURI(data[0], data[1]);
-            $("#BlockLoaderPanel").fadeOut(400);
-        })
+        });
     }
     importFromExcel()
     {

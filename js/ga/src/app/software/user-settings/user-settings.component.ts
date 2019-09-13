@@ -2,7 +2,6 @@ import { Component, OnInit, ViewChild, EventEmitter, Output } from '@angular/cor
 import { QueryService } from '../../lib/query.service';
 
 declare var trace:any;
-declare var $:any;
 @Component({
     selector: 'user-settings',
     templateUrl: './user-settings.component.html',

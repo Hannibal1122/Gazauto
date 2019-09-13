@@ -4,7 +4,7 @@
             <tbody>
                 <tr><td colspan="3" style = "font-weight: bold;">Основные</td></tr>
                 <ng-container *ngFor = "let p of property">
-                    <tr *ngIf = "p.type != 'table' || p.value">
+                    <tr *ngIf = "(p.type != 'table' && p.type != 'object') || p.value">
                         <td colspan="2">{{p.desc}}</td>
                         <td class = "blockTD" *ngIf = "p.type == 'block'">{{p.value}}</td>
                         <td *ngIf = "p.type == 'edit'" class = "tdInput"><input type = "text" [(ngModel)] = "p.value" (change) = "onInputChange(p)"></td>

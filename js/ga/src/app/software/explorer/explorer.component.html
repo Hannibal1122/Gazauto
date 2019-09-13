@@ -10,7 +10,7 @@
                 </div>
             </ng-container>
         </div> 
-        <button class = "mainButton" title = "Вставить" (click) = "_pasteObject()" [disabled] = "!selectRules.paste"><i class="fas fa-paste"></i></button>
+        <!-- <button class = "mainButton" title = "Вставить" (click) = "_pasteObject()" [disabled] = "!selectRules.paste"><i class="fas fa-paste"></i></button> -->
         <button class = "mainButton" [class.enableButton] = "tableProperty.visible" title = "Таблица свойств" (click) = "openTableProperty()"><i class="fas fa-briefcase"></i></button>
         <button class = "mainButton" title = "Поиск" (click) = "openSearch()"><i class="fas fa-search"></i></button>
         <button class = "mainButton" [class.enableButton] = "selectModeList" title = "Выбрать несколько" (click) = "changeSelectMode()"><i class="fas fa-tasks"></i></button>
@@ -80,7 +80,7 @@
                         font-size: 16px;"><i class="fas fa-check-square"></i></div>
             </div>
         </span>
-        <div *ngIf = "outFolders.length == 0" style = "width:100%; height: 100%; display: flex; justify-content: center; align-items: center;">
+        <div *ngIf = "outFolders.length == 0" style = "width:100%; height: 100%; display: flex; justify-content: center; align-items: center; pointer-events: none;">
             <div style = "width: 150px;
                 height: 150px;
                 border-radius: 75px;

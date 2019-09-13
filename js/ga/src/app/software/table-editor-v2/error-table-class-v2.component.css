@@ -12,6 +12,7 @@
     /* border-right: 1px solid; 
     border-bottom: 1px solid; */
     font-size: 14px;
+    min-width: 80px;
 }
 .errorTable td 
 {

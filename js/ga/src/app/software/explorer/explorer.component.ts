@@ -431,7 +431,7 @@ export class ExplorerComponent implements OnInit
             this.selectRules.cut = Boolean(right.change);
             this.selectRules.rights = objectType == "user" || objectType == "role" ? false : Boolean(right.right);
             this.selectRules.remove = Boolean(right.change);
-            this.selectRules.paste = Boolean(right.change);
+            /* this.selectRules.paste = Boolean(right.change); */
             this.selectRules.rename = Boolean(right.change) && objectType != "user" && objectType != "role";
             if(data.class == 1)
             {

@@ -136,9 +136,9 @@
             $idValue = (int)$param[2]; // id из структуры
             $idTable = selectOne("SELECT tableId FROM fields WHERE id = %i", [ $idField ]);
             if(($myRight->get($idTable) & 8) != 8) return; // Права на изменение
-            $idTlist = selectOne("SELECT id FROM my_values WHERE id = (SELECT objectId FROM structures WHERE id = %i)", [ $idValue ]); // id из my_values
+            $idTlist = selectOne("SELECT objectId FROM structures WHERE id = %i", [ $idValue ]); // id из my_values
             query("UPDATE fields SET dataType = %i WHERE id = %i AND type = 'head' AND tableId = %i", [ $idTlist, $idField, $idTable ]);
-            query("UPDATE fields SET type = 'link', linkId = %i, linkType = 'tlist', value = '' WHERE idColumn = %i AND tableId = %i", [ $idTlist, $idField, $idTable ]);
+            query("UPDATE fields SET type = 'link', dataType = %i, linkId = NULL, linkType = 'tlist', value = '' WHERE idColumn = %i AND tableId = %i", [ $idTlist, $idField, $idTable ]);
             // Выставление типа у всех наследников, чтобы не затирать возможные данные обновления ячеек не происходит
             query("UPDATE fields SET dataType = %i WHERE bindId = %i AND type = 'head'", [ $idTlist, $idField ]);
             break;
@@ -170,7 +170,7 @@
             if(($myRight->get($idTable) & 8) != 8) return; // Права на изменение
             $idType = selectOne("SELECT id FROM my_values WHERE type = %s", [ $idValue ]);
             query("UPDATE fields SET dataType = %i WHERE id = %i AND type = 'head' AND tableId = %i", [ $idType, $idField, $idTable ]);
-            query("UPDATE fields SET type = 'value', linkId = NULL, linkType = NULL WHERE idColumn = %i AND tableId = %i", [ $idField, $idTable ]);
+            query("UPDATE fields SET type = 'value', dataType = NULL, linkId = NULL, linkType = NULL WHERE idColumn = %i AND tableId = %i", [ $idField, $idTable ]);
             query("UPDATE fields SET dataType = %i WHERE bindId = %i AND type = 'head'", [ $idType, $idField ]);
             break;
         case 269: // Поменять местами строку
@@ -245,6 +245,12 @@
             $idTable = selectOne("SELECT tableId FROM fields WHERE id = %i", [ $idColumn ]);
             if(($myRight->get($idTable) & 8) != 8) return; // Права на изменение
             query("UPDATE fields SET variable = %s WHERE id = %i OR bindId = %i", [ $param[1] === "NULL" ? null : $param[1], $idColumn, $idColumn ]);
+            break;
+        case 278: // Временно, для удаления не существующей ссылки
+            $idField = (int)$param[0];
+            $idTable = selectOne("SELECT tableId FROM fields WHERE id = %i", [ $idField ]); // Проверка прав должна идти от ячейки
+            if(($myRight->get($idTable) & 8) != 8) return; // Права на изменение
+            query("UPDATE fields SET value = NULL WHERE id = %i", [ $idField ]);
             break;
     }
 ?>

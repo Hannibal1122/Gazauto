@@ -212,6 +212,13 @@
             $idElement = (int)$param[0];
             if(($myRight->get($idElement) & 8) != 8) return; // Права на изменение
             query("UPDATE structures SET name = %s WHERE id = %i", [ $param[1], $idElement ]);
+            // Если это папка, таблица или файл ищем во всех ячейках
+            if($result = query("SELECT id FROM fields WHERE (linkType = 'folder' OR linkType = 'table' OR linkType = 'file') AND linkId = %i", [ $idElement ]))
+                while ($row = $result->fetch_assoc())
+                {
+                    query("UPDATE fields SET value = %s WHERE id = %i", [ $param[1], $row["id"] ]);
+                    updateCellByLink($row["id"], $param[1]);
+                }
             $myLog->add(selectOne("SELECT objectType FROM structures WHERE id = %i", [ $idElement ]), "update", $idElement);
             break;
         case 121: // Запрос файла с правами
