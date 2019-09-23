@@ -107,26 +107,13 @@
                 if($filter["str"] != "") $filterStr = " AND (".$filter["str"].")";
                 $operand = $filter["operand"];
             };
-            $query = "SELECT id, objectType, objectId, name, parent, priority, info, state FROM structures WHERE trash = 0 $filterStr";
-            if($login == "admin") $query .= " ORDER by parent, priority";
-            else $query .= " AND
+            $query = "SELECT id, objectType, objectId, name, parent, state FROM structures WHERE trash = 0 $filterStr";
+            if($login != "admin") $query .= " AND
                 id IN (SELECT objectId FROM rights WHERE (login = %s OR login = %s) AND rights & 1 
-                    AND objectId NOT IN (SELECT objectId FROM rights WHERE login = %s AND (rights & 1) = 0)) ORDER by parent, priority";
-            if($login != "admin")  $operand += [$login, $role, $login ];
-            if($result = query($query, $operand))
-                while ($row = $result->fetch_array(MYSQLI_NUM)) 
-                {
-                    $elem = [];
-                    $elem["id"] = $row[0];
-                    $elem["objectType"] = $row[1];
-                    $elem["objectId"] = $row[2];
-                    $elem["name"] = $row[3];
-                    $elem["state"] = $row[7];
-                    $elem["childrens"] = [];
-                    if(($myRight->get($row[0], true) & 1) == 1)
-                        if($row[4] == 0) $out[] = $elem;
-                        else searchParent($out, $row[4], $elem);
-                }
+                    AND objectId NOT IN (SELECT objectId FROM rights WHERE login = %s AND (rights & 1) = 0))";
+            if($login != "admin") $operand += [$login, $role, $login ];
+            
+            searchChildren($query, $operand, 0, $out);
             echo json_encode($out);
             break;
         case 114: // Копирование элемента
@@ -525,6 +512,25 @@
             $fileBaseNameForDownload = scandir("../files/$idElement", 1)[0];
             echo "$idElement/$fileBaseNameForDownload";
             break;
+    }
+    function searchChildren($queryStr, $operand, $parent, &$out) // Формирование древовидной структуры
+    {
+        global $myRight;
+        if($result = query($queryStr." AND parent = $parent ORDER by priority", $operand))
+            while ($row = $result->fetch_assoc()) 
+                if(($myRight->get($row["id"], true) & 1) == 1)
+                {
+                    $i = count($out);
+                    $out[$i] = [
+                        "id" => $row["id"], 
+                        "objectType" => $row["objectType"], 
+                        "objectId" => $row["objectId"], 
+                        "name" => $row["name"], 
+                        "state" => $row["state"],
+                        "childrens" => []
+                    ];
+                    searchChildren($queryStr, $operand, (int)$row["id"], $out[$i]["childrens"]);
+                }
     }
     function getListFromExcel($sheetIndex)
     {

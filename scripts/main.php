@@ -274,16 +274,6 @@
                 if($row[1] != 0) getFullPath($out, $row[1]);
             }
     }
-    function searchParent(&$out, $parent, $elem) // Формирование древовидной структуры
-    {
-        $c = count($out);
-        for($i = 0; $i < $c; $i++)
-            if($out[$i]["id"] == $parent) { $out[$i]["childrens"][] = $elem; return true;};
-        if($i == $c)
-            for($i = 0; $i < $c; $i++)
-                if(searchParent($out[$i]["childrens"], $parent, $elem)) return true;
-        return false;
-    }
     function getTableListValues($tableId, $idColumn, $filterId, $variables) // Получить список значений из таблицы, только value
     {
         $out = [];
