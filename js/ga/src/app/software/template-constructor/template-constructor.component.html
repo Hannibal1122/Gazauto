@@ -8,11 +8,23 @@
                         <input type = "checkbox"> Раздельно
                     </span> -->
                 </div>
-                <div *ngFor = "let rule of rules; let i = index;" [style.margin-left] = "rule.level * 20 + 'px'" style = "margin-bottom:5px;">
-                    <div>
+                <ng-container *ngFor = "let rule of rules; let i = index;">
+                    <div *ngIf = "!rule.hide" [style.margin-left] = "rule.level * 20 + 'px'" style = "margin-bottom:2px;">
+                        <button class = "mainButton" 
+                            style = "width:24px; height: 24px; font-size:12px; min-width: 24px;" 
+                            (click) = "setCutElement(i)"><i class="fas fa-cut"></i></button>
+                        <button class = "mainButton" 
+                            style = "width:24px; height: 24px; font-size:12px; min-width: 24px; margin-left: 5px; margin-right: 5px;" 
+                            [disabled] = "cutElement == -1"
+                            (click) = "pasteCutElement(i)"><i class="fas fa-paste"></i></button>
+
                         <span *ngIf = "rule.type == 'together'"><i class="fas fa-link"></i></span>
                         <span *ngIf = "rule.type == 'apart'"><i class="fas fa-unlink"></i></span>
-                        <span (click) = "seacrhElement(rule.templateId)" style = "color: #499249; cursor: pointer;"><i class="fas fa-table"></i></span>
+                        <!-- <span (click) = "seacrhElement(rule.templateId)" style = "color: #499249; cursor: pointer;"><i class="fas fa-table"></i></span> -->
+                        <span style = "cursor: pointer; position:relative;" (click) = "openCollapse(i)">
+                            <i class="fas fa-table colorIconTable"></i>
+                            <span *ngIf = "rule.end !== true" style = "position: absolute; font-size: 12px; bottom: -9px; left: 2px;"><i class="fas fa-ellipsis-h colorIconTable"></i></span>
+                        </span> 
                         <ng-container *ngIf = "readonly">
                             <span style = "margin-left:5px;">{{ rule.templateId }}</span>
                         </ng-container>
@@ -23,15 +35,17 @@
                                 [(ngModel)] = "rule.templateId" 
                                 (change) = "onChangeTemplate(i)" 
                                 style = "width:80px; padding: 1px 4px; margin-left:5px;">
-                            <button class = "mainButton" (click) = "setFromCopy(i)"><i class="fas fa-paste"></i></button>
+                            <button class = "mainButton" 
+                                style = "width:24px; height: 24px; font-size:12px; min-width: 24px;" 
+                                (click) = "setFromCopy(i)"><i class="fas fa-paste"></i></button>
                             <span *ngIf = "i > 0" class = "caretRemove" (click) = "removeNode(i)"><i class="fas fa-minus-circle"></i></span>
                             <span class = "caretAppend" (click) = "appendNode(i)"><i class="fas fa-plus-circle"></i></span>
                         </ng-container>
                     </div>
-                </div>
+                </ng-container>
             </div>
-            <div *ngIf = "error" class = "subPanel" style = "color:rgb(224, 59, 59);">
-                Не выставлен шаблон!
+            <div *ngIf = "error != ''" class = "subPanel" style = "color:rgb(224, 59, 59);">
+                {{ error }}
             </div>
         </div>
         <div style = "width: 400px; margin: auto; margin-top: 15px;">

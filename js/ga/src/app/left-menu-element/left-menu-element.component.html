@@ -45,6 +45,7 @@
                     
                     <span *ngIf = "data.objectType == 'table'" style = "cursor: pointer;" (click) = "openCollapse(i, data.level)">
                         <i class="fas fa-table colorIconTable"></i>
+                        <span *ngIf = "data.end !== true" style = "position:absolute; font-size: 12px; bottom: -6px; left: 2px;"><i class="fas fa-ellipsis-h colorIconTable"></i></span>
                     </span>
                     
                     <i *ngIf = "data.objectType == 'class'" class="fa fa-pencil-ruler colorIconExplorer"></i>

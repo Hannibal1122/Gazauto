@@ -19,11 +19,12 @@ export class MyTree
                 break;
             }
     }
-    getRecursionRemove(out, parent, level)
+    getRecursionRemove(out, parent)
     {
-        out.push({ ...parent, level: level });
+        out.push(parent.id);
         for(let i = 1; i < this.data.length; i++) 
-            if(this.data[i].parent == parent.id) this.getRecursion(out, this.data[i], level + 1);
+            if(this.data[i].parent == parent.id)
+                this.getRecursionRemove(out, this.data[i]);
     }
     getCountChildren(parent)
     {
@@ -40,9 +41,14 @@ export class MyTree
     }
     getRecursion(out, parent, level)
     {
-        out.push({ ...parent, level: level });
+        let elem = { end: true, open: level == 0, hide: level > 1, ...parent, level: level };
+        out.push(elem);
         for(let i = 1; i < this.data.length; i++) 
-            if(this.data[i].parent == parent.id) this.getRecursion(out, this.data[i], level + 1);
+            if(this.data[i].parent == parent.id) 
+            {
+                elem.end = false;
+                this.getRecursion(out, this.data[i], level + 1);
+            }
     }
     getElement(id)
     {

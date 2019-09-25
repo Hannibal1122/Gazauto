@@ -138,6 +138,7 @@
             if(count($errors) > 0) 
             {
                 echo json_encode($errors);
+                $myLoading->removeKey(); // Удаляем загрузочный ключ
                 return;
             }
 
@@ -226,12 +227,12 @@
             require_once("getFile.php");
             $myLog->add("file", "download", $idElement);
             break;
-        case 122: // запрос информации об элементе структуры
+        case 122: // Запрос информации об элементе структуры
             $idElement = (int)$param[0];
             if(($myRight->get($idElement) & 1) != 1) return; // Права на просмотр
             request("SELECT info FROM structures WHERE id = %i", [ $idElement ]);
             break;
-        case 123: // выставление информации в структуре
+        case 123: // Выставление информации в структуре
             $idElement = (int)$param[0];
             if(($myRight->get($idElement) & 8) != 8) return; // Права на изменение
             query("UPDATE structures SET info = %s WHERE id = %i", [ $param[1], $idElement ]);
@@ -297,7 +298,7 @@
             if(($myRight->get($idElement) & 1) != 1) return; // Права на просмотр
             echo selectOne("SELECT name FROM structures WHERE id = %i", [ $idElement ]);
             break;
-        case 127: // запрос информации об элементе структуры для приложения справка
+        case 127: // Запрос информации об элементе структуры для приложения справка
             $idElement = (int)$param[0];
             if(($myRight->get($idElement) & 1) != 1) return; // Права на просмотр
             request("SELECT objectType, info, state, name FROM structures WHERE id = %i", [ $idElement ]);

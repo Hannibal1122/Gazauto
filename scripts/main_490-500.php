@@ -136,12 +136,34 @@
             }
             echo json_encode($out);
             break;
-        case 495: // резерв
-            /* $idTable = (int)$param[0];
-            if(($myRight->get($idTable) & 1) != 1) return; // Права на просмотр
-            request("SELECT id, value FROM fields WHERE tableId = %i AND type = 'head'", [ $idTable ]); */
+        case 495: // Вырезать элемент
+            $idElement = (int)$param[0];
+            $idParentTo = (int)$param[1];
+            if(($myRight->get($idElement) & 8) != 8) continue; // Права на изменение
+            if(($myRight->get($idParentTo) & 8) != 8) continue; // Права на изменение
+
+            // Проверка на ошибки
+            $out = [$idElement]; 
+            $errors = [];
+            getRemoveElementbyStructure($out, $idElement);
+            for($i = 0, $c = count($out); $i < $c; $i++)
+            {
+                $elementData = query("SELECT parent FROM structures WHERE id = %i", [ $out[$i] ])->fetch_assoc();
+                if($out[$i] == $idParentTo) $errors[] = "ERROR_IN_ITSELF"; //Проверка на добавление папки саму в себя
+            }
+            if(count($errors) > 0) 
+            {
+                echo json_encode($errors);
+                return;
+            }
+            query("UPDATE structures SET parent = %i WHERE id = %i", [$idParentTo, $idElement]);
+            $myLog->add("structure", "cut", $idElement);
             break;
-        case 496: // резерв
+        case 496: // Сохранение новой структуры
+            $folderId = (int)$param[0];
+            if(($myRight->get($folderId) & 8) != 8) return; // Права на изменение
+            $saveTree = $param[1];
+            query("UPDATE classes_object SET structure = %s WHERE id = %i", [ $saveTree, $folderId ]);
             break;
         case 497: // Загрузить имена по id списком
             $listId = $param[0];

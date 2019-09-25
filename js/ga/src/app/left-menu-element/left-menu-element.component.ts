@@ -107,7 +107,17 @@ export class LeftMenuElementComponent implements OnInit
     {
         let childrens = data.childrens;
         let j = out.length;
-        out[j] = {id: data.id, name: data.name, objectType: data.objectType, type: data.type, level: level, hide: !(level <= 0), open: false, parent: parent, searchHide: false};
+        out[j] = {
+            id: data.id, 
+            name: data.name, 
+            objectType: data.objectType, 
+            type: data.type, 
+            level: level, 
+            hide: !(level <= 0), 
+            open: false, 
+            parent: parent, 
+            searchHide: false
+        };
         level++;
         if(childrens.length == 0) out[j].end = true;
         else

@@ -20,14 +20,15 @@
 }
 .mainPanel
 {
-    width:500px; 
-    height:400px; 
+    width:540px; 
+    height:420px; 
     margin: auto; 
     margin-top: 60px; 
     background: white; 
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3); 
     padding: 5px;
     color: rgb(51, 59, 51);
+    border-radius: 10px;
 
     transform: scale(0.8);
     opacity: 0;
