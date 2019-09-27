@@ -1,21 +1,26 @@
 <div class="tableGrid" [class.tableGridWidthHeaderEditor] = "headerEditorShow">
     <div name = "clickArea" class = "tableControlPanel">
         <ng-container *ngIf = "!smallHeader.mode || smallHeader.close"> <!-- Чтобы не менять класс tableGrid -->
-            <div *ngIf = "!smallHeader.mode" class = "nameTableClass" 
-                (click) = "openInfoByTable()"
-                title="{{nameTable}}">
-                <!-- {{nameTable}} -->
-                <div style="position:relative; width:170px; height:6px; border-radius:3px;" 
-                    class = "substrate">
-                    <div style="position:absolute; top:0px; height:6px; left:0px; border-radius:3px;" 
-                        [style.width] = "control.state + '%'"
-                        [class.tableCellStateGreen] = "control.state == 100"
-                        [class.tableCellStateYellow] = "control.state >= 50 && control.state < 100"
-                        [class.tableCellStateRed] = "control.state < 50">
+            <div class = "pathStroke MainBColor" *ngIf = "!smallHeader.mode" style = "padding: 0px 5px;">
+                <ng-container *ngFor = "let path of allPath; let last = last;">
+                    <span *ngIf = "!last" class = "pathRow" (click) = "openSoftware('explorer', path.id)" style = "cursor:pointer;">{{ path.name }}/</span>
+                    <div *ngIf = "last" style = "padding-bottom: 2px;">
+                        <div style = "font-size:20px; float:left; height:32px; margin-left:10px; margin-right:10px; margin-bottom:8px;">
+                            {{ path.name }}
+                            <div style="position:relative; width:130px; height:4px; border-radius:2px; margin-right: 30px;" 
+                                class = "substrate">
+                                <div style="position:absolute; top:0px; height:100%; left:0px; border-radius:2px;" 
+                                    [style.width] = "control.state + '%'"
+                                    [class.tableCellStateGreen] = "control.state == 100"
+                                    [class.tableCellStateYellow] = "control.state >= 50 && control.state < 100"
+                                    [class.tableCellStateRed] = "control.state < 50">
+                                </div>
+                                <div style="position:absolute; right:-30px; top: -5px; font-size: 11px; font-weight: bold;" class = "TableCreatorHeadColor">{{control.state + '%'}}</div>
+                            </div>
+                        </div>
                     </div>
-                    <div style="position:absolute; right:-25px; top: -4px; font-size: 11px; font-weight: bold;" class = "TableCreatorHeadColor">{{control.state + '%'}}</div>
-                </div>
-            </div>
+                </ng-container>
+            </div> 
             <div style = "float: right;">
                 <button class = "mainButton" (click) = "loadTable()" title = "Обновить"><i class="fas fa-sync-alt"></i></button>
                 <button class = "mainButton" title = "Экспорт в Excel" (click) = "exportToExcel()" ><i class="fas fa-file-excel"></i></button>
@@ -217,7 +222,11 @@
                     </div>
                 </ng-container>
             </div>
-            <app-table-property *ngIf = "tableProperty.active == 'table'" #appTableProperty [mainDataField] = "tableProperty.data" [rules] = "tableProperty.rules" (onSave) = "updateCell($event)"></app-table-property>
+            <app-table-property #appTableProperty
+                *ngIf = "tableProperty.active == 'table'" 
+                [mainDataField] = "tableProperty.data" 
+                [rules] = "tableProperty.rules" 
+                (onSave) = "updateCell($event)"></app-table-property>
             <div class = "ModalButtonExitColor" style = "position:absolute; right:3px; top:0px; font-size:16px; cursor:pointer;" (click) = "closeTableProperty()">
                 <i class="fas fa-times-circle"></i>
             </div>

@@ -158,7 +158,7 @@ export class TablePropertyComponent implements OnInit
                         if(this.saveQueue[key] != "")
                             this.query.protectionPost(120, { param: [ this.id, this.saveQueue[key] ] }, (data) => 
                             { 
-                                if(this.update) this.update();
+                                this.onSave.emit();
                             });
                         break;
                     case "#":
@@ -227,7 +227,6 @@ export class TablePropertyComponent implements OnInit
     }
     openObject(p)
     {
-        trace(p)
         if(p.value.type == "filter" || p.value.type == "file" || p.value.type == "folder" || p.value.type == "tlist") this.query.onChange({ type: "openFromTable", value: { name: p.value.type, id: p.value.id }});
         else this.query.onChange({ type: "openFromTable", value: { type: "open", name: p.value.type, id: p.value.id }});
     }

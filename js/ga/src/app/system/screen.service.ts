@@ -82,6 +82,7 @@ export class SplitScreen
             if(s !== this.sector)
             {
                 let tabsI = this.dragSettings.tabsI;
+                if(tabsI == -1) return;
                 let tab = this.screens[s].tabs[tabsI];
                 this.screens[this.sector].tabs.push(tab);
                 this.screens[s].tabs.splice(tabsI, 1);

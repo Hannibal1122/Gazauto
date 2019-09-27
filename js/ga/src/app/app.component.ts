@@ -270,21 +270,7 @@ export class AppComponent implements OnInit
                     }
                 break;
             case "updateTableIds":
-                for(let i = 0; i < this.tabs.length; i++)
-                    if(this.tabs[i].type == "table" && this.tabs[i].software.inputs && this.tabs[i].software.inputs.id == e.id)
-                    {
-                        this.tabs[i].software.inputs.name = e.name;
-                        break;
-                    }
                 this.globalEvent.appendTableIds(e.id, e.tableIds, e.idLogTableOpen);
-                break;
-            case "updateClassName":
-                for(let i = 0; i < this.tabs.length; i++)
-                    if(this.tabs[i].type == "class" && this.tabs[i].software.inputs && this.tabs[i].software.inputs.id == e.id)
-                    {
-                        this.tabs[i].software.inputs.name = e.name;
-                        break;
-                    }
                 break;
             case "changeTheme": // смена темы
                 this.theme.current = e.value;
@@ -293,7 +279,10 @@ export class AppComponent implements OnInit
             case "updateStickers": // В эксплорере открыли папку с заметками
                 for(let i = 0; i < this.tabs.length; i++)
                     if(this.tabs[i].type == e.software && this.tabs[i].software.inputs && this.tabs[i].software.inputs.id == e.id)
+                    {
+                        if(e.name) this.tabs[i].name = e.name;
                         this.tabs[i].stickers = e.value;
+                    }
                 this.setCurrentStickers();
                 break;
         }
@@ -378,6 +367,10 @@ export class AppComponent implements OnInit
                 stickers: [],
                 useIframe: useIframe // Открывать ли приложение через iframe
             };
+            this.query.protectionPost(126, { param: [this.tabs[i].software.inputs.id] }, (data) =>
+            {
+                this.tabs[i].name = data || this.tabs[i].name;
+            });
             this.splitScreen.appendTab(this.tabs[i], settings);
         }
         this.tabs[i].software.inputs.updateHistory = () => { this.splitScreen.saveTabs(); } 

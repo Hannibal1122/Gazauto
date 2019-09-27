@@ -19,6 +19,7 @@ export class TableEditorV2Component implements OnInit
     @ViewChild("mainInputElement") mainInputElement:ElementRef;
     @ViewChild("modalMovedWindow") modalMovedWindow:ModalMovedWindowComponent;
     
+    allPath = [];
     mode = "Global"; //Local
     id = -1;
     searchObjectId = -1;
@@ -122,6 +123,14 @@ export class TableEditorV2Component implements OnInit
         this.loadTableProperty("tableFilter");
         this.loadTableProperty("tableProperty");
         this.loadTableProperty("headerEditorShow");
+
+        //Загрузка пути
+        this.query.protectionPost(110, { param: [ this.id ] }, (data) => 
+        { 
+            this.allPath = data.path;
+            this.allPath.push({id: 0, name: "Root"});
+            this.allPath.reverse();
+        });
     }
     updateFromApp()
     {
@@ -1092,32 +1101,5 @@ export class TableEditorV2Component implements OnInit
         { 
             this.loadTable();
         });
-    }
-    openInfoByTable()
-    {
-        this.query.protectionPost(127, { param: [this.id] }, (data) =>
-        {
-            let info = {
-                name: data[0][3],
-                text: data[0][1],
-                path: "Root\\"
-            }
-            this.query.protectionPost(110, { param: [this.id] }, (data) => 
-            { 
-                for(let i = data.path.length - 1; i >= 0; i--)
-                    info.path += data.path[i].name + (i == 0 ? "" : "\\");
-                this.modal.open({
-                    title: "Информация",  
-                    data: [
-                        ["Имя", info.name, "html"],
-                        ["Инфо", info.text, "html"],
-                        ["Путь", info.path, "html"],
-                    ],
-                    ok: "Закрыть",
-                    cancel: ""
-                })
-            });
-        });
-        
     }
 }

@@ -1,3 +1,21 @@
+.pathStroke
+{
+    float: left;
+    box-shadow: 0px 0px 3px 0px #aaaaaa;
+    border-radius: 10px; 
+    margin-bottom:5px;
+}
+.pathRow
+{
+    font-size:12px;
+    color: #8f8f8f;
+    transition: 0.3s;
+}
+.pathRow:hover
+{
+    color: #000000;
+}
+
 .errorTable
 {
     /* width:100%; */

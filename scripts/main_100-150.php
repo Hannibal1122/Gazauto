@@ -207,7 +207,7 @@
                     query("UPDATE fields SET value = %s WHERE id = %i", [ $param[1], $row["id"] ]);
                     updateCellByLink($row["id"], $param[1]);
                 }
-            $myLog->add(selectOne("SELECT objectType FROM structures WHERE id = %i", [ $idElement ]), "update", $idElement);
+            $myLog->add("structure", "rename", $idElement);
             break;
         case 121: // Запрос файла с правами
             $idElement = (int)$param;

@@ -32,7 +32,7 @@ export class TemplateConstructorComponent implements OnInit
         this.myTree.push(0, { name: "root" });
         this.query.protectionPost(491, { param: [ this.id ] }, (data) =>
         {
-            this.query.onChange({ type: "updateClassName", id: this.id, name: data.name });
+            /* this.query.onChange({ type: "updateClassName", id: this.id, name: data.name }); */
             this.readonly = data.readonly;
             if(data.structure != "")
             {

@@ -444,8 +444,6 @@ export class ExplorerComponent implements OnInit
                 rename: this.selectRules.rename
             };
         });
-        if(this.tableProperty.visible)
-            if(this.appTableProperty && !this.appTableProperty.update) this.appTableProperty.update = () => { this.refresh(); };
         this.tableProperty.listLink.visible = false;
     }
     unSelectObject() // отпустить объект
@@ -511,7 +509,7 @@ export class ExplorerComponent implements OnInit
             this.searchInput = "";
             this.load = false;
             this.inputs.id = parent;
-            this.onChange({ type: "updateStickers", id: this.parent, software: "explorer", value: data.stickers });
+            this.onChange({ type: "updateStickers", id: this.parent, software: "explorer", value: data.stickers, name: this.allPath[this.allPath.length - 1].name });
         });
     }
     clearRules()

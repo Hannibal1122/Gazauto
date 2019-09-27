@@ -141,7 +141,7 @@
                     <div *ngFor = "let tab of screen.tabs; let i = index;" 
                         draggable="true"
                         (dragstart) = "splitScreen.onDragStart($event, s, i)"
-                        [title] = "tab.software.inputs.name || tab.name"
+                        [title] = "tab.name"
                         class = "myTabs TabsColor" [class.TabsActiveColor] = "i == screen.currentSoftware">
                         <div (click) = "openTab(s, i)" 
                             style = "padding-left:7px; height:30px; line-height:30px; width: calc(100% - 20px); text-overflow: ellipsis; overflow: hidden; white-space: nowrap;" >
@@ -157,7 +157,7 @@
                                 <span *ngIf = "tab.type == 'statistics'"> <i class="fa fa-chart-line colorIconValue"></i> </span>
                             </ng-container>
                             <span *ngIf = "!tab.loaded"><i class="fas fa-spinner spinnerLoader"></i></span>
-                            {{ tab.software.inputs.name || tab.name }}
+                            {{ tab.name }}
                         </div>
                         <span (click) = "closeTab(s, i)"><i class="fas fa-times-circle tubExitButton TabsButtonExitColor"></i></span>
                     </div>
