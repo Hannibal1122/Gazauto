@@ -116,6 +116,20 @@
                     $lastRowByLevel[$structure[$i]->level] = (int)$row["__ID__"];
                 }
             }
+            // Конвертация экономии места, они выставятся при загрузке
+            for($i = 0, $c = count($saveTree); $i < $c; $i++)
+            {
+                unset($saveTree[$i]->name);
+                unset($saveTree[$i]->state);
+                unset($saveTree[$i]->edited);
+                $saveTree[$i]->tId = $saveTree[$i]->templateId;
+                $saveTree[$i]->tPId = $saveTree[$i]->templateParentId;
+                $saveTree[$i]->tTId = $saveTree[$i]->templateTreeId;
+                unset($saveTree[$i]->templateId);
+                unset($saveTree[$i]->templateParentId);
+                unset($saveTree[$i]->templateTreeId);
+            }
+
             if($new) query("INSERT INTO classes_object (id, structure) VALUES(%i, %s)", [ $tableIdByLevel[0], json_encode($saveTree) ]);
             else query("UPDATE classes_object SET structure = %s WHERE id = %i", [ json_encode($saveTree), $tableIdByLevel[0] ]);
             break;
@@ -132,6 +146,13 @@
                     $value->name = selectOne("SELECT name FROM structures WHERE id = %i", [ $value->globalId ]);
                     $value->state = selectOne("SELECT state FROM structures WHERE id = %i", [ $value->globalId ]);
                     $value->edited = ($myRight->get($value->globalId) & 8) == 8;
+
+                    if(property_exists($value, "tId")) $value->templateId = $value->tId; // Для поддержки старых версий
+                    if(property_exists($value, "tPId")) $value->templateParentId = $value->tPId;
+                    if(property_exists($value, "tTId")) $value->templateTreeId = $value->tTId;
+                    unset($value->tId);
+                    unset($value->tPId);
+                    unset($value->tTId);
                 }
             }
             echo json_encode($out);

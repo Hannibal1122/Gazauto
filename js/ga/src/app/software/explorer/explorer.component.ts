@@ -19,7 +19,7 @@ declare var trace:any;
 @Component({
     selector: 'app-explorer',
     templateUrl: './explorer.component.html',
-    styleUrls: ['./explorer.component.css'],
+    styleUrls: ['./explorer.component.css', './head-path.component.css'],
     providers: [
         QueryService, 
         CreateTableService,
@@ -435,7 +435,7 @@ export class ExplorerComponent implements OnInit
             this.selectRules.rename = Boolean(right.change) && objectType != "user" && objectType != "role";
             if(data.class == 1)
             {
-                this.selectRules.copy = false; 
+                /* this.selectRules.copy = false;  */
                 if(objectType == "table" && data.classRoot === null) // Подрузамевается что это корневая папка конструктора
                     this.selectRules.remove = false; 
             }
@@ -489,9 +489,9 @@ export class ExplorerComponent implements OnInit
     }
     openBackFolder()
     {
-        this.query.protectionPost(111, { param: [ "folder", this.parent ] }, (data) =>
+        this.query.protectionPost(111, { param: [ "folder", this.parent ] }, (parent) =>
         {
-            if(data.length > 0) this.openFolder(data[0][0]);
+            if(parent !== null) this.openFolder(parent.parent);
         });
     }
     openStructure(parent, func)
@@ -904,6 +904,7 @@ export class ExplorerComponent implements OnInit
     {
         this.getCopyExplorer();
         this.parentRules.paste = this.parentRules.paste 
+            && this.inputs.class == false 
             && this.selectObjectCopy.id != -1 
             && !(this.selectObjectCopy.objectType == "file" && this.selectObjectCopy.type != "cut");
 

@@ -86,7 +86,7 @@ export class CreateTemplateComponent implements OnInit
                     for(let i = 0; i < this.myClass.length; i++) // Выставление имени для шаблонов
                     {
                         // Сортировка типов идет по parent шаблона!
-                        this.myClass[i].templateName = listNames[this.myClass[i].templateId];
+                        this.myClass[i].templateName = this.myClass[i].name || listNames[this.myClass[i].templateId];
                         if(this.listTemplateById[this.myClass[i].parent] == undefined) this.listTemplateById[this.myClass[i].parent] = [];
                         this.listTemplateById[this.myClass[i].parent].push(this.myClass[i]);
                         if(this.lastLevel < this.myClass[i].level) this.lastLevel = this.myClass[i].level

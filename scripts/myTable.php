@@ -127,7 +127,7 @@
                 "stickers" => $stickers,
                 "filterColumn" => $filterColumn,
                 "userRowList" => $userRowList,
-                "filterStr" => $filterStr,
+                "filterMain" => $filterStr == "",
                 "enableLines" => $enableLines
             ]);
         }

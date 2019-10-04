@@ -22,6 +22,7 @@ import { TableHeaderEditorComponent } from './software/table-editor-v2/table-hea
 import { CreateTemplateComponent } from './software/explorer/create-template.component'
 import { StatisticsEditorComponent } from './software/statistics-editor/statistics-editor.component'
 import { DateTimeModule } from "./system/datetimepicker/datetimepicker.module";
+import { TranslateModule } from '@ngx-translate/core';
 
 @NgModule({
     declarations: [ 
@@ -44,7 +45,7 @@ import { DateTimeModule } from "./system/datetimepicker/datetimepicker.module";
         CreateTemplateComponent,
         StatisticsEditorComponent
     ],
-    imports: [ BrowserModule, FormsModule, ModalWindowModule, HttpClientModule, DateTimeModule ],
+    imports: [ BrowserModule, FormsModule, ModalWindowModule, HttpClientModule, DateTimeModule, TranslateModule.forRoot() ],
     providers: [],
     bootstrap: [AppComponent]
 })

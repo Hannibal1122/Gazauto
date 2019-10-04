@@ -1,27 +1,33 @@
-.constructorMainPanel
+.constructor-main
 {
-    padding: 5px;
+    padding: 5px; 
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
+    height: 100%;
 }
-.constructorMainPanel button
+.constructor-control-panel
 {
-    margin-left: 5px;
+    position: relative;
 }
-.subPanel
+.constructor-control-panel button
 {
-    margin: auto;
-    width: 400px;
-    background-color: white;
-    box-shadow: 0px 1px 4px #3333334f;
-    padding: 5px 10px;
+    float: right;
+}
+.error-panel
+{
+    background-color:white;
     border-radius: 5px;
-    margin-top: 5px; 
+    padding: 4px 5px;
+    float: right;
+    margin-right: 5px;
+    color:rgb(224, 59, 59);
 }
 .headerStyle
 {
     font-size: 18px;
     font-weight: 600;
-    margin-top:5px;
-    margin-bottom:5px;
+    margin:5px;
 }
 
 .caretAppend {

@@ -1,5 +1,5 @@
 <div class="tableGrid" [class.tableGridWidthHeaderEditor] = "headerEditorShow">
-    <div name = "clickArea" class = "tableControlPanel">
+    <div class = "tableControlPanel">
         <ng-container *ngIf = "!smallHeader.mode || smallHeader.close"> <!-- Чтобы не менять класс tableGrid -->
             <div class = "pathStroke MainBColor" *ngIf = "!smallHeader.mode" style = "padding: 0px 5px;">
                 <ng-container *ngFor = "let path of allPath; let last = last;">
@@ -32,7 +32,7 @@
                 <button class = "mainButton" title = "Добавить строку" (click) = "addRow('end', 1)" [disabled] = "!right.change"><i class="fas fa-plus"></i></button>
                 <button class = "mainButton" [class.enableButton] = "headerEditorShow" title = "Заголовок" (click) = "changeHeader()"><i class="fas fa-heading"></i></button>
                 <select class = "mainSelect"
-                    style = "margin-left: 2px; height: 32px; cursor:pointer;" 
+                    style = "margin-left: 2px; height: 32px; cursor:pointer;"
                     [(ngModel)] = "filter.selected"
                     (change) = "onFilterChange()">
                     <option *ngFor = "let o of filter.list" [value] = "o.id">{{ o.value }}</option>
@@ -44,23 +44,19 @@
         </ng-container>
     </div>
     <app-table-header-editor *ngIf = "headerEditorShow" [tableId] = "id" [header] = "dataHeader" [disabled] = "!right.change || !right.head" (updateTable) = "updateEventFromHeader($event)"></app-table-header-editor>
-    <div name = "clickArea" #mainContainer 
+    <div #mainContainer 
         class = "MainBColor"
         style = "overflow: auto; position: relative;"
         (scroll) = "saveScroll()">
         <table class = "errorTable TableCreatorBorderColor" (click) = "editField($event)">
             <tr>
-                <th 
-                    name = "clickArea"  
-                    *ngIf = "lineNumbering.enable"
+                <th *ngIf = "lineNumbering.enable"
                     class = "TableCreatorHeadColor TableCreatorHeadBColor"></th>
                 <ng-container *ngFor = "let head of dataHeader; let i = index;">
                     <th *ngIf = "head && hiddenColumn[i] !== true"
-                        name = "clickArea"  
                         class = "TableCreatorHeadColor TableCreatorHeadBColor" 
                         id = "{{ head.id }}"
                         [style.width] = "head.width ? head.width : null"
-                        (click) = "onChangeSort(i)"
                         (contextmenu) = "getContextmenu($event, i, 'head')">
                         {{ head.name }}
                         <span *ngIf = "sortProperty.column == i && head.sort">
@@ -176,7 +172,10 @@
                 </tr>
             </ng-container>
         </table>
-        <div style = "position:absolute;" [ngStyle] = "configInput" [hidden] = "!inputProperty.visible">
+        <div style = "position:absolute;" 
+            (click) = "eventStub($event)"
+            [ngStyle] = "configInput" 
+            [hidden] = "!inputProperty.visible">
             <textarea #mainInputElement class = "mainInputStyle TableCreatorInputColor"
                 [hidden] = "inputProperty.type == 'tlist' || inputProperty.type == 'datetime'" 
                 (blur) = "acceptEditField()" 
@@ -197,6 +196,11 @@
                     [(ngModel)] = "inputProperty.linkId">
                     <option *ngFor = "let option of inputProperty.values" value = "{{ option.id }}">{{ option.value }}</option>
                 </select>
+            </ng-container>
+            <ng-container *ngIf = "inputProperty.type == 'datetime'">
+                <div style = "position: relative;">
+                    <datetimepicker (onChange) = "onChangeDate($event)" [config] = "{ setDefault: true }" [setValue] = "inputProperty.value"></datetimepicker>
+                </div>
             </ng-container>
         </div>
         <div [hidden] = "!tableProperty.visible" 
@@ -232,13 +236,14 @@
             </div>
         </div>
     </div>
-    <div name = "clickArea">
+    <div>
         <div class = "bottomControlPanel TableCreatorHeadColor">
             <div *ngIf = "control.error" style = "font-size:12px; background-color:#af7e7e; color:white; font-weight:bold;">Таблица не доступна!</div>
             <div *ngIf = "loaded && !control.error && dataHeader.length == 0" style = "font-size:12px; background-color:#b8b8b8; color:white; font-weight:bold;">Таблица пуста</div>
             <div *ngIf = "loaded && !control.error && needUpdate" style = "font-size:12px; background-color:#b8b8b8; color:white; font-weight:bold;">Требуется синхронизация</div>
             <div *ngIf = "!loaded" style = "font-size:12px; background-color:#b8b8b8; color:white; font-weight:bold;">Загрузка...</div>
             <div *ngIf = "tableFilter.countHide > 0" class = "PanelAppColor" style = "font-size:12px; color:white;">Показано: {{ tableFilter.count - tableFilter.countHide}} из {{ tableFilter.count }}</div>
+            <div *ngIf = "!control.filterMain" class = "PanelAppColor" style = "font-size:12px; color:white;">Есть скрытые строки!</div>
         </div>
         <div class = "bottomControlPanel right">
             <div *ngFor = "let login of listLogin" class = "PanelAppColor" style = "font-weight: bold;">{{login}}</div>
@@ -254,14 +259,12 @@
         [style.top] = "fastenHeaderProperties.offsetTop + 'px'">
         <tbody>
             <tr>
-                <th name = "clickArea" 
-                    *ngIf = "lineNumbering.enable" 
+                <th *ngIf = "lineNumbering.enable" 
                     class = "TableCreatorHeadColor TableCreatorHeadBColor"
                     [style.width] = "fastenHeaderProperties.number.width + 'px'" 
                     [style.height] = "fastenHeaderProperties.number.height + 'px'"></th>
                 <ng-container *ngFor = "let head of dataHeader">
                     <th *ngIf = "head"
-                        name = "clickArea"  
                         class = "TableCreatorHeadColor TableCreatorHeadBColor" 
                         id = "{{ head.id }}"
                         [style.width] = "head.width + 'px'" 
@@ -308,6 +311,7 @@
         </ng-container>
         <button class = "contextMenuList" (click) = "copyForStatisctic()">Копировать</button>
         <button class = "contextMenuList" (click) = "clearFilters()">Очистить фильтры</button>
+        <button class = "contextMenuList" (click) = "onChangeSort()">Сортировка</button>
     </ng-container>
     <ng-container *ngIf = "createContextMenu.type == 'row'">
         <button *ngIf = "firstData[createContextMenu.i] && userRowList[firstData[createContextMenu.i].__ID__]" class = "contextMenuList" (click) = "applyRow()" [disabled] = "!rules.change">Принять</button>

@@ -239,9 +239,10 @@ export class AppComponent implements OnInit
                 if(e.value.type === "open")
                     this.openSoftware(e.value.name, { id: e.value.id });
                 else 
-                    this.query.protectionPost(111, { param: [ e.value.name, e.value.id ]}, (idParent) =>
+                {
+                    this.query.protectionPost(111, { param: [ e.value.name, e.value.id ]}, (parent) =>
                     {
-                        if(idParent === "" || idParent.length == 0) return;
+                        if(parent === null) return;
                         switch(e.value.name)
                         {
                             case "table":
@@ -253,13 +254,15 @@ export class AppComponent implements OnInit
                             case "class":
                             case "folder":
                             case "filter":
-                                this.openSoftware("explorer", { id: idParent[0][0], searchObjectId: e.value.name == "tlist" ? idParent[0][1] : e.value.id });
+                            case "label":
+                                this.openSoftware("explorer", { id: parent.parent, searchObjectId: e.value.name == "tlist" ? parent.id : e.value.id });
                                 break;
                             case "cell":
-                                this.openSoftware("table", { id: idParent[0][0], searchObjectId: e.value.id });
+                                this.openSoftware("table", { id: parent.parent, searchObjectId: e.value.id });
                                 break;
                         }
                     });
+                }
                 break;
             case "updateTable":
                 for(let i = 0; i < this.tabs.length; i++)

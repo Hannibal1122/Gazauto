@@ -61,6 +61,7 @@
         case 111: // Получение родителя
             $typeElement = $param[0];
             $idElement = (int)$param[1];
+            $result;
             switch($typeElement)
             {
                 case "role":
@@ -72,15 +73,17 @@
                 case "plan":
                 case "class":
                 case "filter":
-                    request("SELECT parent FROM structures WHERE id = %i", [$idElement]);
+                case "label":
+                    $result = query("SELECT parent FROM structures WHERE id = %i", [$idElement]);
                     break;
                 case "tlist":
-                    request("SELECT parent, id FROM structures WHERE objectType = %s AND objectId = %i ", [$typeElement, $idElement]);
+                    $result = query("SELECT parent, id FROM structures WHERE objectType = %s AND objectId = %i", [$typeElement, $idElement]);
                     break;
                 case "cell":
-                    request("SELECT tableId FROM fields WHERE id = %i ", [$idElement]);
+                    $result = query("SELECT tableId FROM fields WHERE id = %i ", [$idElement]);
                     break;
             }
+            if($result) echo json_encode($result->fetch_assoc());
             break;
         case 112: // Удаление элемента структуры // Права на изменение
             $idElement = (int)$param[0];
@@ -135,6 +138,10 @@
                 if($typeOperation != "cut" && (int)$elementData["class"] == 1) $errors[] = "ERROR_CLASS"; // Ограничение для копирования/вырезания в таблицах созданных конструктором
                 if($out[$i] == $idParentTo) $errors[] = "ERROR_IN_ITSELF"; //Проверка на добавление папки саму в себя
             }
+
+            require_once("copyAndRemove.php");
+            require_once("myLoading.php");
+            $myLoading = new MyLoading($loadKey); // Создаем ключ для отслеживания операции
             if(count($errors) > 0) 
             {
                 echo json_encode($errors);
@@ -142,10 +149,6 @@
                 return;
             }
 
-            require_once("copyAndRemove.php");
-            require_once("myLoading.php");
-
-            $myLoading = new MyLoading($loadKey); // Создаем ключ для отслеживания операции
             if(($myRight->get($idParentTo) & 8) != 8) continue; // Права на изменение
             if($typeOperation == "copy" || $typeOperation == "inherit") // Копирование или Наследование
             {

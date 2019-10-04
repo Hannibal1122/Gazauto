@@ -3,7 +3,7 @@
         <div>
             Объект класса '{{ name }}'
         </div>
-        <div style = "height: 330px; border:1px solid #eeeeee; margin-top:5px; padding: 3px; overflow: auto;">
+        <div style = "min-height: 330px; border:1px solid #eeeeee; margin-top:5px; padding: 3px; overflow: auto;">
             <ng-container *ngFor = "let list of mainList; let i = index;" >
                 <div *ngIf = "!list.hide" 
                     class = "listClass" 

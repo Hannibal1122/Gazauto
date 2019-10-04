@@ -5,11 +5,10 @@ import { ModalMovedWindowComponent } from '../../system/modal-moved-window/modal
 import { QueueService } from './queue.service';
 
 declare var trace:any;
-declare var $:any;
 @Component({
     selector: 'app-table-editor-v2',
     templateUrl: './table-editor-v2.component.html',
-    styleUrls: ['./table-editor-v2.component.css', 'error-table-class-v2.component.css'],
+    styleUrls: ['./table-editor-v2.component.css', 'error-table-class-v2.component.css', '../explorer/head-path.component.css'],
     providers: [ QueryService, QueueService ]
 })
 export class TableEditorV2Component implements OnInit 
@@ -27,7 +26,8 @@ export class TableEditorV2Component implements OnInit
     control = 
     {
         state: 0, // общее состояние таблицы
-        error: false
+        error: false,
+        filterMain: false
     }
     tableFilter:TableFilterService = new TableFilterService();
     right = 
@@ -109,8 +109,7 @@ export class TableEditorV2Component implements OnInit
         window.addEventListener("click", (e:any) => 
         { 
             this.createContextMenu.visible = false; 
-            if(e.target.getAttribute("name") == "clickArea")
-                this.inputProperty.close();
+            this.inputProperty.close();
         }, false);
         window.addEventListener("resize", (e:any) => 
         { 
@@ -206,6 +205,7 @@ export class TableEditorV2Component implements OnInit
                 this.control.error = true;
                 return;
             }
+            this.control.filterMain = data.filterMain;
             /* trace(data.stickers) */
             this.query.onChange({ type: "updateStickers", id: this.id, software: "table", value: data.stickers });
             this.userRowList = data.userRowList;
@@ -311,6 +311,7 @@ export class TableEditorV2Component implements OnInit
                     this.dataTable.sort((_a, _b) => { // Сортировка по числу
                         let partsA = _a[column].value.match(/(\d+)/g);
                         let partsB = _b[column].value.match(/(\d+)/g);
+                        if(!partsA || !partsB) return 0;
                         let a = new Date(partsA[2], partsA[1]-1, partsA[0], partsA[3], partsA[4]).getTime();
                         let b = new Date(partsB[2], partsB[1]-1, partsB[0], partsB[3], partsB[4]).getTime();
                         if(this.dataHeader[column].sort) return b - a;
@@ -459,8 +460,9 @@ export class TableEditorV2Component implements OnInit
     {
         column: -1
     }
-    onChangeSort(i) // Применть сортировку по столбцу
+    onChangeSort() // Применть сортировку по столбцу
     {
+        let i = this.mapHeader[this.inputProperty.id];
         if(this.tableFilter.fields[i].value != "" || this.tableFilter.state[i].value != "") return;
         this.sortProperty.column = i;
         this.dataHeader[i].sort = !this.dataHeader[i].sort;
@@ -537,8 +539,8 @@ export class TableEditorV2Component implements OnInit
                 }
                 if(this.inputProperty.type == "datetime") 
                 {
-                    this.openDatetimeModal();
-                    this.inputProperty.visible = false;
+                    /* this.openDatetimeModal();
+                    this.inputProperty.visible = false; */
                 }
                 setTimeout(() => { this.mainInputElement.nativeElement.focus(); }, 20);
                 
@@ -549,6 +551,7 @@ export class TableEditorV2Component implements OnInit
                     column: this.dataHeader[this.mapHeader[cell.idColumn]].name,
                     row: cell.iRow + 1
                 };
+                this.eventStub(e);
                 return true;
             }
         return false;
@@ -585,7 +588,7 @@ export class TableEditorV2Component implements OnInit
             }
         });
     }
-    openDatetimeModal() // Открыть модальное окно с вставкой времени
+    /* openDatetimeModal() // Открыть модальное окно с вставкой времени
     {
         this.modalMovedWindow.open = true;
         this.modalMovedWindow.inputValue = this.inputProperty.value;
@@ -594,6 +597,12 @@ export class TableEditorV2Component implements OnInit
             this.inputProperty.value = datetime;
             this.acceptEditField();
         };
+    } */
+    onChangeDate(e)
+    {
+        if(e.default === true) return;
+        this.inputProperty.value = e.date + " " + e.time;
+        this.acceptEditField();
     }
     getPositionInTable(element, out) // Устанавливает input в положение ячейки
     {
@@ -601,13 +610,13 @@ export class TableEditorV2Component implements OnInit
         if(this.mapFields[id] && !this.mapFields[id].header)
         {
             let rect = this.mainContainer.nativeElement.getBoundingClientRect();
-            let offset = $(element).offset();
-            offset.top += this.mainContainer.nativeElement.scrollTop - rect.y + 1;
-            offset.left += this.mainContainer.nativeElement.scrollLeft - rect.x;
-            out.top = offset.top + "px";
-            out.left = offset.left + "px";
-            out.width = element.clientWidth + "px";
-            out.height = element.clientHeight + "px";
+            let rectElement = element.getBoundingClientRect();
+            let top = rectElement.top + (this.mainContainer.nativeElement.scrollTop - rect.y) - 2;
+            let left = rectElement.left + (this.mainContainer.nativeElement.scrollLeft - rect.x) - 2;
+            out.top = top + "px";
+            out.left = left + "px";
+            out.width = rectElement.width + 4 + "px";
+            out.height = rectElement.height + 4 + "px";
             out.element = this.mapFields[id];
             return true;
         }
@@ -937,16 +946,16 @@ export class TableEditorV2Component implements OnInit
     {
         let cell = this.mapFields[data.id];
         if(data.type == "cell")
-            this.query.protectionPost(111, { param: [ "cell", data.linkId ]}, (idParent) => 
+            this.query.protectionPost(111, { param: [ "cell", data.linkId ]}, (parent) => 
             {
-                if(idParent.length == 0) // Связь потеряна
+                if(parent !== null) // Связь потеряна
                 {
                     this.modal.open({ title: "Ошибка! Элемента, на который ссылается ячейка не существует!", data: [], ok: "Ок", cancel: ""}); 
                     this.query.protectionPost(278, { param: [ cell.id ]});
                     cell.value = null;
                     return;
                 }
-                if(this.id == idParent[0][0]) this.searchCell(data.linkId);
+                if(this.id == parent.parent) this.searchCell(data.linkId);
                 else this.query.onChange({ type: "openFromTable", value: { name: "cell", id: data.linkId }});
             });
         else this.query.onChange({ type: "openFromTable", value: { name: data.type, id: data.type == "tlist" ? cell.dataType : data.linkId }});
@@ -1101,5 +1110,9 @@ export class TableEditorV2Component implements OnInit
         { 
             this.loadTable();
         });
+    }
+    eventStub(e) // Заглушка для события click
+    {
+        e.stopPropagation()
     }
 }

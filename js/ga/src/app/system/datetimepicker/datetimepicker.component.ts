@@ -1,6 +1,5 @@
 import { Component, ViewChild, ElementRef, Input, Output, EventEmitter, AfterViewInit } from '@angular/core';
-declare var trace:any;
-declare var $: any;
+
 @Component({
     selector: 'datetimepicker',
     templateUrl: './datetimepicker.component.html',
@@ -9,8 +8,9 @@ declare var $: any;
 
 export class DateTimeComponent implements AfterViewInit/* , OnChanges */ /*  implements OnInit */
 {
-    @ViewChild('mainInput') public mainInput: ElementRef;
-    @ViewChild('CalendarDiv') public CalendarDiv: ElementRef;
+    @ViewChild('mainInput'/* , { static: true } */) public mainInput: ElementRef;
+    @ViewChild('CalendarDiv'/* , { static: true } */) public CalendarDiv: ElementRef;
+    @ViewChild('dateTimeField'/* , { static: true } */) public dateTimeField: ElementRef;
     @Output() onChange = new EventEmitter<any>();
     //@Input() onChange;
     @Input() set config(config: any)
@@ -37,7 +37,7 @@ export class DateTimeComponent implements AfterViewInit/* , OnChanges */ /*  imp
             let timeValue = value.split(" ");
             let date:any = timeValue[0].split(".");
             if(this.availabilityTime) this.selectTime = timeValue[1];
-            let day = {day: Number(date[0]), month: Number(date[1]) - 1, year: Number(date[2]), set: true};
+            let day = {day: Number(date[0]), month: Number(date[1]) - 1, year: Number(date[2]), set: true, default: true};
             let error = false;
             for(let key in day) if(isNaN(day[key])) error = true;
             if(!error)
@@ -47,7 +47,7 @@ export class DateTimeComponent implements AfterViewInit/* , OnChanges */ /*  imp
             }
         }
         let date = new Date();
-        this.ClickDay({day: date.getDate(), month: date.getMonth(), year: date.getFullYear(), time: "00:00", set: true});
+        this.ClickDay({day: date.getDate(), month: date.getMonth(), year: date.getFullYear(), time: "00:00", set: true, default: true});
     }
     error = false;
     block = false;
@@ -83,7 +83,6 @@ export class DateTimeComponent implements AfterViewInit/* , OnChanges */ /*  imp
     }
     constructor()
     {
-        var self = this;
         for(var i = 0; i < 24; i++) this.timeCalendar.push(this.addZeros(i) + ":00");
         var _i = 0;
         for(var i = 0; i < this.monthCalendar.length; i++)
@@ -109,11 +108,9 @@ export class DateTimeComponent implements AfterViewInit/* , OnChanges */ /*  imp
             for(var i = 0; i < e.path.length; i++)
                 if(e.path[i].localName == "datetimepicker")
                 {
-                    self.oldOpen = self.open;
                     return;
                 }
-            if(self.open && self.oldOpen) self.openMenu();
-            self.oldOpen = self.open;
+            this.openMenu(false);
         };
         window.addEventListener("click", this.globalClick);
     }
@@ -150,8 +147,7 @@ export class DateTimeComponent implements AfterViewInit/* , OnChanges */ /*  imp
     }
     ClickDay(date)
     {
-        $(this.CalendarDiv.nativeElement).fadeOut(0);
-        this.open = false;
+        this.openMenu(false);
         if(date.time != undefined) this.selectTime = date.time;
 
         /*************************Проверка даты************************/
@@ -180,9 +176,9 @@ export class DateTimeComponent implements AfterViewInit/* , OnChanges */ /*  imp
           (this.availabilityMonth ? this.addZeros(month) + "." : "") +
           date.year +
           (this.availabilityTime ?  " " + this.selectTime : "");
-        var date:any = this.mainInput.nativeElement.value.split(" ")[0];
+        var dateText:any = this.mainInput.nativeElement.value.split(" ")[0];
         var time = this.selectTime;
-        this.onChange.emit({date: date, time: time, milliseconds: this.getTime(), set: set});
+        this.onChange.emit({date: dateText, time: time, milliseconds: this.getTime(), set: set, default: date.default});
     }
     getTime()
     {
@@ -195,22 +191,30 @@ export class DateTimeComponent implements AfterViewInit/* , OnChanges */ /*  imp
         }
         else return new Date(this.selectYear, this.selectMonth, this.day).getTime();
     }
-    openMenu()
+    openMenu(_open?)
     {
-        if(!this.open) $(this.CalendarDiv.nativeElement).fadeIn(200);
-        else $(this.CalendarDiv.nativeElement).fadeOut(0);
-        var position = $(this.mainInput.nativeElement).offset();
-        var top = position.top + 30;
-        if(top + 224 > document.documentElement.clientHeight) top = document.documentElement.clientHeight - 234;
-        $(this.CalendarDiv.nativeElement).css({ top: top, left: position.left })
-        this.open = !this.open;
+        let open = _open === undefined ? this.open : !_open;// Получаем предыдущее значение
+        this.CalendarDiv.nativeElement.style.display = open ? "none" : null;
+        let dateTimeField = this.dateTimeField.nativeElement.getBoundingClientRect();
+        let top = dateTimeField.height;
+        if(dateTimeField.top > document.documentElement.clientHeight / 2)
+        {
+            top = 0;
+            this.CalendarDiv.nativeElement.style.transform = "translate(0, -100%)";
+        }
+        else this.CalendarDiv.nativeElement.style.transform = null;
+        
+        this.CalendarDiv.nativeElement.style.top = top + "px";
+        this.CalendarDiv.nativeElement.style.left = 0 + "px";
 
-        if (this.availabilityDay)
-          this.window = 0;
-        else if (this.availabilityMonth)
-          this.window = 1;
-        else
-          this.window = 2;
+        setTimeout(() => {
+            this.open = !open;
+        }, 40);
+
+        if(this.availabilityDay) this.window = 0;
+        else 
+            if(this.availabilityMonth) this.window = 1;
+        else this.window = 2;
     }
     OnChangeInput()
     {

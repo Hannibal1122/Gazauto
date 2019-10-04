@@ -6,12 +6,14 @@ declare var trace:any;
 @Component({
     selector: 'app-template-constructor',
     templateUrl: './template-constructor.component.html',
-    styleUrls: ['./template-constructor.component.css'],
+    styleUrls: ['./template-constructor.component.css', '../explorer/head-path.component.css'],
     providers: [ QueryService ]
 })
 export class TemplateConstructorComponent implements OnInit 
 {
     @ViewChild("modal") modal;
+
+    allPath = [];
     inputs:any = {};
     id = -1;
     rules = [];
@@ -40,6 +42,14 @@ export class TemplateConstructorComponent implements OnInit
             }
             this.rules = this.myTree.straighten();
         });
+
+        //Загрузка пути
+        this.query.protectionPost(110, { param: [ this.id ] }, (data) => 
+        { 
+            this.allPath = data.path;
+            this.allPath.push({id: 0, name: "Root"});
+            this.allPath.reverse();
+        });
     }
     appendNode(i)
     {
@@ -63,11 +73,11 @@ export class TemplateConstructorComponent implements OnInit
     onChangeTemplate(i)
     {
         this.myTree.getElement(this.rules[i].id).templateId = this.rules[i].templateId;
-    }/* 
-    onChangeLast(i)
+    }
+    onChangeName(i)
     {
-        this.myTree.getElement(this.rules[i].id).last = this.rules[i].last;
-    } */
+        this.myTree.getElement(this.rules[i].id).name = this.rules[i].name;
+    }
     openCollapse(i)
     {
         let begin = this.rules[i].level + 1;
@@ -141,5 +151,9 @@ export class TemplateConstructorComponent implements OnInit
     seacrhElement(templateId)
     {
         this.query.onChange({ type: "openFromTable", value: { name: "table", id: templateId }});
+    }
+    openSoftware(type, id) // Открыть объект
+    {
+        this.query.onChange({ type: "openFromTable", value: { type: "open", name: type, id: id }});
     }
 }

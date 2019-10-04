@@ -1,17 +1,17 @@
-<div>
-    <div [class.col-xs-12] = "!minSize" [class.col-xs-6] = "minSize" style = "padding: 0px; position: relative;">
-        <input #mainInput type = "text" class = "inputMy" style = "width: 100%;"
+<div style = "position: relative;">
+    <div #dateTimeField [class.col-xs-12] = "!minSize" [class.col-xs-6] = "minSize" style = "padding: 0px; position: relative;">
+        <input #mainInput type = "text" class = "main-input" style = "width: 100%;"
             (keydown) = "OnKeydownInput($event)"
             (keypress) = "OnKeypressInput($event)"
             (click) = "OnclickInput($event)"
             (blur) = "OnBlurInput($event)"
             [style.border-color] = "!error ? '' : 'rgb(255, 102, 0)'" [disabled] = "block">
-        <div (click) = "block ? null : openMenu()" style = "position: absolute; right: 0px; top: 0px; width: 30px; height: 30px; cursor: pointer;">
+        <div (click) = "block ? null : openMenu()" style = "position: absolute; right: 0px; bottom: 0px; width: 30px; height: 30px; cursor: pointer;">
             <i class="fas fa-calendar-alt" style = "font-size: 20px; margin-top: 5px; margin-left: 6px;"></i>
         </div>
     </div>
-    <div #CalendarDiv style = "position: fixed; background-color:white; box-shadow: 0 0 10px rgba(0,0,0,0.5); z-index: 1000; padding: 5px; display: none;">
-        <div *ngIf = "window == 0" class = "MyButton" (click) = "selectWindowMonth()">{{monthCalendar[month]}} {{year}}</div>
+    <div #CalendarDiv class = "calendar" [class.calendar-show] = "open" [class.calendar-hide] = "!open" style = "display:none;">
+        <div *ngIf = "window == 0" class = "MyButton" (click) = "selectWindowMonth()">{{monthCalendar[month] | translate}} {{year}}</div>
         <div *ngIf = "window == 1" class = "MyButton" (click) = "selectWindowYear()">{{year}}</div>
         <div *ngIf = "window == 2" class = "MyButton2" style = "width: 100px;" >{{pageYear}} - {{pageYear + 11}}</div>
         <div *ngIf = "window == 2" style = "position: absolute; top: 0px; right: 0px; width: 57px; height: 28px;">
@@ -30,7 +30,7 @@
                 <tbody>
                     <tr>
                         <th *ngFor="let date of dayCalendar">
-                            {{date}}
+                            {{date | translate}}
                         </th>
                     </tr>
                     <tr *ngFor="let line of calendar">
@@ -53,7 +53,7 @@
                             (click) = "ClickMonth(date.month)"
                             [class] = "(date.month == selectMonth && year == selectYear) ? 'SelectRect' : (date.month == currentDate.getMonth() && year == currentDate.getFullYear()) ? 'CurrentRect' : ''">
                             <!-- [style.background-color] = "(date.month == currentDate.getMonth() && year == currentDate.getFullYear()) ? '#fdffbc' : (date.month == selectMonth && year == selectYear) ? '#bfebff' : ''"> -->
-                            {{date.name}}
+                            {{date.name | translate}}
                         </td>
                     </tr>
                 </tbody>

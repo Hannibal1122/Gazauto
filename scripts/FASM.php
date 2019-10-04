@@ -183,11 +183,6 @@ class FASM
             switch($row[3])
             {
                 case "tlist":
-                    if($value = query("SELECT value, tableId FROM my_values WHERE id = %i", [ $field["linkId"] ]))
-                    {
-                        $valueData = $value->fetch_array(MYSQLI_NUM);
-                        $field["value"] = getTableListValueByKey((int)$field["value"], (int)$valueData[1]);
-                    }
                     break;
                 case "file":
                 case "table":
