@@ -3,6 +3,7 @@ import { QueryService } from '../../lib/query.service';
 import { TableFilterService } from './table-filter.service';
 import { ModalMovedWindowComponent } from '../../system/modal-moved-window/modal-moved-window.component';
 import { QueueService } from './queue.service';
+import { environment } from '../../../environments/environment';
 
 declare var trace:any;
 @Component({
@@ -14,15 +15,18 @@ declare var trace:any;
 export class TableEditorV2Component implements OnInit 
 {
     @ViewChild('modal') public modal: any;
-    @ViewChild("mainContainer") mainContainer:ElementRef;
+    @ViewChild("overflowX") overflowX:ElementRef;
+    @ViewChild("overflowY") overflowY:ElementRef;
     @ViewChild("mainInputElement") mainInputElement:ElementRef;
     @ViewChild("modalMovedWindow") modalMovedWindow:ModalMovedWindowComponent;
     
     allPath = [];
+    scrollEnable = false;
     mode = "Global"; //Local
     id = -1;
     searchObjectId = -1;
     loaded = false;
+    imgPath = environment.FILES;
     control = 
     {
         state: 0, // общее состояние таблицы
@@ -111,10 +115,13 @@ export class TableEditorV2Component implements OnInit
             this.createContextMenu.visible = false; 
             this.inputProperty.close();
         }, false);
-        window.addEventListener("resize", (e:any) => 
-        { 
-            this.fastenHeader();
-        }, false);
+        let setSmallHeader = () => {
+            if(document.documentElement.clientWidth <= 768) this.smallHeader.mode = true;
+            else this.smallHeader.mode = false;
+        }
+        window.addEventListener("resize", setSmallHeader, false);
+        setSmallHeader();
+
         window.addEventListener("UpdateFromApp", () => this.updateFromApp() );
 
         //Загрузка свойств по умолчанию
@@ -335,21 +342,17 @@ export class TableEditorV2Component implements OnInit
                     break;
             }
         }
-        setTimeout(() =>
-        {
-            this.fastenHeader()
-        }, 200);
     }
     saveScroll() // eventListener на скролл
     {
         let scroll = 
         {
-            top: this.mainContainer.nativeElement.scrollTop,
-            left: this.mainContainer.nativeElement.scrollLeft
+            top: this.overflowY.nativeElement.scrollTop,
+            left: this.overflowX.nativeElement.scrollLeft
         }
-        this.tableProperty.translate = "translateY(" + scroll.top + "px) translateX(" + scroll.left + "px)";
+        this.tableProperty.translate = "translateX(" + scroll.left + "px)";
         this.saveTableProperty("scroll", scroll);
-        this.fastenHeader();
+        this.scrollEnable = scroll.top != 0;
         /* this.acceptEditField(); */
     }
     saveTableProperty(property, value)
@@ -376,7 +379,8 @@ export class TableEditorV2Component implements OnInit
                     this.lineNumbering.enable = prop.lineNumbering;
                     break;
                 case "scroll":
-                    this.mainContainer.nativeElement.scrollBy({ ...prop.scroll, behavior: 'smooth'});
+                    this.overflowX.nativeElement.scrollBy({ left: prop.scroll.left, behavior: 'smooth'});
+                    this.overflowY.nativeElement.scrollBy({ top: prop.scroll.top, behavior: 'smooth'});
                     break;
                 case "tableProperty":
                     this.tableProperty.visible = prop.tableProperty;
@@ -405,40 +409,6 @@ export class TableEditorV2Component implements OnInit
     openHeader()
     {
         this.smallHeader.close = !this.smallHeader.close;
-    }
-    fastenHeader() // Закрепить заголовок
-    {
-        if(document.documentElement.clientWidth <= 768) this.smallHeader.mode = true;
-        else this.smallHeader.mode = false;
-        /* let header = this.mainContainer.nativeElement.getElementsByTagName("tr")[0].getElementsByTagName("th");
-        this.fastenHeaderProperties.scrollTop = this.mainContainer.nativeElement.scrollTop;
-        this.fastenHeaderProperties.offsetTop = this.mainContainer.nativeElement.offsetTop;
-        let k = this.lineNumbering.enable ? 1 : 0;
-        if(k == 1)
-        {
-            let rect = header[0].getBoundingClientRect();
-            this.fastenHeaderProperties.number.width = rect.width;
-            this.fastenHeaderProperties.number.height = rect.height;
-        }
-        for(let i = 0; i < this.dataHeader.length; i++)
-            if(this.dataHeader[i])
-            {
-                let rect = header[k].getBoundingClientRect();
-                this.dataHeader[i].left = rect.left;
-                this.dataHeader[i].width = rect.width;
-                this.dataHeader[i].height = rect.height;
-                k++;
-            } */
-        /* let th = this.mainContainer.nativeElement.getElementsByTagName("tr")[0].getElementsByTagName("th");
-        let k = this.lineNumbering.enable ? 1 : 0;
-        for(let i = 0; i < this.dataHeader.length; i++)
-            if(this.dataHeader[i])
-            {
-                let rect = th[k].getBoundingClientRect();
-                this.dataHeader[i].width = rect.width;
-                this.dataHeader[i].height = rect.height;
-                k++;
-            } */
     }
     headerEditorShow = false;
     changeHeader() // изменить заголовок таблицы
@@ -584,6 +554,7 @@ export class TableEditorV2Component implements OnInit
             {
                 delete cell.type;
                 delete cell.linkId;
+                delete cell.path;
                 cell.value = data.value;
             }
         });
@@ -609,10 +580,10 @@ export class TableEditorV2Component implements OnInit
         let id = element.getAttribute("id");
         if(this.mapFields[id] && !this.mapFields[id].header)
         {
-            let rect = this.mainContainer.nativeElement.getBoundingClientRect();
+            let rect = this.overflowY.nativeElement.getBoundingClientRect();
             let rectElement = element.getBoundingClientRect();
-            let top = rectElement.top + (this.mainContainer.nativeElement.scrollTop - rect.y) - 2;
-            let left = rectElement.left + (this.mainContainer.nativeElement.scrollLeft - rect.x) - 2;
+            let top = rectElement.top + (this.overflowY.nativeElement.scrollTop - rect.y) - 2;
+            let left = (rectElement.left - rect.x) - 2;
             out.top = top + "px";
             out.left = left + "px";
             out.width = rectElement.width + 4 + "px";
@@ -935,6 +906,7 @@ export class TableEditorV2Component implements OnInit
     {
         let cell = this.configInput.element;
         this.updateField(cell, { id: this.inputProperty.id, value: "" });
+        cell.path = null;
         cell.linkId = null;
         cell.type = null;
     }
@@ -948,14 +920,14 @@ export class TableEditorV2Component implements OnInit
         if(data.type == "cell")
             this.query.protectionPost(111, { param: [ "cell", data.linkId ]}, (parent) => 
             {
-                if(parent !== null) // Связь потеряна
+                if(parent === null) // Связь потеряна
                 {
                     this.modal.open({ title: "Ошибка! Элемента, на который ссылается ячейка не существует!", data: [], ok: "Ок", cancel: ""}); 
                     this.query.protectionPost(278, { param: [ cell.id ]});
                     cell.value = null;
                     return;
                 }
-                if(this.id == parent.parent) this.searchCell(data.linkId);
+                if(this.id == parent.tableId) this.searchCell(data.linkId);
                 else this.query.onChange({ type: "openFromTable", value: { name: "cell", id: data.linkId }});
             });
         else this.query.onChange({ type: "openFromTable", value: { name: data.type, id: data.type == "tlist" ? cell.dataType : data.linkId }});
@@ -1038,7 +1010,8 @@ export class TableEditorV2Component implements OnInit
                 top: rect.top - (document.documentElement.clientHeight) / 2, 
                 left: rect.left - (document.documentElement.clientWidth) / 2
             }
-            this.mainContainer.nativeElement.scrollBy({ ...scroll, behavior: 'smooth'});
+            this.overflowX.nativeElement.scrollBy({ left: scroll.left, behavior: 'smooth'});
+            this.overflowY.nativeElement.scrollBy({ top: scroll.top, behavior: 'smooth'});
         }, 100);
     }
     exportToExcel()

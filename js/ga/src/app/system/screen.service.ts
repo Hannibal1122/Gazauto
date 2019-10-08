@@ -307,7 +307,8 @@ export class SplitScreen
         {
             this.fillTheVoid(s);
             if(this.getLength() > 1) this.screens[s] = null;
-            else this.empty = true;  
+            else this.empty = true; 
+            this.currentScreen = this.getLastScreen();
         }
         else
         {

@@ -44,11 +44,14 @@
         </ng-container>
     </div>
     <app-table-header-editor *ngIf = "headerEditorShow" [tableId] = "id" [header] = "dataHeader" [disabled] = "!right.change || !right.head" (updateTable) = "updateEventFromHeader($event)"></app-table-header-editor>
-    <div #mainContainer 
-        class = "MainBColor"
-        style = "overflow: auto; position: relative;"
-        (scroll) = "saveScroll()">
-        <table class = "errorTable TableCreatorBorderColor" (click) = "editField($event)">
+    <div class = "MainBColor"
+        #overflowX
+        (scroll) = "saveScroll()"
+        style = "position: relative; overflow-x: auto;">
+        <table class = "errorTable TableCreatorBorderColor" 
+            style = "position: absolute; top:0px; z-index: 1000; width:100%;" 
+            [class.shadow-top] = "scrollEnable"
+            (click) = "editField($event)">
             <tr>
                 <th *ngIf = "lineNumbering.enable"
                     class = "TableCreatorHeadColor TableCreatorHeadBColor"></th>
@@ -56,7 +59,9 @@
                     <th *ngIf = "head && hiddenColumn[i] !== true"
                         class = "TableCreatorHeadColor TableCreatorHeadBColor" 
                         id = "{{ head.id }}"
-                        [style.width] = "head.width ? head.width : null"
+                        title = "{{ head.name }}"
+                        [style.min-width] = "head.width ? head.width : null"
+                        [style.max-width] = "head.width ? head.width : null"
                         (contextmenu) = "getContextmenu($event, i, 'head')">
                         {{ head.name }}
                         <span *ngIf = "sortProperty.column == i && head.sort">
@@ -80,6 +85,7 @@
                         </div>
                     </th>
                 </ng-container>
+                <th class = "TableCreatorHeadBColor"></th>
             </tr>
             <tr *ngIf = "tableFilter.enable">
                 <td *ngIf = "lineNumbering.enable" style = "padding:0px;" class = "TableCreatorHeadColor TableCreatorHeadBColor"></td>
@@ -123,85 +129,94 @@
                     </td>
                 </ng-container>
             </tr>
-            <ng-container *ngFor = "let row of dataTable; let i = index;">
-                <tr *ngIf = "!tableFilter.mapHideRows[i]">
-                    <td *ngIf = "lineNumbering.enable"
-                        [class.newUserRow] = "userRowList[firstData[i].__ID__]"
-                        [attr.title] = "userRowList[firstData[i].__ID__] ? 'Добавил ' + userRowList[firstData[i].__ID__] : ''"
-                        (contextmenu) = "getContextmenu($event, i, 'row')" 
-                        [class.cutRow] = "cutCopyRowProperty.i == i"
-                        class = "TableCreatorHeadColor TableCreatorHeadBColor">{{ i + 1 }}</td>
-                    <ng-container *ngFor = "let cell of row; let j = index;">
-                        <td *ngIf = "cell && hiddenColumn[j] !== true" 
-                            id = "{{ cell.id }}"
-                            (contextmenu) = "getContextmenu($event, i, 'cell')"
-                            [style.width] = "dataHeader[j].width ? dataHeader[j].width : null"
-                            [style.min-width] = "dataHeader[j].width ? dataHeader[j].width : null"
-                            [style.max-width] = "dataHeader[j].width ? dataHeader[j].width : null"
-                            [style.background] = "cell.id == searchCellId ? '#e7f5c6' : (cell.id == inputProperty._colorId ? '#9abfe225' : cell.color)">
-                            {{ cell.value }}
-                            <div class="linkClass">
-                                <span *ngIf = "(cell.type == 'tlist')" class = "linkCellClass">
-                                    <i class="fas fa-bars"></i>
-                                </span>
-                                <span *ngIf = "cell.type == 'table'" class = "linkValueClass">
-                                    <i class = "fa fa-table"></i>
-                                </span>
-                                <span *ngIf = "cell.type == 'folder'" class = "linkValueClass">
-                                    <i class = "fa fa-folder"></i>
-                                </span>
-                                <span *ngIf = "cell.type == 'cell'" class = "linkCellClass" [class.linkErrorClass] = "cell.value == null">
-                                    <i class = "fa fa-link"></i>
-                                </span>
-                                <span *ngIf = "cell.type == 'file'" class = "linkValueClass">
-                                    <i class = "fa fa-file"></i>
-                                </span>
-                                <span *ngIf = "cell.eventId" class = "linkCellClass" (dblclick) = "openEventToExplorer(cell.eventId)">
-                                    <i class = "fa fa-bolt"></i>
-                                </span>
-                            </div>
-                            <div style = "position:absolute; pointer-events:none; width:100%; height:100%; top:0px; left:0px;">
-                                <div *ngIf = "cell.state" [style.width] = "cell.state + '%'" class = "tableStateLoading" 
-                                    [class.tableCellStateGreen] = "cell.state == 100"
-                                    [class.tableCellStateYellow] = "cell.state >= 50 && cell.state < 100"
-                                    [class.tableCellStateRed] = "cell.state < 50">
-                                </div>
-                            </div>
-                        </td>
-                    </ng-container>
-                </tr>
-            </ng-container>
         </table>
-        <div style = "position:absolute;" 
-            (click) = "eventStub($event)"
-            [ngStyle] = "configInput" 
-            [hidden] = "!inputProperty.visible">
-            <textarea #mainInputElement class = "mainInputStyle TableCreatorInputColor"
-                [hidden] = "inputProperty.type == 'tlist' || inputProperty.type == 'datetime'" 
-                (blur) = "acceptEditField()" 
-                [(ngModel)] = "inputProperty.value" 
-                (keydown)="downEnter($event)"></textarea>
-            <button *ngIf = "inputProperty.type == 'table'"
-                style = "position:absolute; right:0px; top: 0px; color:red; cursor:pointer; border:none; background:none; outline: none;">
-                <i class = "fa fa-times-circle"></i>
-            </button>
-            <ng-container *ngIf = "inputProperty.type == 'tlist'" >
-                <textarea class = "mainInputStyle TableCreatorInputColor" 
-                    style = "padding-right:30px;"
+        <div #overflowY 
+            style = "position: absolute; overflow:hidden; overflow-y: auto;" 
+            (scroll) = "saveScroll()"
+            [style.top] = "tableFilter.enable ? '78px' : '32px'"
+            [style.height] = "tableFilter.enable ? 'calc(100% - 78px)' : 'calc(100% - 32px)'">
+            <table class = "errorTable TableCreatorBorderColor" (click) = "editField($event)">
+                <ng-container *ngFor = "let row of dataTable; let i = index;">
+                    <tr *ngIf = "!tableFilter.mapHideRows[i]">
+                        <td *ngIf = "lineNumbering.enable"
+                            [class.newUserRow] = "userRowList[firstData[i].__ID__]"
+                            [attr.title] = "userRowList[firstData[i].__ID__] ? 'Добавил ' + userRowList[firstData[i].__ID__] : ''"
+                            (contextmenu) = "getContextmenu($event, i, 'row')" 
+                            [class.cutRow] = "cutCopyRowProperty.i == i"
+                            class = "TableCreatorHeadColor TableCreatorHeadBColor">{{ i + 1 }}</td>
+                        <ng-container *ngFor = "let cell of row; let j = index;">
+                            <!-- [style.width] = "dataHeader[j].width ? dataHeader[j].width : null" -->
+                            <td *ngIf = "cell && hiddenColumn[j] !== true" 
+                                id = "{{ cell.id }}"
+                                (contextmenu) = "getContextmenu($event, i, 'cell')"
+                                [style.min-width] = "dataHeader[j].width ? dataHeader[j].width : null"
+                                [style.max-width] = "dataHeader[j].width ? dataHeader[j].width : null"
+                                [style.background] = "cell.id == searchCellId ? '#e7f5c6' : (cell.id == inputProperty._colorId ? '#9abfe225' : cell.color)">
+                                {{ cell.path ? "" : cell.value }}
+                                <div class="linkClass">
+                                    <span *ngIf = "(cell.type == 'tlist')" class = "linkCellClass">
+                                        <i class="fas fa-bars"></i>
+                                    </span>
+                                    <span *ngIf = "cell.type == 'table'" class = "linkValueClass">
+                                        <i class = "fa fa-table"></i>
+                                    </span>
+                                    <span *ngIf = "cell.type == 'folder'" class = "linkValueClass">
+                                        <i class = "fa fa-folder"></i>
+                                    </span>
+                                    <span *ngIf = "cell.type == 'cell'" class = "linkCellClass" [class.linkErrorClass] = "cell.value == null">
+                                        <i class = "fa fa-link"></i>
+                                    </span>
+                                    <span *ngIf = "cell.type == 'file'" class = "linkValueClass">
+                                        <i class = "fa fa-file"></i>
+                                    </span>
+                                    <span *ngIf = "cell.eventId" class = "linkCellClass" (dblclick) = "openEventToExplorer(cell.eventId)">
+                                        <i class = "fa fa-bolt"></i>
+                                    </span>
+                                </div>
+                                <div style = "position:absolute; pointer-events:none; width:100%; height:100%; top:0px; left:0px;">
+                                    <div *ngIf = "cell.state" [style.width] = "cell.state + '%'" class = "tableStateLoading" 
+                                        [class.tableCellStateGreen] = "cell.state == 100"
+                                        [class.tableCellStateYellow] = "cell.state >= 50 && cell.state < 100"
+                                        [class.tableCellStateRed] = "cell.state < 50">
+                                    </div>
+                                </div>
+                                <img *ngIf = "cell.path" src="{{ imgPath }}{{ cell.path }}" style="width: 100%;height: auto; pointer-events: none;">
+                            </td>
+                        </ng-container>
+                    </tr>
+                </ng-container>
+            </table>
+            <div style = "position:absolute;" 
+                (click) = "eventStub($event)"
+                [ngStyle] = "configInput" 
+                [hidden] = "!inputProperty.visible">
+                <textarea #mainInputElement class = "mainInputStyle TableCreatorInputColor"
+                    [hidden] = "inputProperty.type == 'tlist' || inputProperty.type == 'datetime'" 
+                    (blur) = "acceptEditField()" 
                     [(ngModel)] = "inputProperty.value" 
                     (keydown)="downEnter($event)"></textarea>
-                <div style = "position:absolute; right:5px; top:2px; cursor: pointer; color: #93b76b;" (click) = "appendRowToTlist()" title = "Добавить новое значение"><i class="fas fa-plus-circle"></i></div>
-                <select (change) = "changeMainSelect()"
-                    style = "position:absolute; top: 100%; height: 24px; width:100%;" 
-                    [(ngModel)] = "inputProperty.linkId">
-                    <option *ngFor = "let option of inputProperty.values" value = "{{ option.id }}">{{ option.value }}</option>
-                </select>
-            </ng-container>
-            <ng-container *ngIf = "inputProperty.type == 'datetime'">
-                <div style = "position: relative;">
-                    <datetimepicker (onChange) = "onChangeDate($event)" [config] = "{ setDefault: true }" [setValue] = "inputProperty.value"></datetimepicker>
-                </div>
-            </ng-container>
+                <button *ngIf = "inputProperty.type == 'table'"
+                    style = "position:absolute; right:0px; top: 0px; color:red; cursor:pointer; border:none; background:none; outline: none;">
+                    <i class = "fa fa-times-circle"></i>
+                </button>
+                <ng-container *ngIf = "inputProperty.type == 'tlist'" >
+                    <textarea class = "mainInputStyle TableCreatorInputColor" 
+                        style = "padding-right:30px;"
+                        [(ngModel)] = "inputProperty.value" 
+                        (keydown)="downEnter($event)"></textarea>
+                    <div style = "position:absolute; right:5px; top:2px; cursor: pointer; color: #93b76b;" (click) = "appendRowToTlist()" title = "Добавить новое значение"><i class="fas fa-plus-circle"></i></div>
+                    <select (change) = "changeMainSelect()"
+                        style = "position:absolute; top: 100%; height: 24px; width:100%;" 
+                        [(ngModel)] = "inputProperty.linkId">
+                        <option *ngFor = "let option of inputProperty.values" value = "{{ option.id }}">{{ option.value }}</option>
+                    </select>
+                </ng-container>
+                <ng-container *ngIf = "inputProperty.type == 'datetime'">
+                    <div style = "position: relative;">
+                        <datetimepicker (onChange) = "onChangeDate($event)" [config] = "{ setDefault: true }" [setValue] = "inputProperty.value"></datetimepicker>
+                    </div>
+                </ng-container>
+            </div>
         </div>
         <div [hidden] = "!tableProperty.visible" 
             [ngStyle] = "{ transform: tableProperty.translate }"

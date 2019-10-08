@@ -94,6 +94,7 @@
 .tableProperty
 {
     position: absolute;
+    z-index: 1001;
     right:5px;
     top: 5px;
     min-width: 260px;

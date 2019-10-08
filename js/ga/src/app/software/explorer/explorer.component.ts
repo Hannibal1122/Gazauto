@@ -42,6 +42,7 @@ export class ExplorerComponent implements OnInit
     @ViewChild('modal') public modal: any;
     @ViewChild('appTableProperty') public appTableProperty;
     @ViewChild('miniAppContent') public miniAppContent:ElementRef;
+    @ViewChild('mainContainer') public mainContainer:ElementRef;
     
     set inputFromApp(value)
     {
@@ -136,6 +137,34 @@ export class ExplorerComponent implements OnInit
             this.createContextMenuMain.visible = false;
         }
         window.addEventListener("click", this.globalClick, false);
+
+        /********************************/
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            this.mainContainer.nativeElement.addEventListener(eventName, preventDefaults, false)
+        })
+        function preventDefaults (e) {
+            e.preventDefault()
+            e.stopPropagation()
+        }
+        this.mainContainer.nativeElement.addEventListener('drop', (e) => {
+            let dt = e.dataTransfer;
+            this.load = true;
+            this.query.uploadFile(117, { target: dt }, (data) =>
+            {
+                if(data[0] == "OK")
+                {
+                    let file = { name: data[1], fullName: data[2] };
+                    this.query.protectionPost(100, { param: ["file", "NULL", file.fullName, this.parent, 0, ""] }, (data) => 
+                    { 
+                        this.query.protectionPost(119, { param: [data[1], file.fullName ] }, () => 
+                        { 
+                            this.refresh();
+                        });
+                    });
+                }
+                else this.load = false;
+            });
+        }, false);
     }
     changeViewType()
     {

@@ -73,6 +73,10 @@
                                 $field["type"] = $row[5];
                                 break;
                             case "file":
+                                $fileBaseNameForDownload = scandir("../files/".$field["linkId"], 1)[0];
+                                $type = getFileType($fileBaseNameForDownload);
+                                if(in_array($type, ['gif', 'jpeg', 'png', 'jpg']))
+                                    $field["path"] = $field["linkId"]."/$fileBaseNameForDownload";
                             case "table":
                             case "folder":
                                 $field["type"] = $row[5];

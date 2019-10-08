@@ -258,7 +258,7 @@ export class AppComponent implements OnInit
                                 this.openSoftware("explorer", { id: parent.parent, searchObjectId: e.value.name == "tlist" ? parent.id : e.value.id });
                                 break;
                             case "cell":
-                                this.openSoftware("table", { id: parent.parent, searchObjectId: e.value.id });
+                                this.openSoftware("table", { id: parent.tableId, searchObjectId: e.value.id });
                                 break;
                         }
                     });

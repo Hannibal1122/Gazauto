@@ -1,6 +1,6 @@
 .errorTable
 {
-    /* width:100%; */
+    width:100%;
     background-color: #ffffff;
 }
 .errorTable th 
@@ -8,11 +8,20 @@
     position: relative;
     padding: 5px;
     border: 1px solid; 
-    /* width: 180px; */
-    /* border-right: 1px solid; 
-    border-bottom: 1px solid; */
+    border-right: none;
+    min-width: 180px;
+    max-width: 180px;
+    width: 180px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
     font-size: 14px;
-    min-width: 80px;
+}
+.errorTable th:last-child
+{
+    min-width: 20px;
+    width: auto;
+    border-left: none;
 }
 .errorTable td 
 {
@@ -25,14 +34,13 @@
     font-size: 14px;
     word-wrap: break-word;
     border: 1px solid; 
-    /* height: 26px; */
-    /* border-top: 2px solid #ececec; */
-    /* border-bottom: 1px solid ;
-    border-right: 1px solid ; */
+    min-width: 180px;
+    max-width: 180px;
+    width: 180px;
 }
 .errorTable td:hover
 {
-    background: #9abfe225;
+    background-color: #9abfe225;
 }
 .errorTable th.TableCreatorHeadColor:first-child
 {
@@ -54,6 +62,10 @@
 {
     border-right: none;
 } */
+.shadow-top
+{
+    box-shadow: rgba(0, 0, 0, 0.2) 0px 0px 3px 1px;
+}
 .mainInputStyle
 {
     border: 2px solid #5293e4;
