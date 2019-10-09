@@ -25,7 +25,7 @@
                     $stateTable = (int)$row[2]; 
                     $objectType = $row[3]; 
                 }
-            if($result = query("SELECT i, id, value, eventId, dataType, user_property, variable FROM fields WHERE tableId = %i AND type = 'head' $filterColumn[0] ORDER by i", [$idTable]))
+            if($result = query("SELECT i, id, value, eventId, dataType, user_property, variable, fill FROM fields WHERE tableId = %i AND type = 'head' $filterColumn[0] ORDER by i", [$idTable]))
                 while ($row = $result->fetch_array(MYSQLI_NUM))
                 {
                     if($row[4]) $row[4] = selectOne("SELECT type FROM my_values WHERE id = %i", [(int)$row[4]]);
@@ -157,6 +157,8 @@
                 $idColumn = -1;
                 if(isset($data[$i]->id))
                     $idColumn = (int)$data[$i]->id;
+                
+                // Если это новый столбец, то создать по всем строкам
                 if($idColumn == -1)
                 {
                     $idColumn = $this->addNewHead($idTable, $data[$i]->value, false);
@@ -169,12 +171,12 @@
                         query("UPDATE fields SET value = %s WHERE id = %i", [ $data[$i]->oldValue, $idColumn ]);
                         query("UPDATE fields SET value = %s WHERE bindId = %i", [ $data[$i]->oldValue, $idColumn ]);
                     }
-                // Изменить порядок
-                query("UPDATE fields SET i = %i WHERE id = %i", [ $i, $idColumn ]);
-                query("UPDATE fields SET i = %i WHERE bindId = %i", [ $i, $idColumn ]);
-                // Если это новый столбец, то создать по всем строкам
-                // удаление ячеек и заголовка
+                // Изменить порядок и установить флаг обяхательного заполнения
+                $data[$i]->fill = $data[$i]->fill ? 1 : 0; // Преобразование boolean в int
+                query("UPDATE fields SET i = %i, fill = %i WHERE id = %i", [ $i, $data[$i]->fill, $idColumn ]);
+                query("UPDATE fields SET i = %i, fill = %i WHERE bindId = %i", [ $i, $data[$i]->fill, $idColumn ]);
             }
+            // удаление ячеек и заголовка
             for($i = 0, $c = count($changes); $i < $c; $i++)
             {
                 query("DELETE FROM fields WHERE id = %i OR idColumn = %i", [ $changes[$i], $changes[$i] ]);
@@ -325,7 +327,7 @@
                             (int)$row[2],
                             (int)$row[2] > 3 ? 'tlist' : NULL
                         ]);
-                    else query("INSERT INTO fields (tableId, i, idColumn, type, value) VALUES(%i, %i, %i, 'value', '') ", [ $idTable, $idRow, (int)$row[0] ]);
+                    else query("INSERT INTO fields (tableId, i, idColumn, type, value) VALUES(%i, %i, %i, 'value', '')", [ $idTable, $idRow, (int)$row[0] ]);
                     $out[$row[0]] = ["id" => $mysqli->insert_id, "value" => ""];
                     $this->checkEvent($mysqli->insert_id); // Проверяем наличие события на заголовке
                 }

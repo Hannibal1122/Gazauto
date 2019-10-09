@@ -109,7 +109,7 @@
             <span [class.tablePropertyTabActive] = "tableProperty.active == 'link'" (click) = "tableProperty.active = 'link'" class = "tablePropertyTab">Связи</span>
         </div>
         <div *ngIf = "selectObjectI != -1 && tableProperty.active == 'link'"
-            style = "width:100%; height:calc(100% - 20px); overflow: auto; display: flex; flex-wrap: wrap; position: relative;">
+            style = "width:100%; height:calc(100% - 20px); overflow: auto; position: relative;">
             <div *ngIf = "!tableProperty.listLink.visible && tableProperty.loaded" (click) = "getListLink()" class = "wordCenter">Показать связи</div>
             <div class = "wordCenter">
                 <span *ngIf = "!tableProperty.loaded"> <i class="fas fa-spinner spinnerLoader"></i> </span>
@@ -117,6 +117,13 @@
             <ng-container *ngIf = "tableProperty.listLink.visible">
                 <div *ngIf = "tableProperty.listLink.empty" 
                     class = "wordCenter">Связи отсутсвуют</div>
+                <div *ngIf = "tableProperty.listLink.useClass.id" style = "width: 100%;">
+                    <div style = "font-size:12px; font-weight:bold; margin-top:5px;">Класс</div>
+                    <div class = "linkTable" (click) = "openTable(tableProperty.listLink.useClass.id)">
+                        <span><i class="fa fa-pencil-ruler colorIconExplorer"></i> </span>
+                        {{ tableProperty.listLink.useClass.name }}
+                    </div>
+                </div>
                 <div *ngIf = "tableProperty.listLink.fromInherit.length != 0">
                     <div style = "font-size:12px; font-weight:bold; margin-top:5px;">Объект наследуется от:</div>
                     <div *ngFor = "let data of tableProperty.listLink.fromInherit" class = "linkTable" (click) = "openTable(data[0])">

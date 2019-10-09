@@ -235,6 +235,7 @@ export class TableEditorV2Component implements OnInit
                     dataType: data.head[i][4],
                     width: data.head[i][5] ? data.head[i][5] + 'px' : null,
                     variable: data.head[i][6] ? data.head[i][6] : null,
+                    fill: data.head[i][7] ? data.head[i][7] : false,
                     sort: false
                 };
                 this.mapHeader[this.dataHeader[_j].id] = _j;
@@ -839,7 +840,29 @@ export class TableEditorV2Component implements OnInit
         if(type == "end") 
             idRow = l > 0 ? this.firstData[l - 1].__ID__ : -1;
         else idRow = this.firstData[this.createContextMenu.i].__ID__;
-        this.queue.add(257, [ this.id, idRow, prevOrNext ], (data) => { this.loadTable(); });
+
+        let fillFields = [];
+        let fillFieldsId = [];
+        for(let i = 0; i < this.dataHeader.length; i++)
+            if(this.dataHeader[i].fill) 
+            {
+                fillFieldsId.push(this.dataHeader[i].id);
+                fillFields.push([this.dataHeader[i].name, "", "text"]);
+            }
+        if(fillFields.length == 0)
+            this.queue.add(257, [ this.id, idRow, prevOrNext ], (data) => { this.loadTable(); });
+        else this.modal.open({ title: "Нужно добавить заголовок!", data: fillFields, ok: "Ок", cancel: "Отмена"}, (save) =>
+        {
+            if(!save) return;
+            this.queue.add(257, [ this.id, idRow, prevOrNext ], (data) => {
+                this.queue.resolve = () => { this.loadTable(); };
+                for(let i = 0; i < fillFieldsId.length; i++)
+                {
+                    data[fillFieldsId[i]].value = fillFields[i][1];
+                    this.queue.add(252, [ this.id,  JSON.stringify(data[fillFieldsId[i]]) ], null);
+                }
+            });
+        });
     }
     addCutRow(prevOrNext) // Вставить вырезанную строку
     {

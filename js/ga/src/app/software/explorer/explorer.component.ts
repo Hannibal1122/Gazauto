@@ -636,7 +636,8 @@ export class ExplorerComponent implements OnInit
             empty: true,
             fromInherit: [], // От кого наследует
             whoInherit: [], // Кто наследует
-            whoRefer: [] // Кто ссылается
+            whoRefer: [], // Кто ссылается
+            useClass: { id: null, name: "" }
         }
     }
     getTableProperty()
@@ -661,6 +662,7 @@ export class ExplorerComponent implements OnInit
             this.tableProperty.listLink.fromInherit = data.fromInherit;
             this.tableProperty.listLink.whoInherit = data.whoInherit;
             this.tableProperty.listLink.whoRefer = [];
+            this.tableProperty.listLink.useClass = data.useClass;
             for(var key in data.whoRefer)
                 this.tableProperty.listLink.whoRefer.push({
                     id: key, 
@@ -670,7 +672,8 @@ export class ExplorerComponent implements OnInit
             this.tableProperty.listLink.empty = 
                 this.tableProperty.listLink.fromInherit.length == 0 
                 && this.tableProperty.listLink.whoInherit.length == 0 
-                && this.tableProperty.listLink.whoRefer.length == 0;
+                && this.tableProperty.listLink.whoRefer.length == 0
+                && this.tableProperty.listLink.useClass.id === null;
             this.tableProperty.listLink.visible = true;
             this.tableProperty.loaded = true;
         });

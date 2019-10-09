@@ -4,6 +4,7 @@
             <tr>
                 <th>Имя</th>
                 <th>Тип</th>
+                <th>Заполнять</th>
                 <th></th>
                 <th></th>
                 <th></th>
@@ -15,6 +16,7 @@
                         <input type = "text" [disabled] = "readonly" [(ngModel)] = "h.value" (change) = "onChangeInput(i)">
                     </td>
                     <td>{{ h.type ? h.type : "Общий" }}</td>
+                    <td><input type = "checkbox" [(ngModel)] = "h.fill" (change) = "onChangeInput()"></td>
                     <td class = "caretColor" [class.caretDisabled] = "readonly || first" (click) = "growUp(i)"><i class = "fas fa-caret-up"></i></td>
                     <td class = "caretColor" [class.caretDisabled] = "readonly || last" (click) = "growDown(i)"><i class = "fas fa-caret-down"></i></td>
                     <td (click) = "changeShow(i)">

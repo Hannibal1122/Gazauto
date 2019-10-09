@@ -70,7 +70,7 @@
         exit();
     }
     /* Переход со старой версии таблиц */
-    if($nQuery == -2)
+    /* if($nQuery == -2)
     {
         if($result = query("SELECT id, tableId, name_column FROM fields WHERE type = 'head'", []))
             while ($row = $result->fetch_array(MYSQLI_NUM))
@@ -79,7 +79,7 @@
                 query("UPDATE fields SET value = %s, name_column = NULL WHERE id = %i", [$row[2], $row[0]]);
                 echo $row[0]." ".$row[1]." ".$row[2]."<br>";
             }
-    }
+    } */
     //file_get_contents
     /* Запросы не требующие логин */
     if($nQuery < 40)
@@ -88,7 +88,7 @@
             case 0: // Запрос версии
                 /* include("./version/versions.php"); */
                 $project = [];	
-                $project['main'] = "0.9.8";/* getVersion(		$_main["name"], 		$_main["data"]); */
+                $project['main'] = "0.9.85";/* getVersion(		$_main["name"], 		$_main["data"]); */
                 $project['php'] = "0.9.92";/* getVersion(		$_php["name"], 			$_php["data"]); */
                 echo json_encode($project);
                 break;

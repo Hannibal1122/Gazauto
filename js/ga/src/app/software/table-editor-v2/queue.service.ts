@@ -6,6 +6,7 @@ export class QueueService
 {
     queue = [];
     loaded = false;
+    resolve = null;
     constructor(private query:QueryService)
     {
 
@@ -21,10 +22,18 @@ export class QueueService
         let queue = this.queue[0];
         this.query.protectionPost(queue.nquery, { param: queue.param }, (data) => 
         {
-            queue.func(data);
+            if(queue.func) queue.func(data);
             this.queue.splice(0, 1);
             if(this.queue.length != 0) this.update();
-            else this.loaded = true;
+            else 
+            {
+                if(this.resolve) 
+                {
+                    this.resolve();
+                    this.resolve = null;
+                }
+                this.loaded = true;
+            }
         });
     }
 }

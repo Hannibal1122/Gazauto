@@ -265,18 +265,23 @@
             $idElement = (int)$param[0];
             if(($myRight->get($idElement) & 1) != 1) return; // Права на просмотр
             $fromInherit = []; // откуда наследуется
-            $whoInherit = [];
-            $whoRefer = [];
+            $whoInherit = []; // кто наследует
+            $whoRefer = []; // кто ссылается
+            $useClass = [ "id" => null, "name" => "" ];
             if($result = query("SELECT id, objectType, name FROM structures WHERE trash = 0 AND id IN (SELECT bindId FROM structures WHERE id = %i)", [ $idElement ]))
                 while ($row = $result->fetch_array(MYSQLI_NUM)) $fromInherit[] = $row;
             if($result = query("SELECT id, objectType, name FROM structures WHERE trash = 0 AND bindId = %i", [ $idElement ]))
                 while ($row = $result->fetch_array(MYSQLI_NUM)) $whoInherit[] = $row;
 
             $linkType = selectOne("SELECT objectType FROM structures WHERE id = %i", [ $idElement ]);
+            $useClass["id"] = selectOne("SELECT classId FROM structures WHERE id = %i", [ $idElement ]);
+            if(!is_null($useClass["id"]))
+                $useClass["name"] = selectOne("SELECT name FROM structures WHERE id = %i", [ $useClass["id"] ]);
             $linkId = $idElement;
             $query = "SELECT id, tableId FROM fields WHERE type = 'link' AND linkId = %i AND linkType = %s";
             $queryArray = [ $idElement ];
             if($linkType == "event") $query = "SELECT id, tableId FROM fields WHERE eventId = %i";
+            else if($linkType == "class") $query = "SELECT id FROM structures WHERE classId = %i";
             else
             {
                 if($linkType == "value" || $linkType == "tlist") $linkId = (int)selectOne("SELECT objectId FROM structures WHERE id = %i", [ $idElement ]);
@@ -285,16 +290,21 @@
             if($result = query($query, $queryArray))
                 while ($row = $result->fetch_array(MYSQLI_NUM)) 
                 {
-                    $tableId = (int)$row[1];
+                    $tableId = $linkType == "class" ? (int)$row[0] : (int)$row[1];
                     if(!array_key_exists($tableId, $whoRefer))
                     {
                         $trash = selectOne("SELECT trash FROM structures WHERE id = %i", [ $tableId ]);
                         if((int)$trash == 1) continue;
                         $whoRefer[$tableId] = ["fields" => [], "name" => selectOne("SELECT name FROM structures WHERE id = %i", [ $tableId ])];
                     }
-                    $whoRefer[$tableId]["fields"][] = (int)$row[0];
+                    if($linkType != "class") $whoRefer[$tableId]["fields"][] = (int)$row[0];
                 }
-            echo json_encode(["fromInherit" => $fromInherit, "whoInherit" => $whoInherit, "whoRefer" => $whoRefer]);
+            echo json_encode([
+                "fromInherit" => $fromInherit, 
+                "whoInherit" => $whoInherit, 
+                "whoRefer" => $whoRefer, 
+                "useClass" => $useClass
+            ]);
             break;
         case 126: // Получение имени элемента структуры
             $idElement = (int)$param[0];

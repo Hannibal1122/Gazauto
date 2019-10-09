@@ -23,7 +23,13 @@ export class TableHeaderEditorComponent implements OnInit
             this.dataHeader = [];
             for(let i = 0; i < value.length; i++)
                 if(value[i])
-                    this.dataHeader[i] = { value: value[i].name, type: value[i].dataType, id: value[i].id, show: true };
+                    this.dataHeader[i] = { 
+                        value: value[i].name, 
+                        type: value[i].dataType, 
+                        id: value[i].id, 
+                        fill: value[i].fill, 
+                        show: true 
+                    };
             this.change = false;
             this.changes = [];
             this.error = false;
@@ -80,7 +86,7 @@ export class TableHeaderEditorComponent implements OnInit
     }
     addHead()
     {
-        this.dataHeader.push({ value: "", type: null });
+        this.dataHeader.push({ value: "", type: null, fill: false });
         this.change = true;
     }
     saveHead()
