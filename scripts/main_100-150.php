@@ -44,10 +44,15 @@
             else $query .= " AND
                 id IN (SELECT objectId FROM rights WHERE (login = %s OR login = %s) AND rights & 1 
                     AND objectId NOT IN (SELECT objectId FROM rights WHERE login = %s AND (rights & 1) = 0)) ORDER by parent, priority";
+
+            require_once("myFile.php");
+            $myFile = new MyFile();
             if($result = query($query, $login == "admin" ? [ $idParent ] : [ $idParent, $login, $role, $login ]))
                 while ($row = $result->fetch_assoc())
                 {
-                    $out["folder"][] = getObjectFromStructures($row);
+                    $elem = getObjectFromStructures($row);
+                    if($elem["objectType"] == "file" && $elem["fileType"] == "img") $myFile->setField($elem, $elem["id"]);
+                    $out["folder"][] = $elem;
                     $listId .= ($listId == "" ? "" : ",").$row["id"];
                 }
             if($listId != "")
@@ -135,7 +140,7 @@
             {
                 $elementData = query("SELECT parent, class FROM structures WHERE id = %i", [ $out[$i] ])->fetch_assoc();
                 if($i == 0) $idParentFrom = (int)$elementData["parent"];
-                if($typeOperation != "cut" && (int)$elementData["class"] == 1) $errors[] = "ERROR_CLASS"; // Ограничение для копирования/вырезания в таблицах созданных конструктором
+                if($typeOperation == "cut" && (int)$elementData["class"] == 1) $errors[] = "ERROR_CLASS"; // Ограничение для вырезания в структурах созданных конструктором
                 if($out[$i] == $idParentTo) $errors[] = "ERROR_IN_ITSELF"; //Проверка на добавление папки саму в себя
             }
 
@@ -183,7 +188,9 @@
             query("UPDATE structures SET priority = %i, icon = %i WHERE id = %i", $param);
             break;
         case 117: // Загрузка файлов на сервер
-            echo loadFile(20, ['gif', 'jpeg', 'png', 'jpg', 'xls', 'xlsx', 'doc', 'docx', 'avi', 'mp4']);
+            require_once("myFile.php");
+            $myFile = new MyFile();
+            echo $myFile->loadFile(20, ['gif', 'jpeg', 'png', 'jpg', 'xls', 'xlsx', 'doc', 'docx', 'avi', 'mp4']);
             break;
         case 118: // Удаление файлов из временной папки
             unlink("../tmp/".$param[0]); 
@@ -191,13 +198,11 @@
         case 119: // Загрузка файла с клиента
             $idElement = (int)$param[0];
             $fileName = $param[1];
-
-            $end = strripos($fileName, "."); 
-            $fileType = substr($fileName, $end + 1);
-
             if(($myRight->get($idElement) & 8) != 8) return; // Права на изменение
-            if (!file_exists("../files/$idElement")) mkdir("../files/$idElement", 0700);
-            rename("../tmp/$fileName", "../files/$idElement/$idElement.$fileType"); 
+
+            require_once("myFile.php");
+            $myFile = new MyFile();
+            $myFile->createFile($idElement, $fileName);
             break;
         case 120: // Изменение имени объекта
             $idElement = (int)$param[0];
@@ -317,7 +322,9 @@
             request("SELECT objectType, info, state, name FROM structures WHERE id = %i", [ $idElement ]);
             break;
         case 128: // Импорт таблицы на сервер
-            echo loadFile(10, ['xls','xlsx']);
+            require_once("myFile.php");
+            $myFile = new MyFile();
+            echo $myFile->loadFile(10, ['xls','xlsx']);
             break;
         case 129: // Получить тип элемента на который ссылается ярлык
             $idElement = (int)$param[0];

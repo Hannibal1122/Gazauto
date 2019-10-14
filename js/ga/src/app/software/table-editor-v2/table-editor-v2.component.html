@@ -152,7 +152,7 @@
                                 [style.min-width] = "dataHeader[j].width ? dataHeader[j].width : null"
                                 [style.max-width] = "dataHeader[j].width ? dataHeader[j].width : null"
                                 [style.background] = "cell.id == searchCellId ? '#e7f5c6' : (cell.id == inputProperty._colorId ? '#9abfe225' : cell.color)">
-                                {{ cell.path ? "" : cell.value }}
+                                {{ cell.image ? "" : cell.value }}
                                 <div class="linkClass">
                                     <span *ngIf = "(cell.type == 'tlist')" class = "linkCellClass">
                                         <i class="fas fa-bars"></i>
@@ -180,7 +180,10 @@
                                         [class.tableCellStateRed] = "cell.state < 50">
                                     </div>
                                 </div>
-                                <img *ngIf = "cell.path" src="{{ imgPath }}{{ cell.path }}" style="width: 100%;height: auto; pointer-events: none;">
+                                <img *ngIf = "cell.image" 
+                                    src="{{ imgPath[cell.image.source] }}{{ cell.image.path }}" 
+                                    style="width: 100%; height: auto; pointer-events: none;"
+                                    [style.max-width] = "cell.image.width + 'px'">
                             </td>
                         </ng-container>
                     </tr>

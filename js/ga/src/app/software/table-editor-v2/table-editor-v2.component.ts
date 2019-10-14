@@ -26,7 +26,10 @@ export class TableEditorV2Component implements OnInit
     id = -1;
     searchObjectId = -1;
     loaded = false;
-    imgPath = environment.FILES;
+    imgPath = {
+        files: environment.FILES,
+        thumbs: environment.THUMBS
+    }
     control = 
     {
         state: 0, // общее состояние таблицы
@@ -555,21 +558,11 @@ export class TableEditorV2Component implements OnInit
             {
                 delete cell.type;
                 delete cell.linkId;
-                delete cell.path;
+                delete cell.image;
                 cell.value = data.value;
             }
         });
     }
-    /* openDatetimeModal() // Открыть модальное окно с вставкой времени
-    {
-        this.modalMovedWindow.open = true;
-        this.modalMovedWindow.inputValue = this.inputProperty.value;
-        this.modalMovedWindow.change = (datetime) =>
-        {
-            this.inputProperty.value = datetime;
-            this.acceptEditField();
-        };
-    } */
     onChangeDate(e)
     {
         if(e.default === true) return;
@@ -929,7 +922,7 @@ export class TableEditorV2Component implements OnInit
     {
         let cell = this.configInput.element;
         this.updateField(cell, { id: this.inputProperty.id, value: "" });
-        cell.path = null;
+        cell.image = null;
         cell.linkId = null;
         cell.type = null;
     }

@@ -66,6 +66,7 @@ class FASM
     }
     function start($str, $_idField, $idLine = -1)
     {
+        require_once("myTable.php");
         $code = $this->parse($str);
         $this->current["id"] = $_idField;
         $this->current["field"] = $this->getField($_idField);
@@ -151,7 +152,6 @@ class FASM
                     $i++;
                     break;
                 case "status":
-                    require_once("myTable.php");
                     $operand = $this->getFunction($current["operand"][1], $idLine);
                     $myTable = new MyTable(-1, $this->myLog);
                     $myTable->setStateForField($value["tableId"], $idField, $operand["value"], true);

@@ -57,6 +57,10 @@ export class ExplorerComponent implements OnInit
         class: false, // Если элемент создан конструктором
         classRoot: false // Если элемент корневой объекта
     };
+    imgPath = {
+        files: environment.FILES,
+        thumbs: environment.THUMBS
+    }
     allPath = [];
     parent;
     outFolders = [];
@@ -245,16 +249,11 @@ export class ExplorerComponent implements OnInit
                         image.onload = () => {
                             let frame = this.miniAppContent.nativeElement.getBoundingClientRect();
                             this.miniApp.image.loaded = true;
+                            this.miniApp.image.width = image.width + "px";
+                            this.miniApp.image.height = image.height + "px";
                             if(image.width > image.height && frame.width > frame.height)
-                            {
-                                this.miniApp.image.width = "auto";
-                                this.miniApp.image.height = "98%";
-                            }
-                            else
-                            {
-                                this.miniApp.image.width = "98%";
-                                this.miniApp.image.height = "auto";
-                            }
+                                this.miniApp.image.type = "horizon";
+                            else this.miniApp.image.type = "vertical";
                         }
                     }
                     if(object.fileType == 'xls')
@@ -457,7 +456,7 @@ export class ExplorerComponent implements OnInit
             let right = this.createRight.decodeRights(data.right);
             this.selectRules.copy = objectType == "user" || objectType == "role" ? false : Boolean(right.copy);
             this.selectRules.change = Boolean(right.change);
-            this.selectRules.cut = Boolean(right.change);
+            this.selectRules.cut = this.inputs.class ? false : Boolean(right.change);
             this.selectRules.rights = objectType == "user" || objectType == "role" ? false : Boolean(right.right);
             this.selectRules.remove = Boolean(right.change);
             /* this.selectRules.paste = Boolean(right.change); */
@@ -762,7 +761,7 @@ export class ExplorerComponent implements OnInit
                     let errorsList = [];
                     for(let i = 0; i < errors.length; i++)
                         errorsList.push(["",
-                            errors[i] == "ERROR_CLASS" ? "Вы пытаетесь скопировать объект класса!" :
+                            errors[i] == "ERROR_CLASS" ? "Вы пытаетесь вырезать объект класса!" :
                                 (errors[i] == "ERROR_IN_ITSELF" ? "Конечная папка является дочерней для копируемой!" : "Неизвестная ошибка!"),
                             "html"
                         ]);
@@ -854,7 +853,8 @@ export class ExplorerComponent implements OnInit
             src: "",
             loaded: false,
             width: "",
-            height: ""
+            height: "",
+            type: "horizon" // vertical
         },
         video:
         {
@@ -936,9 +936,9 @@ export class ExplorerComponent implements OnInit
     {
         this.getCopyExplorer();
         this.parentRules.paste = this.parentRules.paste 
-            && this.inputs.class == false 
+            /* && this.inputs.class == false  */
             && this.selectObjectCopy.id != -1 
-            && !(this.selectObjectCopy.objectType == "file" && this.selectObjectCopy.type != "cut");
+            /* && !(this.selectObjectCopy.objectType == "file" && this.selectObjectCopy.type != "cut") */;
 
         this.createContextMenuMain.translate = this.getTranslateForClientXY(e);
         this.createContextMenuMain.left = e.clientX + "px";

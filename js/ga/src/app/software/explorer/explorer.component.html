@@ -35,7 +35,9 @@
                 [class.selectCopyElementExplorer] = "i != selectObjectI && object.id == selectObjectCopy.id"
                 [class.selectCopyElementExplorerOpacity] = "i != selectObjectI && object.id == selectObjectCopy.id && selectObjectCopy.type == 'cut'"
                 title = "{{ object.name }}">
-                <div *ngIf = "viewType == 'table'" class = "elementExplorerIcon">
+                <div *ngIf = "viewType == 'table'" 
+                    class = "elementExplorerIcon"
+                    [class.element-explorer-icon-transparent] = "object.image">
                     <span *ngIf = "object.objectType == 'folder'"><i class="fas fa-folder colorIconFolder" style = "font-size: 55px;"></i></span>
                     <span *ngIf = "object.objectType == 'filter'"><i class="fas fa-filter colorIconTable" style = "font-size: 45px;"></i></span>
                     <span *ngIf = "object.objectType == 'table'"><i class="fas fa-table colorIconTable" style = "font-size: 45px;"></i></span>
@@ -45,11 +47,22 @@
                     <span *ngIf = "object.objectType == 'role'"><i class="fas fa-address-book colorIconRole" style = "font-size: 45px;"></i></span>
                     <span *ngIf = "object.objectType == 'log'"><i class="fas fa-book colorIconTable" style = "font-size: 45px;"></i></span>
                     <span *ngIf = "object.objectType == 'plan'"><i class="fa fa-chart-bar colorIconTable" style = "font-size: 45px;"></i></span>
-                    <span *ngIf = "object.objectType == 'file'">
+                    <div *ngIf = "object.image" 
+                        style = "position: absolute; width: 80px; height: 80px; top: 5px;">
+                        <img class = "custom-image"
+                            src="{{ imgPath[object.image.source] }}{{ object.image.path }}" 
+                            [class.custom-image-horizon] = "object.image.type == 'vertical'"
+                            [class.custom-image-vertical] = "object.image.type == 'horizon'"
+                            style = "pointer-events: none;"
+                            [style.max-width] = "object.image.width + 'px'"
+                            [style.max-height] = "object.image.height + 'px'">
+                    </div>
+                    <span *ngIf = "object.objectType == 'file' && !object.image">
                         <i *ngIf = "object.fileType == 'img'" class="fas fa-file-image colorIconFile" style = "font-size: 45px;"></i>
                         <i *ngIf = "object.fileType == 'xls'" class="fas fa-file-excel colorIconFile" style = "font-size: 45px;"></i>
                         <i *ngIf = "object.fileType == 'doc'" class="fas fa-file-word colorIconFile" style = "font-size: 45px;"></i>
                         <i *ngIf = "object.fileType == 'video'" class="fas fa-file-video colorIconFile" style = "font-size: 45px;"></i>
+                        <i *ngIf = "object.fileType == 'unknown'" class="fas fa-file colorIconFile" style = "font-size: 45px;"></i>
                     </span>
                     <span *ngIf = "object.objectType == 'tlist'"><i class="fas fa-list-alt colorIconTlist" style = "font-size: 45px;"></i></span>
                     <span *ngIf = "object.objectType == 'label'"><i class="fas fa-share-square colorIconRole" style = "font-size: 45px;"></i></span>
@@ -294,11 +307,13 @@
     </div>
     <div *ngIf = "miniApp.type == 'image'" style = "position:absolute; width:100%; height:100%;">
         <div style = "transform: translate(-50%, -50%); position:absolute; left:50%; top:50%;" *ngIf = "!miniApp.image.loaded"><i class="fas fa-spinner spinnerLoader"></i></div>
-        <img class = "customImage" 
+        <img class = "custom-image" 
             *ngIf = "miniApp.image.loaded" 
             [attr.src] = "miniApp.image.src" 
-            [style.width] = "miniApp.image.width" 
-            [style.height] = "miniApp.image.height">
+            [class.custom-image-horizon] = "miniApp.image.type == 'horizon'"
+            [class.custom-image-vertical] = "miniApp.image.type == 'vertical'"
+            [style.max-width] = "miniApp.image.width" 
+            [style.max-height] = "miniApp.image.height">
     </div>
     <div *ngIf = "miniApp.type == 'xls'" style = "position:absolute; width:100%; height:100%;">
         <div *ngIf = "!miniApp.xls.loaded" style = "transform: translate(-50%, -50%); position:absolute; left:50%; top:50%;"><i class="fas fa-spinner spinnerLoader"></i></div>

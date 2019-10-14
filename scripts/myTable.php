@@ -3,6 +3,12 @@
     {
         function __construct($idTable, $myLog)
         {
+            global $countCycle;
+            $countCycle = 0;
+            $this->recursion = [
+                "field" => [],
+                "table" => []
+            ];
             $this->idTable = (int)$idTable;
             $this->myLog = $myLog;
         }
@@ -60,6 +66,9 @@
             if($enableLines != "") $queryStr .= "AND i IN ($enableLines)";
             /* else if($filterStr == "") $queryStr .= "AND i IN (-1)"; */ // Если это оставить, то фильтр по умолчанию все скрывает
             else if($filterSelected == -1 || $filterStr == 'i IN (-1)') $queryStr .= "AND i IN (-1)";
+
+            require_once("myFile.php");
+            $myFile = new MyFile();
             if($result = query($queryStr, [$idTable]))
                 while ($row = $result->fetch_array(MYSQLI_NUM)) 
                 {
@@ -73,10 +82,7 @@
                                 $field["type"] = $row[5];
                                 break;
                             case "file":
-                                $fileBaseNameForDownload = scandir("../files/".$field["linkId"], 1)[0];
-                                $type = getFileType($fileBaseNameForDownload);
-                                if(in_array($type, ['gif', 'jpeg', 'png', 'jpg']))
-                                    $field["path"] = $field["linkId"]."/$fileBaseNameForDownload";
+                                $myFile->setField($field, $field["linkId"]);
                             case "table":
                             case "folder":
                                 $field["type"] = $row[5];
@@ -282,6 +288,8 @@
                     "value" => $fieldValue, 
                     "state" => $fieldState 
                 ]);
+
+                $this->recursion["table"] = [];
                 $this->calculateStateForTable($idTable);
                 $this->myLog->add("field", "update", $idField, $oldValue);
                 $this->myLog->add("table", "update", $idTable);
@@ -383,6 +391,8 @@
             else query("UPDATE line_ids SET next = %s WHERE id = %i", [$idNext, $idPrevRow]); 
             query("DELETE FROM line_ids WHERE id = %i", [ $idRow ]);
             query("DELETE FROM fields WHERE tableId = %i AND i = %i AND type != 'head'", [ $idTable, $idRow ]);
+
+            $this->recursion["table"] = [];
             $this->calculateStateForTable($idTable);
             $this->myLog->add("table", "update", $idTable);
         }
@@ -436,8 +446,10 @@
                     $this->myLog->add("field", "update", $idCellTo, $oldValue); 
                     $this->myLog->add("field", "update", $idCellFrom, $oldValueFrom); // изменение таблицы из которой вырезали
                 }
+                $this->recursion["table"] = [];
                 $this->calculateStateForTable($idTableFrom);
             }
+            $this->recursion["table"] = [];
             $this->calculateStateForTable($idTableTo);
         }
         function copy($idTableFrom, $link) // Копировать таблицу
@@ -518,13 +530,20 @@
         function calculateStateForTable($idTable) // Посчитать статус у таблицы
         {
             $state = 0;
-            if($result = query("SELECT avg(state) FROM fields WHERE tableId = %i AND type != 'head' AND state > 0", [ (int)$idTable ]))
-                $state = (int)$result->fetch_array(MYSQLI_NUM)[0];
-            query("UPDATE structures SET state = %i WHERE id = %i", [ $state, (int)$idTable ]);
-            $this->myLog->add("table", "state", $idTable);
-            if($result = query("SELECT tableId, id FROM fields WHERE type = 'link' AND linkId = %i AND linkType = 'table'", [ (int)$idTable ]))
-                while ($row = $result->fetch_array(MYSQLI_NUM))
-                    $this->setStateForField($row[0], $row[1], $state);
+            if(!array_key_exists($idTable, $this->recursion["table"])) // ограничение на зацикливание
+            {
+                $this->recursion["table"][$idTable] = true; // Устанавливается флаг, таблица посчитана(защита от зацикливания)
+                // Считаем средний статус по таблице
+                if($result = query("SELECT avg(state) FROM fields WHERE tableId = %i AND type != 'head' AND state > 0", [ (int)$idTable ])) 
+                    $state = (int)$result->fetch_array(MYSQLI_NUM)[0];
+                query("UPDATE structures SET state = %i WHERE id = %i", [ $state, (int)$idTable ]);
+                $this->myLog->add("table", "state", $idTable);
+                // Ищем где используется эта таблица
+                if($result = query("SELECT tableId, id FROM fields WHERE type = 'link' AND linkId = %i AND linkType = 'table'", [ (int)$idTable ])) 
+                    while ($row = $result->fetch_array(MYSQLI_NUM))
+                        $this->setStateForField($row[0], $row[1], $state);
+            }
+
             $parentId = (int)selectOne("SELECT parent FROM structures WHERE id = %i", [ (int)$idTable ]);
             $objectType = selectOne("SELECT objectType FROM structures WHERE id = %i", [ $parentId ]);
             if($objectType == "folder") $this->calculateStateForFolder($parentId);

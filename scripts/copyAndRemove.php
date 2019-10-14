@@ -26,7 +26,7 @@
             switch($elem[0])
             {
                 case "table": $this->copyTable($idNewElement); break;
-                case "file": $this->copyFile($idNewElement, $elem[2]); break;
+                case "file": $this->copyFile($idNewElement); break;
                 case "value": $this->copyValue($idNewElement, $elem[1]); break;
                 case "folder": $this->copyFolder($idNewElement); break;
                 case "event": $this->copyEvent($idNewElement); break;
@@ -44,7 +44,7 @@
             $myTable->copy($idElement, $typeOperation == "inherit");
             if($typeOperation == "copy") // Копирование как папки
             {
-                if($result = query("SELECT id FROM structures WHERE parent = %i", [$idElement]))
+                if($result = query("SELECT id FROM structures WHERE parent = %i AND trash = 0", [$idElement]))
                     while($row = $result->fetch_array(MYSQLI_NUM))
                     {
                         $structures = new CopyAndRemove((int)$row[0], $idNewElement, $typeOperation, $this->myLog);
@@ -52,11 +52,12 @@
                     }
             }
         }
-        function copyFile($idNewElement, $name) // Скопировать файл
+        function copyFile($idNewElement) // Скопировать файл
         {
             $idElement = $this->idElement;
-            if (!file_exists("../files/$idNewElement")) mkdir("../files/$idNewElement", 0700);
-            copy("../files/$idElement/".$name, "../files/$idNewElement/".$name);
+            require_once("myFile.php");
+            $myFile = new MyFile();
+            echo $myFile->copy($idElement, $idNewElement);
         }
         function copyValue($idNewElement, $objectId) // Скопировать значение
         {
@@ -72,8 +73,8 @@
         {
             $idElement = $this->idElement;
             $typeOperation = $this->typeOperation;
-            if($this->typeOperation == "inherit") query("UPDATE structures SET bindId = %i WHERE id = %i", [ $idElement, $idNewElement ]);
-            if($result = query("SELECT id FROM structures WHERE parent = %i", [$idElement]))
+            /* if($this->typeOperation == "inherit") query("UPDATE structures SET bindId = %i WHERE id = %i", [ $idElement, $idNewElement ]); */
+            if($result = query("SELECT id FROM structures WHERE parent = %i AND trash = 0", [$idElement]))
                 while($row = $result->fetch_array(MYSQLI_NUM))
                 {
                     $structures = new CopyAndRemove((int)$row[0], $idNewElement, $typeOperation, $this->myLog);

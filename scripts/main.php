@@ -80,6 +80,19 @@
                 echo $row[0]." ".$row[1]." ".$row[2]."<br>";
             }
     } */
+    
+    /* Все картинки переводятся в thumbs */
+    /* if($nQuery == -3)
+    {
+        require_once("myFile.php");
+        $myFile = new MyFile();
+        $dir = scandir("../files/", 1);
+        for($i = 0; $i < count($dir) - 2; $i++){
+            $name = scandir("../files/".$dir[$i], 1)[0];
+            $myFile->createFile((int)$dir[$i], $name);
+        }
+    } */
+
     //file_get_contents
     /* Запросы не требующие логин */
     if($nQuery < 40)
@@ -238,7 +251,11 @@
         $elem["count"] = $count ? selectOne("SELECT COUNT(*) FROM structures WHERE parent = %i", [ $elem["id"] ]) : null;
         if($elem["objectType"] == "file")
         {
-            if (!file_exists("../files/".$elem["id"])) return $elem;
+            if (!file_exists("../files/".$elem["id"])) 
+            {
+                $elem["fileType"] = "unknown";
+                return $elem;
+            }
             $fileName = scandir("../files/".$elem["id"], 1)[0];
             $type = getFileType($fileName);
             switch($type)

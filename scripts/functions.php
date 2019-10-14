@@ -100,29 +100,6 @@
         $result = $str;
         return $result;
     }
-    function loadFile($maxSize, $types)
-    {
-        if (!file_exists("../tmp")) mkdir("../tmp", 0700);
-        if($_FILES["filename"]["size"] > 1024*$maxSize*1024)
-        {
-            return json_encode(["Размер файла превышает $maxSize Mb"]);
-            exit;
-        }
-        if(is_uploaded_file($_FILES["filename"]["tmp_name"]))// Проверяем загружен ли файл
-        {
-            $name = $_FILES["filename"]["name"];
-            $end = strripos($name, "."); 
-            $type = substr($name, $end + 1);
-            if (in_array($type, $types))
-            {
-                /* $name = substr($name, 0, $end).date("_m_d_y_H_i_s").substr($name, $end); */
-                move_uploaded_file($_FILES["filename"]["tmp_name"], "../tmp/".$name);
-                return json_encode(["OK", $_FILES["filename"]["name"], $name]);
-            } 
-            else return json_encode(["Некорректный формат файла $type"]);
-        }
-        else return json_encode(["Ошибка загрузки файла"]);
-    }
     function checkL($array, $login) // Проверка логина
 	{
 		for ($i = 0;  $i < count($array); $i++)

@@ -138,6 +138,10 @@
     margin-bottom: 5px;
     background-color: white;
 }
+.element-explorer-icon-transparent
+{
+    background-color: transparent;
+}
 /* .elementExplorer:active
 {
     transition: 0.2s;
@@ -271,12 +275,22 @@
     background-color: #eeeeee;
 }
 /********************************************************/
-.customImage
+.custom-image
 {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+}
+.custom-image-horizon
+{
+    width: auto;
+    height: 98%;
+}
+.custom-image-vertical
+{
+    width: 98%;
+    height: auto;
 }
 .loadBar
 {
