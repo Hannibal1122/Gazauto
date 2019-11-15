@@ -378,31 +378,21 @@ export class ExplorerComponent implements OnInit
             case "filter":
             case "label": // Используется элемент от папки тк алгоритм удаления одинаков
             case "folder":
-                this.createFolder.remove(id, () => { this.refresh() }, this.inputs.type === "recycle" ? 130 : 112);
+                this.createFolder.remove(id, () => { this.refresh() }, this.inputs.type);
                 break;
+            case "tlist":
+            case "event": 
+            case "file": 
+            case "class":
+            case "plan":
             case "table":
-                this.createTable.remove(id, () => { this.refresh() }, this.inputs.type === "recycle" ? 130 : 112);
+                this.createTable.remove(id, () => { this.refresh() }, this.inputs.type);
                 break;
             case "user":
                 this.createUser.remove(name, () => { this.refresh() });
                 break;
             case "role": 
                 this.createRole.remove(name, () => { this.refresh() });
-                break;
-            case "event": 
-                this.createEvent.remove(id, () => { this.refresh() }, this.inputs.type === "recycle" ? 130 : 112);
-                break;
-            case "file": 
-                this.createFile.remove(id, () => { this.refresh() }, this.inputs.type === "recycle" ? 130 : 112);
-                break;
-            case "tlist":
-                this.createTableList.remove(id, () => { this.refresh() }, this.inputs.type === "recycle" ? 130 : 112);
-                break;
-            case "plan":
-                this.createPlanChart.remove(id, () => { this.refresh() }, this.inputs.type === "recycle" ? 130 : 112);
-                break;
-            case "class":
-                this.createClassService.remove(id, () => { this.refresh() }, this.inputs.type === "recycle" ? 130 : 112);
                 break;
         }
     }

@@ -837,7 +837,7 @@ export class TableEditorV2Component implements OnInit
         let fillFields = [];
         let fillFieldsId = [];
         for(let i = 0; i < this.dataHeader.length; i++)
-            if(this.dataHeader[i].fill) 
+            if(this.dataHeader[i] && this.dataHeader[i].fill) 
             {
                 fillFieldsId.push(this.dataHeader[i].id);
                 fillFields.push([this.dataHeader[i].name, "", "text"]);

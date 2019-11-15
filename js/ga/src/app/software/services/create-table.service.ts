@@ -29,8 +29,13 @@ export class CreateTableService
             }
         });
     }
-    remove(id, update, nQueryRemove)
+    remove(id, update, removeType)
     {
+        if(removeType === "recycle")
+        {
+            this.query.protectionPost(130, { param: [id] }, () => { update(); });
+            return;
+        }
         this.query.getWhereUsed(id, (data) => 
         { 
             var Data:any = {
@@ -43,13 +48,9 @@ export class CreateTableService
             this.modal.open(Data, (save) =>
             {
                 if(save)
-                    this.query.protectionPost(nQueryRemove, { param: [id] }, (data) => 
+                    this.query.protectionPost(112, { param: [id] }, (data) => 
                     { 
-                        trace(data)
-                        /* this.query.protectionPost(254, { param: [id] }, (data) => 
-                        { */
-                            update();
-                        /* }); */
+                        update();
                     });
             });
         });

@@ -32,8 +32,13 @@ export class CreateFolderService
             }
         });
     }
-    remove(id, update, nQueryRemove)
+    remove(id, update, removeType)
     {
+        if(removeType === "recycle")
+        {
+            this.query.protectionPost(130, { param: [id] }, () => { update(); });
+            return;
+        }
         var Data:any = {
             title: "Вы действительно хотите удалить элемент? (" + id + ")",  
             data: [],
@@ -43,7 +48,7 @@ export class CreateFolderService
         this.modal.open(Data, (save) =>
         {
             if(save)
-                this.query.protectionPost(nQueryRemove, { param: [id] }, (data) => 
+                this.query.protectionPost(112, { param: [id] }, (data) => 
                 { 
                     update();
                 });
