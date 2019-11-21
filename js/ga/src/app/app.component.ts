@@ -26,8 +26,7 @@ declare var $: any;
 })
 export class AppComponent implements OnInit
 {
-    /* @ViewChild('MyLeftMenu') public MyLeftMenu: ElementRef;
-    @ViewChild('MyLeftObjects') public MyLeftObjects: ElementRef; */
+    @ViewChild('modal') public modal: any;
     enter = false;
     loaded = false;
     leftMenuData = [];
@@ -38,6 +37,7 @@ export class AppComponent implements OnInit
     globalEvent:GlobalEvent;
     windowType = "interface";
     stickers = [];
+    favorites = [];
     set currentSoftware(value)
     {
         this._currentSoftware = value;
@@ -61,7 +61,7 @@ export class AppComponent implements OnInit
         },
         style: {}
     }
-    splitScreen: SplitScreen = new SplitScreen();
+    splitScreen: SplitScreen = new SplitScreen(this.query);
     constructor(private query: QueryService, 
         private lib: FunctionsService, 
         protected sanitizer: DomSanitizer, 
@@ -169,6 +169,13 @@ export class AppComponent implements OnInit
         else this.panelApp.width = 320;
         if(Width < 720) this.panelApp.up = true;
         else this.panelApp.up = false;
+    }
+    setFavorite(tab)
+    {
+        let inputs = tab.software.inputs;
+        if(this.favorites[inputs.id]) delete this.favorites[inputs.id];
+        else this.favorites[inputs.id] = tab.type;
+        this.query.protectionPost(450, { param: [ "user_favorites", JSON.stringify(this.favorites) ] });
     }
     openTab(s, i) // Активировать вкладку
     {
@@ -287,6 +294,23 @@ export class AppComponent implements OnInit
                         this.tabs[i].stickers = e.value;
                     }
                 this.setCurrentStickers();
+                break;
+            case "openFavorites":
+                this.modal.open({ title: "Это приведет к закрытию текущих вкладок!", data: [], ok: "Ок", cancel: "Отмена"}, (save) =>
+                {
+                    if(save)
+                    {
+                        this.tabs = [];
+                        this.splitScreen.closeAllTabs();
+
+                        this.query.protectionPost(451, { param: ["user_favorites"] }, (favorites) =>
+                        {
+                            this.favorites = favorites || {};
+                            for(var key in this.favorites) 
+                                this.openSoftware(this.favorites[key], { id: Number(key) });
+                        });
+                    }
+                })
                 break;
         }
     }
@@ -456,8 +480,8 @@ export class AppComponent implements OnInit
         localStorage.setItem("login", "");
         localStorage.setItem("name", "");
         localStorage.removeItem("MiniApp");
-        localStorage.removeItem("Tabs");
-        localStorage.removeItem("Sectors");
+        /* localStorage.removeItem("Tabs"); */
+        /* localStorage.removeItem("Sectors"); */
     }
     hideMenu = true;
     currentMiniApp = "";
@@ -471,16 +495,18 @@ export class AppComponent implements OnInit
     }
     getSaveTabs() // Запрос всех сохраненных вкладок
     {
-        let saveTabs:any = localStorage.getItem("Tabs"); 
-        if(saveTabs == null) saveTabs = [];
-        else saveTabs = JSON.parse(saveTabs);
-        let sectors = localStorage.getItem("Sectors");
-        if(sectors != null) this.splitScreen.sectors = JSON.parse(sectors);
-
-        this.splitScreen.appendScreenBySectors();
-        for(var i = 0; i < saveTabs.length; i++) 
-            if(saveTabs[i])
-                this.openSoftware(saveTabs[i][0], saveTabs[i][1], { screen: saveTabs[i][2], current: saveTabs[i][3] });
+        this.query.protectionPost(452, { param: ["user_tabs", "user_sectors", "user_favorites"] }, (data) =>
+        {
+            let saveTabs = data.user_tabs || [];
+            let sectors = data.user_sectors;
+            this.favorites = data.user_favorites || {};
+            if(sectors) this.splitScreen.sectors = sectors;
+            
+            this.splitScreen.appendScreenBySectors();
+            for(var i = 0; i < saveTabs.length; i++) 
+                if(saveTabs[i])
+                    this.openSoftware(saveTabs[i][0], saveTabs[i][1], { screen: saveTabs[i][2], current: saveTabs[i][3] });
+        });
     }
     setActiveScreen(s) // Сделать экран активным
     {

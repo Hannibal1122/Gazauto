@@ -9,5 +9,11 @@
         case 451: // Запросить значение свойства
             echo selectOne("SELECT value FROM user_settings WHERE login = %s AND type = %s", [ $login, $param[0] ]);
             break;
+        case 452: // Запросить значение свойства списком
+            $out = [];
+            for($i = 0; $i < count($param); $i++)
+                $out[$param[$i]] = json_decode(selectOne("SELECT value FROM user_settings WHERE login = %s AND type = %s", [ $login, $param[$i] ]));
+            echo json_encode($out);
+            break;
     }
 ?>

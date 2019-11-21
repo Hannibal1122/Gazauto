@@ -114,7 +114,7 @@
                 [style.width] = "panelApp.width + 'px'" 
                 class = "mainPanelApp PanelAppColor">
                 <div class="mainPanelAppTitle PanelAppTitleColor">Настройки</div>
-                <div>
+                <div style = "overflow: auto;">
                     <div style = "padding: 6px;">CAD <span style = "font-size:12px;">{{ Version }}</span></div>
                     <div style = "height: 40px; padding: 6px; font-weight:bold; font-size:14px; position: relative;">
                         <span style = "position: absolute; left:35px; top: 9px;">
@@ -159,6 +159,8 @@
                             <span *ngIf = "!tab.loaded"><i class="fas fa-spinner spinnerLoader"></i></span>
                             {{ tab.name }}
                         </div>
+                        <span [hidden] = "favorites[tab.software.inputs.id]" (click) = "setFavorite(tab)"><i class="far fa-star tubStarButton TabsButtonStarColor"></i></span>
+                        <span [hidden] = "!favorites[tab.software.inputs.id]" (click) = "setFavorite(tab)"><i class="fas fa-star tubStarButton TabsButtonStarColorActive"></i></span>
                         <span (click) = "closeTab(s, i)"><i class="fas fa-times-circle tubExitButton TabsButtonExitColor"></i></span>
                     </div>
                 </div>
@@ -203,6 +205,7 @@
         <app-table-editor-v2></app-table-editor-v2>
     </div>
 </ng-container>
+<modalwindow #modal></modalwindow>
 <!-- <ng-container *ngIf = "windowType == 'constructor'">
     <div class = "anotherPanelApp">
         <app-template-constructor></app-template-constructor>

@@ -1,7 +1,6 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { QueryService } from '../../lib/query.service';
 import { TableFilterService } from './table-filter.service';
-import { ModalMovedWindowComponent } from '../../system/modal-moved-window/modal-moved-window.component';
 import { QueueService } from './queue.service';
 import { environment } from '../../../environments/environment';
 
@@ -18,7 +17,6 @@ export class TableEditorV2Component implements OnInit
     @ViewChild("overflowX") overflowX:ElementRef;
     @ViewChild("overflowY") overflowY:ElementRef;
     @ViewChild("mainInputElement") mainInputElement:ElementRef;
-    @ViewChild("modalMovedWindow") modalMovedWindow:ModalMovedWindowComponent;
     
     allPath = [];
     scrollEnable = false;
@@ -532,7 +530,7 @@ export class TableEditorV2Component implements OnInit
     }
     acceptEditField() // пропал фокус с выделенной ячейки
     {
-        if(!this.inputProperty.visible && !this.modalMovedWindow.open) return;
+        if(!this.inputProperty.visible) return;
         this.inputProperty.close();
         let cell = this.configInput.element;
         if(this.inputProperty.oldValue != this.inputProperty.value)

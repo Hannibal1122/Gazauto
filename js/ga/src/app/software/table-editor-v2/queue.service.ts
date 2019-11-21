@@ -11,7 +11,7 @@ export class QueueService
     {
 
     }
-    add(nquery, param, func) // Добавить запрос в очередь
+    add(nquery, param, func?) // Добавить запрос в очередь
     {
         this.queue.push({ nquery: nquery, param: param, func: func });
         if(this.queue.length == 1) this.update();

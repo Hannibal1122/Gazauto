@@ -73,4 +73,8 @@ export class UserSettingsComponent implements OnInit
         this.query.protectionPost(450, { param: [ "theme", JSON.stringify({ ...background, theme: this.theme }) ] });
         this.onChange.emit({ type: "changeTheme", value: { ...background, theme: this.theme } });
     }
+    openFavorites()
+    {
+        this.onChange.emit({ type: "openFavorites" });
+    }
 }

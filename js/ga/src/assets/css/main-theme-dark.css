@@ -47,6 +47,15 @@
 {
     color: #b35454;
 }
+.TabsButtonStarColor
+{
+    color: #a7a7a7;
+    transition: 0.3s;
+}
+.TabsButtonStarColorActive, .TabsButtonStarColor:hover
+{
+    color: #5480b3;
+}
 /*******************************************************/
 .ModalButtonExitColor
 {

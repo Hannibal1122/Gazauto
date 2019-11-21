@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
-
+import { QueryService } from '../lib/query.service'
+import { QueueService } from '../software/table-editor-v2/queue.service'
 declare var trace:any;
 
 @Injectable()
@@ -33,8 +34,10 @@ export class SplitScreen
         [0, 0, 0, 0],
     ]
     empty = true;
-    constructor()
+    queue:QueueService;
+    constructor(private query: QueryService)
     {
+        this.queue = new QueueService(query);
         this.appendScreen(0, 0, 0);
         document.addEventListener("dragover", (event:any) => 
         {
@@ -322,6 +325,21 @@ export class SplitScreen
         this.calcSectors();
         this.saveTabs();
     }
+    closeAllTabs()
+    {
+        this.screens = [];
+        this.sectors = 
+        [
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+            [0, 0, 0, 0],
+        ];
+        this.empty = true;
+        this.currentScreen = 0;
+        this.appendScreen(0, 0, 0);
+        this.calcSectors();
+    }
     saveTabs()
     {
         let saveData = []
@@ -332,7 +350,10 @@ export class SplitScreen
                     let tab = this.screens[s].tabs[j];
                     saveData.push([tab.type, { id: tab.software.inputs.id }, s, this.screens[s].currentSoftware == j])
                 }
-        localStorage.setItem("Tabs", JSON.stringify(saveData));
-        localStorage.setItem("Sectors", JSON.stringify(this.sectors));
+
+        trace(saveData)
+        trace(this.sectors)
+        this.queue.add(450, [ "user_tabs", JSON.stringify(saveData) ]);
+        this.queue.add(450, [ "user_sectors", JSON.stringify(this.sectors) ]);
     }
 }
