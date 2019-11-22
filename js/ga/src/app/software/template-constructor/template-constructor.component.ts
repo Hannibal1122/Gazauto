@@ -19,7 +19,6 @@ export class TemplateConstructorComponent implements OnInit
     rules = [];
     readonly = true;
     myTree;
-    error = "";
     cutElement = -1;
     /* typeObject = "apart"; */
     constructor(private query:QueryService) { }
@@ -34,13 +33,11 @@ export class TemplateConstructorComponent implements OnInit
         this.myTree.push(0, { name: "root" });
         this.query.protectionPost(491, { param: [ this.id ] }, (data) =>
         {
-            /* this.query.onChange({ type: "updateClassName", id: this.id, name: data.name }); */
             this.readonly = data.readonly;
             if(data.structure != "")
-            {
                 this.myTree.data = JSON.parse(data.structure);
-            }
             this.rules = this.myTree.straighten();
+            trace(this.rules)
         });
 
         //Загрузка пути
@@ -53,26 +50,30 @@ export class TemplateConstructorComponent implements OnInit
     }
     appendNode(i)
     {
-        this.myTree.push(this.rules[i].id, { templateId: undefined, open: true,  hide: false });
-        this.rules = this.myTree.straighten();
-    }
-    removeNode(i)
-    {
-        this.myTree.remove(this.rules[i].id);
-        this.rules = this.myTree.straighten();
-    }
-    setFromCopy(i)
-    {
+        if(this.rules[i].templateType === 'class') return;
         if(localStorage.getItem("copyExplorer"))
         {
             let id = JSON.parse(localStorage.getItem("copyExplorer")).id;
-            this.rules[i].templateId = id;
-            this.onChangeTemplate(i);
+            this.query.protectionPost(127, { param: [id] }, (data) => {
+                if(data.objectType == "class" || (data.objectType == "table" && data.bindId === null))
+                {
+                    if(id === this.id)
+                    {
+                        this.modal.open({ title: "Конечная папка является дочерней для копируемой!", data: [], ok: "Ок", cancel: ""}, (save) => {});
+                        return;
+                    }
+                    this.myTree.push(this.rules[i].id, { templateId: id, open: true, hide: false, templateName: data.name, templateType: data.objectType });
+                    this.rules = this.myTree.straighten();
+                }
+                else this.modal.open({ title: "Неподходящий тип!", data: [], ok: "Ок", cancel: ""}, (save) => {});
+            })
         }
     }
-    onChangeTemplate(i)
+    removeNode(i)
     {
-        this.myTree.getElement(this.rules[i].id).templateId = this.rules[i].templateId;
+        if(i == 0) return;
+        this.myTree.remove(this.rules[i].id);
+        this.rules = this.myTree.straighten();
     }
     onChangeName(i)
     {
@@ -112,11 +113,15 @@ export class TemplateConstructorComponent implements OnInit
     {
         let cutElement = this.myTree.getElement(this.rules[this.cutElement].id);
         let out = [];
-        this.error = "";
+        let error = false;
         this.myTree.getRecursionRemove(out, cutElement);
         for(let j = 0; j < out.length; j++)
-            if(out[j] == this.rules[i].id) this.error = "Конечная папка является дочерней для копируемой!";
-        if(this.error != "") return;
+            if(out[j] == this.rules[i].id)
+            {
+                this.modal.open({ title: "Конечная папка является дочерней для копируемой!", data: [], ok: "Ок", cancel: ""}, (save) => {});
+                error = true;
+            }
+        if(error) return;
         cutElement.parent = this.rules[i].id;
         if(!this.rules[i].open)
         {
@@ -134,19 +139,8 @@ export class TemplateConstructorComponent implements OnInit
     }
     saveData()
     {
-        let error = false;
-        this.error = "";
-        for(let i = 0; i < this.myTree.data.length; i++)
-        if(this.myTree.data[i].templateId === undefined) error = true;
-        if(error)
-        {
-            this.error = "Не выставлен шаблон!";
-            return;
-        }
         let save = JSON.stringify(this.myTree.data);
-        this.query.protectionPost(492, { param: [ this.id, save ] }, (data) =>
-        {
-        });
+        this.query.protectionPost(492, { param: [ this.id, save ] }, (data) => { });
     }
     seacrhElement(templateId)
     {

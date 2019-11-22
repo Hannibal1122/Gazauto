@@ -25,21 +25,7 @@ export class ModalWindowComponent
     load = false;
     _open = false;
     animationOpen = 0;
-    typeObject = [
-        { name: "Папка", class: "fas fa-folder"}, 
-        { name: "Таблица", class: "fas fa-table"}, 
-        { name: "Событие", class: "fas fa-file-code"}, 
-        { name: "Пользователь", class: "fas fa-user"}, 
-        { name: "Роль", class: "fas fa-address-book"}, 
-        { name: "Файл", class: "fas fa-file-alt"}, 
-        { name: "Фильтр", class: "fas fa-filter"}, 
-        { name: "План-график", class: "fa fa-chart-bar"}, 
-        { name: "Класс", class: "fa fa-pencil-ruler"}, 
-        /* { name: "Справка", class: "fas fa-info"}, */ 
-    ]
-    constructor(private lib:FunctionsService)
-    {
-    }
+    constructor(private lib:FunctionsService) { }
     open(data, closeFunction)
     {
         this.error = "";
@@ -56,8 +42,8 @@ export class ModalWindowComponent
         this._open = true;
         this.animationOpen = 0;
         setTimeout(() => {
-            this.animationOpen++;
-        }, 50);
+            this.animationOpen = 1;
+        }, 0);
     }
     close(save)
     {
@@ -74,7 +60,13 @@ export class ModalWindowComponent
             }
         if(this.closeFunction) 
             out = this.closeFunction(save);
-        if(out === undefined || out === true) this.animationOpen = -2;
+        if(out === undefined || out === true)
+        {
+            this.animationOpen = 0;
+            setTimeout(() => {
+                this._open = false;
+            }, 400);
+        }
         else this.error = out;
     }
     generatePassword(i) // Для password
@@ -129,11 +121,5 @@ export class ModalWindowComponent
     {
         data[3] = true;
         for(var i = 0; i < data[1].length; i++) data[3] &= data[1][i].checked;
-    }
-    animationCloseModal()
-    {
-        this.animationOpen++;
-        if(this.animationOpen == 0)
-            this._open = false;
     }
 }

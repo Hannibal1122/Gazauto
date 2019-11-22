@@ -30,21 +30,34 @@
     margin:5px;
 }
 
-.caretAppend {
+.caret-append {
     color:rgb(104, 185, 97);
     margin-left:5px;
     transition: 0.3s;
     cursor: pointer;
 }
-.caretAppend:hover {
+.caret-append:hover {
     color:rgb(73, 148, 67);
 }
-.caretRemove{
+.caret-remove{
     color:rgb(219, 95, 95);
     margin-left:5px;
     transition: 0.3s;
     cursor: pointer;
 }
-.caretRemove:hover {
+.caret-remove:hover {
     color:rgb(199, 72, 72);
+}
+.-disabled
+{
+    color:#dfdfdf !important;
+}
+
+.table-zebra
+{
+    margin-left: 5px;
+}
+.table-zebra tr:nth-child(2n)
+{
+    background-color: rgba(216, 225, 233, 0.5);
 }

@@ -351,8 +351,6 @@ export class SplitScreen
                     saveData.push([tab.type, { id: tab.software.inputs.id }, s, this.screens[s].currentSoftware == j])
                 }
 
-        trace(saveData)
-        trace(this.sectors)
         this.queue.add(450, [ "user_tabs", JSON.stringify(saveData) ]);
         this.queue.add(450, [ "user_sectors", JSON.stringify(this.sectors) ]);
     }

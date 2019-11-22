@@ -213,7 +213,7 @@
             {
                 require_once("main_400-410.php");
             }
-            if($nQuery >= 410 && $nQuery < 450) // Работа с событиями
+            if($nQuery >= 410 && $nQuery < 450 && $login == "admin") // Работа с событиями
             {
                 require_once("main_410-450.php");
             }

@@ -83,7 +83,9 @@ export class ExplorerComponent implements OnInit
     parentRules =
     {
         new: true, 
-        paste: false
+        paste: false,
+        filter: false,
+        event: false
     }
     viewType = "table"; // Вид просмотра
     constructor(
@@ -185,15 +187,26 @@ export class ExplorerComponent implements OnInit
     }
     newObject() // Создание объекта
     {
+        let typeObject = [
+            { name: "Папка", class: "fas fa-folder" }, 
+            { name: "Таблица", class: "fas fa-table" }, 
+            { name: "Событие", class: "fas fa-file-code", disabled: !this.parentRules.event }, 
+            { name: "Пользователь", class: "fas fa-user" }, 
+            { name: "Роль", class: "fas fa-address-book" }, 
+            { name: "Файл", class: "fas fa-file-alt" }, 
+            { name: "Фильтр", class: "fas fa-filter", disabled: !this.parentRules.filter }, 
+            { name: "План-график", class: "fa fa-chart-bar" }, 
+            { name: "Класс", class: "fa fa-pencil-ruler" }
+        ]
         var Data:any = {
             title: "Выберите тип",  
             data: [
-                ["", -1, "typeObject", (type) => 
+                [ "", -1, "typeObject", (type) => 
                 {
                     this.modal.close(false);
                     let id = this.parent;
                     this.createObject(id, type, null);
-                }]
+                }, typeObject]
             ],
             ok: "",
             cancel: "Отмена"
@@ -481,7 +494,8 @@ export class ExplorerComponent implements OnInit
                 let right = this.createRight.decodeRights(data.right);
                 this.parentRules.paste = Boolean(right.change);
                 this.parentRules.new = Boolean(right.change);
-                
+                this.parentRules.filter = Boolean(right.filter);
+                this.parentRules.event = Boolean(right.event);
                 this.inputs.bind = data.bind !== null; // Если это наследник
                 this.inputs.class = data.class != 0; // Если элемент создан конструктором
                 this.inputs.classRoot = data.classRoot !== null; // Если элемент корневой объекта

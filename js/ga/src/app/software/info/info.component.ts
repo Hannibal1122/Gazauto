@@ -23,10 +23,10 @@ export class InfoComponent implements OnInit
             {
                 this.info = {
                     id: id,
-                    objectType: data[0][0],
-                    info: data[0][1],
-                    state: data[0][2],
-                    name: data[0][3]
+                    objectType: data.objectType,
+                    info: data.info,
+                    state: data.state,
+                    name: data.name
                 }
             });
             this.query.protectionPost(110, { param: [id] }, (data) => 

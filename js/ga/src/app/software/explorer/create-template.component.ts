@@ -81,6 +81,34 @@ export class CreateTemplateComponent implements OnInit
             {
                 this.myClassTree.data = JSON.parse(data.structure);
                 this.myClass = this.myClassTree.straighten();
+                trace(this.myClass)
+                this.query.protectionPost(497, { param: [ this.myClass ] }, (listNames) =>
+                {
+                    trace(listNames)
+                    /* for(let i = 0; i < this.myClass.length; i++) // Выставление имени для шаблонов
+                    {
+                        // Сортировка типов идет по parent шаблона!
+                        this.myClass[i].templateName = this.myClass[i].name || listNames[this.myClass[i].templateId];
+                        if(this.listTemplateById[this.myClass[i].parent] == undefined) this.listTemplateById[this.myClass[i].parent] = [];
+                        this.listTemplateById[this.myClass[i].parent].push(this.myClass[i]);
+                        if(this.lastLevel < this.myClass[i].level) this.lastLevel = this.myClass[i].level
+                    }
+                    trace(this.myClass) */
+                    this.query.protectionPost(113, { param: [ this.folder !== null ? this.folder.id : null ] }, (data) =>
+                    {
+                        trace(data)
+                        let outData = [];
+                        for(var i = 0; i < data.length; i++)
+                            this.straighten(outData, data[i], 0, -1);
+                        trace(outData)
+                    })
+                })
+            }
+            /* this.name = data.name;
+            if(data.structure)
+            {
+                this.myClassTree.data = JSON.parse(data.structure);
+                this.myClass = this.myClassTree.straighten();
                 this.query.protectionPost(497, { param: [ this.myClass ] }, (listNames) =>
                 {
                     for(let i = 0; i < this.myClass.length; i++) // Выставление имени для шаблонов
@@ -91,20 +119,39 @@ export class CreateTemplateComponent implements OnInit
                         this.listTemplateById[this.myClass[i].parent].push(this.myClass[i]);
                         if(this.lastLevel < this.myClass[i].level) this.lastLevel = this.myClass[i].level
                     }
-                    /* trace(this.myClass) */
+                    trace(this.myClass)
                     this.query.protectionPost(494, { param: [ this.folder !== null ? this.folder.id : -1 ] }, (data) =>
                     {
                         if(this.folder !== null) this.myTree.data = data.structure;
                         else 
                             this.myTree.push(0, { name: "root", edited: true, templateId: this.listTemplateById[0][0].templateId, templateTreeId: this.listTemplateById[0][0].id, templateParentId: 0 });
                         this.mainList = this.myTree.straighten();
-                        /* trace(this.mainList) */
+                        trace(this.mainList)
                         this.loaded = true;
                     });
                 });
             }
-            else trace("Error!");
+            else trace("Error!"); */
         });
+    }
+    straighten(out, data, level, parent) // из объекта получаем одномерный массив со всеми полями дерева
+    {
+        let childrens = data.childrens;
+        let j = out.length;
+        out[j] = {
+            id: data.id, 
+            name: data.name, 
+            objectType: data.type, 
+            level: level, 
+            hide: !(level <= 0), 
+            open: false, 
+            parent: parent 
+        };
+        level++;
+        if(childrens.length == 0) out[j].end = true;
+        else
+            for(j = 0; j < childrens.length; j++)
+                this.straighten(out, childrens[j], level, data.id);
     }
     inputName = "";
     appendNode(i)
@@ -209,6 +256,10 @@ export class CreateTemplateComponent implements OnInit
     {
         if(this.animationOpen == false)
             this._open = false;
+    }
+    seacrhElement(templateId)
+    {
+        this.query.onChange({ type: "openFromTable", value: { name: "table", id: templateId }});
     }
     loaded = true;
     error = "";

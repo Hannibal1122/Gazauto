@@ -115,13 +115,13 @@
                 if($filter["str"] != "") $filterStr = " AND (".$filter["str"].")";
                 $operand = $filter["operand"];
             };
-            $query = "SELECT id, objectType, objectId, name, parent, state FROM structures WHERE trash = 0 $filterStr";
+            $query = "SELECT id, objectType, objectId, name, parent, state, bindId, classId FROM structures WHERE trash = 0 $filterStr";
             if($login != "admin") $query .= " AND
                 id IN (SELECT objectId FROM rights WHERE (login = %s OR login = %s) AND rights & 1 
                     AND objectId NOT IN (SELECT objectId FROM rights WHERE login = %s AND (rights & 1) = 0))";
             if($login != "admin") $operand += [$login, $role, $login ];
             
-            searchChildren($query, $operand, 0, $out);
+            searchChildren($query, $operand, !is_null($param) ? $param[0] : 0, $out);
             echo json_encode($out);
             break;
         case 114: // Копирование элемента
@@ -319,7 +319,8 @@
         case 127: // Запрос информации об элементе структуры для приложения справка
             $idElement = (int)$param[0];
             if(($myRight->get($idElement) & 1) != 1) return; // Права на просмотр
-            request("SELECT objectType, info, state, name FROM structures WHERE id = %i", [ $idElement ]);
+            if($result = query("SELECT objectType, info, state, name, bindId FROM structures WHERE id = %i", [ $idElement ]))
+                echo json_encode( $result->fetch_assoc());
             break;
         case 128: // Импорт таблицы на сервер
             require_once("myFile.php");
@@ -544,10 +545,13 @@
                     $i = count($out);
                     $out[$i] = [
                         "id" => $row["id"], 
-                        "objectType" => $row["objectType"], 
-                        "objectId" => $row["objectId"], 
+                        "type" => $row["objectType"], 
+                        /* "objectId" => $row["objectId"],  */
                         "name" => $row["name"], 
                         "state" => $row["state"],
+                        "parent" => $row["parent"],
+                        "classId" => $row["classId"],
+                        "bindId" => $row["bindId"],
                         "childrens" => []
                     ];
                     searchChildren($queryStr, $operand, (int)$row["id"], $out[$i]["childrens"]);

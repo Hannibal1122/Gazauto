@@ -29,7 +29,8 @@ export class CreateRightService
                                     link: false,
                                     change: false, 
                                     right: false, 
-                                    filter: false 
+                                    filter: false,
+                                    event: false
                                 });
                         } // Добавить в список пользователя
                     ], 
@@ -45,7 +46,8 @@ export class CreateRightService
                                     link: false,
                                     change: false, 
                                     right: false, 
-                                    filter: false  
+                                    filter: false,
+                                    event: false
                                 });
                         } // Добавить в список пользователя
                     ], 
@@ -66,6 +68,7 @@ export class CreateRightService
                     data[i].change = rights.change;
                     data[i].right = rights.right;
                     data[i].filter = rights.filter;
+                    data[i].event = rights.event;
                 }
                 Data.data[2][3] = data;
                 this.modal.open(Data, (save)=>
@@ -82,7 +85,8 @@ export class CreateRightService
                                 right.link, 
                                 right.change,
                                 right.right,
-                                right.filter
+                                right.filter,
+                                right.event
                             );
                         }
                         var param = [id, JSON.stringify(Data.data[2][3]), Data.data[3][1]];
@@ -92,9 +96,10 @@ export class CreateRightService
             });
         });
     }
-    encodeRights(view, copy, link, change, right, filter) // декодировать
+    encodeRights(view, copy, link, change, right, filter, event) // декодировать
     {
         var out = 0;
+        out = out | (Number(event) << 6);
         out = out | (Number(filter) << 5);
         out = out | (Number(right) << 4);
         out = out | (Number(change) << 3);
@@ -112,6 +117,7 @@ export class CreateRightService
         out.change = (rights & 8) >> 3;
         out.right = (rights & 16) >> 4;
         out.filter = (rights & 32) >> 5;
+        out.event = (rights & 64) >> 6;
         return out;
     }
     checkRepeat(array, login, type)
