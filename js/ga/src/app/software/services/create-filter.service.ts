@@ -20,7 +20,7 @@ export class CreateFilterService
                 column.push({ id: head[i][0], value: head[i][1], check: true });
             }
             let Data:any = {
-                title: "<b>Создать фильтр</b>",  
+                title: "<b>Создание фильтра</b>",  
                 data: [
                     ["Имя", "", "text"], 
                     ["Фильтр", { fields: fields }, "filterEditor"],

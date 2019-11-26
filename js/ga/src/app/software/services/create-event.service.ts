@@ -14,7 +14,7 @@ export class CreateEventService
     {
         let idParent = _idParent;
         var Data:any = {
-            title: "<b>Добавление события</b>",  
+            title: "<b>Создание события</b>",  
             data: [
                 ["Название", "", "text"], 
                 ["Тип события", { selected: "value", data: ["Значение", "Статус", "По дате"], value: ["value", "state", "date"]}, "select", { onselect: (value) =>
@@ -28,7 +28,7 @@ export class CreateEventService
                     }
                     else this.modal.Data.splice(2, 2);
                 }}]],
-            ok: "Добавить",
+            ok: "Создать",
             cancel: "Отмена"
         };
         this.modal.open(Data, (save)=>

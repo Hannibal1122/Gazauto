@@ -120,7 +120,6 @@
                 id IN (SELECT objectId FROM rights WHERE (login = %s OR login = %s) AND rights & 1 
                     AND objectId NOT IN (SELECT objectId FROM rights WHERE login = %s AND (rights & 1) = 0))";
             if($login != "admin") $operand += [$login, $role, $login ];
-            
             searchChildren($query, $operand, !is_null($param) ? $param[0] : 0, $out);
             echo json_encode($out);
             break;

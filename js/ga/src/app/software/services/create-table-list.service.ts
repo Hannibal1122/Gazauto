@@ -27,12 +27,12 @@ export class CreateTableListService
 
                 let idParent = _idParent != undefined ? _idParent : data.parent;
                 let Data:any = {
-                    title: "<b>" + (data ? "Изменение" : "Добавление") + " списка</b>",  
+                    title: "<b>" + (data ? "Изменение" : "Создание") + " списка</b>",  
                     data: [
                         ["Имя", data ? data.name : "", data ? "html" : "text"], 
                         ["Имя таблицы", table.name, "html"], 
                         ["Имя столбца", { selected: ids[0], data: nameColumn, value: ids}, "select"]],
-                    ok: data ? "Изменить" : "Добавить",
+                    ok: data ? "Изменить" : "Создать",
                     cancel: "Отмена"
                 };
                 if(data) Data.data[2][1].selected = data.fieldId;

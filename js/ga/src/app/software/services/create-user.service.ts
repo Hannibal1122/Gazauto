@@ -16,12 +16,12 @@ export class CreateUserService
         {
             let _new = true;
             var Data:any = {
-                title: "<b>" + (data ? "Изменение" : "Добавление") + " пользователя</b>",  
+                title: "<b>" + (data ? "Изменение" : "Создание") + " пользователя</b>",  
                 data: [
                     ["Логин", "", data ? "html" : "text"], 
                     ["Роль", {selected: roles[0], data: roles}, "select"], 
                     ["Пароль", "", "password"]],
-                ok: data ? "Изменить" : "Добавить",
+                ok: data ? "Изменить" : "Создать",
                 cancel: "Отмена"
             };
             if(data)

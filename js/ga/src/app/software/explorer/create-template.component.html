@@ -29,12 +29,12 @@
                             </select> -->
 
                             <!-- <input *ngIf = "!list.globalId" class = "mainSelect" type="text" [(ngModel)] = "list.name" (change) = "onChangeName(i)" placeholder="имя"> -->
-                            <span *ngIf = "list.globalId">{{ list.name }}</span>
+                            <span>{{ list.name }}</span>
                             <a title = "Шаблон" 
-                                (click) = "seacrhElement()"
+                                (click) = "seacrhElement(mapForTemplate[list.id].templateId)"
                                 style = "border-bottom: 1px dashed rgb(50, 110, 189); color:rgb(50, 110, 189); cursor: pointer; margin-left:5px;">
-                                <span>{{ list.templateTreeId && myClass[list.templateTreeId].templateName ? myClass[list.templateTreeId].templateName : "Undefined" }}</span>
-                                <span style = "font-size: 10px;"> {{ list.templateTreeId && myClass[list.templateTreeId].templateId }}</span>
+                                <span>{{ mapForTemplate[list.id] && mapForTemplate[list.id].templateName ? mapForTemplate[list.id].templateName : "Undefined" }}</span>
+                                <span style = "font-size: 10px;"> {{ mapForTemplate[list.id] && mapForTemplate[list.id].templateId }}</span>
                             </a>
                             <span *ngIf = "list.state" 
                                 style = "font-size:12px; font-weight: 600; border-radius: 8px; padding: 2px 3px; margin-left:5px;"

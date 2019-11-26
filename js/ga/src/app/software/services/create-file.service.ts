@@ -5,11 +5,11 @@ declare var trace:any;
 export class CreateFileService
 {
     Data:any = {
-        title: "Создание файла",  
+        title: "Добавление файла",  
         data: [
             ["Файл", [], "uploader", 117, 118, 1]
         ],
-        ok: "Создать",
+        ok: "Добавить",
         cancel: "Отмена"
     };
 

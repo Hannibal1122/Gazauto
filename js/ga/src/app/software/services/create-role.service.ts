@@ -13,9 +13,9 @@ export class CreateRoleService
         this.loadRoleAndUser((users, roles) =>
         {
             var Data:any = {
-                title: "<b>" + (data ? "Изменение" : "Добавление") + " роли</b>",  
+                title: "<b>" + (data ? "Изменение" : "Создание") + " роли</b>",  
                 data: [["Роль", "", "text"]],
-                ok: data ? "Изменить" : "Добавить",
+                ok: data ? "Изменить" : "Создать",
                 cancel: "Отмена"
             };
             if(data)

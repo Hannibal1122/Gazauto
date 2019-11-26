@@ -12,9 +12,9 @@ export class CreateClassService
     {
         let idParent = _idParent;
         var Data:any = {
-            title: "<b>Добавление класса</b>",  
+            title: "<b>Создание класса</b>",  
             data: [["Название", "", "text"]],
-            ok: "Добавить",
+            ok: "Создать",
             cancel: "Отмена"
         };
         this.modal.open(Data, (save)=>

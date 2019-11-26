@@ -12,7 +12,7 @@ export class CreatePlanChartService
     {
         let idParent = _idParent;
         let Data:any = {
-            title: "<b>Создать план-график</b>",  
+            title: "<b>Создание план-графика</b>",  
             data: [
                 ["Имя", "", "text"], 
                 ["Месяц, год", null, "datetime", null, { time: false, day: false }]],

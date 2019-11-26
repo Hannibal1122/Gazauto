@@ -13,6 +13,8 @@ import { CreateTableListService } from "../services/create-table-list.service";
 import { CreateFilterService } from "../services/create-filter.service";
 import { CreatePlanChartService } from "../services/create-plan-chart.service";
 import { CreateClassService } from "../services/create-class.service";
+import { CreateClassObjectService } from "../services/create-class-object.service";
+
 import { environment } from '../../../environments/environment';
 
 declare var trace:any;
@@ -34,7 +36,8 @@ declare var trace:any;
         CreateEventService,
         CreateFilterService,
         CreatePlanChartService,
-        CreateClassService
+        CreateClassService,
+        CreateClassObjectService
     ]
 })
 export class ExplorerComponent implements OnInit 
@@ -104,6 +107,7 @@ export class ExplorerComponent implements OnInit
         private createFilter: CreateFilterService,
         private createPlanChart: CreatePlanChartService,
         private createClassService: CreateClassService,
+        private createClassObjectService: CreateClassObjectService,
     ) {}
     ngOnInit() 
     { 
@@ -136,6 +140,7 @@ export class ExplorerComponent implements OnInit
         this.createFilter.modal = this.modal;
         this.createPlanChart.modal = this.modal;
         this.createClassService.modal = this.modal;
+        this.createClassObjectService.modal = this.modal;
         this.globalClick = (e) => 
         { 
             if(e.target.classList[0] == "explorerMain"  && this.selectObjectI != -1) this.unSelectObject(); 
@@ -341,6 +346,14 @@ export class ExplorerComponent implements OnInit
                 break;
             case "Класс":
                 this.createClassService.create(id, () => { this.refresh() });
+                break;
+            case "Объект класса":
+                this.createClassObjectService.create(id, (folder) => 
+                { 
+                    this.openFolder(this.parent, () => {
+                        this.createProjectByClass(folder);
+                    });  
+                }, data);
                 break;
         }
     }
@@ -831,14 +844,17 @@ export class ExplorerComponent implements OnInit
     }
     createProjectByClass(folder?)
     {
-        this.projectByClassSetting = { 
-            open: true, 
-            parent: this.parent, 
-            folder: folder ? { 
-                id: folder.id, 
-                bindId: folder.classId || folder.bindId // необходимо для поддержки старой версии
-            } : null 
-        };
+        let copy = JSON.parse(localStorage.getItem("copyExplorer"));
+        if(!folder) this.createObject(this.parent, "Объект класса", copy);
+        else 
+            this.projectByClassSetting = { 
+                open: true, 
+                parent: this.parent, 
+                folder: folder ? { 
+                    id: folder.id, 
+                    bindId: folder.classId || folder.bindId // необходимо для поддержки старой версии
+                } : null 
+            };
     }
     /**************************************/
     miniApp = { // приложения, которые открываются непосредственно в проводнике

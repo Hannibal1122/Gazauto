@@ -27,7 +27,23 @@
             if(($myRight->get($idElement) & 8) != 8) return; // Права на изменение
             query("UPDATE classes SET structure = %s WHERE id = %i", [ $param[1], $idElement ]);
             break;
-        case 493: // Создание структуры на основе класса(должно удалять предыдущую структуру)
+        case 493: // Создание первого элемента в объекте класса
+            $parent = (int)$param[0];
+            $classId = (int)$param[1];
+            $name = $param[2];
+            if(($myRight->get($classId) & 1) != 1) return; // Права на просмотр
+            if(($myRight->get($parent) & 8) != 8) return; // Права на изменение
+            $structure = json_decode(selectOne("SELECT structure FROM classes WHERE id = %i", [ $classId ]));
+            $bindId = $structure[0]->templateId;
+            require_once("copyAndRemove.php");
+            $copyAndRemove = new CopyAndRemove(null, null, null, $myLog);
+            $structures = new CopyAndRemove($bindId, $parent, "inherit", $myLog);
+            $new_id = $structures->copy($name, 1);
+            query("UPDATE structures SET classId = %i WHERE id = %i", [ $classId, $new_id ]);
+            query("INSERT INTO classes_bind (object_id, class_id, structure_id) VALUES(%i, %i, %i)", [ $new_id, $structure[0]->id, $new_id ]);
+            echo $new_id;
+            break;
+        case 4930: // Создание структуры на основе класса(должно удалять предыдущую структуру)
             $parent = (int)$param[2];
             if(($myRight->get($parent) & 8) != 8) return; // Права на изменение
             $structure = json_decode($param[0]);
@@ -133,28 +149,18 @@
             if($new) query("INSERT INTO classes_object (id, structure) VALUES(%i, %s)", [ $tableIdByLevel[0], json_encode($saveTree) ]);
             else query("UPDATE classes_object SET structure = %s WHERE id = %i", [ json_encode($saveTree), $tableIdByLevel[0] ]);
             break;
-        case 494: // Загрузка структуры по folderId
-            $out = [ "structure" => [] ];
+        case 494: // Загрузка связей шаблона и таблиц
+            $out = [ ];
             $folderId = (int)$param[0];
             if(($myRight->get($folderId) & 1) != 1) return; // Права на просмотр
-            if($result = query("SELECT structure FROM classes_object WHERE id = %i", $param))
-            {
-                $out["structure"] = json_decode($result->fetch_assoc()["structure"]);
-                if(is_null($out["structure"])) break;
-                foreach($out["structure"] as $value)
+            if($result = query("SELECT class_id, structure_id FROM classes_bind WHERE object_id = %i", [ $folderId ]))
+                while ($row = $result->fetch_assoc()) 
                 {
-                    $value->name = selectOne("SELECT name FROM structures WHERE id = %i", [ $value->globalId ]);
-                    $value->state = selectOne("SELECT state FROM structures WHERE id = %i", [ $value->globalId ]);
-                    $value->edited = ($myRight->get($value->globalId) & 8) == 8;
-
-                    if(property_exists($value, "tId")) $value->templateId = $value->tId; // Для поддержки старых версий
-                    if(property_exists($value, "tPId")) $value->templateParentId = $value->tPId;
-                    if(property_exists($value, "tTId")) $value->templateTreeId = $value->tTId;
-                    unset($value->tId);
-                    unset($value->tPId);
-                    unset($value->tTId);
+                    $out[$row["class_id"]] = [
+                        "globalId" => $row["structure_id"],
+                        "edited" => ($myRight->get($row["structure_id"]) & 8) == 8
+                    ];
                 }
-            }
             echo json_encode($out);
             break;
         case 495: // Вырезать элемент
@@ -186,14 +192,17 @@
             $saveTree = $param[1];
             query("UPDATE classes_object SET structure = %s WHERE id = %i", [ $saveTree, $folderId ]);
             break;
-        case 497: // Загрузить имена по id списком
-            $listId = $param[0];
-            $outList = [];
-            for($i = 1, $c = count($listId); $i < $c; $i++)
-            {
-                $outList[$listId[$i]["templateId"]] = selectOne("SELECT name FROM structures WHERE id = %i", [ $listId[$i]["templateId"] ]);
-            }
-            echo json_encode($outList);
+        case 497: // Создание элемента в объекте класса
             break;
+        /* case 498: // Перевод в новую таблицу
+            if($result = query("SELECT structure FROM classes_object", []))
+                while ($row = $result->fetch_assoc()) 
+                {
+                    $structure = json_decode($row["structure"]);
+                    for($i = 1; $i < count($structure); $i++)
+                        if(property_exists($structure[$i], "globalId")) 
+                            query("INSERT INTO classes_bind (object_id, class_id, structure_id) VALUES(%i, %i, %i)", [ $structure[0]->globalId, $structure[$i]->id, $structure[$i]->globalId ]);
+                }
+            break; */
     }
 ?>

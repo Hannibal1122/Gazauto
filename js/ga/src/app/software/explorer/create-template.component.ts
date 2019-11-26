@@ -14,7 +14,6 @@ export class CreateTemplateComponent implements OnInit
 {
     _open = false;
     animationOpen = false;
-    settings:any = {};
     name = "";
     parent;
     folder;
@@ -22,11 +21,9 @@ export class CreateTemplateComponent implements OnInit
     myTree:MyTree;
     myClass = [];
     myClassTree:MyTree;
-    lastLevel = 0;
-    removeItems = [];
     cutElement = -1;
+    mapForTemplate = {};
 
-    listTemplateById = {};
     @Input() set config(value)
     {
         if(value)
@@ -57,81 +54,54 @@ export class CreateTemplateComponent implements OnInit
     initData()
     {
         this.loaded = false;
-        if(this.folder !== null) 
-        {
-            this.settings.id = this.folder.bindId;
-            this.settings.new = false;
-        }
-        else
-            if(localStorage.getItem("copyExplorer"))
-                this.settings = JSON.parse(localStorage.getItem("copyExplorer"));
+        let id = this.folder.id;
+        let classId = this.folder.bindId;
         
-        /* trace(this.folder)
-        trace(this.settings) */
-        this.listTemplateById = {};
-        this.removeItems = [];
         this.mainList = [];
         this.myTree = new MyTree();
         this.myClass = [];
         this.myClassTree = new MyTree();
-        this.query.protectionPost(491, { param: [ this.settings.id ] }, (data) =>
+        this.mapForTemplate = {};
+
+        this.query.protectionPost(491, { param: [ classId ] }, (data) => // Загрузка класса
         {
+            trace(classId)
+            trace(id)
             this.name = data.name;
             if(data.structure)
             {
                 this.myClassTree.data = JSON.parse(data.structure);
                 this.myClass = this.myClassTree.straighten();
+                let mapClass = {};
+                for(let i = 0; i < this.myClass.length; i++)
+                    mapClass[this.myClass[i].id] = this.myClass[i];
                 trace(this.myClass)
-                this.query.protectionPost(497, { param: [ this.myClass ] }, (listNames) =>
+                this.query.protectionPost(494, { param: [ id ] }, (classesBind) => // Загрузка связей
                 {
-                    trace(listNames)
-                    /* for(let i = 0; i < this.myClass.length; i++) // Выставление имени для шаблонов
+                    for(let key in classesBind)
+                        this.mapForTemplate[classesBind[key].globalId] = { ...mapClass[key ? key : 1], edited: classesBind[key].edited }  // В 494 запросе нулевой ключ пустой, а нумерация начинается с 1
+                    trace(this.mapForTemplate)
+                    this.query.protectionPost(113, { param: [ id ] }, (data) => // Загрузка структуры
                     {
-                        // Сортировка типов идет по parent шаблона!
-                        this.myClass[i].templateName = this.myClass[i].name || listNames[this.myClass[i].templateId];
-                        if(this.listTemplateById[this.myClass[i].parent] == undefined) this.listTemplateById[this.myClass[i].parent] = [];
-                        this.listTemplateById[this.myClass[i].parent].push(this.myClass[i]);
-                        if(this.lastLevel < this.myClass[i].level) this.lastLevel = this.myClass[i].level
-                    }
-                    trace(this.myClass) */
-                    this.query.protectionPost(113, { param: [ this.folder !== null ? this.folder.id : null ] }, (data) =>
-                    {
-                        trace(data)
+                        let tree = {
+                            bindId: -1,
+                            childrens: data,
+                            classId: null,
+                            id: this.folder.id,
+                            name: this.name,
+                            parent: -1,
+                            state: 0,
+                            type: "table"
+                        }
                         let outData = [];
-                        for(var i = 0; i < data.length; i++)
-                            this.straighten(outData, data[i], 0, -1);
+                        this.straighten(outData, tree, 0, -1);
+                        this.myTree.data = outData;
+                        this.mainList = this.myTree.straighten();
+                        trace(tree)
                         trace(outData)
                     })
                 })
             }
-            /* this.name = data.name;
-            if(data.structure)
-            {
-                this.myClassTree.data = JSON.parse(data.structure);
-                this.myClass = this.myClassTree.straighten();
-                this.query.protectionPost(497, { param: [ this.myClass ] }, (listNames) =>
-                {
-                    for(let i = 0; i < this.myClass.length; i++) // Выставление имени для шаблонов
-                    {
-                        // Сортировка типов идет по parent шаблона!
-                        this.myClass[i].templateName = this.myClass[i].name || listNames[this.myClass[i].templateId];
-                        if(this.listTemplateById[this.myClass[i].parent] == undefined) this.listTemplateById[this.myClass[i].parent] = [];
-                        this.listTemplateById[this.myClass[i].parent].push(this.myClass[i]);
-                        if(this.lastLevel < this.myClass[i].level) this.lastLevel = this.myClass[i].level
-                    }
-                    trace(this.myClass)
-                    this.query.protectionPost(494, { param: [ this.folder !== null ? this.folder.id : -1 ] }, (data) =>
-                    {
-                        if(this.folder !== null) this.myTree.data = data.structure;
-                        else 
-                            this.myTree.push(0, { name: "root", edited: true, templateId: this.listTemplateById[0][0].templateId, templateTreeId: this.listTemplateById[0][0].id, templateParentId: 0 });
-                        this.mainList = this.myTree.straighten();
-                        trace(this.mainList)
-                        this.loaded = true;
-                    });
-                });
-            }
-            else trace("Error!"); */
         });
     }
     straighten(out, data, level, parent) // из объекта получаем одномерный массив со всеми полями дерева
@@ -142,6 +112,9 @@ export class CreateTemplateComponent implements OnInit
             id: data.id, 
             name: data.name, 
             objectType: data.type, 
+            bindId: data.bindId, 
+            classId: data.classId, 
+            state: data.state, 
             level: level, 
             hide: !(level <= 0), 
             open: false, 
@@ -156,7 +129,7 @@ export class CreateTemplateComponent implements OnInit
     inputName = "";
     appendNode(i)
     {
-        if(!this.mainList[i].edited/*  && i > 0 */) return;
+        /* if(!this.mainList[i].edited) return;
         if(this.mainList[i].templateId === -1) return;
         this.myTree.push(this.mainList[i].id, { 
             name: "", 
@@ -169,7 +142,7 @@ export class CreateTemplateComponent implements OnInit
             level: this.mainList[i].level, 
             last: this.lastLevel == this.mainList[i].level + 1 ? true : false 
         });
-        this.mainList = this.myTree.straighten();
+        this.mainList = this.myTree.straighten(); */
     }
     openCollapse(i)
     {
@@ -227,26 +200,14 @@ export class CreateTemplateComponent implements OnInit
     }
     removeItem(i)
     {
-        if(!this.mainList[i].edited) return;
-        if(this.mainList[i].globalId) this.removeItems.push(this.mainList[i].globalId);
-        this.myTree.remove(this.mainList[i].id);
-        this.mainList = this.myTree.straighten();
+        
     }
     onChangeTemplate(i)
     {
-        let myTreeElement = this.myTree.getElement(this.mainList[i].id);
-        let j = 0;
-        for(; j < this.myClass.length; j++)
-            if(this.myClass[j].id == this.mainList[i].templateTreeId) break;
-
-        this.mainList[i].templateId = this.myClass[j].templateId; // т.к. не делается выпрямление
-        myTreeElement.templateTreeId = Number(this.mainList[i].templateTreeId);
-        myTreeElement.templateId = this.myClass[j].templateId;
-        myTreeElement.templateParentId = this.myClass[j].parent;
+        
     }
     onChangeName(i)
     {
-        this.myTree.getElement(this.mainList[i].id).name = this.mainList[i].name;
     }
     Cancel(e?)
     {
@@ -269,7 +230,7 @@ export class CreateTemplateComponent implements OnInit
         // 2 - дерево этой структуры
         // 3 - родительская дирректория
         // 4 - id класса
-        let error = false;
+        /* let error = false;
         this.error = "";
         for(let i = 0; i < this.myTree.data.length; i++)
             if(this.myTree.data[i].templateId === -1) error = true;
@@ -284,12 +245,11 @@ export class CreateTemplateComponent implements OnInit
             JSON.stringify(this.myTree.data), 
             this.parent, 
             this.settings.id, 
-            this.settings.new,
-            this.removeItems 
+            this.settings.new
         ] }, (data) =>
         {
             this.loaded = true;
             this.Cancel("update");
-        });
+        }); */
     }
 }
