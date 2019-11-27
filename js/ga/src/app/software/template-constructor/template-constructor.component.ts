@@ -30,7 +30,7 @@ export class TemplateConstructorComponent implements OnInit
     loadData()
     {
         this.myTree = new MyTree();
-        this.myTree.push(0, { name: "root" });
+        /* this.myTree.push(0, { name: "root" }); */
         this.query.protectionPost(491, { param: [ this.id ] }, (data) =>
         {
             this.readonly = data.readonly;
@@ -50,7 +50,7 @@ export class TemplateConstructorComponent implements OnInit
     }
     appendNode(i)
     {
-        if(this.rules[i].templateType === 'class') return;
+        if(this.rules[i] && this.rules[i].templateType === 'class') return;
         if(localStorage.getItem("copyExplorer"))
         {
             let id = JSON.parse(localStorage.getItem("copyExplorer")).id;
@@ -62,7 +62,7 @@ export class TemplateConstructorComponent implements OnInit
                         this.modal.open({ title: "Конечная папка является дочерней для копируемой!", data: [], ok: "Ок", cancel: ""}, (save) => {});
                         return;
                     }
-                    this.myTree.push(this.rules[i].id, { templateId: id, open: true, hide: false, templateName: data.name, templateType: data.objectType });
+                    this.myTree.push(i == -1 ? -1 : this.rules[i].id, { templateId: id, open: true, hide: false, templateName: data.name, templateType: data.objectType });
                     this.rules = this.myTree.straighten();
                 }
                 else this.modal.open({ title: "Неподходящий тип!", data: [], ok: "Ок", cancel: ""}, (save) => {});
@@ -71,8 +71,10 @@ export class TemplateConstructorComponent implements OnInit
     }
     removeNode(i)
     {
-        if(i == 0) return;
-        this.myTree.remove(this.rules[i].id);
+        let list = [];
+        this.myTree.getRecursionRemove(list, this.rules[i]);
+        for(let _i = 0; _i < list.length; _i++)
+            this.myTree.remove(list[_i]);
         this.rules = this.myTree.straighten();
     }
     onChangeName(i)

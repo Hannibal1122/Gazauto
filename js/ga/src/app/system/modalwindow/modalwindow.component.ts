@@ -25,6 +25,8 @@ export class ModalWindowComponent
     load = false;
     _open = false;
     animationOpen = 0;
+    timeout = null;
+
     constructor(private lib:FunctionsService) { }
     open(data, closeFunction)
     {
@@ -41,9 +43,10 @@ export class ModalWindowComponent
 
         this._open = true;
         this.animationOpen = 0;
+        clearTimeout(this.timeout);
         setTimeout(() => {
             this.animationOpen = 1;
-        }, 0);
+        }, 50);
     }
     close(save)
     {
@@ -63,7 +66,7 @@ export class ModalWindowComponent
         if(out === undefined || out === true)
         {
             this.animationOpen = 0;
-            setTimeout(() => {
+            this.timeout = setTimeout(() => {
                 this._open = false;
             }, 400);
         }

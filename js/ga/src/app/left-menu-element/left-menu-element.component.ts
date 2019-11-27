@@ -110,7 +110,7 @@ export class LeftMenuElementComponent implements OnInit
         out[j] = {
             id: data.id, 
             name: data.name, 
-            objectType: data.type, 
+            objectType: data.objectType, 
             level: level, 
             hide: !(level <= 0), 
             open: false, 

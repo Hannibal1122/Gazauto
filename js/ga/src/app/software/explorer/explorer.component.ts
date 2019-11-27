@@ -348,10 +348,10 @@ export class ExplorerComponent implements OnInit
                 this.createClassService.create(id, () => { this.refresh() });
                 break;
             case "Объект класса":
-                this.createClassObjectService.create(id, (folder) => 
+                this.createClassObjectService.create(id, (object) => 
                 { 
                     this.openFolder(this.parent, () => {
-                        this.createProjectByClass(folder);
+                        this.createProjectByClass(object);
                     });  
                 }, data);
                 break;
@@ -519,7 +519,7 @@ export class ExplorerComponent implements OnInit
     }
     closeClassSetting(e)
     {
-        this.projectByClassSetting = { open: false, parent: -1, folder: null };
+        this.projectByClassSetting = { open: false, parent: -1, object: null, modal: null };
         if(e == "update") this.refresh();
     }
     addInfo() // Добавить справку
@@ -838,23 +838,30 @@ export class ExplorerComponent implements OnInit
     /**************************************/
     projectByClassSetting = 
     {
+        modal: null,
         open: false,
         parent: -1,
-        folder: null
+        object: null
     }
-    createProjectByClass(folder?)
+    createProjectByClass(object?)
     {
         let copy = JSON.parse(localStorage.getItem("copyExplorer"));
-        if(!folder) this.createObject(this.parent, "Объект класса", copy);
+        if(!object) this.createObject(this.parent, "Объект класса", copy);
         else 
-            this.projectByClassSetting = { 
-                open: true, 
-                parent: this.parent, 
-                folder: folder ? { 
-                    id: folder.id, 
-                    bindId: folder.classId || folder.bindId // необходимо для поддержки старой версии
-                } : null 
-            };
+            for(let i = 0; i < this.outFolders.length; i++)
+                if(this.outFolders[i].id == object.id)
+                {
+                    this.projectByClassSetting = { 
+                        modal: this.modal,
+                        open: true, 
+                        parent: this.parent, 
+                        object: this.outFolders[i]
+                            /* id: object.id, 
+                            bindId: object.classId || object.bindId // необходимо для поддержки старой версии
+                        } : null  */
+                    };
+                    break;
+                }
     }
     /**************************************/
     miniApp = { // приложения, которые открываются непосредственно в проводнике

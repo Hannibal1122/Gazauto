@@ -544,8 +544,8 @@
                     $i = count($out);
                     $out[$i] = [
                         "id" => $row["id"], 
-                        "type" => $row["objectType"], 
-                        /* "objectId" => $row["objectId"],  */
+                        "objectType" => $row["objectType"], 
+                        "objectId" => $row["objectId"], 
                         "name" => $row["name"], 
                         "state" => $row["state"],
                         "parent" => $row["parent"],

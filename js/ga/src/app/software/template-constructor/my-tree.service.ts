@@ -12,17 +12,26 @@ export class MyTree
     }
     remove(id)
     {
-        for(let i = 1; i < this.data.length; i++) 
+        for(let i = 0; i < this.data.length; i++) 
             if(this.data[i].id == id) 
             {
                 this.data.splice(i, 1);
                 break;
             }
     }
+    getChildren(out, parent, recursion?)
+    {
+        for(let i = 0; i < this.data.length; i++) 
+            if(this.data[i].parent == parent.id)
+            {
+                out.push(this.data[i]);
+                if(recursion) this.getChildren(out, this.data[i]);
+            }
+    }
     getRecursionRemove(out, parent)
     {
         out.push(parent.id);
-        for(let i = 1; i < this.data.length; i++) 
+        for(let i = 0; i < this.data.length; i++) 
             if(this.data[i].parent == parent.id)
                 this.getRecursionRemove(out, this.data[i]);
     }
@@ -41,9 +50,10 @@ export class MyTree
     }
     getRecursion(out, parent, level)
     {
+        if(parent === undefined) return;
         let elem = { end: true, open: level == 0, hide: level > 1, ...parent, level: level };
         out.push(elem);
-        for(let i = 1; i < this.data.length; i++) 
+        for(let i = 0; i < this.data.length; i++) 
             if(this.data[i].parent == parent.id) 
             {
                 elem.end = false;

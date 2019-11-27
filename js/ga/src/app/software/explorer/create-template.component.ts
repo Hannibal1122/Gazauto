@@ -15,21 +15,22 @@ export class CreateTemplateComponent implements OnInit
     _open = false;
     animationOpen = false;
     name = "";
+    modal;
     parent;
-    folder;
+    object;
+    classList = {};
+    classBind = {};
     mainList = [];
     myTree:MyTree;
-    myClass = [];
-    myClassTree:MyTree;
     cutElement = -1;
-    mapForTemplate = {};
 
     @Input() set config(value)
     {
         if(value)
         {
             this.parent = value.parent;
-            this.folder = value.folder;
+            this.object = value.object;
+            this.modal = value.modal;
 
             if(Boolean(value.open))
             {
@@ -54,54 +55,57 @@ export class CreateTemplateComponent implements OnInit
     initData()
     {
         this.loaded = false;
-        let id = this.folder.id;
-        let classId = this.folder.bindId;
+        let id = this.object.id;
+        let classId = this.object.classId || this.object.bindId // необходимо для поддержки старой версии
         
         this.mainList = [];
         this.myTree = new MyTree();
-        this.myClass = [];
-        this.myClassTree = new MyTree();
-        this.mapForTemplate = {};
 
-        this.query.protectionPost(491, { param: [ classId ] }, (data) => // Загрузка класса
+        this.query.protectionPost(498, { param: [ classId ] }, (data) => // Загрузка класса с подклассами
         {
-            trace(classId)
-            trace(id)
-            this.name = data.name;
+            trace(data)
+            this.classList = {};
+            for(let key in data.structures)
+                this.classList[key] = new MyClass(data.structures[key]);
+            trace(this.classList)
+            this.query.protectionPost(113, { param: [ id ] }, (data) => // Загрузка структуры
+            {
+                let tree = {
+                    childrens: data,
+                    edited: true,
+                    ...this.object
+                }
+                let outData = [];
+                this.straighten(outData, tree, 0, -1);
+                this.myTree.data = outData;
+
+                // Прописываем имена шаблонов и их id в классе
+                this.query.protectionPost(494, { param: [ id ] }, (classBind) => // Загрузка связей уже созданной структуры
+                {
+                    this.classBind = classBind;
+                    for(let i = 0; i < this.myTree.data.length; i++) // дозаполняем массив информацией
+                    {
+                        let object = this.myTree.data[i];
+                        let _class = this.classList[classBind[object.id].classId];
+                        let element = _class.map[classBind[object.id].treeId];
+                        object.templateId = element.templateId;
+                        object.templateName = element.templateName;
+                        object.templateType = element.templateType;
+                    }
+                    this.mainList = this.myTree.straighten();
+                })
+            })
+            /* this.name = data.name;
             if(data.structure)
             {
                 this.myClassTree.data = JSON.parse(data.structure);
+                trace(this.myClassTree.data)
                 this.myClass = this.myClassTree.straighten();
                 let mapClass = {};
                 for(let i = 0; i < this.myClass.length; i++)
                     mapClass[this.myClass[i].id] = this.myClass[i];
                 trace(this.myClass)
-                this.query.protectionPost(494, { param: [ id ] }, (classesBind) => // Загрузка связей
-                {
-                    for(let key in classesBind)
-                        this.mapForTemplate[classesBind[key].globalId] = { ...mapClass[key ? key : 1], edited: classesBind[key].edited }  // В 494 запросе нулевой ключ пустой, а нумерация начинается с 1
-                    trace(this.mapForTemplate)
-                    this.query.protectionPost(113, { param: [ id ] }, (data) => // Загрузка структуры
-                    {
-                        let tree = {
-                            bindId: -1,
-                            childrens: data,
-                            classId: null,
-                            id: this.folder.id,
-                            name: this.name,
-                            parent: -1,
-                            state: 0,
-                            type: "table"
-                        }
-                        let outData = [];
-                        this.straighten(outData, tree, 0, -1);
-                        this.myTree.data = outData;
-                        this.mainList = this.myTree.straighten();
-                        trace(tree)
-                        trace(outData)
-                    })
-                })
-            }
+            } */
         });
     }
     straighten(out, data, level, parent) // из объекта получаем одномерный массив со всеми полями дерева
@@ -111,14 +115,16 @@ export class CreateTemplateComponent implements OnInit
         out[j] = {
             id: data.id, 
             name: data.name, 
-            objectType: data.type, 
+            objectType: data.objectType, 
             bindId: data.bindId, 
             classId: data.classId, 
             state: data.state, 
+            edited: data.edited, 
             level: level, 
             hide: !(level <= 0), 
             open: false, 
-            parent: parent 
+            parent: parent/* ,
+            _parent: data.parent */
         };
         level++;
         if(childrens.length == 0) out[j].end = true;
@@ -126,9 +132,51 @@ export class CreateTemplateComponent implements OnInit
             for(j = 0; j < childrens.length; j++)
                 this.straighten(out, childrens[j], level, data.id);
     }
-    inputName = "";
     appendNode(i)
     {
+        let object = this.mainList[i];
+        let listData = [];
+        let listValue = [];
+        let listTemplate = [];
+        let _class = this.classList[this.classBind[object.id].classId];
+        _class.tree.getChildren(listTemplate, { id: this.classBind[object.id].treeId });
+        for(let i = 0; i < listTemplate.length; i++)
+        {
+            listData[i] = listTemplate[i].templateName;
+            listValue[i] = listTemplate[i].id;
+        }
+        let Data:any = {
+            title: "Добавить элемент",  
+            data: [
+                [ "Имя", "", "text" ],
+                [ "", { selected: -1, data: listData, value: listValue }, "select" ],
+            ],
+            ok: "Добавить",
+            cancel: "Отмена"
+        }
+        this.modal.open(Data, (save) => {
+            if(save)
+            {
+                let name = Data.data[0][1];
+                let treeId = Data.data[1][1].selected;
+                if(name == "") return "Введите имя!";
+                if(treeId == -1) return "Выберите шаблон!";
+                trace(_class)
+                let bindId = _class.map[treeId].templateId;
+                let classId = this.classBind[object.id].classId;
+                let type = _class.map[treeId].templateType;
+                if(type == "class")
+                {
+                    classId = _class.map[treeId].templateId;
+                    bindId = this.classList[classId].tree.data[0].templateId;
+                    trace(classId)
+                }
+                this.query.protectionPost(493, { param: [ object.id, classId, Data.data[0][1], type, bindId, treeId ] }, (data) =>
+                {
+                    trace(data)
+                })
+            }
+        });
         /* if(!this.mainList[i].edited) return;
         if(this.mainList[i].templateId === -1) return;
         this.myTree.push(this.mainList[i].id, { 
@@ -191,7 +239,7 @@ export class CreateTemplateComponent implements OnInit
             }
             cutElement.parent = this.mainList[i].id;
             //Сохранить новую структуру
-            this.query.protectionPost(496, { param: [ this.folder.id, JSON.stringify(this.myTree.data) ] }, (data) => {
+            this.query.protectionPost(496, { param: [ this.object.id, JSON.stringify(this.myTree.data) ] }, (data) => {
                 this.mainList = this.myTree.straighten();
                 this.loaded = true;
             });
@@ -251,5 +299,19 @@ export class CreateTemplateComponent implements OnInit
             this.loaded = true;
             this.Cancel("update");
         }); */
+    }
+}
+class MyClass
+{
+    tree: MyTree;
+    map:any;
+    constructor(list)
+    {
+        this.tree = new MyTree();
+        this.tree.data = list;
+        this.map = {};
+
+        for(let i = 0; i < list.length; i++)
+            this.map[list[i].id] = list[i];
     }
 }
