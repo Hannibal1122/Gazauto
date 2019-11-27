@@ -63,7 +63,6 @@ export class CreateTemplateComponent implements OnInit
 
         this.query.protectionPost(498, { param: [ classId ] }, (data) => // Загрузка класса с подклассами
         {
-            trace(data)
             this.classList = {};
             for(let key in data.structures)
                 this.classList[key] = new MyClass(data.structures[key]);
@@ -82,14 +81,17 @@ export class CreateTemplateComponent implements OnInit
                 // Прописываем имена шаблонов и их id в классе
                 this.query.protectionPost(494, { param: [ id ] }, (classBind) => // Загрузка связей уже созданной структуры
                 {
+                    trace(this.myTree.data)
+                    trace(classBind)
                     this.classBind = classBind;
                     for(let i = 0; i < this.myTree.data.length; i++) // дозаполняем массив информацией
                     {
                         let object = this.myTree.data[i];
                         let _class = this.classList[classBind[object.id].classId];
                         let element = _class.map[classBind[object.id].treeId];
+                        object.edited = classBind[object.id].edited;
                         object.templateId = element.templateId;
-                        object.templateName = element.templateName;
+                        object.templateName = element.name || element.templateName;
                         object.templateType = element.templateType;
                     }
                     this.mainList = this.myTree.straighten();
@@ -142,7 +144,7 @@ export class CreateTemplateComponent implements OnInit
         _class.tree.getChildren(listTemplate, { id: this.classBind[object.id].treeId });
         for(let i = 0; i < listTemplate.length; i++)
         {
-            listData[i] = listTemplate[i].templateName;
+            listData[i] = listTemplate[i].name || listTemplate[i].templateName;
             listValue[i] = listTemplate[i].id;
         }
         let Data:any = {
@@ -168,6 +170,7 @@ export class CreateTemplateComponent implements OnInit
                 if(type == "class")
                 {
                     classId = _class.map[treeId].templateId;
+                    treeId = this.classList[classId].tree.data[0].id;
                     bindId = this.classList[classId].tree.data[0].templateId;
                     trace(classId)
                 }
