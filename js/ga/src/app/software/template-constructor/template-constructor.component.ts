@@ -37,7 +37,6 @@ export class TemplateConstructorComponent implements OnInit
             if(data.structure != "")
                 this.myTree.data = JSON.parse(data.structure);
             this.rules = this.myTree.straighten();
-            trace(this.rules)
         });
 
         //Загрузка пути

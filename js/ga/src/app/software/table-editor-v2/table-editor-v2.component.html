@@ -46,8 +46,8 @@
     <app-table-header-editor *ngIf = "headerEditorShow" [tableId] = "id" [header] = "dataHeader" [disabled] = "!right.change || !right.head" (updateTable) = "updateEventFromHeader($event)"></app-table-header-editor>
     <div class = "MainBColor"
         #overflowX
-        (scroll) = "saveScroll()"
         style = "position: relative; overflow-x: auto;">
+        <!-- Заголовок -->
         <table class = "errorTable TableCreatorBorderColor" 
             style = "position: absolute; top:0px; z-index: 1000; width:100%;" 
             [class.shadow-top] = "scrollEnable"
@@ -60,6 +60,7 @@
                         class = "TableCreatorHeadColor TableCreatorHeadBColor" 
                         id = "{{ head.id }}"
                         title = "{{ head.name }}"
+                        [style.width] = "head.width ? head.width : null"
                         [style.min-width] = "head.width ? head.width : null"
                         [style.max-width] = "head.width ? head.width : null"
                         (contextmenu) = "getContextmenu($event, i, 'head')">
@@ -145,7 +146,6 @@
                             [class.cutRow] = "cutCopyRowProperty.i == i"
                             class = "TableCreatorHeadColor TableCreatorHeadBColor">{{ i + 1 }}</td>
                         <ng-container *ngFor = "let cell of row; let j = index;">
-                            <!-- [style.width] = "dataHeader[j].width ? dataHeader[j].width : null" -->
                             <td *ngIf = "cell && hiddenColumn[j] !== true" 
                                 id = "{{ cell.id }}"
                                 (contextmenu) = "getContextmenu($event, i, 'cell')"
@@ -270,44 +270,6 @@
             <!-- <div *ngIf = "mode == 'Global'" style = "float:right; color:#b5e498; font-size:20px;" title = "global"><i class="fas fa-cloud"></i></div> -->
         </div>
     </div>
-    <!-- Закрепленный заголовок -->
-    <table *ngIf = "fastenHeaderProperties.scrollTop > 0" 
-        class = "errorTable TableCreatorBorderColor"
-        style = "position: absolute; left:0px;" 
-        [style.top] = "fastenHeaderProperties.offsetTop + 'px'">
-        <tbody>
-            <tr>
-                <th *ngIf = "lineNumbering.enable" 
-                    class = "TableCreatorHeadColor TableCreatorHeadBColor"
-                    [style.width] = "fastenHeaderProperties.number.width + 'px'" 
-                    [style.height] = "fastenHeaderProperties.number.height + 'px'"></th>
-                <ng-container *ngFor = "let head of dataHeader">
-                    <th *ngIf = "head"
-                        class = "TableCreatorHeadColor TableCreatorHeadBColor" 
-                        id = "{{ head.id }}"
-                        [style.width] = "head.width + 'px'" 
-                        [style.height] = "head.height + 'px'"
-                        (contextmenu) = "getContextmenu($event, i, 'head')">
-                        {{ head.name }}
-                        <div class="linkClass">
-                            <span *ngIf = "head.dataType == 'NUMBER'" class = "linkValueClass" style = "padding-left: 3px; padding-right: 4px;">123</span>
-                            <span *ngIf = "head.dataType == 'STRING'" class = "linkValueClass" style = "padding-left: 2px; padding-right: 2px;">str</span>
-                            <span *ngIf = "head.dataType == 'DATETIME'" class = "linkValueClass">
-                                <i class="fas fa-clock"></i>
-                            </span>
-                            <span *ngIf = "head.dataType == 'tlist'" class = "linkValueClass">
-                                <i class="fas fa-bars"></i>
-                            </span>
-                            <span *ngIf = "head.eventId" class = "linkCellClass">
-                                <i class = "fa fa-bolt"></i>
-                            </span>
-                        </div>
-                    </th>
-                </ng-container>
-            </tr>
-        </tbody>
-    </table>
-    <!--  -->
 </div>
 <div class = "createContextMenu" 
     [hidden] = "!createContextMenu.visible" 

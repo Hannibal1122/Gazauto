@@ -57,7 +57,6 @@ export class ExplorerComponent implements OnInit
     inputs = { id: -1, element: null, searchObjectId: null, updateHistory: null, 
         type: null, // Может быть в режиме корзины
         bind: false, // Если папка наследует
-        class: false, // Если элемент создан конструктором
         classRoot: false // Если элемент корневой объекта
     };
     imgPath = {
@@ -472,17 +471,16 @@ export class ExplorerComponent implements OnInit
             let right = this.createRight.decodeRights(data.right);
             this.selectRules.copy = objectType == "user" || objectType == "role" ? false : Boolean(right.copy);
             this.selectRules.change = Boolean(right.change);
-            this.selectRules.cut = this.inputs.class ? false : Boolean(right.change);
+            this.selectRules.cut = /* this.inputs.class ? false :  */Boolean(right.change);
             this.selectRules.rights = objectType == "user" || objectType == "role" ? false : Boolean(right.right);
             this.selectRules.remove = Boolean(right.change);
             /* this.selectRules.paste = Boolean(right.change); */
             this.selectRules.rename = Boolean(right.change) && objectType != "user" && objectType != "role";
-            if(data.class == 1)
+            /* if(data.class == 1)
             {
-                /* this.selectRules.copy = false;  */
                 if(objectType == "table" && data.classRoot === null) // Подрузамевается что это корневая папка конструктора
                     this.selectRules.remove = false; 
-            }
+            } */
             this.tableProperty.rules = { 
                 change: Boolean(right.change),
                 rename: this.selectRules.rename
@@ -510,7 +508,7 @@ export class ExplorerComponent implements OnInit
                 this.parentRules.filter = Boolean(right.filter);
                 this.parentRules.event = Boolean(right.event);
                 this.inputs.bind = data.bind !== null; // Если это наследник
-                this.inputs.class = data.class != 0; // Если элемент создан конструктором
+                /* this.inputs.class = data.class != 0; // Если элемент создан конструктором */
                 this.inputs.classRoot = data.classRoot !== null; // Если элемент корневой объекта
                 if(func) func();
                 this.inputs.updateHistory();

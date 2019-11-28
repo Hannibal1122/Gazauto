@@ -21,8 +21,8 @@ export class CreateTableListService
                 let nameColumn = [];
                 for(var i = 0; i < listColumn.length; i++)
                 {
-                    ids[i] = listColumn[i][0];
-                    nameColumn[i] = listColumn[i][1];
+                    ids[i] = listColumn[i].id;
+                    nameColumn[i] = listColumn[i].value;
                 }
 
                 let idParent = _idParent != undefined ? _idParent : data.parent;

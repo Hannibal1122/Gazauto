@@ -66,7 +66,7 @@ export class TableEditorV2Component implements OnInit
     dataTable = [];
     firstData = []; // Ссылка на изначальные данные для фильтров
     mapFields = {}; // Сохраняется id для быстрого поиска ячейки
-    hiddenColumn = { }; // Объект для скрытия столбцов, хранит номер столбца
+    hiddenColumn = {}; // Объект для скрытия столбцов, хранит номер столбца
     userRowList = {}; // Список строк, которые пользователь добавил из ячейки
 
     configInput = {
@@ -391,16 +391,6 @@ export class TableEditorV2Component implements OnInit
                     this.headerEditorShow = prop.headerEditorShow;
                     break;
             }
-        }
-    }
-    fastenHeaderProperties = 
-    {
-        scrollTop: 0,
-        offsetTop: 0,
-        number:
-        {
-            width: 0,
-            height: 0
         }
     }
     smallHeader =
@@ -819,7 +809,7 @@ export class TableEditorV2Component implements OnInit
         this.cutCopyRowProperty.type = type;
         /* localStorage.setItem("copyForStatistic", JSON.stringify({ id: this.cutCopyRowProperty.idRow1, type: "row" })); */ //TODO как-нибудь в будущем
     }
-    addRow(type, prevOrNext) // Добавить в строку таблицу
+    addRow(type, prevOrNext) // Добавить строку в таблицу
     {
         if(this.dataHeader.length == 0) 
         {
@@ -842,7 +832,7 @@ export class TableEditorV2Component implements OnInit
             }
         if(fillFields.length == 0)
             this.queue.add(257, [ this.id, idRow, prevOrNext ], (data) => { this.loadTable(); });
-        else this.modal.open({ title: "Нужно добавить заголовок!", data: fillFields, ok: "Ок", cancel: "Отмена"}, (save) =>
+        else this.modal.open({ title: "Заполнить поля", data: fillFields, ok: "Ок", cancel: "Отмена"}, (save) =>
         {
             if(!save) return;
             this.queue.add(257, [ this.id, idRow, prevOrNext ], (data) => {

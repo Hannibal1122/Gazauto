@@ -62,6 +62,15 @@
 .caret-remove:hover {
     color:rgb(199, 72, 72);
 }
+.caret-demand{
+    color:rgb(219, 200, 95);
+    margin-left:5px;
+    transition: 0.3s;
+    cursor: pointer;
+}
+.caret-demand:hover {
+    color:rgb(182, 165, 71);
+}
 .-disabled
 {
     color:#dfdfdf !important;
@@ -74,4 +83,8 @@
 .table-zebra tr:nth-child(2n)
 {
     background-color: rgba(216, 225, 233, 0.5);
+}
+.bind-gap
+{
+    color: gray;
 }

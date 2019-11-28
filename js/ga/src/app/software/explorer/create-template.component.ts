@@ -23,6 +23,10 @@ export class CreateTemplateComponent implements OnInit
     mainList = [];
     myTree:MyTree;
     cutElement = -1;
+    loaded = true;
+    error = "";
+    openCloseElement = {}; // сохраняет открытые/закрытые группы // сохраняет по глобальному id
+    mapParentType = [];
 
     @Input() set config(value)
     {
@@ -31,7 +35,8 @@ export class CreateTemplateComponent implements OnInit
             this.parent = value.parent;
             this.object = value.object;
             this.modal = value.modal;
-
+            if(this.object && this.openCloseElement[this.object.id] === undefined)
+                this.openCloseElement[this.object.id] = {};
             if(Boolean(value.open))
             {
                 this._open = true;
@@ -45,13 +50,8 @@ export class CreateTemplateComponent implements OnInit
         }
     }
     @Output() onChange = new EventEmitter<any>();
-    constructor(private query:QueryService)
-    {
-    }
-    ngOnInit()
-    {
-    }
-    mapParentType = [];
+    constructor(private query:QueryService) { }
+    ngOnInit() { }
     initData()
     {
         this.loaded = false;
@@ -61,54 +61,76 @@ export class CreateTemplateComponent implements OnInit
         this.mainList = [];
         this.myTree = new MyTree();
 
-        this.query.protectionPost(498, { param: [ classId ] }, (data) => // Загрузка класса с подклассами
+        this.query.protectionPost(133, { param: [ id ] }, (data) => // Загрузка таблицы требований
         {
-            this.classList = {};
-            for(let key in data.structures)
-                this.classList[key] = new MyClass(data.structures[key]);
-            trace(this.classList)
-            this.query.protectionPost(113, { param: [ id ] }, (data) => // Загрузка структуры
-            {
-                let tree = {
-                    childrens: data,
-                    edited: true,
-                    ...this.object
-                }
-                let outData = [];
-                this.straighten(outData, tree, 0, -1);
-                this.myTree.data = outData;
-
-                // Прописываем имена шаблонов и их id в классе
-                this.query.protectionPost(494, { param: [ id ] }, (classBind) => // Загрузка связей уже созданной структуры
-                {
-                    trace(this.myTree.data)
-                    trace(classBind)
-                    this.classBind = classBind;
-                    for(let i = 0; i < this.myTree.data.length; i++) // дозаполняем массив информацией
+            let userProperty = JSON.parse(data.userProperty);
+            if(userProperty)
+                for(let i = 0; i < userProperty.length; i++)
+                    if(userProperty[i].type == "annotation")
                     {
-                        let object = this.myTree.data[i];
-                        let _class = this.classList[classBind[object.id].classId];
-                        let element = _class.map[classBind[object.id].treeId];
-                        object.edited = classBind[object.id].edited;
-                        object.templateId = element.templateId;
-                        object.templateName = element.name || element.templateName;
-                        object.templateType = element.templateType;
+                        this.demandTable = userProperty[i].value.id;
+                        break;
                     }
-                    this.mainList = this.myTree.straighten();
-                })
-            })
-            /* this.name = data.name;
-            if(data.structure)
+            this.query.protectionPost(498, { param: [ classId ] }, (data) => // Загрузка класса с подклассами
             {
-                this.myClassTree.data = JSON.parse(data.structure);
-                trace(this.myClassTree.data)
-                this.myClass = this.myClassTree.straighten();
-                let mapClass = {};
-                for(let i = 0; i < this.myClass.length; i++)
-                    mapClass[this.myClass[i].id] = this.myClass[i];
-                trace(this.myClass)
-            } */
-        });
+                this.classList = {};
+                for(let key in data.structures)
+                    this.classList[key] = new MyClass(data.structures[key]);
+
+                this.query.protectionPost(113, { param: [ id ] }, (data) => // Загрузка структуры
+                {
+                    let tree = {
+                        childrens: data,
+                        edited: true,
+                        hide: false,
+                        open: false,
+                        ...this.object
+                    }
+                    let outData = [];
+                    this.straighten(outData, tree, 0, -1);
+
+                    // Если есть сохраненные значения hide/open
+                    let openCloseElement = this.openCloseElement[this.object.id];
+                    for(let i = 0; i < outData.length; i++)
+                        if(openCloseElement[outData[i].id])
+                        {
+                            outData[i].hide = openCloseElement[outData[i].id].hide;
+                            outData[i].open = openCloseElement[outData[i].id].open;
+                        }
+                        else
+                            if(i > 0)
+                            {
+                                outData[i].hide = true;
+                                outData[i].open = false;
+                            }
+                    this.myTree.data = outData;
+
+                    // Прописываем имена шаблонов и их id в классе
+                    this.query.protectionPost(494, { param: [ id ] }, (classBind) => // Загрузка связей уже созданной структуры
+                    {
+                        this.classBind = classBind;
+                        for(let i = 0; i < this.myTree.data.length; i++) // дозаполняем массив информацией
+                        {
+                            let object = this.myTree.data[i];
+                            if(classBind[object.id] === undefined)
+                            {
+                                object.gap = true;
+                                continue;
+                            }
+                            let _class = this.classList[classBind[object.id].classId];
+                            let element = _class.map[classBind[object.id].treeId];
+                            object.demandId = classBind[object.id].demandId;
+                            object.edited = classBind[object.id].edited;
+                            object.templateId = element.templateId;
+                            object.templateName = element.name || element.templateName;
+                            object.templateType = element.templateType;
+                        }
+                        this.mainList = this.myTree.straighten();
+                        this.loaded = true;
+                    })
+                })
+            });
+        })
     }
     straighten(out, data, level, parent) // из объекта получаем одномерный массив со всеми полями дерева
     {
@@ -123,8 +145,8 @@ export class CreateTemplateComponent implements OnInit
             state: data.state, 
             edited: data.edited, 
             level: level, 
-            hide: !(level <= 0), 
-            open: false, 
+            hide: data.hide, 
+            open: data.open, 
             parent: parent/* ,
             _parent: data.parent */
         };
@@ -136,6 +158,7 @@ export class CreateTemplateComponent implements OnInit
     }
     appendNode(i)
     {
+        let openCloseElement = this.openCloseElement[this.object.id];
         let object = this.mainList[i];
         let listData = [];
         let listValue = [];
@@ -163,7 +186,6 @@ export class CreateTemplateComponent implements OnInit
                 let treeId = Data.data[1][1].selected;
                 if(name == "") return "Введите имя!";
                 if(treeId == -1) return "Выберите шаблон!";
-                trace(_class)
                 let bindId = _class.map[treeId].templateId;
                 let classId = this.classBind[object.id].classId;
                 let type = _class.map[treeId].templateType;
@@ -172,53 +194,35 @@ export class CreateTemplateComponent implements OnInit
                     classId = _class.map[treeId].templateId;
                     treeId = this.classList[classId].tree.data[0].id;
                     bindId = this.classList[classId].tree.data[0].templateId;
-                    trace(classId)
                 }
-                this.query.protectionPost(493, { param: [ object.id, classId, Data.data[0][1], type, bindId, treeId ] }, (data) =>
+                this.query.protectionPost(493, { param: [ object.id, classId, Data.data[0][1], type, bindId, treeId ] }, (newId) =>
                 {
-                    trace(data)
+                    openCloseElement[newId] = { hide: !openCloseElement[object.id].open, open: false }
+                    this.initData();
                 })
             }
         });
-        /* if(!this.mainList[i].edited) return;
-        if(this.mainList[i].templateId === -1) return;
-        this.myTree.push(this.mainList[i].id, { 
-            name: "", 
-            templateId: -1, // id из базы данных
-            templateTreeId: -1, // id из массива myClass
-            templateParentId: this.mainList[i].templateId === undefined ? 1 : this.mainList[i].templateTreeId, // Для root
-            edited: true,
-            open: true,
-            hide: false,
-            level: this.mainList[i].level, 
-            last: this.lastLevel == this.mainList[i].level + 1 ? true : false 
-        });
-        this.mainList = this.myTree.straighten(); */
     }
     openCollapse(i)
     {
-        let begin = this.mainList[i].level + 1;
-        let open = !this.mainList[i].open;
-        let elem = this.myTree.getElement(this.mainList[i].id);
-        this.mainList[i].open = open; 
-        elem.open = open;
+        let openCloseElement = this.openCloseElement[this.object.id];
+        let elem = this.mainList[i];
+        let begin = elem.level + 1;
+        let open = !elem.open;
+        elem.open = open; 
+        openCloseElement[elem.id] = { hide: elem.hide, open: elem.open };
         for(let _i = i + 1; _i < this.mainList.length; _i++)
             if(this.mainList[_i].level < begin) break;
             else 
             {
-                elem = this.myTree.getElement(this.mainList[_i].id);
+                let elem = this.mainList[_i];
                 if(!open) 
                 {
-                    this.mainList[_i].open = false; // если закрываем
-                    this.mainList[_i].hide = true; // если закрываем
-                    elem.open = false;
-                    elem.hide = true;
+                    elem.open = false; // если закрываем
+                    elem.hide = true; // если закрываем
                 }
-                else if(this.mainList[_i].level == begin) 
-                {
-                    this.mainList[_i].hide = false; // если открываем
-                    elem.hide = false;
-                }
+                else if(elem.level == begin)  elem.hide = false; // если открываем
+                openCloseElement[elem.id] = { hide: elem.hide, open: elem.open };
             }
     }
     setCutElement(i)
@@ -251,14 +255,10 @@ export class CreateTemplateComponent implements OnInit
     }
     removeItem(i)
     {
-        
-    }
-    onChangeTemplate(i)
-    {
-        
-    }
-    onChangeName(i)
-    {
+        this.query.protectionPost(112, { param: [ this.mainList[i].id ] }, () => 
+        { 
+            this.initData();
+        });
     }
     Cancel(e?)
     {
@@ -269,39 +269,54 @@ export class CreateTemplateComponent implements OnInit
         if(this.animationOpen == false)
             this._open = false;
     }
+    demandTable;
+    addDemand(i)
+    {
+        if(!this.demandTable) 
+        {
+            this.modal.open({ title: "Не привязана таблица требований!", ok: "Ок", cancel: ""});
+            return;
+        }
+        // Запросить заголовки
+        this.query.protectionPost(253, { param: [ this.demandTable ] }, (dataHeader) => {
+
+            let fillFields = [];
+            let fillFieldsId = [];
+            for(let i = 0; i < dataHeader.length; i++)
+                if(dataHeader[i] && dataHeader[i].fill) 
+                {
+                    fillFieldsId.push(dataHeader[i].id);
+                    fillFields.push([dataHeader[i].value, "", "text"]);
+                }
+            if(fillFields.length == 0)
+                this.modal.open({ title: "У таблицы требований нету обязательных заголовков!", data: [], ok: "Ок", cancel: ""});
+            else this.modal.open({ title: "Заполнить поля", data: fillFields, ok: "Ок", cancel: "Отмена"}, (save) =>
+            {
+                if(!save) return;
+                this.query.protectionPost(257, { param: [ this.demandTable, -1, -1 ] }, (data) => {
+                    for(let i = 0; i < fillFieldsId.length; i++)
+                    {
+                        data[fillFieldsId[i]].value = fillFields[i][1];
+                        if(i == 0)
+                            this.query.protectionPost(496, { param: [ this.mainList[i].id,  data[fillFieldsId[i]].id ] }, () => {
+                                this.mainList[i].demandId = data[fillFieldsId[i]].id;
+                            });
+                        this.query.protectionPost(252, { param: [ this.demandTable,  JSON.stringify(data[fillFieldsId[i]]) ] }, null);
+                        
+                    }
+                });
+            });
+            // Добавить строку в таблицу
+            // Привязать к записи demand_id
+        });
+    }
+    seacrhCell(demandId)
+    {
+        this.query.onChange({ type: "openFromTable", value: { name: "cell", id: demandId }});
+    }
     seacrhElement(templateId)
     {
         this.query.onChange({ type: "openFromTable", value: { name: "table", id: templateId }});
-    }
-    loaded = true;
-    error = "";
-    Create()
-    {
-        // Отправляем 1 - структура для создания дирректории
-        // 2 - дерево этой структуры
-        // 3 - родительская дирректория
-        // 4 - id класса
-        /* let error = false;
-        this.error = "";
-        for(let i = 0; i < this.myTree.data.length; i++)
-            if(this.myTree.data[i].templateId === -1) error = true;
-        if(error)
-        {
-            this.error = "Не выставлен шаблон!";
-            return;
-        }
-        this.loaded = false;
-        this.query.protectionPost(493, { param: [ 
-            JSON.stringify(this.mainList), 
-            JSON.stringify(this.myTree.data), 
-            this.parent, 
-            this.settings.id, 
-            this.settings.new
-        ] }, (data) =>
-        {
-            this.loaded = true;
-            this.Cancel("update");
-        }); */
     }
 }
 class MyClass

@@ -93,13 +93,8 @@
         case 112: // Удаление элемента структуры // Права на изменение
             $idElement = (int)$param[0];
             if(($myRight->get($idElement) & 8) != 8) return; // Права на изменение
-            if($result = query("SELECT objectType, class, classId FROM structures WHERE id = %i", [ $idElement ]))
-            {
-                $row = $result->fetch_assoc();
-                if($row["objectType"] == "table" && $row["class"] == 1 && is_null($row["classId"])) return; // Ограничение для удаления в таблицах созданных конструктором
-                query("UPDATE structures SET trash = 1 WHERE id = %i", [$idElement]);
-                $myLog->add("structure", "remove", $idElement);
-            }
+            query("UPDATE structures SET trash = 1 WHERE id = %i", [$idElement]);
+            $myLog->add("structure", "remove", $idElement);
             break;
         case 113: // Загрузка структуры без выпрямления
             $out = [];

@@ -16,8 +16,8 @@ export class CreateFilterService
             let column = [];
             for(let i = 0; i < head.length; i++) 
             {
-                fields.push({ id: head[i][0], value: head[i][1] });
-                column.push({ id: head[i][0], value: head[i][1], check: true });
+                fields.push({ id: head[i].id, value: head[i].value });
+                column.push({ id: head[i].id, value: head[i].value, check: true });
             }
             let Data:any = {
                 title: "<b>Создание фильтра</b>",  
@@ -53,8 +53,8 @@ export class CreateFilterService
             let columnMap = {}; // Для быстрого заполнения, чтобы не делать двойную проверку
             for(let i = 0; i < head.length; i++) 
             {
-                fields[i] = { id: head[i][0], value: head[i][1] };
-                column[i] = { id: head[i][0], value: head[i][1], check: true };
+                fields.push({ id: head[i].id, value: head[i].value });
+                column.push({ id: head[i].id, value: head[i].value, check: true });
                 columnMap[column[i].id] = i;
             }
             this.query.protectionPost(472, { param: [ id ] }, (data) => 

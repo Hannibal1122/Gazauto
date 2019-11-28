@@ -60,10 +60,14 @@
             $head = [];
             if(selectOne("SELECT objectType FROM structures WHERE id = %i", [ $idTable ]) == "table")
             {
-                if($result = query("SELECT id, value FROM fields WHERE tableId = %i AND type = 'head' ORDER by i", [$idTable]))
-                    while ($row = $result->fetch_array(MYSQLI_NUM)) $head[] = $row;
+                if($result = query("SELECT id, value, fill FROM fields WHERE tableId = %i AND type = 'head' ORDER by i", [$idTable]))
+                    while ($row = $result->fetch_assoc()) $head[] = $row;
             }
-            else $head = [[1, "Имя"], [2, "Тип"], [3, "Хэштег"]];
+            else $head = [ 
+                [ "id" => 1, "value" => "Имя"], 
+                [ "id" => 2, "value" => "Тип"], 
+                [ "id" => 3, "value" => "Хэштег"]
+            ];
             echo json_encode($head);
             break;
         case 254: // резерв

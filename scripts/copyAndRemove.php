@@ -136,6 +136,7 @@
             }
             query("DELETE FROM structures WHERE id = %i", [ (int)$idElement ]);
             query("DELETE FROM rights WHERE objectId = %i", [ (int)$idElement ]);
+            query("DELETE FROM classes_bind WHERE structure_id = %i", [ (int)$idElement ]);
             $this->myLog->add("structure", "remove", $idElement);
         }
     }

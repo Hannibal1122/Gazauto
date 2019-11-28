@@ -2,38 +2,37 @@
     <div class = "mainPanel" [class.open-modal] = "animationOpen" (transitionend) = "animationCloseModal()">
         <div>
             Объект класса '{{ name }}'
+            <div style = "float:right; margin-right:10px;">
+                <a *ngIf = "demandTable"
+                    title = "Требования" 
+                    (click) = "seacrhElement(demandTable)"
+                    style = "border-bottom: 1px dashed rgb(50, 110, 189); color:rgb(50, 110, 189); cursor: pointer; margin-left:5px;">
+                    <span>Таблица требований</span>
+                    <span style = "font-size: 10px;"> {{ demandTable }}</span>
+                </a>
+            </div>
         </div>
         <div style = "min-height: 330px; border:1px solid #eeeeee; margin-top:5px; padding: 3px; overflow: auto;">
             <table class = "table-zebra">
                 <ng-container *ngFor = "let list of mainList; let i = index;">
                     <tr *ngIf = "!list.hide">
-                        <td [style.padding-left] = "list.level * 15 + 20 + 'px'" style = "margin-bottom:2px; white-space: nowrap; padding-right: 10px;">
+                        <td [style.padding-left] = "list.level * 15 + 20 + 'px'" 
+                            [class.bind-gap] = "list.gap === true"
+                            style = "margin-bottom:2px; white-space: nowrap; padding-right: 10px;">
                             
                             <span style = "position:relative; margin-right: 5px;">
                                 <span *ngIf = "list.end !== true && list.open" (click) = "openCollapse(i)"><i class="fa fa-caret-down" style = "position: absolute; cursor: pointer; left: -15px; top: 0px;"></i></span>
                                 <span *ngIf = "list.end !== true && !list.open" (click) = "openCollapse(i)"><i class="fa fa-caret-right" style = "position: absolute; cursor: pointer; left: -11px; top: 0px;"></i></span>
-                                <span><i class="fas fa-table colorIconTable"></i></span>
-                                <!-- <span *ngIf = "rule.templateType == 'class'"><i class="fa fa-pencil-ruler colorIconExplorer"></i></span> -->
+                                <span *ngIf = "list.objectType == 'table'"><i class="fas fa-table colorIconTable"></i></span>
+                                <span *ngIf = "list.objectType == 'filter'"><i class="fa fa-filter colorIconTable"></i></span>
                             </span>
-                            <!-- <span style = "cursor: pointer; position:relative;" (click) = "openCollapse(i)">
-                                <i class="fas fa-table colorIconTable"></i>
-                                <span *ngIf = "list.end !== true" style = "position: absolute; font-size: 12px; bottom: -9px; left: -3px;"><i class="fas fa-ellipsis-h colorIconTable"></i></span>
-                            </span>  -->
 
-                            <!-- <select class = "mainSelect" 
-                                [(ngModel)] = "list.templateTreeId" 
-                                (change) = "onChangeTemplate(i)" 
-                                [disabled] = "!list.edited || list.globalId"
-                                style = "margin-left:5px; margin-right: 5px;">
-                                <option *ngFor = "let o of listTemplateById[list.templateParentId]" [attr.value] = "o.id">{{ o.templateName }}</option>
-                            </select> -->
-
-                            <!-- <input *ngIf = "!list.globalId" class = "mainSelect" type="text" [(ngModel)] = "list.name" (change) = "onChangeName(i)" placeholder="имя"> -->
                             <span>{{ list.name }}</span>
-                            <a title = "Шаблон" 
+                            <a *ngIf = "list.templateName"
+                                title = "Шаблон" 
                                 (click) = "seacrhElement(list.templateId)"
                                 style = "border-bottom: 1px dashed rgb(50, 110, 189); color:rgb(50, 110, 189); cursor: pointer; margin-left:5px;">
-                                <span>{{ list.templateName ? list.templateName : "Undefined" }}</span>
+                                <span>{{ list.templateName }}</span>
                                 <span style = "font-size: 10px;"> {{ list.templateId }}</span>
                             </a>
                             <span *ngIf = "list.state" 
@@ -51,6 +50,13 @@
                                     style = "width:24px; height: 24px; font-size:12px; min-width: 24px; margin-left: 5px;" 
                                     [disabled] = "cutElement == -1 || !list.globalId"
                                     (click) = "pasteCutElement(i)"><i class="fas fa-paste"></i></button>
+                                <a *ngIf = "list.demandId"
+                                    title = "Требование" 
+                                    (click) = "seacrhCell(list.demandId)"
+                                    style = "border-bottom: 1px dashed rgb(50, 110, 189); color:rgb(50, 110, 189); cursor: pointer; margin-left:5px;">
+                                    <span>{{ list.demandId }}</span>
+                                </a>
+                                <span *ngIf = "!list.demandId" class = "caret-demand" (click) = "addDemand(i)" [class.-disabled] = "!list.edited" title = "Добавить требование"><i class="fas fa-bookmark"></i></span>
                                 <span class = "caret-remove" (click) = "removeItem(i)" [class.-disabled] = "!list.edited || i == 0"><i class="fas fa-minus-circle"></i></span>
                                 <span class = "caret-append" (click) = "appendNode(i)" [class.-disabled] = "!list.edited"> <i class="fas fa-plus-circle"></i></span>
                             </div>
@@ -61,10 +67,9 @@
         </div>
         <div style = "text-align: right;">
             <span *ngIf = "error != ''" style = "float: left; color:rgb(224, 59, 59); max-width: 360px; text-align: left;">{{ error }}</span>
-            <button class = "propertyBtn" (click) = "Cancel()">Отмена</button>
-            <button class = "propertyBtn" (click) = "Create()" style = "width:85px;">
+            <button class = "propertyBtn" (click) = "Cancel()">
                 <span *ngIf = "!loaded"><i class="fas fa-spinner spinnerLoader"></i></span>
-                <span *ngIf = "loaded">{{ settings.new !== false ? 'Создать' : 'Изменить' }}</span>
+                <span *ngIf = "loaded">{{ 'Закрыть' }}</span>
             </button>
         </div>
     </div>
