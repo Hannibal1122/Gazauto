@@ -12,48 +12,58 @@
                 </a>
             </div>
         </div>
-        <div style = "min-height: 330px; border:1px solid #eeeeee; margin-top:5px; padding: 3px; overflow: auto;">
+        <div style = "min-height: 330px; min-width: 600px; border:1px solid #eeeeee; margin-top:5px; padding: 3px; overflow: auto;">
             <table class = "table-zebra">
                 <ng-container *ngFor = "let list of mainList; let i = index;">
                     <tr *ngIf = "!list.hide">
                         <td [style.padding-left] = "list.level * 15 + 20 + 'px'" 
-                            [class.bind-gap] = "list.gap === true"
+                            [class.bind-gap] = "list.gap === true || !list.edited"
                             style = "margin-bottom:2px; white-space: nowrap; padding-right: 10px;">
                             
                             <span style = "position:relative; margin-right: 5px;">
                                 <span *ngIf = "list.end !== true && list.open" (click) = "openCollapse(i)"><i class="fa fa-caret-down" style = "position: absolute; cursor: pointer; left: -15px; top: 0px;"></i></span>
                                 <span *ngIf = "list.end !== true && !list.open" (click) = "openCollapse(i)"><i class="fa fa-caret-right" style = "position: absolute; cursor: pointer; left: -11px; top: 0px;"></i></span>
                                 <span *ngIf = "list.objectType == 'table'"><i class="fas fa-table colorIconTable"></i></span>
+                                <span *ngIf = "list.objectType == 'folder'"><i class="fa fa-folder colorIconFolder"></i></span>
                                 <span *ngIf = "list.objectType == 'filter'"><i class="fa fa-filter colorIconTable"></i></span>
                             </span>
 
-                            <span>{{ list.name }}</span>
+                            <a (click) = "seacrhElement(list.id)"
+                                style = "">
+                                <span>{{ list.name }}</span>
+                            </a>
+                        </td>
+                        <td>
                             <a *ngIf = "list.templateName"
                                 title = "Шаблон" 
                                 (click) = "seacrhElement(list.templateId)"
-                                style = "border-bottom: 1px dashed rgb(50, 110, 189); color:rgb(50, 110, 189); cursor: pointer; margin-left:5px;">
+                                style = "border-bottom: 1px dashed;">
                                 <span>{{ list.templateName }}</span>
                                 <span style = "font-size: 10px;"> {{ list.templateId }}</span>
                             </a>
+                        </td>
+                        <td>
                             <span *ngIf = "list.state" 
                                 style = "font-size:12px; font-weight: 600; border-radius: 8px; padding: 2px 3px; margin-left:5px;"
                                 [class.tableCellStateRed] = "list.state < 50"
                                 [class.tableCellStateYellow] = "list.state >= 50 && list.state < 100"
                                 [class.tableCellStateGreen] = "list.state == 100">
                                 {{ list.state }}%</span>
-                            <div style = "float:right; margin-left:20px;">
+                        </td>
+                        <td>
+                            <div style = "float:right; margin-left:20px; margin-right:10px;">
                                 <button class = "mainButton" 
                                     style = "width:24px; height: 24px; font-size:12px; min-width: 24px;" 
-                                    [disabled] = "!list.globalId"
+                                    [disabled] = "!list.edited || i == 0"
                                     (click) = "setCutElement(i)"><i class="fas fa-cut"></i></button>
                                 <button class = "mainButton" 
                                     style = "width:24px; height: 24px; font-size:12px; min-width: 24px; margin-left: 5px;" 
-                                    [disabled] = "cutElement == -1 || !list.globalId"
+                                    [disabled] = "cutElement == -1 || !list.edited"
                                     (click) = "pasteCutElement(i)"><i class="fas fa-paste"></i></button>
                                 <a *ngIf = "list.demandId"
                                     title = "Требование" 
                                     (click) = "seacrhCell(list.demandId)"
-                                    style = "border-bottom: 1px dashed rgb(50, 110, 189); color:rgb(50, 110, 189); cursor: pointer; margin-left:5px;">
+                                    style = "border-bottom: 1px dashed;">
                                     <span>{{ list.demandId }}</span>
                                 </a>
                                 <span *ngIf = "!list.demandId" class = "caret-demand" (click) = "addDemand(i)" [class.-disabled] = "!list.edited" title = "Добавить требование"><i class="fas fa-bookmark"></i></span>

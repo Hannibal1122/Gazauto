@@ -84,7 +84,19 @@
 {
     background-color: rgba(216, 225, 233, 0.5);
 }
+.table-zebra a
+{
+    border-color:rgb(50, 110, 189); 
+    color:rgb(50, 110, 189);
+    cursor: pointer; 
+    margin-left:5px;
+}
 .bind-gap
 {
+    color: gray;
+}
+.bind-gap a
+{
+    border-color:gray; 
     color: gray;
 }

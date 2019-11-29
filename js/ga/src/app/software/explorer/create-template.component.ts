@@ -64,6 +64,7 @@ export class CreateTemplateComponent implements OnInit
         this.query.protectionPost(133, { param: [ id ] }, (data) => // Загрузка таблицы требований
         {
             let userProperty = JSON.parse(data.userProperty);
+            this.demandTable = null;
             if(userProperty)
                 for(let i = 0; i < userProperty.length; i++)
                     if(userProperty[i].type == "annotation")
@@ -151,15 +152,19 @@ export class CreateTemplateComponent implements OnInit
             _parent: data.parent */
         };
         level++;
-        if(childrens.length == 0) out[j].end = true;
-        else
+        if(childrens.length > 0)
             for(j = 0; j < childrens.length; j++)
                 this.straighten(out, childrens[j], level, data.id);
     }
     appendNode(i)
     {
-        let openCloseElement = this.openCloseElement[this.object.id];
         let object = this.mainList[i];
+        if(this.classBind[object.id] === undefined || !object.edited)
+        {
+            this.modal.open({ title: "Невозможно добавить элемент!", data: [], ok: "Ок", cancel: ""});
+            return;
+        }
+        let openCloseElement = this.openCloseElement[this.object.id];
         let listData = [];
         let listValue = [];
         let listTemplate = [];
@@ -203,6 +208,19 @@ export class CreateTemplateComponent implements OnInit
             }
         });
     }
+    removeItem(i)
+    {
+        let object = this.mainList[i];
+        if(!object.edited)
+        {
+            this.modal.open({ title: "Невозможно удалить элемент!", data: [], ok: "Ок", cancel: ""});
+            return;
+        }
+        this.query.protectionPost(112, { param: [ object.id ] }, () => 
+        { 
+            this.initData();
+        });
+    }
     openCollapse(i)
     {
         let openCloseElement = this.openCloseElement[this.object.id];
@@ -231,10 +249,19 @@ export class CreateTemplateComponent implements OnInit
     }
     pasteCutElement(i)
     {
+        if(this.cutElement < 0) return;
+        let objectFrom = this.mainList[this.cutElement];
+        let objectTo = this.mainList[i];
+        let from = this.classBind[objectFrom.parent];
+        let to = this.classBind[objectTo.id];
+        if(from.classId !== to.classId || from.treeId !== to.treeId)
+        {
+            this.modal.open({ title: "Невозможно вставить элемент!", data: [], ok: "Ок", cancel: ""});
+            return;
+        }
         this.loaded = false;
-        let cutElement = this.myTree.getElement(this.mainList[this.cutElement].id);
         //Применить функцию вырезать 
-        this.query.protectionPost(495, { param: [ cutElement.globalId, this.mainList[i].globalId ] }, (errors) => {
+        this.query.protectionPost(495, { param: [ objectFrom.id, objectTo.id ] }, (errors) => {
             // В ответ могут прийти только ошибки
             this.error = "";
             if(Array.isArray(errors))
@@ -244,21 +271,9 @@ export class CreateTemplateComponent implements OnInit
                 this.loaded = true;
                 return;
             }
-            cutElement.parent = this.mainList[i].id;
-            //Сохранить новую структуру
-            this.query.protectionPost(496, { param: [ this.object.id, JSON.stringify(this.myTree.data) ] }, (data) => {
-                this.mainList = this.myTree.straighten();
-                this.loaded = true;
-            });
-        });
-        this.cutElement = -1;
-    }
-    removeItem(i)
-    {
-        this.query.protectionPost(112, { param: [ this.mainList[i].id ] }, () => 
-        { 
             this.initData();
         });
+        this.cutElement = -1;
     }
     Cancel(e?)
     {
@@ -272,9 +287,15 @@ export class CreateTemplateComponent implements OnInit
     demandTable;
     addDemand(i)
     {
+        let object = this.mainList[i];
+        if(!object.edited)
+        {
+            this.modal.open({ title: "Невозможно добавить требование!", data: [], ok: "Ок", cancel: ""});
+            return;
+        }
         if(!this.demandTable) 
         {
-            this.modal.open({ title: "Не привязана таблица требований!", ok: "Ок", cancel: ""});
+            this.modal.open({ title: "Не привязана таблица требований!", data: [], ok: "Ок", cancel: ""});
             return;
         }
         // Запросить заголовки
@@ -298,11 +319,10 @@ export class CreateTemplateComponent implements OnInit
                     {
                         data[fillFieldsId[i]].value = fillFields[i][1];
                         if(i == 0)
-                            this.query.protectionPost(496, { param: [ this.mainList[i].id,  data[fillFieldsId[i]].id ] }, () => {
-                                this.mainList[i].demandId = data[fillFieldsId[i]].id;
+                            this.query.protectionPost(496, { param: [ object.id,  data[fillFieldsId[i]].id ] }, () => {
+                                object.demandId = data[fillFieldsId[i]].id;
                             });
                         this.query.protectionPost(252, { param: [ this.demandTable,  JSON.stringify(data[fillFieldsId[i]]) ] }, null);
-                        
                     }
                 });
             });

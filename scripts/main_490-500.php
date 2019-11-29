@@ -75,7 +75,7 @@
             if(($myRight->get($idParentTo) & 8) != 8) continue; // Права на изменение
 
             // Проверка на ошибки
-            $out = [$idElement]; 
+            $out = [$idElement];
             $errors = [];
             getRemoveElementbyStructure($out, $idElement);
             for($i = 0, $c = count($out); $i < $c; $i++)
@@ -83,7 +83,7 @@
                 $elementData = query("SELECT parent FROM structures WHERE id = %i", [ $out[$i] ])->fetch_assoc();
                 if($out[$i] == $idParentTo) $errors[] = "ERROR_IN_ITSELF"; //Проверка на добавление папки саму в себя
             }
-            if(count($errors) > 0) 
+            if(count($errors) > 0)
             {
                 echo json_encode($errors);
                 return;
