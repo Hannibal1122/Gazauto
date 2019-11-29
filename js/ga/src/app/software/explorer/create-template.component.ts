@@ -202,7 +202,10 @@ export class CreateTemplateComponent implements OnInit
                 }
                 this.query.protectionPost(493, { param: [ object.id, classId, Data.data[0][1], type, bindId, treeId ] }, (newId) =>
                 {
-                    openCloseElement[newId] = { hide: !openCloseElement[object.id].open, open: false }
+                    openCloseElement[newId] = { 
+                        hide: openCloseElement[object.id] ? !openCloseElement[object.id].open : true,
+                        open: false 
+                    }
                     this.initData();
                 })
             }
