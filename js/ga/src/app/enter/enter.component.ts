@@ -32,7 +32,7 @@ export class EnterComponent
                         localStorage.setItem("checkKey", data[0]);
                         localStorage.setItem("login", data[1]);
                         localStorage.setItem("name", data[2]);
-                        location.href = "/";
+                        location.href = document.getElementsByTagName("base")[0].getAttribute("href");
                     }
                     else this.error = "Неверный логин или пароль!";
                 });

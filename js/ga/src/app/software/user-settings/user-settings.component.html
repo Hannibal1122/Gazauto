@@ -26,7 +26,7 @@
     <div>Фон:</div>
     <div style = "width:280px; max-height: 280px; overflow: auto; display: flex; flex-wrap: wrap; align-items: center; justify-content: center;">
         <div class = "themeTab" *ngFor = "let background of backgrounds" [class.themeImage] = "background.type == 'image'" (click) = "setBackground(background)">
-            <img *ngIf = "background.type == 'image'" width = "100%" src = "{{ '/assets/img/theme/thumbs/_' + background.name }}">
+            <img *ngIf = "background.type == 'image'" width = "100%" src = "{{ 'assets/img/theme/thumbs/_' + background.name }}">
             <div *ngIf = "background.type == 'color'" style = "width: 100%; height:80%; margin-top:10%;" [style.background-color] = "background.name"></div>
         </div>
         <div class = "themeTab" style = "text-align: center; line-height: 80px; padding: 0px; font-size: 24px;"(click) = "setBackground('')">

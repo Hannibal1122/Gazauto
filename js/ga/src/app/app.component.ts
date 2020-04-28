@@ -50,7 +50,7 @@ export class AppComponent implements OnInit
     {
         set current(value)
         {
-            if(value.type == "image") this.style["background-image"] = 'url(/assets/img/theme/' + value.name + ')';
+            if(value.type == "image") this.style["background-image"] = 'url(assets/img/theme/' + value.name + ')';
             else
             if(value.type == "color")
             {
@@ -68,9 +68,10 @@ export class AppComponent implements OnInit
         private ref: ApplicationRef
     ) 
     { 
-        switch(location.pathname)
+        let lParam:any = this.query.getValueBySrc(location.search);
+        switch(lParam.mode)
         {
-            case "/":
+            case undefined:
                 query.post(0, {}, (data) => { this.Version = data.main });
                 if(location.search == "?set_type=install")
                     $.post(environment.URL, {nquery: -1}, (data)=>{ console.log(data) });
@@ -89,7 +90,7 @@ export class AppComponent implements OnInit
                     }
                 });
                 break;
-            case "/table":
+            case "table":
                 this.windowType = "table";
                 break;
             /* case "/constructor":
@@ -123,7 +124,7 @@ export class AppComponent implements OnInit
             mainThemeCss.setAttribute("rel", "stylesheet");
             document.getElementsByTagName('head')[0].appendChild(mainThemeCss);
         }
-        mainThemeCss.setAttribute("href", "/assets/css/main-theme-" + value + ".css");
+        mainThemeCss.setAttribute("href", "assets/css/main-theme-" + value + ".css");
     }
     leftMenuScroll = 
     {
@@ -199,11 +200,20 @@ export class AppComponent implements OnInit
         /* this.removeSaveTab(_i); */
         this.setCurrentStickers();
     }
+    closeAllTabs()
+    {
+        let i = 0;
+        for(; i < this.tabs.length; i++)
+            if(this.tabs[i].type == "table")
+                this.globalEvent.unsubscribe("table", this.tabs[i].software.inputs.id);
+        this.tabs = [];
+        this.splitScreen.closeAllTabs();
+    }
     leftMenuConfig = [];
     refreshLeftMenu() // обновить левое меню
     {
         this.query.protectionPost(113, { param: [] }, (data) => 
-        { 
+        {
             if(!Array.isArray(data)) return;
             this.leftMenuConfig = [];
             if(data.length < this.leftMenuData.length) this.leftMenuData.splice(data.length - 1, this.leftMenuData.length);
@@ -300,9 +310,7 @@ export class AppComponent implements OnInit
                 {
                     if(save)
                     {
-                        this.tabs = [];
-                        this.splitScreen.closeAllTabs();
-
+                        this.closeAllTabs();
                         this.query.protectionPost(451, { param: ["user_favorites"] }, (favorites) =>
                         {
                             this.favorites = favorites || {};
@@ -326,7 +334,7 @@ export class AppComponent implements OnInit
                 this.globalEvent.subscribe("table", tableId, (event) =>
                 {
                     let i = this.checkRepeatSoftware(type, tableId);
-                    if(this.tabs[i].useIframe)
+                    if(this.tabs[i] && this.tabs[i].useIframe)
                     {
                         let iframe = this.tabs[i].iframe;
                         if(iframe === null) return;
@@ -349,15 +357,16 @@ export class AppComponent implements OnInit
         var input = software.inputs;
         var name = "";
         let param;
+        let _location = document.getElementsByTagName("base")[0].getAttribute("href");
         switch(type)
         {
             case "explorer": 
                 name = input.type === "recycle" ? "Корзина" : "Проводник"; 
                 break;
             case "table": 
-                param = "id=" + input.id;
+                param = "id=" + input.id + "&mode=table";
                 if(input.searchObjectId) param += "&searchObjectId=" + input.searchObjectId;
-                software.securitySrc = this.sanitizer.bypassSecurityTrustResourceUrl("/table?" + param);
+                software.securitySrc = this.sanitizer.bypassSecurityTrustResourceUrl(_location + "?" + param);
                 name = "Редактор таблицы"; 
                 break;
             case "class": name = "Конструктор шаблонов"; break;

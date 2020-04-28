@@ -534,7 +534,7 @@
             {
                 $this->recursion["table"][$idTable] = true; // Устанавливается флаг, таблица посчитана(защита от зацикливания)
                 // Считаем средний статус по таблице
-                if($result = query("SELECT avg(state) FROM fields WHERE tableId = %i AND type != 'head' AND state > 0", [ (int)$idTable ])) 
+                if($result = query("SELECT max(state) FROM fields WHERE tableId = %i AND type != 'head' AND state > 0", [ (int)$idTable ])) 
                     $state = (int)$result->fetch_array(MYSQLI_NUM)[0];
                 query("UPDATE structures SET state = %i WHERE id = %i", [ $state, (int)$idTable ]);
                 $this->myLog->add("table", "state", $idTable);
@@ -551,7 +551,7 @@
         function calculateStateForFolder($parentId) // Посчитать статус папки
         {
             $state = 0;
-            if($result = query("SELECT avg(state) FROM structures WHERE parent = %i AND state > 0", [ $parentId ]))
+            if($result = query("SELECT max(state) FROM structures WHERE parent = %i AND state > 0", [ $parentId ]))
                 $state = (int)$result->fetch_array(MYSQLI_NUM)[0];
             query("UPDATE structures SET state = %i WHERE id = %i", [ $state, $parentId ]);
             if($result = query("SELECT parent FROM structures WHERE id = %i", [ $parentId ]))

@@ -120,6 +120,11 @@ export class CreateTemplateComponent implements OnInit
                             }
                             let _class = this.classList[classBind[object.id].classId];
                             let element = _class.map[classBind[object.id].treeId];
+                            if(!element) 
+                            {
+                                object.gap = true;
+                                continue;
+                            }
                             object.demandId = classBind[object.id].demandId;
                             object.edited = classBind[object.id].edited;
                             object.templateId = element.templateId;
